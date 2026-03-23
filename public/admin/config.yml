@@ -3,7 +3,7 @@ backend:
   repo: HONGLEI111/Fuwariblog
   branch: main # Branch to update (optional; defaults to master)
   site_domain: https://blog.hehonglei.cn
-  base_url: https://blog.hehonglei.cn
+  base_url: https://fuwariblog-cms.netlify.app
   auth_endpoint: /api/auth
 
 media_folder: public/images
