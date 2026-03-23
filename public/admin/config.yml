@@ -1,22 +1,24 @@
-backend:
-  name: netlify
-  site_url: https://blog.hehonglei.cn      # 你的博客主站
-  base_url: https://fuwariblog-cms.netlify.app  # 下一步创建的 Netlify 站点
-
-media_folder: "public/images/uploads"   # 仓库内媒体存储路径
-public_folder: "/images/uploads"        # 站点访问路径（与 Astro 静态资源匹配）
-
 collections:
-  - name: "posts"
-    label: "文章"
-    folder: "src/content/blog"           # ✅ 请确认你的 Astro 博客内容实际路径！
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    fields:
-      - {label: "标题", name: "title", widget: "string"}
-      - {label: "日期", name: "date", widget: "datetime"}
-      - {label: "摘要", name: "description", widget: "text", required: false}
-      - {label: "正文", name: "body", widget: "markdown"}
-      - {label: "标签", name: "tags", widget: "list", required: false}
-      - {label: "草稿", name: "draft", widget: "boolean", default: false}
-
+  - name: "terminal" # 用于路由，例如，/admin/collections/blog
+    label: "paper" # 在 UI 中使用
+    folder: "src/content/posts" # 存储文档的文件夹路径
+    create: true # 允许用户在此集合中创建新文档
+    fields: # 每个文档的字段，通常在 front matter 中
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "发布日期", name: "published", widget: "datetime", format: "YYYY-MM-DD" }
+      - { label: "描述", name: "description", widget: "text", required: false }
+      - { label: "封面图片", name: "image", widget: "image", default: "https://rdimg.yumehinata.com/random-wallpaper"}
+      - { label: "标签", name: "tags", widget: "list", required: false }
+      - { label: "分类", name: "category", widget: "string", required: false }
+      - { label: "草稿状态", name: "draft", widget: "boolean", default: false }
+      - { label: "正文", name: "body", widget: "markdown" }
+media_folder: "/src/content/posts/images" # 文件将被存储在仓库中的位置
+# public_folder: "./images" # 上传媒体文件的 src 属性
+backend:
+  name: github
+  repo: "HONGLEI111/Fuwariblog"
+  branch: "main" # 选择对应的分支，默认是main分支或者master分支
+  api_root: "https://api.github.com"
+  site_url: "https://blog.hehonglei.cn/admin/" # 例如https://example.com
+  base_url: "https://blog.hehonglei.cn/admin/"
+  auth_endpoint: "auth" # 后续使用幻梦提供的外部 OAuth 客户端可以保持不变
