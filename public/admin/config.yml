@@ -1,0 +1,22 @@
+backend:
+  name: netlify
+  site_url: https://blog.hehonglei.cn      # 你的博客主站
+  base_url: https://fuwariblog-cms.netlify.app  # 下一步创建的 Netlify 站点
+
+media_folder: "public/images/uploads"   # 仓库内媒体存储路径
+public_folder: "/images/uploads"        # 站点访问路径（与 Astro 静态资源匹配）
+
+collections:
+  - name: "posts"
+    label: "文章"
+    folder: "src/content/blog"           # ✅ 请确认你的 Astro 博客内容实际路径！
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "标题", name: "title", widget: "string"}
+      - {label: "日期", name: "date", widget: "datetime"}
+      - {label: "摘要", name: "description", widget: "text", required: false}
+      - {label: "正文", name: "body", widget: "markdown"}
+      - {label: "标签", name: "tags", widget: "list", required: false}
+      - {label: "草稿", name: "draft", widget: "boolean", default: false}
+
