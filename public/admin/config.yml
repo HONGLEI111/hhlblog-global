@@ -4,7 +4,7 @@ backend:
   branch: main # Branch to update (optional; defaults to master)
   site_domain: https://blog.hehonglei.cn
   base_url: https://fuwariblog-cms.netlify.app
-  auth_endpoint: https://fuwariblog-cms.netlify.app/.netlify/identity
+  auth_endpoint: /.netlify/identity
 
 media_folder: public/images
 public_folder: /images
