@@ -2,9 +2,9 @@ backend:
   name: github
   repo: HONGLEI111/Fuwariblog
   branch: main # Branch to update (optional; defaults to master)
-  site_domain: https://blog.hehonglei.cn
+  site_domain: https://fuwariblog-cms.netlify.app/
   base_url: https://fuwariblog-cms.netlify.app
-  auth_endpoint: /.netlify/identity
+  auth_endpoint: https://identity.netlify.com/v1/netlify-auth
 
 media_folder: public/images
 public_folder: /images
