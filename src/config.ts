@@ -45,10 +45,29 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Archive,
 		LinkPreset.About,
 		{
-			name: "GitHub",
-			url: "https://github.com/saicaca/fuwari", // Internal links should not include the base path, as it is automatically added
-			external: true, // Show an external link icon and will open in a new tab
-		},
+                        name: "博客",
+                        url: "/blog/",
+                        external: false,
+                        icon: "material-symbols:group-outline-rounded",
+                },
+                {
+                        name: "技术",
+                        url: "/technology/",
+                        external: false,
+                        icon: "material-symbols:volunteer-activism-outline-rounded",
+                },
+                {
+                        name: "阅读",
+                        url: "/read/",
+                        external: false,
+                        icon: "material-symbols:build-outline-rounded",
+                },
+                {
+                        name: "工具",
+                        url: "/tools/",
+                        external: false,
+                        icon: "material-symbols:build-outline-rounded",
+                },
 	],
 };
 
