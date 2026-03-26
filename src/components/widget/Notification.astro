@@ -1,0 +1,297 @@
+---
+// src/components/widget/Notification.astro
+interface Props {
+  title?: string;
+  message?: string;
+  type?: 'success' | 'warning' | 'info' | 'error';
+  duration?: number;
+  showClose?: boolean;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+}
+
+const { 
+  title = "通知", 
+  message = "这是一条通知消息", 
+  type = 'info',
+  duration = 4500,
+  showClose = true,
+  position = 'top-right'
+} = Astro.props;
+
+const typeConfig = {
+  success: { 
+    icon: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
+    color: 'text-green-500',
+    border: 'border-green-500',
+    bg: 'bg-green-50 dark:bg-green-900/20'
+  },
+  warning: { 
+    icon: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+    color: 'text-amber-500',
+    border: 'border-amber-500',
+    bg: 'bg-amber-50 dark:bg-amber-900/20'
+  },
+  info: { 
+    icon: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>',
+    color: 'text-blue-500',
+    border: 'border-blue-500',
+    bg: 'bg-blue-50 dark:bg-blue-900/20'
+  },
+  error: { 
+    icon: '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>',
+    color: 'text-red-500',
+    border: 'border-red-500',
+    bg: 'bg-red-50 dark:bg-red-900/20'
+  }
+};
+
+const config = typeConfig[type];
+
+const positionStyles = {
+  'top-right': 'top-4 right-4',
+  'top-left': 'top-4 left-4',
+  'bottom-right': 'bottom-4 right-4',
+  'bottom-left': 'bottom-4 left-4'
+};
+---
+
+<div 
+  id="notificationContainer"
+  class={`fixed ${positionStyles[position]} z-[9999] flex flex-col gap-3 pointer-events-none`}
+  data-duration={duration}
+  data-show-close={showClose}
+>
+  <div 
+    id="notification"
+    class="notification-card pointer-events-auto min-w-[330px] max-w-[400px] bg-white dark:bg-neutral-800 rounded-lg shadow-lg border-l-4 ${config.border} overflow-hidden opacity-0 translate-x-8 transition-all duration-300 ease-out"
+    role="alert"
+  >
+    <div class="p-4 flex items-start gap-3">
+      <div class={`flex-shrink-0 ${config.color}`}>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        >
+          {config.icon}
+        </svg>
+      </div>
+      
+      <div class="flex-1 min-w-0">
+        <h4 class="text-sm font-semibold text-neutral-900 dark:text-neutral-100 m-0 mb-1">{title}</h4>
+        <p class="text-sm text-neutral-600 dark:text-neutral-400 m-0 leading-relaxed">{message}</p>
+      </div>
+      
+      {showClose && (
+        <button 
+          id="closeBtn"
+          class="close-btn flex-shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors cursor-pointer"
+          aria-label="关闭通知"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      )}
+    </div>
+    
+    {duration > 0 && (
+      <div class="progress-bar-container h-0.5 bg-neutral-100 dark:bg-neutral-700">
+        <div 
+          id="progressBar"
+          class={`progress-bar h-full ${config.bg.split(' ')[0]} transition-all linear`}
+          style="width: 100%"
+        ></div>
+      </div>
+    )}
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ✅ 等待 DOM 完全加载
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    function init() {
+      const container = document.getElementById('notificationContainer');
+      const notification = document.getElementById('notification');
+      const closeBtn = document.getElementById('closeBtn');
+      const progressBar = document.getElementById('progressBar');
+      
+      // ✅ 安全检查
+      if (!container || !notification) {
+        console.warn('Notification: Container or notification element not found');
+        return;
+      }
+
+      const duration = parseInt(container.dataset.duration || '4500', 10);
+      
+      let timer = null;
+      let progressTimer = null;
+      let startTime = null;
+      let remainingTime = duration;
+      let isPaused = false;
+
+      function show() {
+        requestAnimationFrame(() => {
+          notification.classList.remove('opacity-0', 'translate-x-8');
+          notification.classList.add('opacity-100', 'translate-x-0');
+        });
+
+        if (duration > 0) {
+          startTimer();
+          startProgress();
+        }
+      }
+
+      function startTimer() {
+        startTime = Date.now();
+        timer = setTimeout(() => {
+          hide();
+        }, remainingTime);
+      }
+
+      function startProgress() {
+        startTime = Date.now();
+        progressTimer = requestAnimationFrame(updateProgress);
+      }
+
+      function updateProgress() {
+        if (isPaused) {
+          progressTimer = requestAnimationFrame(updateProgress);
+          return;
+        }
+
+        const elapsed = Date.now() - startTime;
+        const progress = Math.max(0, 100 - (elapsed / remainingTime) * 100);
+        
+        if (progressBar) {
+          progressBar.style.width = `${progress}%`;
+        }
+
+        if (progress > 0) {
+          progressTimer = requestAnimationFrame(updateProgress);
+        }
+      }
+
+      function pauseTimer() {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        if (progressTimer) {
+          cancelAnimationFrame(progressTimer);
+          progressTimer = null;
+        }
+        remainingTime -= (Date.now() - startTime);
+        isPaused = true;
+        if (progressBar) {
+          progressBar.classList.add('transition-none');
+        }
+      }
+
+      function resumeTimer() {
+        if (isPaused) {
+          isPaused = false;
+          startTime = Date.now();
+          if (progressBar) {
+            progressBar.classList.remove('transition-none');
+          }
+          startTimer();
+          startProgress();
+        }
+      }
+
+      function hide() {
+        // ✅ 清除所有定时器
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        if (progressTimer) {
+          cancelAnimationFrame(progressTimer);
+          progressTimer = null;
+        }
+
+        // ✅ 添加关闭动画
+        notification.classList.remove('opacity-100', 'translate-x-0');
+        notification.classList.add('opacity-0', 'translate-x-8');
+        
+        // ✅ 等待动画完成后移除元素
+        setTimeout(() => {
+          if (notification && notification.parentNode) {
+            notification.remove();
+          }
+          if (container && container.parentNode) {
+            container.remove();
+          }
+        }, 300);
+      }
+
+      // ✅ 绑定关闭按钮事件
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          hide();
+        });
+      }
+
+      // ✅ 鼠标悬停暂停
+      if (duration > 0) {
+        notification.addEventListener('mouseenter', pauseTimer);
+        notification.addEventListener('mouseleave', resumeTimer);
+      }
+
+      // ✅ 初始化显示
+      show();
+    }
+  })();
+</script>
+
+<style>
+  .progress-bar {
+    transition: width linear;
+  }
+  
+  .progress-bar.transition-none {
+    transition: none;
+  }
+  
+  .notification-card {
+    animation: slideIn 0.3s ease-out forwards;
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .close-btn {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .close-btn:active {
+    transform: scale(0.95);
+  }
+</style>
+

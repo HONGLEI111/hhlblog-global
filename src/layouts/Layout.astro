@@ -19,6 +19,8 @@ import { defaultFavicons } from "../constants/icon";
 import type { Favicon } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
 import "katex/dist/katex.css";
+import Notification from '../components/widget/Notification.astro';
+
 
 interface Props {
 	title?: string;
@@ -153,7 +155,15 @@ const bannerOffset =
 	>
 		<ConfigCarrier></ConfigCarrier>
 		<slot />
-
+		<!-- 全局公告弹窗 -->
+		<!-- 欢迎通知 -->
+		<Notification 
+		  title="👋 欢迎光临" 
+		  message="感谢访问我的博客，希望你喜欢这里的内容！" 
+		  type="success"
+		  duration={5000}
+		  position="top-right"
+		/>
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
 	</body>
