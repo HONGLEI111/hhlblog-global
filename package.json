@@ -11,6 +11,10 @@
     "astro": "astro",
     "type-check": "tsc --noEmit --isolatedDeclarations",
     "new-post": "node scripts/new-post.js",
+    "new-blog": "node scripts/new-blog.js",
+    "new-technology": "node scripts/new-technology.js",
+    "new-read": "node scripts/new-read.js",
+    "new-tools":"node scripts/new-tools.js",
     "format": "biome format --write ./src",
     "lint": "biome check --write ./src",
     "preinstall": "npx only-allow pnpm"
