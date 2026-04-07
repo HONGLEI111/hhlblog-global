@@ -8,7 +8,7 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "HHL | HeHongLei的个人博客",
+	title: "HHL | 贺宏磊的个人博客",
 	subtitle: "HHL's Site",
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
@@ -43,7 +43,6 @@ export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
 		LinkPreset.Archive,
-		LinkPreset.About,
 		{
                         name: "博客",
                         url: "/blog/",
@@ -68,6 +67,7 @@ export const navBarConfig: NavBarConfig = {
                         external: false,
                         icon: "material-symbols:build-outline-rounded",
                 },
+		LinkPreset.About,
 	],
 };
 
