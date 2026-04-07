@@ -3,7 +3,7 @@ title: firstpost
 published: 2026-04-07
 description: ''
 image: ''
-tags: []
+tags: [read]
 category: ''
 draft: false 
 lang: ''
