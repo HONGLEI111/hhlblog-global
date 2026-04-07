@@ -51,7 +51,7 @@ export const navBarConfig: NavBarConfig = {
                 },
                 {
                         name: "技术",
-                        url: "/technology/technology",
+                        url: "/technology/",
                         external: false,
                         icon: "material-symbols:volunteer-activism-outline-rounded",
                 },
