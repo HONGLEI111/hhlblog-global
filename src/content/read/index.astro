@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts');
+const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// 按 category 字段分组（兼容所有 JS 环境）
+const grouped = sortedPosts.reduce((acc, post) => {
+  const cat = post.data.category || '未分类';
+  if (!acc[cat]) acc[cat] = [];
+  acc[cat].push(post);
+  return acc;
+}, {} as Record<string, typeof sortedPosts>);
+---
+
+<main>
+  <h1>分类归档</h1>
+  {Object.entries(grouped).map(([category, posts]) => (
+    <section>
+      <h2>{category}</h2>
+      <ul>
+        {posts.map(post => (
+          <li>
+            <a href={`/posts/${post.slug}`}>{post.data.title}</a>
+            <time>{post.data.date.toLocaleDateString('zh-CN')}</time>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</main>
+
