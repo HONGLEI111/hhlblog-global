@@ -17,8 +17,89 @@ async function getRawSortedPosts() {
 	return sorted;
 }
 
+async function getRawSortedBlog() {
+	const allBlog = await getCollection("blog", ({ data }) => {
+		return import.meta.env.PROD ? data.draft !== true : true;
+	});
+
+	const sorted = allBlog.sort((a, b) => {
+		const dateA = new Date(a.data.published);
+		const dateB = new Date(b.data.published);
+		return dateA > dateB ? -1 : 1;
+	});
+	return sorted;
+}
+
+async function getRawSortedRead() {
+	const allRead = await getCollection("read", ({ data }) => {
+		return import.meta.env.PROD ? data.draft !== true : true;
+	});
+
+	const sorted = allRead.sort((a, b) => {
+		const dateA = new Date(a.data.published);
+		const dateB = new Date(b.data.published);
+		return dateA > dateB ? -1 : 1;
+	});
+	return sorted;
+}
+
+async function getRawSortedTechnology() {
+	const allTechnology = await getCollection("technology", ({ data }) => {
+		return import.meta.env.PROD ? data.draft !== true : true;
+	});
+
+	const sorted = allTechnology.sort((a, b) => {
+		const dateA = new Date(a.data.published);
+		const dateB = new Date(b.data.published);
+		return dateA > dateB ? -1 : 1;
+	});
+	return sorted;
+}
+
 export async function getSortedPosts() {
 	const sorted = await getRawSortedPosts();
+
+	for (let i = 1; i < sorted.length; i++) {
+		sorted[i].data.nextSlug = sorted[i - 1].slug;
+		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+	}
+	for (let i = 0; i < sorted.length - 1; i++) {
+		sorted[i].data.prevSlug = sorted[i + 1].slug;
+		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+	}
+
+	return sorted;
+}
+export async function getSortedBlog() {
+	const sorted = await getRawSortedBlog();
+
+	for (let i = 1; i < sorted.length; i++) {
+		sorted[i].data.nextSlug = sorted[i - 1].slug;
+		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+	}
+	for (let i = 0; i < sorted.length - 1; i++) {
+		sorted[i].data.prevSlug = sorted[i + 1].slug;
+		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+	}
+
+	return sorted;
+}
+export async function getSortedRead() {
+	const sorted = await getRawSortedRead();
+
+	for (let i = 1; i < sorted.length; i++) {
+		sorted[i].data.nextSlug = sorted[i - 1].slug;
+		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+	}
+	for (let i = 0; i < sorted.length - 1; i++) {
+		sorted[i].data.prevSlug = sorted[i + 1].slug;
+		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+	}
+
+	return sorted;
+}
+export async function getSortedTechnology() {
+	const sorted = await getRawSortedTechnology();
 
 	for (let i = 1; i < sorted.length; i++) {
 		sorted[i].data.nextSlug = sorted[i - 1].slug;
@@ -34,6 +115,15 @@ export async function getSortedPosts() {
 export type PostForList = {
 	slug: string;
 	data: CollectionEntry<"posts">["data"];
+};export type BlogForList = {
+	slug: string;
+	data: CollectionEntry<"blog">["data"];
+};export type ReadForList = {
+	slug: string;
+	data: CollectionEntry<"read">["data"];
+};export type TechnologyForList = {
+	slug: string;
+	data: CollectionEntry<"technology">["data"];
 };
 export async function getSortedPostsList(): Promise<PostForList[]> {
 	const sortedFullPosts = await getRawSortedPosts();
@@ -45,6 +135,37 @@ export async function getSortedPostsList(): Promise<PostForList[]> {
 	}));
 
 	return sortedPostsList;
+}
+export async function getSortedBlogList(): Promise<BlogForList[]> {
+	const sortedFullBlog = await getRawSortedBlog();
+
+	
+	const sortedBlogsList = sortedFullBlog.map((blog) => ({
+		slug: blog.slug,
+		data: blog.data,
+	}));
+
+	return sortedBlogList;
+}
+export async function getSortedReadList(): Promise<ReadForList[]> {
+	const sortedFullRead = await getRawSortedRead();
+
+	const sortedReadList = sortedFullRead.map((read) => ({
+		slug: read.slug,
+		data: read.data,
+	}));
+
+	return sortedReadList;
+}
+export async function getSortedTechnologyList(): Promise<TechnologyForList[]> {
+	const sortedFullTechnology = await getRawSortedTechnology();
+
+	const sortedTechnologyList = sortedFullTechnology.map((technology) => ({
+		slug: technology.slug,
+		data: technology.data,
+	}));
+
+	return sortedTechnologyList;
 }
 export type Tag = {
 	name: string;
@@ -112,3 +233,4 @@ export async function getCategoryList(): Promise<Category[]> {
 	}
 	return ret;
 }
+

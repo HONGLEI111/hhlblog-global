@@ -16,6 +16,18 @@ export function getPostUrlBySlug(slug: string): string {
 	return url(`/posts/${slug}/`);
 }
 
+export function getBlogUrlBySlug(id: string): string {
+	return url(`/blog/${id.replace(/\.mdx?$/, '')}/`);
+}
+
+export function getTechnologyUrlBySlug(slug: string): string {
+	return url(`/technology/${slug}/`);
+}
+
+export function getReadUrlBySlug(slug: string): string {
+	return url(`/read/${slug}/`);
+}
+
 export function getTagUrl(tag: string): string {
 	if (!tag) return url("/archive/");
 	return url(`/archive/?tag=${encodeURIComponent(tag.trim())}`);
