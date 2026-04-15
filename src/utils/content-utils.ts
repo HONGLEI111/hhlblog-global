@@ -74,11 +74,11 @@ export async function getSortedBlog() {
 	const sorted = await getRawSortedBlog();
 
 	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].slug;
+		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, '');
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].slug;
+		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, '');
 		sorted[i].data.prevTitle = sorted[i + 1].data.title;
 	}
 
@@ -88,11 +88,11 @@ export async function getSortedRead() {
 	const sorted = await getRawSortedRead();
 
 	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].slug;
+		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, '');
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].slug;
+		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, '');
 		sorted[i].data.prevTitle = sorted[i + 1].data.title;
 	}
 
@@ -102,11 +102,11 @@ export async function getSortedTechnology() {
 	const sorted = await getRawSortedTechnology();
 
 	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].slug;
+		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, '');
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].slug;
+		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, '');
 		sorted[i].data.prevTitle = sorted[i + 1].data.title;
 	}
 
@@ -139,9 +139,8 @@ export async function getSortedPostsList(): Promise<PostForList[]> {
 export async function getSortedBlogList(): Promise<BlogForList[]> {
 	const sortedFullBlog = await getRawSortedBlog();
 
-	
-	const sortedBlogsList = sortedFullBlog.map((blog) => ({
-		slug: blog.slug,
+	const sortedBlogList = sortedFullBlog.map((blog) => ({
+		slug: blog.id.replace(/\.mdx?$/, ''),
 		data: blog.data,
 	}));
 
@@ -151,7 +150,7 @@ export async function getSortedReadList(): Promise<ReadForList[]> {
 	const sortedFullRead = await getRawSortedRead();
 
 	const sortedReadList = sortedFullRead.map((read) => ({
-		slug: read.slug,
+		slug: read.id.replace(/\.mdx?$/, ''),
 		data: read.data,
 	}));
 
@@ -161,7 +160,7 @@ export async function getSortedTechnologyList(): Promise<TechnologyForList[]> {
 	const sortedFullTechnology = await getRawSortedTechnology();
 
 	const sortedTechnologyList = sortedFullTechnology.map((technology) => ({
-		slug: technology.slug,
+		slug: technology.id.replace(/\.mdx?$/, ''),
 		data: technology.data,
 	}));
 

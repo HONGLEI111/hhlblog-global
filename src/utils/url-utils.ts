@@ -21,11 +21,11 @@ export function getBlogUrlBySlug(id: string): string {
 }
 
 export function getTechnologyUrlBySlug(slug: string): string {
-	return url(`/technology/${slug}/`);
+	return url(`/technology/${slug.replace(/\.mdx?$/, '')}/`);
 }
 
 export function getReadUrlBySlug(slug: string): string {
-	return url(`/read/${slug}/`);
+	return url(`/read/${slug.replace(/\.mdx?$/, '')}/`);
 }
 
 export function getTagUrl(tag: string): string {
