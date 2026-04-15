@@ -155,14 +155,14 @@ const bannerOffset =
 	>
 		<ConfigCarrier></ConfigCarrier>
 		<slot />
-		<!-- 全局公告弹窗 -->
-		<!-- 欢迎通知 -->
-		<Notification 
-		  title="👋 欢迎光临" 
-		  message="感谢访问我的博客，希望你喜欢这里的内容！" 
+		<!-- 首次访问首页时的欢迎通知 -->
+		<Notification
+		  title="👋 欢迎光临"
+		  message="感谢访问我的博客，希望你喜欢这里的内容！"
 		  type="success"
 		  duration={4000}
 		  position="top-right"
+		  isHomePage={isHomePage}
 		/>
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
