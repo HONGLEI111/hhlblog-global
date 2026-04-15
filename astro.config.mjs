@@ -14,6 +14,7 @@ import rehypeSlug from "rehype-slug";
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
+import rehypeMermaid from "rehype-mermaid";
 import remarkSectionize from "remark-sectionize";
 import { expressiveCodeConfig } from "./src/config.ts";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
@@ -26,7 +27,7 @@ import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-cop
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://blog.hehonglei.cn",
+	site: "https://www.hehonglei.cn",
 	base: "/",
 	trailingSlash: "always",
 	integrations: [
@@ -115,6 +116,7 @@ export default defineConfig({
 		rehypePlugins: [
 			rehypeKatex,
 			rehypeSlug,
+			[rehypeMermaid, { strategy: 'img-svg', dark: true }],
 			[
 				rehypeComponents,
 				{
