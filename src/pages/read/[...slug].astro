@@ -28,10 +28,10 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content, headings } = await render(entry);
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 
-const words = (entry.data as any).words ?? 0;
-const minutes = (entry.data as any).minutes ?? 0;
+const words = remarkPluginFrontmatter.words;
+const minutes = remarkPluginFrontmatter.minutes;
 
 const jsonLd = {
   "@context": "https://schema.org",
