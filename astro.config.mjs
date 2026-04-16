@@ -14,7 +14,7 @@ import rehypeSlug from "rehype-slug";
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
-import rehypeMermaid from "rehype-mermaid";
+import { remarkMermaidClient } from "./src/plugins/remark-mermaid-client.mjs";
 import remarkSectionize from "remark-sectionize";
 import { expressiveCodeConfig } from "./src/config.ts";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
@@ -105,6 +105,7 @@ export default defineConfig({
 	],
 	markdown: {
 		remarkPlugins: [
+			remarkMermaidClient,
 			remarkMath,
 			remarkReadingTime,
 			remarkExcerpt,
@@ -116,7 +117,6 @@ export default defineConfig({
 		rehypePlugins: [
 			rehypeKatex,
 			rehypeSlug,
-			[rehypeMermaid, { strategy: 'img-svg', dark: true }],
 			[
 				rehypeComponents,
 				{

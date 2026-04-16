@@ -515,6 +515,58 @@ window.onresize = () => {
 </script>
 
 <script>
+import mermaid from 'mermaid';
+
+function getMermaidTheme(): 'dark' | 'default' {
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'default';
+}
+
+async function renderMermaid() {
+  const els = document.querySelectorAll<HTMLElement>('pre.mermaid:not([data-processed="true"])');
+  if (els.length === 0) return;
+
+  // Save original diagram source before mermaid replaces element content
+  els.forEach(el => {
+    if (!el.hasAttribute('data-mermaid-source')) {
+      el.setAttribute('data-mermaid-source', el.textContent ?? '');
+    }
+  });
+
+  mermaid.initialize({ startOnLoad: false, theme: getMermaidTheme() });
+  await mermaid.run({ nodes: Array.from(els) });
+}
+
+async function rerenderMermaidOnThemeChange() {
+  const processed = document.querySelectorAll<HTMLElement>('pre.mermaid[data-processed="true"]');
+  processed.forEach(el => {
+    const source = el.getAttribute('data-mermaid-source');
+    if (source) {
+      el.textContent = source;
+      el.removeAttribute('data-processed');
+    }
+  });
+  await renderMermaid();
+}
+
+// Re-render diagrams when dark/light theme is toggled
+const themeObserver = new MutationObserver(rerenderMermaidOnThemeChange);
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+// Initial render
+renderMermaid();
+
+// Re-render after Swup page transitions
+const setupMermaid = () => {
+  window.swup.hooks.on('page:view', renderMermaid);
+};
+if (window.swup) {
+  setupMermaid();
+} else {
+  document.addEventListener('swup:enable', setupMermaid);
+}
+</script>
+
+<script>
 import PhotoSwipeLightbox from "photoswipe/lightbox"
 import "photoswipe/style.css"
 

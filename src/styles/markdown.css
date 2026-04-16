@@ -117,5 +117,14 @@
         overflow-x: auto;
         margin: 1em 0;
     }
-    
+
+    pre.mermaid {
+        @apply bg-transparent border-none p-0 my-4 text-left overflow-x-auto;
+        font-size: inherit;
+        font-family: inherit;
+        svg {
+            @apply mx-auto block max-w-full rounded-xl;
+        }
+    }
+
 }
