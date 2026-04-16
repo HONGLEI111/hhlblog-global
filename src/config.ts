@@ -74,7 +74,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/demo-avatar.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "Honglei He",
-	bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	bio: "兴趣使然的网文作家，冲浪达人，前端工程师~",
 	links: [
 		{
 			name: "Twitter",
@@ -91,7 +91,7 @@ export const profileConfig: ProfileConfig = {
 		{
 			name: "GitHub",
 			icon: "fa6-brands:github",
-			url: "https://github.com/saicaca/fuwari",
+			url: "https://github.com/HONGLEI111",
 		},
 	],
 };
