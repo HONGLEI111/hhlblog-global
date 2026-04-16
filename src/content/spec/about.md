@@ -1,9 +1,27 @@
-# About
-This is the demo site for [Fuwari](https://github.com/saicaca/fuwari).
+# 👋 关于我 | About Me
 
-::github{repo="saicaca/fuwari"}
+> **贺宏磊** | 00 后 | 上海 📍
 
-> ### Sources of images used in this site
-> - [Unsplash](https://unsplash.com/)
-> - [星と少女](https://www.pixiv.net/artworks/108916539) by [Stella](https://www.pixiv.net/users/93273965)
-> - [Rabbit - v1.4 Showcase](https://civitai.com/posts/586908) by [Rabbit_YourMajesty](https://civitai.com/user/Rabbit_YourMajesty)
+---
+
+## 💼 职业信息
+- **职位**：前端工程师 (Frontend Engineer)
+- **公司**：Ingersoll Rand (英格索兰)
+- **官网**：[irco.com](https://www.irco.com)
+
+## 🎨 个人标签
+- `00 后`
+- `前端开发`
+- `网文作家`
+- `终身学习者`
+
+## 📚 兴趣爱好
+- ✍️ **写作**：网文创作，记录生活
+- 📖 **读书**：保持阅读习惯，汲取知识
+- 🏊 **游泳**：热爱运动，保持活力
+
+---
+
+::github{repo="HONGLEI111"}
+
+
