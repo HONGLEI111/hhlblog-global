@@ -57,6 +57,30 @@ const mainPanelTop = siteConfig.banner.enable
                   src={siteConfig.banner.src} position={siteConfig.banner.position}
     >
     </ImageWrapper>
+    <div id="header-waves" class="waves absolute -bottom-px h-[10vh] max-h-[9.375rem] min-h-[3.125rem] w-full md:h-[15vh]">
+        <svg
+            class="waves"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 24 150 28"
+            preserveAspectRatio="none"
+            shape-rendering="geometricPrecision"
+        >
+            <defs>
+                <path
+                    id="gentle-wave"
+                    d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v48h-352z"
+                >
+                </path>
+            </defs>
+            <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" class="opacity-25" fill="var(--page-bg)"></use>
+                <use xlink:href="#gentle-wave" x="48" y="3" class="opacity-50" fill="var(--page-bg)"></use>
+                <use xlink:href="#gentle-wave" x="48" y="5" class="opacity-65" fill="var(--page-bg)"></use>
+                <use xlink:href="#gentle-wave" x="48" y="7" class="opacity-75" fill="var(--page-bg)"></use>
+            </g>
+        </svg>
+    </div>
 </div>}
 
 <!-- Main content -->
