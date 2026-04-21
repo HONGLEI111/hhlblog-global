@@ -73,14 +73,28 @@ let links: NavBarLink[] = navBarConfig.links.map(
         background-color: var(--card-bg);
     }
 
-    /* Transparent over banner: before scroll */
-    #navbar[data-enable-banner="true"]:not(.navbar-scrolled) .navbar-inner {
-        background-color: transparent;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+    /* Transparent over banner: desktop */
+    @media (min-width: 768px) {
+        #navbar[data-enable-banner="true"]:not(.navbar-scrolled) .navbar-inner {
+            background-color: transparent;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        #navbar[data-enable-banner="true"]:not(.navbar-scrolled) .navbar-anim-top {
+            background-color: transparent;
+        }
     }
-    #navbar[data-enable-banner="true"]:not(.navbar-scrolled) .navbar-anim-top {
-        background-color: transparent;
+
+    /* Transparent over banner: mobile (follow firefly style, avoid blocking banner) */
+    @media (max-width: 767px) {
+        #navbar[data-enable-banner="true"]:not(.navbar-scrolled) .navbar-inner {
+            background-color: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        #navbar[data-enable-banner="true"]:not(.navbar-scrolled) .navbar-anim-top {
+            background-color: transparent;
+        }
     }
 
     /* Restore on scroll */
