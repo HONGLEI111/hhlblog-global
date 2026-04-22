@@ -102,7 +102,11 @@ const jsonLd = {
 
       <!-- cover image -->
       {entry.data.image &&
-        <ImageWrapper id="post-cover" src={entry.data.image} basePath={path.join("content/posts/", getDir(entry.id))} class="mb-8 rounded-xl banner-container onload-animation"/>
+        <ImageWrapper id="post-cover" src={entry.data.image} basePath={path.join("content/posts/", getDir(entry.id))}
+                      class="mb-8 rounded-xl banner-container onload-animation"
+                      sizes="(min-width: 1200px) 864px, (min-width: 768px) calc(100vw - 8rem), calc(100vw - 3rem)"
+                      widths={[480, 640, 768, 960, 1200]}
+                      quality={70}/>
       }
 
       <Markdown class="mb-6 markdown-content onload-animation">

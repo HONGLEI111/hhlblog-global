@@ -92,7 +92,10 @@ const minutes = remarkPluginFrontmatter.minutes;
             </Icon>
         </div>
         <ImageWrapper src={image} basePath={path.join("content/technology/", getDir(entry.id))} alt="Cover Image of the Post"
-                  class="w-full h-full">
+                  class="w-full h-full"
+                  sizes="(min-width: 768px) 28vw, calc(100vw - 2rem)"
+                  widths={[320, 480, 640, 768]}
+                  quality={70}>
         </ImageWrapper>
     </a>}
 

@@ -15,6 +15,7 @@ interface Props {
 	width?: number;
 	height?: number;
 	widths?: number[];
+	quality?: number;
 }
 
 import { Image } from "astro:assets";
@@ -33,6 +34,7 @@ const {
 	width,
 	height,
 	widths,
+	quality = 72,
 } = Astro.props;
 const className = Astro.props.class;
 
@@ -79,7 +81,7 @@ const localImageProps = {
 	height,
 	widths,
 	formats: ["avif", "webp"] as const,
-	quality: 80,
+	quality,
 };
 
 const externalImageProps = {

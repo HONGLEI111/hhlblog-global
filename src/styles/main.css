@@ -99,7 +99,7 @@
         active:bg-[var(--btn-card-bg-active)]
     }
     .btn-card.disabled {
-        @apply pointer-events-none text-black/10 dark:text-white/10
+        @apply pointer-events-none text-black/30 dark:text-white/40
     }
     .btn-plain {
         @apply transition relative flex items-center justify-center bg-none
@@ -148,7 +148,7 @@
         @apply text-black/75 dark:text-white/75
     }
     .text-50 {
-        @apply text-black/50 dark:text-white/50
+        @apply text-black/65 dark:text-white/65
     }
     .text-30 {
         @apply text-black/30 dark:text-white/30

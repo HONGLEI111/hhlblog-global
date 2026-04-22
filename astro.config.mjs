@@ -30,6 +30,9 @@ export default defineConfig({
 	site: "https://www.hehonglei.cn",
 	base: "/",
 	trailingSlash: "always",
+	image: {
+		domains: ["img.hehonglei.cn", "e1a585c0.imghub-bl9.pages.dev"],
+	},
 	integrations: [
 		tailwind({
 			nesting: true,
