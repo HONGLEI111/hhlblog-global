@@ -8,12 +8,32 @@ interface Props {
 	alt?: string;
 	position?: string;
 	basePath?: string;
+	loading?: "lazy" | "eager";
+	decoding?: "sync" | "async" | "auto";
+	fetchpriority?: "high" | "low" | "auto";
+	sizes?: string;
+	width?: number;
+	height?: number;
+	widths?: number[];
 }
 
 import { Image } from "astro:assets";
 import { url } from "../../utils/url-utils";
 
-const { id, src, alt, position = "center", basePath = "/" } = Astro.props;
+const {
+	id,
+	src,
+	alt,
+	position = "center",
+	basePath = "/",
+	loading = "lazy",
+	decoding = "async",
+	fetchpriority,
+	sizes,
+	width,
+	height,
+	widths,
+} = Astro.props;
 const className = Astro.props.class;
 
 const isLocal = !(
@@ -23,6 +43,9 @@ const isLocal = !(
 	src.startsWith("data:")
 );
 const isPublic = src.startsWith("/");
+const isOptimizableRemote =
+	src.startsWith("https://img.hehonglei.cn/") ||
+	src.startsWith("https://e1a585c0.imghub-bl9.pages.dev/");
 
 // TODO temporary workaround for images dynamic import
 // https://github.com/withastro/astro/issues/3373
@@ -46,9 +69,36 @@ if (isLocal) {
 
 const imageClass = "w-full h-full object-cover";
 const imageStyle = `object-position: ${position}`;
+
+const localImageProps = {
+	loading,
+	decoding,
+	fetchpriority,
+	sizes,
+	width,
+	height,
+	widths,
+	formats: ["avif", "webp"] as const,
+	quality: 80,
+};
+
+const externalImageProps = {
+	loading,
+	decoding,
+	fetchpriority,
+	sizes,
+	width,
+	height,
+};
+
+const remoteOptimizedImageProps = {
+	...localImageProps,
+	inferSize: true,
+};
 ---
 <div id={id} class:list={[className, 'overflow-hidden relative']}>
     <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>
-    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle}/>}
-    {!isLocal && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle}/>}
+    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} {...localImageProps}/>}
+    {!isLocal && isOptimizableRemote && <Image src={src} alt={alt || ""} class={imageClass} style={imageStyle} {...remoteOptimizedImageProps}/>}
+    {!isLocal && !isOptimizableRemote && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} {...externalImageProps}/>}
 </div>

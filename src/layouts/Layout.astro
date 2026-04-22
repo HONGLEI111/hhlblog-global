@@ -103,6 +103,8 @@ const bannerOffset =
 
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
+		<link rel="dns-prefetch" href="//img.hehonglei.cn" />
+		<link rel="preconnect" href="https://img.hehonglei.cn" crossorigin="anonymous" />
 		{favicons.map(favicon => (
 			<link rel="icon"
 				  href={favicon.src.startsWith('/') ? url(favicon.src) : favicon.src}
