@@ -22,6 +22,5 @@
 
 ---
 
-::github{repo="HONGLEI111"}
 
 
