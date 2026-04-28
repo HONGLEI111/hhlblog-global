@@ -9,202 +9,233 @@ draft: false
 lang: ''
 ---
 
-## 1. 什么是字典树？
+## 概述
 
-Trie（前缀树）是一种**多叉树**，用于高效存储和检索字符串集中的键。
+Trie，也叫字典树或前缀树，是一种专门处理字符串前缀的数据结构。它把单词拆成字符路径，共享相同前缀的单词会共用同一段节点。
 
-```
-         root
-       /  |   \
-      a   b    c
-     /    |     \
-    p*    e     a
-   /     / \     \
-  p*    e*  t*    t*
-```
+如果需要频繁做“是否存在某个单词”“是否存在某个前缀”“根据输入前缀自动补全”，Trie 比逐个字符串扫描更自然。
 
-- 每个节点代表一个字符
-- 根节点到某节点路径 = 一个字符串前缀
-- `*` 标记一个完整单词
+它的核心思想是：用树的路径表示字符串。
+
+> 前置知识
+> - **树结构**：每条边表示一个字符
+> - **哈希表 / 数组**：节点子链接可用 Map 或数组存储
+> - **前缀匹配**：查询过程沿字符逐层向下
 
 ---
 
-## 2. 基本实现
+## 问题定义
+
+假设有三个单词：
+
+```text
+cat
+car
+dog
+```
+
+Trie 会把它们组织成：
+
+```text
+root
+├─ c
+│  └─ a
+│     ├─ t (word)
+│     └─ r (word)
+└─ d
+   └─ o
+      └─ g (word)
+```
+
+这样查询前缀 `ca` 时，只需要走 `c -> a`，就能知道有哪些单词共享这个前缀。
+
+Trie 适合的问题：
+
+| 需求 | 普通数组 | Trie |
+| --- | --- | --- |
+| 判断单词是否存在 | O(n * L) | O(L) |
+| 判断前缀是否存在 | O(n * L) | O(L) |
+| 自动补全 | 需要扫描所有单词 | 定位前缀后遍历子树 |
+
+其中 `L` 是单词长度，`n` 是单词数量。
+
+---
+
+## 核心原理：分步图解
+
+### 插入单词
+
+插入 `cat`：
+
+```text
+root -> c -> a -> t
+```
+
+如果路径不存在，就创建节点；如果路径已存在，就复用节点。最后在 `t` 节点标记“这里是一个完整单词”。
+
+### 查询单词
+
+查询 `car`：
+
+1. 从 root 出发；
+2. 依次查找 `c`、`a`、`r`；
+3. 如果路径断开，单词不存在；
+4. 如果路径存在，还要检查最后节点是否标记为完整单词。
+
+### 查询前缀
+
+查询前缀只需要路径存在，不要求最后节点是完整单词。
+
+这就是 `search("ca")` 和 `startsWith("ca")` 的区别。
+
+---
+
+## 算法精细步骤
+
+Trie 节点通常包含：
+
+```text
+children: 当前字符到子节点的映射
+isWord:   是否在这里结束一个完整单词
+```
+
+插入流程：
+
+1. 从根节点开始；
+2. 遍历单词的每个字符；
+3. 如果当前字符没有对应子节点，就创建；
+4. 移动到子节点；
+5. 遍历结束后标记 `isWord = true`。
+
+查询流程类似，只是不创建节点；遇到缺失路径直接返回失败。
+
+---
+
+## TypeScript 实现
 
 ```typescript
 class TrieNode {
-  children: Map<string, TrieNode> = new Map();
-  isEnd: boolean = false;
+  readonly children = new Map<string, TrieNode>();
+  isWord = false;
 }
 
 class Trie {
-  root: TrieNode;
-
-  constructor() {
-    this.root = new TrieNode();
-  }
+  private readonly root = new TrieNode();
 
   insert(word: string): void {
     let node = this.root;
-    for (const ch of word) {
-      if (!node.children.has(ch)) {
-        node.children.set(ch, new TrieNode());
+
+    for (const char of word) {
+      let next = node.children.get(char);
+
+      if (!next) {
+        next = new TrieNode();
+        node.children.set(char, next);
       }
-      node = node.children.get(ch)!;
+
+      node = next;
     }
-    node.isEnd = true;
+
+    node.isWord = true;
   }
 
   search(word: string): boolean {
-    let node = this.root;
-    for (const ch of word) {
-      if (!node.children.has(ch)) return false;
-      node = node.children.get(ch)!;
-    }
-    return node.isEnd;
+    const node = this.findNode(word);
+    return node?.isWord ?? false;
   }
 
   startsWith(prefix: string): boolean {
-    let node = this.root;
-    for (const ch of prefix) {
-      if (!node.children.has(ch)) return false;
-      node = node.children.get(ch)!;
-    }
-    return true;
-  }
-}
-```
-
----
-
-## 3. 搜索联想（自动补全）
-
-```typescript
-class AutoCompleteTrie extends Trie {
-  suggest(prefix: string): string[] {
-    let node = this.root;
-    for (const ch of prefix) {
-      if (!node.children.has(ch)) return [];
-      node = node.children.get(ch)!;
-    }
-    return this.collect(node, prefix);
+    return this.findNode(prefix) !== null;
   }
 
-  private collect(node: TrieNode, prefix: string): string[] {
+  suggest(prefix: string, limit = 10): string[] {
+    const start = this.findNode(prefix);
+    if (start === null) return [];
+
     const result: string[] = [];
-    if (node.isEnd) result.push(prefix);
-    for (const [ch, child] of node.children) {
-      result.push(...this.collect(child, prefix + ch));
-    }
+
+    const dfs = (node: TrieNode, path: string): void => {
+      if (result.length >= limit) return;
+      if (node.isWord) result.push(path);
+
+      for (const [char, child] of node.children) {
+        dfs(child, path + char);
+      }
+    };
+
+    dfs(start, prefix);
     return result;
   }
-}
-```
 
----
-
-## 4. 实战题目
-
-### 4.1 实现 Trie（前缀树）
-
-```typescript
-// 见上文完整实现
-const trie = new Trie();
-trie.insert('apple');
-console.log(trie.search('apple'));   // true
-console.log(trie.search('app'));     // false
-console.log(trie.startsWith('app')); // true
-trie.insert('app');
-console.log(trie.search('app'));     // true
-```
-
-### 4.2 添加与搜索单词（通配符）
-
-```typescript
-class WordDictionary {
-  root: TrieNode;
-
-  constructor() {
-    this.root = new TrieNode();
-  }
-
-  addWord(word: string): void {
+  private findNode(text: string): TrieNode | null {
     let node = this.root;
-    for (const ch of word) {
-      if (!node.children.has(ch)) {
-        node.children.set(ch, new TrieNode());
-      }
-      node = node.children.get(ch)!;
-    }
-    node.isEnd = true;
-  }
 
-  search(word: string): boolean {
-    return this.dfs(word, 0, this.root);
-  }
-
-  private dfs(word: string, index: number, node: TrieNode): boolean {
-    if (index === word.length) return node.isEnd;
-
-    const ch = word[index];
-    if (ch === '.') {
-      for (const child of node.children.values()) {
-        if (this.dfs(word, index + 1, child)) return true;
-      }
-      return false;
+    for (const char of text) {
+      const next = node.children.get(char);
+      if (!next) return null;
+      node = next;
     }
 
-    if (!node.children.has(ch)) return false;
-    return this.dfs(word, index + 1, node.children.get(ch)!);
+    return node;
   }
-}
-```
-
-### 4.3 单词替换（前缀匹配替换）
-
-```typescript
-function replaceWords(dictionary: string[], sentence: string): string {
-  const trie = new Trie();
-  for (const root of dictionary) trie.insert(root);
-
-  return sentence
-    .split(' ')
-    .map(word => {
-      let node = trie.root;
-      for (let i = 0; i < word.length; i++) {
-        if (!node.children.has(word[i])) break;
-        node = node.children.get(word[i])!;
-        if (node.isEnd) return word.slice(0, i + 1);
-      }
-      return word;
-    })
-    .join(' ');
 }
 ```
 
 ---
 
-## 5. 复杂度分析
+## 工程优化：压缩 Trie
 
-| 操作 | 时间 | 空间 |
-|------|------|------|
-| 插入 | O(L) | O(L) |
-| 搜索 | O(L) | O(1) |
-| 前缀搜索 | O(L) | O(1) |
-| 自动补全 | O(K) | O(K) |
+标准 Trie 的节点数可能很多，尤其当字符串很长且分支较少时，会产生大量只有一个子节点的节点。
 
-（L = 单词长度，K = 搜索结果总数）
+例如：
+
+```text
+root -> a -> p -> p -> l -> e
+```
+
+如果中间节点没有分叉，可以压缩成：
+
+```text
+root -> "apple"
+```
+
+这类结构叫压缩 Trie 或 Radix Tree。它减少节点数量，但实现更复杂，需要处理字符串片段的拆分和匹配。
+
+工程中是否压缩，取决于数据规模、内存压力和查询性能要求。
 
 ---
 
-## 6. 总结
+## 应用与局限
 
-1. Trie = **空间换时间**：用多叉树存所有公共前缀
-2. **搜索联想、拼写检查、IP 路由**都是典型应用
-3. 看到 **前缀匹配** 就考虑 Trie
+### 典型应用
+
+- 搜索框自动补全；
+- 敏感词匹配；
+- 拼写检查；
+- 路由匹配；
+- IP 前缀匹配；
+- 单词游戏和词典查询。
+
+### 局限性
+
+- 相比哈希表，Trie 占用更多节点对象；
+- 字符集越大，子节点映射越复杂；
+- 删除单词需要清理无用节点；
+- 只适合前缀相关问题，不适合任意子串匹配。
 
 ---
 
-## 参考资料
+## 总结
 
-- [LeetCode — Trie](https://leetcode.cn/tag/trie/)
+```mermaid
+graph LR
+    A[插入字符串] --> B[逐字符建边]
+    B --> C[标记单词结束]
+    C --> D[查询单词或前缀]
+```
+
+- Trie 用树路径表示字符串。
+- 共享前缀是 Trie 的核心优势。
+- `search` 要求完整单词存在，`startsWith` 只要求路径存在。
+- 自动补全可以先定位前缀节点，再遍历子树。
+- 数据量大时要关注节点数量和压缩策略。

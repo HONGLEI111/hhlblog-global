@@ -9,217 +9,196 @@ draft: false
 lang: ''
 ---
 
-## 1. 为什么要学复杂度？
+## 概述
 
-写代码最怕的场景是什么？——本地跑得好好的，一上线数据量大了就崩了。
+**时间复杂度** 和 **空间复杂度** 用来描述代码在输入规模变大时，运行时间和内存占用如何增长。它们不关心某台机器上的具体耗时，而关心增长趋势。
 
-```javascript
-// 假设你需要从 100 万用户中找到某个用户
-const users = Array.from({ length: 1_000_000 }, (_, i) => ({ id: i, name: `user_${i}` }));
+> 前置知识
+> - **输入规模 n**：数组长度、节点数量、字符串长度等
+> - **循环与递归**：复杂度通常来自重复执行的次数
+> - **数据结构操作成本**：数组、Map、Set、排序等 API 的复杂度不同
 
-// 方案 A：逐一遍历
-function findUserA(users, id) {
+---
+
+## 问题定义
+
+给定一段代码或算法，估算它随输入规模增长时的时间和空间成本。
+
+| 要素 | 说明 |
+|------|------|
+| 输入 | 一段程序、算法或数据结构操作 |
+| 输出 | 时间复杂度、空间复杂度和主要瓶颈 |
+| 分析目标 | 找出增长最快的部分，忽略常数和低阶项 |
+| 常见结果 | O(1)、O(log n)、O(n)、O(n log n)、O(n²)、O(2^n) |
+
+---
+
+## 核心原理：分步图解
+
+从 100 万用户中查找一个用户：
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+}
+
+function findUserLinear(users: User[], id: number): User | null {
   for (const user of users) {
     if (user.id === id) return user;
   }
   return null;
 }
 
-// 方案 B：用 Map 索引
-const userMap = new Map(users.map(u => [u.id, u]));
-function findUserB(id) {
-  return userMap.get(id) || null;
+const userMap = new Map<number, User>();
+function findUserByMap(id: number): User | undefined {
+  return userMap.get(id);
 }
 ```
 
-方案 A 最坏情况要检查 **100 万次**，方案 B 只需要 **1 次**。这就是复杂度的意义——在没有上线之前，就能预判代码在"大规模数据"下的表现。
-
----
-
-## 2. 什么是大 O 表示法？
-
-### 2.1 通俗理解
-
-大 O 表示法描述的是一条 **数学曲线**：当数据量 `n` 不断翻倍时，代码的运行时间（或占用内存）会按照什么比例增长。
-
-你可以这样记住它：
-
-| 说法 | 含义 |
-|------|------|
-| 时间复杂度 | 输入变大了，**跑得有多慢** |
-| 空间复杂度 | 输入变大了，**吃得有多多** |
-| O(n) | 数据翻倍，时间也翻倍 |
-| O(n²) | 数据翻倍，时间翻 4 倍 |
-
-### 2.2 数学定义（可以跳过）
-
-`O(f(n))` 表示存在常数 `c` 和 `n₀`，使得对所有 `n ≥ n₀`，有 `T(n) ≤ c·f(n)`。
-
-翻译成人话：**只关心增长最快的部分，忽略常数和低阶项。**
-
+```mermaid
+graph LR
+    A[输入规模 n 增长] --> B[线性扫描 O(n)]
+    A --> C[哈希查找 O(1)]
+    B --> D[数据越大越慢]
+    C --> E[查询成本基本稳定]
 ```
-T(n) = 3n² + 100n + 5000  →  O(n²)  ← 只保留增长最快的 n²
-T(n) = 50n + 1000         →  O(n)
-T(n) = 200                →  O(1)
+
+大 O 表示法只保留增长最快的项：
+
+```text
+T(n) = 3n² + 100n + 5000  =>  O(n²)
+T(n) = 50n + 1000         =>  O(n)
+T(n) = 200                =>  O(1)
 ```
 
 ---
 
-## 3. 常见时间复杂度排行榜
+## 算法精细步骤
 
 ```
-O(1)      ▏常量    不管数据多大，时间不变
-O(log n)  ▏对数    数据翻倍，时间只多一步
-O(n)      ▏线性    数据翻倍，时间翻倍
-O(n log n)▏线性对数 比O(n)慢一点，排序的下限
-O(n²)     ▏平方    数据翻倍，时间翻4倍，常见的坑
-O(2ⁿ)     ▏指数    数据+1，时间翻倍，写错了
-O(n!)     ▏阶乘    数据+1，时间爆炸，肯定写错了
+算法：AnalyzeComplexity(code)
+输入：一段代码或算法
+输出：时间复杂度和空间复杂度
+
+1. 明确输入规模 n 表示什么
+2. 找出随 n 增长而重复执行的语句
+3. 计算循环、递归或数据结构操作次数
+4. 保留增长最快的项，忽略常数和低阶项
+5. 统计额外申请的空间，不把输入本身算入额外空间
 ```
 
-### 3.1 O(1) — 常量时间
+**常见复杂度对比**：
 
-不管输入多大，固定一个操作就能拿到结果。
+| 复杂度 | 增长方式 | 典型场景 |
+|------|------|------|
+| O(1) | 不随输入规模变化 | 数组下标访问、Map 查询 |
+| O(log n) | 每次排除一半 | 二分搜索、堆操作 |
+| O(n) | 遍历一次输入 | 求和、过滤、线性查找 |
+| O(n log n) | 每层 O(n)，共 log n 层 | 归并排序、堆排序 |
+| O(n²) | 双重枚举 | 暴力两数配对、矩阵遍历 |
+| O(2^n) | 每个元素选或不选 | 子集枚举、朴素递归 |
 
-```javascript
-function getFirst(arr) {
-  return arr[0];          // 永远只取第一个
+---
+
+## TypeScript 实现
+
+### 1. O(1)：常量时间
+
+```typescript
+function getFirst<T>(arr: T[]): T | undefined {
+  return arr[0];
 }
 
-function getByKey(map, key) {
-  return map.get(key);    // 哈希查找
+function getByKey<K, V>(map: Map<K, V>, key: K): V | undefined {
+  return map.get(key);
 }
 ```
 
-### 3.2 O(log n) — 对数时间
+### 2. O(log n)：二分查找
 
-数据量翻倍，只需要多做一次操作。典型场景：二分查找。
+```typescript
+function binarySearch(nums: number[], target: number): number {
+  let left = 0;
+  let right = nums.length - 1;
 
-```javascript
-// 在有序数组中查找目标值
-function binarySearch(arr, target) {
-  let left = 0, right = arr.length - 1;
   while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-    if (arr[mid] === target) return mid;
-    if (arr[mid] < target) left = mid + 1;
+    const mid = left + Math.floor((right - left) / 2);
+    if (nums[mid] === target) return mid;
+    if (nums[mid] < target) left = mid + 1;
     else right = mid - 1;
   }
+
   return -1;
 }
-
-// 100 万条数据，最多只需要 20 次比较
-// log₂(1,000,000) ≈ 20
 ```
 
-### 3.3 O(n) — 线性时间
+### 3. O(n)：线性扫描
 
-数据翻倍，时间也翻倍。这是最"诚实"的复杂度。
-
-```javascript
-function sum(arr) {
+```typescript
+function sum(nums: number[]): number {
   let total = 0;
-  for (let i = 0; i < arr.length; i++) {
-    total += arr[i];       // 每个元素都要访问一次
+  for (const num of nums) {
+    total += num;
   }
   return total;
 }
 
-function findMax(arr) {
-  let max = arr[0];
-  for (const num of arr) {
+function findMax(nums: number[]): number {
+  let max = nums[0];
+  for (const num of nums) {
     if (num > max) max = num;
   }
   return max;
 }
 ```
 
-### 3.4 O(n log n) — 线性对数时间
+### 4. O(n²) 优化到 O(n)
 
-最优的比较排序算法的时间下限。数据量很大时，比 O(n²) 快非常多。
+```typescript
+function findDuplicatesSlow(nums: number[]): number[] {
+  const result: number[] = [];
 
-```javascript
-// JavaScript 内置的 sort() 通常就是 O(n log n)
-const sorted = [3, 1, 4, 1, 5, 9, 2, 6].sort((a, b) => a - b);
-```
-
-### 3.5 O(n²) — 平方时间
-
-最常见的"翻车"现场。嵌套循环就是典型。
-
-```javascript
-// ❌ 双重循环 = O(n²)
-function findDuplicates(arr) {
-  const result = [];
-  for (let i = 0; i < arr.length; i++) {
-    for (let j = i + 1; j < arr.length; j++) {
-      if (arr[i] === arr[j]) result.push(arr[i]);
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      if (nums[i] === nums[j]) result.push(nums[i]);
     }
   }
+
   return result;
 }
 
-// ✅ 用 Set 优化到 O(n)
-function findDuplicatesFast(arr) {
-  const seen = new Set();
-  const duplicates = new Set();
-  for (const item of arr) {
-    if (seen.has(item)) duplicates.add(item);
-    else seen.add(item);
+function findDuplicatesFast(nums: number[]): number[] {
+  const seen = new Set<number>();
+  const duplicates = new Set<number>();
+
+  for (const num of nums) {
+    if (seen.has(num)) duplicates.add(num);
+    else seen.add(num);
   }
+
   return [...duplicates];
 }
 ```
 
-### 3.6 O(2ⁿ) — 指数时间
+### 5. 空间复杂度对比
 
-每多一个元素，时间翻倍。递归算斐波那契的经典反例。
+```typescript
+function reverseInPlace<T>(arr: T[]): T[] {
+  let left = 0;
+  let right = arr.length - 1;
 
-```javascript
-// ❌ 指数级，n=50 时可能需要几千年
-function fib(n) {
-  if (n <= 1) return n;
-  return fib(n - 1) + fib(n - 2);
-}
-
-// ✅ 动态规划优化到 O(n)
-function fibDP(n) {
-  const dp = [0, 1];
-  for (let i = 2; i <= n; i++) {
-    dp[i] = dp[i - 1] + dp[i - 2];
-  }
-  return dp[n];
-}
-```
-
----
-
-## 4. 空间复杂度
-
-### 4.1 常见级别
-
-| 级别 | 说明 | 示例 |
-|------|------|------|
-| O(1) | 原地操作，不开辟新空间 | 交换两个数 |
-| O(n) | 开辟一个和输入等长的额外空间 | 复制数组 |
-| O(n²) | 开辟二维额外空间 | 矩阵乘法 |
-
-### 4.2 实战对比
-
-```javascript
-// O(1) 空间：原地反转
-function reverseInPlace(arr) {
-  let left = 0, right = arr.length - 1;
   while (left < right) {
     [arr[left], arr[right]] = [arr[right], arr[left]];
-    left++; right--;
+    left++;
+    right--;
   }
+
   return arr;
 }
 
-// O(n) 空间：创建新数组
-function reverseNew(arr) {
-  const result = [];
+function reverseNew<T>(arr: T[]): T[] {
+  const result: T[] = [];
   for (let i = arr.length - 1; i >= 0; i--) {
     result.push(arr[i]);
   }
@@ -229,189 +208,54 @@ function reverseNew(arr) {
 
 ---
 
-## 5. 前端实战：复杂度分析四例
+## 工程优化：先看数据量再优化
 
-### 5.1 数组去重
+复杂度分析的目的不是让所有代码都极致优化，而是判断当前数据规模下风险在哪里。
 
-```javascript
-// 方案 1：双重循环 O(n²) + O(1) 空间
-function unique1(arr) {
-  for (let i = 0; i < arr.length; i++) {
-    for (let j = i + 1; j < arr.length; j++) {
-      if (arr[i] === arr[j]) {
-        arr.splice(j, 1);
-        j--;
-      }
-    }
-  }
-  return arr;
-}
+| 数据量 | 经验判断 | 建议 |
+|------|------|------|
+| < 1,000 | 多数写法都可接受 | 优先可读性 |
+| 1,000 ~ 100,000 | 避免 O(n²) | 用 Map/Set、排序、双指针 |
+| 100,000 ~ 1,000,000 | 警惕大常数和内存复制 | 优先 O(n log n) 或 O(n) |
+| > 1,000,000 | 关注索引、分页、流式处理 | 尽量 O(log n) / O(1) 查询 |
 
-// 方案 2：Set O(n) + O(n) 空间
-function unique2(arr) {
-  return [...new Set(arr)];
-}
-```
-
-**结论**：用 Set 是典型的"空间换时间"。
-
-### 5.2 虚拟列表渲染
-
-```javascript
-// 如果渲染全部 10 万条数据
-// 时间复杂度：O(n) 渲染
-// 空间复杂度：O(n) DOM 节点 → 页面直接卡死
-
-// 虚拟列表：只渲染可视区域
-function VirtualList({ items, itemHeight, containerHeight }) {
-  const visibleCount = Math.ceil(containerHeight / itemHeight) + 2; // 多渲染 2 个缓冲
-  const [start, setStart] = useState(0);
-  
-  // O(visibleCount) ≈ O(1) 渲染，与总数据量无关
-  const visibleItems = items.slice(start, start + visibleCount);
-  
-  return (
-    <div style={{ height: items.length * itemHeight }}>
-      {visibleItems.map((item, i) => (
-        <div key={start + i} style={{ transform: `translateY(${(start + i) * itemHeight}px)` }}>
-          {item}
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
-### 5.3 搜索联想
-
-```javascript
-// 用户输入 "hel" → 匹配 ["hello", "help", "helium", ...]
-
-// ❌ 每次输入都遍历全部单词 O(n*m)，n=单词数，m=单词长度
-function searchNaive(query, words) {
-  return words.filter(w => w.startsWith(query));
-}
-
-// ✅ 用 Trie 树，O(k) k=查询词长度
-class Trie {
-  constructor() { this.root = {}; }
-  insert(word) {
-    let node = this.root;
-    for (const ch of word) {
-      if (!node[ch]) node[ch] = {};
-      node = node[ch];
-    }
-    node['#'] = true;
-  }
-  searchPrefix(prefix) {
-    let node = this.root;
-    for (const ch of prefix) {
-      if (!node[ch]) return [];
-      node = node[ch];
-    }
-    return this._collect(node, prefix);
-  }
-  _collect(node, prefix) {
-    const result = [];
-    if (node['#']) result.push(prefix);
-    for (const [ch, child] of Object.entries(node)) {
-      if (ch !== '#') result.push(...this._collect(child, prefix + ch));
-    }
-    return result;
-  }
-}
-```
-
-### 5.4 React 组件重渲染
-
-```javascript
-// ❌ 每次父组件渲染，子组件都跟着渲染 → O(n²) 级重渲染
-function Parent({ items }) {
-  const [count, setCount] = useState(0);
-  return (
-    <div>
-      <button onClick={() => setCount(c => c + 1)}>+1</button>
-      {items.map(item => <ExpensiveChild key={item.id} item={item} />)}
-    </div>
-  );
-}
-
-// ✅ memo + useCallback，只在 items 变化时子树才重渲染
-const MemoChild = memo(function Child({ item, onClick }) {
-  return <div onClick={() => onClick(item)}>{item.name}</div>;
-});
-```
+前端场景也有复杂度问题：大列表渲染、搜索联想、表格筛选、组件树重渲染，都需要关注输入规模。
 
 ---
 
-## 6. 速查表
+## 应用与局限
 
-### 6.1 常用操作复杂度
+### 典型应用
 
-| 操作 | 时间复杂度 |
-|------|-----------|
-| 数组 push/pop | O(1) |
-| 数组 shift/unshift | O(n) |
-| 数组 indexOf/includes | O(n) |
-| 数组 sort | O(n log n) |
-| Map/Set 增删查 | O(1) |
-| Object 属性访问 | O(1) |
-| forEach/map/filter/reduce | O(n) |
-| 字符串 slice/substring | O(n) |
+- 评估算法题解能否通过数据范围
+- 判断接口、列表、搜索在大数据量下的性能风险
+- 选择数组、Map、Set、堆、树等数据结构
+- 解释排序、搜索、遍历和递归的成本
 
-### 6.2 常用算法复杂度
+### 局限性
 
-| 算法 | 平均 | 最坏 | 空间 |
-|------|------|------|------|
-| 快速排序 | O(n log n) | O(n²) | O(log n) |
-| 归并排序 | O(n log n) | O(n log n) | O(n) |
-| 二分查找 | O(log n) | O(log n) | O(1) |
-| BFS/DFS | O(V+E) | O(V+E) | O(V) |
-| Dijkstra | O((V+E) log V) | — | O(V) |
+| 局限 | 说明 |
+|------|------|
+| 忽略常数 | O(n) 不一定总比 O(n log n) 快 |
+| 忽略硬件因素 | 缓存、IO、网络延迟可能更重要 |
+| 平均和最坏不同 | 哈希、快速排序等需要区分场景 |
+| 只看增长趋势 | 小数据下可读性往往比复杂度更重要 |
 
 ---
 
-## 7. 如何评估自己的代码？
+## 总结
 
-### 7.1 三步法
-
-1. **数循环**：几层 for 循环 → 大概什么级别
-2. **看递归**：递归树有多深 → 指数？线性？
-3. **查 API**：内置方法的时间复杂度（见速查表）
-
-### 7.2 经验法则
-
-```javascript
-// 数据量 < 1000      → 基本不用考虑优化
-// 数据量 1000-10万   → 避免 O(n²)
-// 数据量 10万-100万  → 用 O(n log n)，警惕 O(n) 的常数
-// 数据量 > 100万     → 首选 O(log n) 或 O(1)
+```mermaid
+graph LR
+    A[确定输入规模] --> B[数循环和递归]
+    B --> C[保留最高阶]
+    C --> D[分析额外空间]
+    D --> E[结合数据量决策]
 ```
 
-### 7.3 常见优化手段
+**核心要点**：
 
-| 问题 | 手段 | 复杂度变化 |
-|------|------|-----------|
-| 嵌套循环查重 | 用 Set/Map | O(n²) → O(n) |
-| 无序数组搜索 | 先排序再二分 | O(n) → O(log n) |
-| 海量字符串前缀搜索 | Trie 树 | O(n*m) → O(k) |
-| 重复计算 | 缓存/动态规划 | O(2ⁿ) → O(n) |
-| 大列表渲染 | 虚拟滚动 | O(n) 渲染 → O(1) |
-
----
-
-## 8. 总结
-
-1. **大 O 是一种"规模感"**：只看增长趋势，不看具体数值
-2. **时间换空间，空间换时间**：没有银弹，只有权衡
-3. **数据量是一切的前提**：100 条数据不需要优化，100 万条必须优化
-4. **写代码前去想"能不能不用循环"**：用 Map/Set 替代双重 for，用公式替代递归
-5. **前端也有复杂度问题**：虚拟列表、搜索联想、组件重渲染都是典型场景
-
----
-
-## 参考资料
-
-- [Big O Cheat Sheet](https://www.bigocheatsheet.com/)
-- [Master Theorem 主定理](https://en.wikipedia.org/wiki/Master_theorem_(analysis_of_algorithms))
-- [MDN — Array 方法时间复杂度](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
+1. 大 O 描述的是增长趋势，而不是精确运行时间。
+2. 时间复杂度看执行次数，空间复杂度看额外占用。
+3. Map/Set 常用于用空间换时间，把 O(n²) 降到 O(n)。
+4. 优化前先看数据量，避免为了小规模场景牺牲可读性。

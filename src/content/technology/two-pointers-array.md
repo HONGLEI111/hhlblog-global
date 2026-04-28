@@ -9,32 +9,91 @@ draft: false
 lang: ''
 ---
 
-## 1. 什么是双指针？
+## 概述
 
-双指针是用**两个变量**追踪数组位置，在单次遍历中完成原本需要嵌套循环的工作，将时间复杂度从 O(n²) 降到 O(n)。
+**数组双指针** 用两个下标同时维护数组中的位置关系。它常把原本需要嵌套循环的枚举，优化为一次或少数几次线性扫描。
 
-```typescript
-// ❌ 暴力 O(n²)
-for (let i = 0; i < n; i++) {
-  for (let j = i + 1; j < n; j++) { ... }
-}
-
-// ✅ 双指针 O(n)
-let left = 0, right = n - 1;
-while (left < right) { ... }
-```
+> 前置知识
+> - **数组下标**：指针本质是下标变量
+> - **有序性**：左右指针常依赖数组排序
+> - **不变量**：明确两个指针之间的区间含义
 
 ---
 
-## 2. 模式一：左右指针
+## 问题定义
 
-**两个指针从数组两端向中间移动。** 适用于有序数组、反转、回文等。
+给定数组或字符串，通过两个指针的相对移动，完成查找、合并、反转、去重或原地修改。
 
-### 2.1 两数之和 II
+| 要素 | 说明 |
+|------|------|
+| 输入 | 数组、目标值、两个有序序列或字符串 |
+| 输出 | 下标、修改后的数组长度、合并结果或最优值 |
+| 指针模式 | 左右指针、快慢指针、分离指针 |
+| 典型收益 | 将 O(n²) 枚举降为 O(n) 扫描 |
+
+---
+
+## 核心原理：分步图解
+
+以有序数组两数之和为例：
+
+```text
+nums:   2   7   11   15
+target: 9
+        L            R
+```
+
+如果 `nums[left] + nums[right]` 太大，就右指针左移；太小，就左指针右移。
+
+```mermaid
+graph LR
+    A[计算两端和] --> B{等于目标?}
+    B -->|是| C[返回答案]
+    B -->|太小| D[left 右移]
+    B -->|太大| E[right 左移]
+    D --> A
+    E --> A
+```
+
+这种移动成立的前提是数组有序，移动后能安全排除一批不可能答案。
+
+---
+
+## 算法精细步骤
+
+```
+算法：TwoPointers(nums, target)
+输入：有序数组 nums，目标 target
+输出：满足条件的两个位置
+
+1. left ← 0, right ← nums.length - 1
+2. while left < right:
+3.     sum ← nums[left] + nums[right]
+4.     if sum == target，返回答案
+5.     if sum < target，left ← left + 1
+6.     else right ← right - 1
+7. 返回未找到
+```
+
+**复杂度分析**：
+
+| 模式 | 时间复杂度 | 空间复杂度 | 说明 |
+|------|------|------|------|
+| 左右指针 | O(n) | O(1) | 两端向中间移动 |
+| 快慢指针 | O(n) | O(1) | 同向扫描，常用于原地修改 |
+| 分离指针 | O(m + n) | O(m + n) 或 O(1) | 合并两个序列 |
+| 三数之和 | O(n²) | O(1) | 排序后固定一个数再双指针 |
+
+---
+
+## TypeScript 实现
+
+### 1. 两数之和 II
 
 ```typescript
 function twoSum(numbers: number[], target: number): number[] {
-  let left = 0, right = numbers.length - 1;
+  let left = 0;
+  let right = numbers.length - 1;
 
   while (left < right) {
     const sum = numbers[left] + numbers[right];
@@ -47,11 +106,13 @@ function twoSum(numbers: number[], target: number): number[] {
 }
 ```
 
-### 2.2 反转字符串
+### 2. 反转字符串
 
 ```typescript
 function reverseString(s: string[]): void {
-  let left = 0, right = s.length - 1;
+  let left = 0;
+  let right = s.length - 1;
+
   while (left < right) {
     [s[left], s[right]] = [s[right], s[left]];
     left++;
@@ -60,51 +121,12 @@ function reverseString(s: string[]): void {
 }
 ```
 
-### 2.3 验证回文串
-
-```typescript
-function isPalindrome(s: string): boolean {
-  const str = s.toLowerCase().replace(/[^a-z0-9]/g, '');
-  let left = 0, right = str.length - 1;
-  while (left < right) {
-    if (str[left] !== str[right]) return false;
-    left++;
-    right--;
-  }
-  return true;
-}
-```
-
-### 2.4 盛最多水的容器
-
-```typescript
-function maxArea(height: number[]): number {
-  let left = 0, right = height.length - 1;
-  let max = 0;
-
-  while (left < right) {
-    const area = (right - left) * Math.min(height[left], height[right]);
-    max = Math.max(max, area);
-    // 移动较矮的那一边
-    if (height[left] < height[right]) left++;
-    else right--;
-  }
-
-  return max;
-}
-```
-
----
-
-## 3. 模式二：快慢指针
-
-**两个指针同向移动，一快一慢。** 适用于去重、原地修改。
-
-### 3.1 删除有序数组的重复项
+### 3. 删除有序数组重复项
 
 ```typescript
 function removeDuplicates(nums: number[]): number {
   if (nums.length === 0) return 0;
+
   let slow = 0;
   for (let fast = 1; fast < nums.length; fast++) {
     if (nums[fast] !== nums[slow]) {
@@ -112,50 +134,32 @@ function removeDuplicates(nums: number[]): number {
       nums[slow] = nums[fast];
     }
   }
+
   return slow + 1;
 }
 ```
 
-### 3.2 移动零
+### 4. 移动零
 
 ```typescript
 function moveZeroes(nums: number[]): void {
-  let slow = 0;
-  for (let fast = 0; fast < nums.length; fast++) {
-    if (nums[fast] !== 0) {
-      [nums[slow], nums[fast]] = [nums[fast], nums[slow]];
-      slow++;
+  let write = 0;
+
+  for (let read = 0; read < nums.length; read++) {
+    if (nums[read] !== 0) {
+      [nums[write], nums[read]] = [nums[read], nums[write]];
+      write++;
     }
   }
 }
 ```
 
-### 3.3 删除指定元素
-
-```typescript
-function removeElement(nums: number[], val: number): number {
-  let slow = 0;
-  for (let fast = 0; fast < nums.length; fast++) {
-    if (nums[fast] !== val) {
-      nums[slow] = nums[fast];
-      slow++;
-    }
-  }
-  return slow;
-}
-```
-
----
-
-## 4. 模式三：分离指针
-
-**两个数组各用一个指针，归并排序的核心思想。**
-
-### 4.1 合并两个有序数组
+### 5. 合并两个有序数组
 
 ```typescript
 function merge(nums1: number[], m: number, nums2: number[], n: number): void {
-  let p1 = m - 1, p2 = n - 1;
+  let p1 = m - 1;
+  let p2 = n - 1;
   let tail = m + n - 1;
 
   while (p2 >= 0) {
@@ -168,28 +172,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 }
 ```
 
-### 4.2 两个有序数组合并
-
-```typescript
-function mergeTwoArrays<T>(a: T[], b: T[]): T[] {
-  const result: T[] = [];
-  let i = 0, j = 0;
-
-  while (i < a.length && j < b.length) {
-    if (a[i] <= b[j]) result.push(a[i++]);
-    else result.push(b[j++]);
-  }
-
-  while (i < a.length) result.push(a[i++]);
-  while (j < b.length) result.push(b[j++]);
-
-  return result;
-}
-```
-
----
-
-## 5. 模式四：三数之和（扩展）
+### 6. 三数之和
 
 ```typescript
 function threeSum(nums: number[]): number[][] {
@@ -197,9 +180,11 @@ function threeSum(nums: number[]): number[][] {
   const result: number[][] = [];
 
   for (let i = 0; i < nums.length - 2; i++) {
-    if (i > 0 && nums[i] === nums[i - 1]) continue; // 跳过重复
+    if (i > 0 && nums[i] === nums[i - 1]) continue;
 
-    let left = i + 1, right = nums.length - 1;
+    let left = i + 1;
+    let right = nums.length - 1;
+
     while (left < right) {
       const sum = nums[i] + nums[left] + nums[right];
       if (sum === 0) {
@@ -222,19 +207,51 @@ function threeSum(nums: number[]): number[][] {
 
 ---
 
-## 6. 总结
+## 工程优化：先定义指针不变量
 
-| 模式 | 场景 | 复杂度 |
-|------|------|--------|
-| 左右指针 | 有序数组、回文、反转 | O(n) |
-| 快慢指针 | 原地去重、移动元素 | O(n) |
-| 分离指针 | 合并有序序列 | O(m+n) |
+| 模式 | 不变量 | 常见用途 |
+|------|------|------|
+| 左右指针 | 答案在 `[left, right]` 内 | 有序查找、回文、反转 |
+| 快慢指针 | `[0, slow]` 是已处理有效区间 | 去重、过滤、移动元素 |
+| 分离指针 | 两个输入各自有序推进 | 合并数组、归并排序 |
+| 前后写指针 | 尾部空间未被覆盖 | 原地合并 |
 
-1. **有序 + 查找两个元素** → 左右指针
-2. **原地修改 + 保留顺序** → 快慢指针
+双指针代码不要只记模板，要说明为什么移动某个指针不会漏掉答案。
 
 ---
 
-## 参考资料
+## 应用与局限
 
-- [LeetCode — Two Pointers](https://leetcode.cn/tag/two-pointers/)
+### 典型应用
+
+- 有序数组查找两数之和
+- 原地去重、移动零、删除元素
+- 回文判断、字符串反转
+- 合并有序数组、三数之和
+
+### 局限性
+
+| 局限 | 说明 |
+|------|------|
+| 常依赖有序性 | 无序数组通常需要先排序或用哈希表 |
+| 移动规则需证明 | 不能安全排除候选时会漏答案 |
+| 排序会改变输入 | 三数之和等题目要注意是否允许原地排序 |
+
+---
+
+## 总结
+
+```mermaid
+graph LR
+    A[确定指针模式] --> B[定义不变量]
+    B --> C[移动一个或两个指针]
+    C --> D[维护结果]
+    D --> E[直到指针相遇或扫描结束]
+```
+
+**核心要点**：
+
+1. 双指针的价值是用线性移动替代重复枚举。
+2. 左右指针通常依赖有序性，快慢指针常用于原地修改。
+3. 每次移动指针前，都要能证明被跳过的状态不可能成为答案。
+4. 三数之和是“排序 + 固定一个数 + 左右指针”的经典组合。

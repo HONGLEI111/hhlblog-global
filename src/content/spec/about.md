@@ -6,8 +6,7 @@
 
 ## 💼 职业信息
 - **职位**：前端工程师 (Frontend Engineer)
-- **公司**：Ingersoll Rand (英格索兰)
-- **官网**：[irco.com](https://www.irco.com)
+- **公司**：Ingersoll Rand (英格索兰)[irco.com](https://www.irco.com)
 
 ## 🎨 个人标签
 - `00 后`

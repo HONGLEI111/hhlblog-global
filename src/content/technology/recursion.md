@@ -9,27 +9,83 @@ draft: false
 lang: ''
 ---
 
-## 1. 什么是递归？
+## 概述
 
-递归 = 函数**自己调用自己**，将大问题拆成相同结构的小问题。
+**递归（Recursion）** 是函数直接或间接调用自身的编程方法。它把大问题拆成结构相同的小问题，再通过终止条件停止拆分，并在返回过程中组合结果。
 
-```typescript
-// 递归三要素
-function recursion(n: number): number {
-  // 1. 终止条件（base case）
-  if (n <= 1) return n;
-
-  // 2. 递推关系
-  // 3. 返回值
-  return recursion(n - 1) + recursion(n - 2);
-}
-```
+> 前置知识
+> - **调用栈**：每次递归调用都会保存当前执行上下文
+> - **分治思想**：递归常用于把问题拆成相同结构的子问题
+> - **树结构**：树的定义天然递归，遍历也最适合递归表达
 
 ---
 
-## 2. 经典递归
+## 问题定义
 
-### 2.1 阶乘
+当问题可以被描述为“当前答案依赖更小规模的同类问题”时，可以考虑递归。
+
+| 要素 | 说明 |
+|------|------|
+| 输入 | 当前问题规模或当前节点 |
+| 输出 | 当前规模下的结果 |
+| 终止条件 | 最小问题的直接答案 |
+| 递推关系 | 当前结果如何由子问题得到 |
+
+---
+
+## 核心原理：分步图解
+
+以阶乘 `factorial(4)` 为例：
+
+```mermaid
+graph TD
+    A[factorial 4] --> B[factorial 3]
+    B --> C[factorial 2]
+    C --> D[factorial 1]
+    D --> E[返回 1]
+    E --> F[返回 2]
+    F --> G[返回 6]
+    G --> H[返回 24]
+```
+
+递归包含两个方向：
+
+1. **递进**：不断把问题拆小，直到命中终止条件。
+2. **回归**：子问题返回结果后，逐层合并成最终答案。
+
+如果终止条件不可达，递归会无限调用，最终栈溢出。
+
+---
+
+## 算法精细步骤
+
+```
+算法：RecursiveSolve(problem)
+输入：当前问题 problem
+输出：problem 的答案
+
+1. 如果 problem 是最小问题，返回已知答案
+2. 将 problem 转化为一个或多个更小的同类问题
+3. 递归求解子问题
+4. 将子问题结果组合成当前问题答案
+5. 返回答案
+```
+
+**复杂度分析**：
+
+| 示例 | 时间复杂度 | 空间复杂度 | 说明 |
+|------|------|------|------|
+| 阶乘 | O(n) | O(n) | 递归深度为 n |
+| 朴素斐波那契 | O(2^n) | O(n) | 大量重复计算 |
+| 记忆化斐波那契 | O(n) | O(n) | 缓存每个子问题 |
+| 二叉树深度 | O(n) | O(h) | h 为树高 |
+| 快速幂 | O(log n) | O(log n) | 每次规模减半 |
+
+---
+
+## TypeScript 实现
+
+### 1. 阶乘
 
 ```typescript
 function factorial(n: number): number {
@@ -38,92 +94,40 @@ function factorial(n: number): number {
 }
 ```
 
-### 2.2 斐波那契数
+### 2. 斐波那契与记忆化
 
 ```typescript
-// 朴素递归 O(2ⁿ) —— 大量重复计算
 function fib(n: number): number {
   if (n <= 1) return n;
   return fib(n - 1) + fib(n - 2);
 }
 
-// 记忆化搜索 O(n)
-function fibMemo(n: number, memo: Map<number, number> = new Map()): number {
+function fibMemo(n: number, memo = new Map<number, number>()): number {
   if (n <= 1) return n;
   if (memo.has(n)) return memo.get(n)!;
-  const result = fibMemo(n - 1, memo) + fibMemo(n - 2, memo);
-  memo.set(n, result);
-  return result;
+
+  const value = fibMemo(n - 1, memo) + fibMemo(n - 2, memo);
+  memo.set(n, value);
+  return value;
 }
 ```
 
-### 2.3 汉诺塔
+### 3. 汉诺塔
 
 ```typescript
-function hanoi(
-  n: number,
-  from: string,
-  to: string,
-  via: string
-): void {
+function hanoi(n: number, from: string, to: string, via: string): void {
   if (n === 1) {
-    console.log(`${from} → ${to}`);
+    console.log(`${from} -> ${to}`);
     return;
   }
+
   hanoi(n - 1, from, via, to);
-  console.log(`${from} → ${to}`);
+  console.log(`${from} -> ${to}`);
   hanoi(n - 1, via, to, from);
 }
 ```
 
----
-
-## 3. 递归 vs 迭代
-
-```typescript
-// 递归版：计算 1+2+...+n
-function sumRecursive(n: number): number {
-  if (n === 1) return 1;
-  return n + sumRecursive(n - 1);
-}
-
-// 迭代版
-function sumIterative(n: number): number {
-  let sum = 0;
-  for (let i = 1; i <= n; i++) sum += i;
-  return sum;
-}
-```
-
-| 递归 | 迭代 |
-|------|------|
-| 代码简洁 | 性能更好 |
-| 适合树/图 | 适合线性 |
-| 有栈溢出风险 | 无 |
-
----
-
-## 4. 尾递归优化
-
-```typescript
-// 普通递归：每次返回后还要做乘法（需要保存上下文）
-function factorial(n: number): number {
-  if (n <= 1) return 1;
-  return n * factorial(n - 1);
-}
-
-// 尾递归：所有计算在参数中完成，返回直接是函数调用
-function factorialTail(n: number, acc: number = 1): number {
-  if (n <= 1) return acc;
-  return factorialTail(n - 1, acc * n);
-}
-```
-
----
-
-## 5. 递归分治
-
-### 5.1 快速幂
+### 4. 快速幂
 
 ```typescript
 function myPow(x: number, n: number): number {
@@ -135,7 +139,7 @@ function myPow(x: number, n: number): number {
 }
 ```
 
-### 5.2 二叉树的深度
+### 5. 二叉树最大深度
 
 ```typescript
 interface TreeNode {
@@ -150,52 +154,70 @@ function maxDepth(root: TreeNode | null): number {
 }
 ```
 
----
-
-## 6. 递归 vs 动态规划
+### 6. 递归转迭代
 
 ```typescript
-// 爬楼梯：每次可以爬 1 或 2 阶
-
-// 递归 O(2ⁿ)
-function climbStairs(n: number): number {
-  if (n <= 2) return n;
-  return climbStairs(n - 1) + climbStairs(n - 2);
+function sumRecursive(n: number): number {
+  if (n === 0) return 0;
+  return n + sumRecursive(n - 1);
 }
 
-// DP O(n)
-function climbStairsDP(n: number): number {
-  if (n <= 2) return n;
-  let a = 1, b = 2;
-  for (let i = 3; i <= n; i++) {
-    [a, b] = [b, a + b];
+function sumIterative(n: number): number {
+  let sum = 0;
+  for (let i = 1; i <= n; i++) {
+    sum += i;
   }
-  return b;
+  return sum;
 }
 ```
 
 ---
 
-## 7. 常见陷阱
+## 工程优化：记忆化与栈深度控制
 
-| 陷阱 | 解决方案 |
-|------|----------|
-| 栈溢出 | 转迭代 / 尾递归 |
-| 重复计算 | 记忆化搜索 |
-| 死循环 | 确保 base case 可达 |
-| 全局变量污染 | 参数传递 |
+| 问题 | 优化方式 | 说明 |
+|------|------|------|
+| 重复计算 | 记忆化搜索 | 用 Map 缓存子问题结果 |
+| 栈深度过大 | 改写为迭代 | 避免调用栈溢出 |
+| 尾部递归 | 累加器参数 | JavaScript 引擎不保证尾调用优化 |
+| 全局状态污染 | 参数传递 / 局部变量 | 递归函数更可复用 |
 
----
-
-## 8. 总结
-
-1. **三要素**：终止条件、递推关系、返回值
-2. **记忆化** = 递归 + 缓存，是 DP 的另一种实现方式
-3. 树和图问题**天然适合递归**
-4. 深度过大时用**迭代替代**
+尾递归写法更接近迭代，但在 JavaScript/TypeScript 环境中不能依赖运行时自动优化调用栈。
 
 ---
 
-## 参考资料
+## 应用与局限
 
-- [MDN — Recursion](https://developer.mozilla.org/en-US/docs/Glossary/Recursion)
+### 典型应用
+
+- 树和图的遍历
+- 分治算法：归并排序、快速排序、快速幂
+- 动态规划的记忆化搜索版本
+- 回溯与组合枚举
+
+### 局限性
+
+| 局限 | 说明 |
+|------|------|
+| 栈溢出 | 深度过大时调用栈不可控 |
+| 重复计算 | 朴素递归可能指数级退化 |
+| 调试成本 | 多层调用时状态追踪较难 |
+
+---
+
+## 总结
+
+```mermaid
+graph LR
+    A[定义终止条件] --> B[缩小问题规模]
+    B --> C[递归求解子问题]
+    C --> D[合并返回值]
+    D --> E[必要时缓存或改迭代]
+```
+
+**核心要点**：
+
+1. 递归三要素是终止条件、递推关系和返回值。
+2. 递归适合树形、分治、回溯等天然分层的问题。
+3. 重叠子问题要加记忆化，避免指数级重复计算。
+4. 深度不可控时，优先改写为显式栈或迭代。

@@ -9,166 +9,157 @@ draft: false
 lang: ''
 ---
 
-## 1. 栈
+## 概述
 
-### 1.1 特性
+栈和队列都是受限的线性结构。它们不强调“任意位置访问”，而是强调“元素进入和离开的顺序”。
 
-- **后进先出 (LIFO)**：最后进的最先出
-- 操作：push（压入）、pop（弹出）、peek（查看栈顶）
+- 栈：后进先出，像一摞盘子；
+- 队列：先进先出，像排队办事。
 
-### 1.2 TypeScript 实现
+这两个结构看似简单，却是递归、表达式解析、BFS、任务调度、单调栈和单调队列的基础。
+
+> 前置知识
+> - **LIFO / FIFO**：栈后进先出，队列先进先出
+> - **数组实现**：注意 `push/pop` 与 `shift/unshift` 的成本
+> - **单调结构**：用栈或队列维护有序候选集
+
+---
+
+## 问题定义
+
+栈和队列解决的是“顺序控制”问题。
+
+| 结构 | 入 | 出 | 顺序 |
+| --- | --- | --- | --- |
+| 栈 | `push` | `pop` | 后进先出 |
+| 队列 | `enqueue` | `dequeue` | 先进先出 |
+
+如果问题关心“最近加入的元素”，通常想到栈；如果问题关心“最早等待的元素”，通常想到队列。
+
+---
+
+## 核心原理：分步图解
+
+### 栈
+
+```text
+push 1 -> [1]
+push 2 -> [1, 2]
+pop    -> [1]，返回 2
+```
+
+栈只操作同一端，因此入栈和出栈都是 O(1)。
+
+### 队列
+
+```text
+enqueue 1 -> [1]
+enqueue 2 -> [1, 2]
+dequeue   -> [2]，返回 1
+```
+
+队列从尾部进入、从头部离开。用 JavaScript 数组直接 `shift` 会移动元素，因此更好的实现是维护头指针。
+
+### 单调结构
+
+单调栈和单调队列会在插入时删除不可能再成为答案的元素：
+
+```text
+保持从大到小：
+入队 3: [3]
+入队 1: [3, 1]
+入队 2: [3, 2]  // 1 被移除
+```
+
+这类结构把很多“向左/向右找第一个更大值”的问题优化到 O(n)。
+
+---
+
+## 基本操作与复杂度
+
+| 结构 | 操作 | 时间复杂度 | 说明 |
+| --- | --- | --- | --- |
+| 栈 | push / pop / peek | O(1) | 只操作尾部 |
+| 队列 | enqueue / dequeue / peek | O(1) | 使用头尾指针 |
+| 单调栈 | push / pop | 摊还 O(1) | 每个元素最多进出一次 |
+| 单调队列 | push / shift | 摊还 O(1) | 维护窗口最值 |
+
+“摊还 O(1)”的意思是：单次操作可能弹出多个元素，但每个元素整个生命周期只会被弹出一次。
+
+---
+
+## TypeScript 实现
+
+### 1. 栈
 
 ```typescript
 class Stack<T> {
-  private items: T[] = [];
+  private readonly items: T[] = [];
 
-  push(item: T): void { this.items.push(item); }
-  pop(): T | undefined { return this.items.pop(); }
-  peek(): T | undefined { return this.items[this.items.length - 1]; }
-  get size(): number { return this.items.length; }
-  isEmpty(): boolean { return this.items.length === 0; }
+  push(value: T): void {
+    this.items.push(value);
+  }
+
+  pop(): T | undefined {
+    return this.items.pop();
+  }
+
+  peek(): T | undefined {
+    return this.items[this.items.length - 1];
+  }
+
+  get size(): number {
+    return this.items.length;
+  }
 }
 ```
 
----
-
-## 2. 队列
-
-### 2.1 特性
-
-- **先进先出 (FIFO)**：最先进的最先出
-- 操作：enqueue（入队）、dequeue（出队）、front（查看队首）
-
-### 2.2 TypeScript 实现
+### 2. 队列
 
 ```typescript
 class Queue<T> {
-  private items: T[] = [];
+  private readonly items: T[] = [];
+  private head = 0;
 
-  enqueue(item: T): void { this.items.push(item); }
-  dequeue(): T | undefined { return this.items.shift(); }
-  front(): T | undefined { return this.items[0]; }
-  get size(): number { return this.items.length; }
-  isEmpty(): boolean { return this.items.length === 0; }
-}
-```
-
-### 2.3 高效队列（使用双数组）
-
-```typescript
-class FastQueue<T> {
-  private input: T[] = [];
-  private output: T[] = [];
-
-  enqueue(item: T): void {
-    this.input.push(item);
+  enqueue(value: T): void {
+    this.items.push(value);
   }
 
   dequeue(): T | undefined {
-    if (this.output.length === 0) {
-      while (this.input.length > 0) {
-        this.output.push(this.input.pop()!);
-      }
+    if (this.head >= this.items.length) return undefined;
+
+    const value = this.items[this.head];
+    this.head++;
+
+    if (this.head > 32 && this.head * 2 > this.items.length) {
+      this.items.splice(0, this.head);
+      this.head = 0;
     }
-    return this.output.pop();
+
+    return value;
   }
 
-  get size(): number { return this.input.length + this.output.length; }
-}
-```
-
----
-
-## 3. 经典题目
-
-### 3.1 有效的括号
-
-```typescript
-function isValid(s: string): boolean {
-  const stack: string[] = [];
-  const map: Record<string, string> = { ')': '(', '}': '{', ']': '[' };
-
-  for (const ch of s) {
-    if (ch in map) {
-      if (stack.pop() !== map[ch]) return false;
-    } else {
-      stack.push(ch);
-    }
-  }
-
-  return stack.length === 0;
-}
-```
-
-### 3.2 用栈实现队列
-
-```typescript
-class MyQueue<T> {
-  private inStack: T[] = [];
-  private outStack: T[] = [];
-
-  push(x: T): void { this.inStack.push(x); }
-
-  pop(): T {
-    if (this.outStack.length === 0) {
-      while (this.inStack.length > 0) {
-        this.outStack.push(this.inStack.pop()!);
-      }
-    }
-    return this.outStack.pop()!;
-  }
-
-  peek(): T {
-    if (this.outStack.length === 0) {
-      while (this.inStack.length > 0) {
-        this.outStack.push(this.inStack.pop()!);
-      }
-    }
-    return this.outStack[this.outStack.length - 1];
-  }
-
-  empty(): boolean {
-    return this.inStack.length === 0 && this.outStack.length === 0;
+  get size(): number {
+    return this.items.length - this.head;
   }
 }
 ```
 
----
+这个队列避免每次出队都 `shift`，只在头部废弃空间较多时做一次压缩。
 
-## 4. 单调栈
-
-```typescript
-// 模板：找下一个更大元素
-function nextGreaterElement(nums: number[]): number[] {
-  const n = nums.length;
-  const result: number[] = new Array(n).fill(-1);
-  const stack: number[] = []; // 单调递减栈，存索引
-
-  for (let i = 0; i < n; i++) {
-    while (stack.length > 0 && nums[stack[stack.length - 1]] < nums[i]) {
-      const idx = stack.pop()!;
-      result[idx] = nums[i];
-    }
-    stack.push(i);
-  }
-
-  return result;
-}
-```
-
-### 4.1 每日温度
+### 3. 单调栈：下一个更大元素
 
 ```typescript
-function dailyTemperatures(temperatures: number[]): number[] {
-  const n = temperatures.length;
-  const result: number[] = new Array(n).fill(0);
+function nextGreater(nums: number[]): number[] {
+  const result = Array(nums.length).fill(-1);
   const stack: number[] = [];
 
-  for (let i = 0; i < n; i++) {
-    while (stack.length > 0 && temperatures[stack[stack.length - 1]] < temperatures[i]) {
-      const idx = stack.pop()!;
-      result[idx] = i - idx;
+  for (let i = 0; i < nums.length; i++) {
+    while (stack.length > 0 && nums[i] > nums[stack[stack.length - 1]]) {
+      const index = stack.pop()!;
+      result[index] = nums[i];
     }
+
     stack.push(i);
   }
 
@@ -176,51 +167,57 @@ function dailyTemperatures(temperatures: number[]): number[] {
 }
 ```
 
+栈里存的是下标，而不是值，因为答案要写回原位置。
+
 ---
 
-## 5. 单调队列
+## 工程优化：避免误用数组 API
+
+在 JavaScript 中，数组尾部操作很快：
 
 ```typescript
-// 滑动窗口最大值
-function maxSlidingWindow(nums: number[], k: number): number[] {
-  const result: number[] = [];
-  const deque: number[] = []; // 存索引，单调递减
-
-  for (let i = 0; i < nums.length; i++) {
-    // 移除越界元素
-    if (deque.length > 0 && deque[0] <= i - k) deque.shift();
-
-    // 保持单调递减
-    while (deque.length > 0 && nums[deque[deque.length - 1]] < nums[i]) {
-      deque.pop();
-    }
-
-    deque.push(i);
-
-    if (i >= k - 1) {
-      result.push(nums[deque[0]]);
-    }
-  }
-
-  return result;
-}
+arr.push(value);
+arr.pop();
 ```
 
----
+但头部操作会移动元素：
 
-## 6. 总结
+```typescript
+arr.shift();
+arr.unshift(value);
+```
 
-| 结构 | 特点 | 经典应用 |
-|------|------|----------|
-| 栈 | LIFO | 括号匹配、DFS、函数调用栈 |
-| 队列 | FIFO | BFS、任务调度、消息队列 |
-| 单调栈 | 保持单调 | 下一个更大元素 |
-| 单调队列 | 保持单调 | 滑动窗口最值 |
+如果队列规模较小，直接使用 `shift` 可以接受；如果队列在热路径上，应该使用头指针、环形数组或双端队列实现。
 
 ---
 
-## 参考资料
+## 应用与局限
 
-- [LeetCode — Stack](https://leetcode.cn/tag/stack/)
-- [LeetCode — Queue](https://leetcode.cn/tag/queue/)
-- [LeetCode — Monotonic Stack](https://leetcode.cn/tag/monotonic-stack/)
+### 典型应用
+
+- 栈：括号匹配、函数调用、撤销操作、DFS；
+- 队列：BFS、任务调度、消息缓冲；
+- 单调栈：下一个更大元素、柱状图最大矩形；
+- 单调队列：滑动窗口最大值。
+
+### 局限性
+
+- 栈和队列不支持中间元素高效访问；
+- 队列用普通数组实现时要避免频繁 `shift`；
+- 单调结构只适合能淘汰无效候选的问题；
+- 栈深度过大时，递归调用可能触发调用栈限制。
+
+---
+
+## 总结
+
+```mermaid
+graph LR
+    A[栈 LIFO] --> C[括号/递归/单调栈]
+    B[队列 FIFO] --> D[BFS/缓冲区/单调队列]
+```
+
+- 栈是后进先出，队列是先进先出。
+- 它们的价值在于控制处理顺序，而不是随机访问。
+- 队列实现应避免频繁头部删除导致 O(n) 搬移。
+- 单调栈和单调队列通过删除无效候选把问题优化到线性时间。
