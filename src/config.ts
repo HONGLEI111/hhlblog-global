@@ -42,7 +42,6 @@ export const siteConfig: SiteConfig = {
 export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
-		LinkPreset.Archive,
 		{
                         name: "博客",
                         url: "/blog/",
@@ -67,6 +66,7 @@ export const navBarConfig: NavBarConfig = {
                         external: false,
                         icon: "material-symbols:build-outline-rounded",
                 },
+		LinkPreset.Archive,
 		LinkPreset.About,
 	],
 };
