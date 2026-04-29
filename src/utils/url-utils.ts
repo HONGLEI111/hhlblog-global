@@ -17,20 +17,35 @@ export function getPostUrlBySlug(slug: string): string {
 }
 
 export function getBlogUrlBySlug(id: string): string {
-	return url(`/blog/${id.replace(/\.mdx?$/, '')}/`);
+	return url(`/blog/${id.replace(/\.mdx?$/, "")}/`);
 }
 
 export function getTechnologyUrlBySlug(slug: string): string {
-	return url(`/technology/${slug.replace(/\.mdx?$/, '')}/`);
+	return url(`/technology/${slug.replace(/\.mdx?$/, "")}/`);
 }
 
 export function getReadUrlBySlug(slug: string): string {
-	return url(`/read/${slug.replace(/\.mdx?$/, '')}/`);
+	return url(`/read/${slug.replace(/\.mdx?$/, "")}/`);
 }
 
 export function getTagUrl(tag: string): string {
 	if (!tag) return url("/archive/");
 	return url(`/archive/?tag=${encodeURIComponent(tag.trim())}`);
+}
+
+export function getBlogTagUrl(tag: string): string {
+	if (!tag) return url("/blog/archive/");
+	return url(`/blog/archive/?tag=${encodeURIComponent(tag.trim())}`);
+}
+
+export function getReadTagUrl(tag: string): string {
+	if (!tag) return url("/read/archive/");
+	return url(`/read/archive/?tag=${encodeURIComponent(tag.trim())}`);
+}
+
+export function getTechnologyTagUrl(tag: string): string {
+	if (!tag) return url("/technology/archive/");
+	return url(`/technology/archive/?tag=${encodeURIComponent(tag.trim())}`);
 }
 
 export function getCategoryUrl(category: string | null): string {
@@ -41,6 +56,38 @@ export function getCategoryUrl(category: string | null): string {
 	)
 		return url("/archive/?uncategorized=true");
 	return url(`/archive/?category=${encodeURIComponent(category.trim())}`);
+}
+
+export function getBlogCategoryUrl(category: string | null): string {
+	if (
+		!category ||
+		category.trim() === "" ||
+		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
+	)
+		return url("/blog/archive/?uncategorized=true");
+	return url(`/blog/archive/?category=${encodeURIComponent(category.trim())}`);
+}
+
+export function getReadCategoryUrl(category: string | null): string {
+	if (
+		!category ||
+		category.trim() === "" ||
+		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
+	)
+		return url("/read/archive/?uncategorized=true");
+	return url(`/read/archive/?category=${encodeURIComponent(category.trim())}`);
+}
+
+export function getTechnologyCategoryUrl(category: string | null): string {
+	if (
+		!category ||
+		category.trim() === "" ||
+		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
+	)
+		return url("/technology/archive/?uncategorized=true");
+	return url(
+		`/technology/archive/?category=${encodeURIComponent(category.trim())}`,
+	);
 }
 
 export function getDir(path: string): string {

@@ -2,28 +2,68 @@
 
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
-import { getTagList } from "../../utils/content-utils";
-import { getTagUrl } from "../../utils/url-utils";
+import {
+	getBlogTagList,
+	getReadTagList,
+	getTagList,
+	getTechnologyTagList,
+} from "../../utils/content-utils";
+import {
+	getBlogTagUrl,
+	getReadTagUrl,
+	getTagUrl,
+	getTechnologyTagUrl,
+} from "../../utils/url-utils";
 import ButtonTag from "../control/ButtonTag.astro";
 import WidgetLayout from "./WidgetLayout.astro";
 
-const tags = await getTagList();
-
 const COLLAPSED_HEIGHT = "7.5rem";
 
-const isCollapsed = tags.length >= 20;
+type Collection = "posts" | "blog" | "read" | "technology";
 
 interface Props {
 	class?: string;
 	style?: string;
+	collection?: Collection;
 }
 const className = Astro.props.class;
 const style = Astro.props.style;
+const collection = Astro.props.collection ?? "posts";
+const tags = await getTags(collection);
+const tagUrl = getTagUrlForCollection(collection);
+
+function getTags(collection: Collection) {
+	switch (collection) {
+		case "blog":
+			return getBlogTagList();
+		case "read":
+			return getReadTagList();
+		case "technology":
+			return getTechnologyTagList();
+		default:
+			return getTagList();
+	}
+}
+
+function getTagUrlForCollection(collection: Collection) {
+	switch (collection) {
+		case "blog":
+			return getBlogTagUrl;
+		case "read":
+			return getReadTagUrl;
+		case "technology":
+			return getTechnologyTagUrl;
+		default:
+			return getTagUrl;
+	}
+}
+
+const isCollapsed = tags.length >= 20;
 ---
 <WidgetLayout name={i18n(I18nKey.tags)} id="tags" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT} class={className} style={style}>
     <div class="flex gap-2 flex-wrap">
         {tags.map(t => (
-            <ButtonTag href={getTagUrl(t.name)} label={`View all posts with the ${t.name.trim()} tag`}>
+            <ButtonTag href={tagUrl(t.name)} label={`View all posts with the ${t.name.trim()} tag`}>
                 {t.name.trim()}
             </ButtonTag>
         ))}

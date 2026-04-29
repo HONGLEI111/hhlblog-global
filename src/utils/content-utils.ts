@@ -1,7 +1,12 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { getCategoryUrl } from "@utils/url-utils.ts";
+import {
+	getBlogCategoryUrl,
+	getCategoryUrl,
+	getReadCategoryUrl,
+	getTechnologyCategoryUrl,
+} from "@utils/url-utils.ts";
 
 // // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
@@ -74,11 +79,11 @@ export async function getSortedBlog() {
 	const sorted = await getRawSortedBlog();
 
 	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, '');
+		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, '');
+		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
 		sorted[i].data.prevTitle = sorted[i + 1].data.title;
 	}
 
@@ -88,11 +93,11 @@ export async function getSortedRead() {
 	const sorted = await getRawSortedRead();
 
 	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, '');
+		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, '');
+		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
 		sorted[i].data.prevTitle = sorted[i + 1].data.title;
 	}
 
@@ -102,11 +107,11 @@ export async function getSortedTechnology() {
 	const sorted = await getRawSortedTechnology();
 
 	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, '');
+		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, '');
+		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
 		sorted[i].data.prevTitle = sorted[i + 1].data.title;
 	}
 
@@ -115,13 +120,16 @@ export async function getSortedTechnology() {
 export type PostForList = {
 	slug: string;
 	data: CollectionEntry<"posts">["data"];
-};export type BlogForList = {
+};
+export type BlogForList = {
 	slug: string;
 	data: CollectionEntry<"blog">["data"];
-};export type ReadForList = {
+};
+export type ReadForList = {
 	slug: string;
 	data: CollectionEntry<"read">["data"];
-};export type TechnologyForList = {
+};
+export type TechnologyForList = {
 	slug: string;
 	data: CollectionEntry<"technology">["data"];
 };
@@ -140,7 +148,7 @@ export async function getSortedBlogList(): Promise<BlogForList[]> {
 	const sortedFullBlog = await getRawSortedBlog();
 
 	const sortedBlogList = sortedFullBlog.map((blog) => ({
-		slug: blog.id.replace(/\.mdx?$/, ''),
+		slug: blog.id.replace(/\.mdx?$/, ""),
 		data: blog.data,
 	}));
 
@@ -150,7 +158,7 @@ export async function getSortedReadList(): Promise<ReadForList[]> {
 	const sortedFullRead = await getRawSortedRead();
 
 	const sortedReadList = sortedFullRead.map((read) => ({
-		slug: read.id.replace(/\.mdx?$/, ''),
+		slug: read.id.replace(/\.mdx?$/, ""),
 		data: read.data,
 	}));
 
@@ -160,7 +168,7 @@ export async function getSortedTechnologyList(): Promise<TechnologyForList[]> {
 	const sortedFullTechnology = await getRawSortedTechnology();
 
 	const sortedTechnologyList = sortedFullTechnology.map((technology) => ({
-		slug: technology.id.replace(/\.mdx?$/, ''),
+		slug: technology.id.replace(/\.mdx?$/, ""),
 		data: technology.data,
 	}));
 
@@ -171,25 +179,44 @@ export type Tag = {
 	count: number;
 };
 
-export async function getTagList(): Promise<Tag[]> {
-	const allBlogPosts = await getCollection<"posts">("posts", ({ data }) => {
+type StatsCollection = "posts" | "blog" | "read" | "technology";
+
+async function getTagListForCollection(
+	collection: StatsCollection,
+): Promise<Tag[]> {
+	const allPosts = await getCollection(collection, ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
 	const countMap: { [key: string]: number } = {};
-	allBlogPosts.forEach((post: { data: { tags: string[] } }) => {
+	allPosts.forEach((post) => {
 		post.data.tags.forEach((tag: string) => {
 			if (!countMap[tag]) countMap[tag] = 0;
 			countMap[tag]++;
 		});
 	});
 
-	// sort tags
 	const keys: string[] = Object.keys(countMap).sort((a, b) => {
 		return a.toLowerCase().localeCompare(b.toLowerCase());
 	});
 
 	return keys.map((key) => ({ name: key, count: countMap[key] }));
+}
+
+export async function getTagList(): Promise<Tag[]> {
+	return getTagListForCollection("posts");
+}
+
+export async function getBlogTagList(): Promise<Tag[]> {
+	return getTagListForCollection("blog");
+}
+
+export async function getReadTagList(): Promise<Tag[]> {
+	return getTagListForCollection("read");
+}
+
+export async function getTechnologyTagList(): Promise<Tag[]> {
+	return getTagListForCollection("technology");
 }
 
 export type Category = {
@@ -198,12 +225,15 @@ export type Category = {
 	url: string;
 };
 
-export async function getCategoryList(): Promise<Category[]> {
-	const allBlogPosts = await getCollection<"posts">("posts", ({ data }) => {
+async function getCategoryListForCollection(
+	collection: StatsCollection,
+	getUrl: (category: string | null) => string,
+): Promise<Category[]> {
+	const allPosts = await getCollection(collection, ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 	const count: { [key: string]: number } = {};
-	allBlogPosts.forEach((post: { data: { category: string | null } }) => {
+	allPosts.forEach((post) => {
 		if (!post.data.category) {
 			const ucKey = i18n(I18nKey.uncategorized);
 			count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
@@ -227,9 +257,24 @@ export async function getCategoryList(): Promise<Category[]> {
 		ret.push({
 			name: c,
 			count: count[c],
-			url: getCategoryUrl(c),
+			url: getUrl(c),
 		});
 	}
 	return ret;
 }
 
+export async function getCategoryList(): Promise<Category[]> {
+	return getCategoryListForCollection("posts", getCategoryUrl);
+}
+
+export async function getBlogCategoryList(): Promise<Category[]> {
+	return getCategoryListForCollection("blog", getBlogCategoryUrl);
+}
+
+export async function getReadCategoryList(): Promise<Category[]> {
+	return getCategoryListForCollection("read", getReadCategoryUrl);
+}
+
+export async function getTechnologyCategoryList(): Promise<Category[]> {
+	return getCategoryListForCollection("technology", getTechnologyCategoryUrl);
+}

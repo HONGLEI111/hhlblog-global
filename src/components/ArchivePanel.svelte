@@ -3,11 +3,17 @@ import { onMount } from "svelte";
 
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
-import { getPostUrlBySlug } from "../utils/url-utils";
+import {
+	getBlogUrlBySlug,
+	getPostUrlBySlug,
+	getReadUrlBySlug,
+	getTechnologyUrlBySlug,
+} from "../utils/url-utils";
 
-export let tags: string[];
-export let categories: string[];
+export let tags: string[] = [];
+export let categories: string[] = [];
 export let sortedPosts: Post[] = [];
+export let collection: "posts" | "blog" | "read" | "technology" = "posts";
 
 const params = new URLSearchParams(window.location.search);
 tags = params.has("tag") ? params.getAll("tag") : [];
@@ -19,7 +25,7 @@ interface Post {
 	data: {
 		title: string;
 		tags: string[];
-		category?: string;
+		category?: string | null;
 		published: Date;
 	};
 }
@@ -39,6 +45,19 @@ function formatDate(date: Date) {
 
 function formatTag(tagList: string[]) {
 	return tagList.map((t) => `#${t}`).join(" ");
+}
+
+function getPostUrl(slug: string) {
+	switch (collection) {
+		case "blog":
+			return getBlogUrlBySlug(slug);
+		case "read":
+			return getReadUrlBySlug(slug);
+		case "technology":
+			return getTechnologyUrlBySlug(slug);
+		default:
+			return getPostUrlBySlug(slug);
+	}
 }
 
 onMount(async () => {
@@ -105,7 +124,7 @@ onMount(async () => {
 
             {#each group.posts as post}
                 <a
-                        href={getPostUrlBySlug(post.slug)}
+                        href={getPostUrl(post.slug)}
                         aria-label={post.data.title}
                         class="group btn-plain !block h-10 w-full rounded-lg hover:text-[initial]"
                 >

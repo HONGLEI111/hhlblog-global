@@ -1,23 +1,45 @@
 ---
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
-import { getCategoryList } from "../../utils/content-utils";
+import {
+	getBlogCategoryList,
+	getCategoryList,
+	getReadCategoryList,
+	getTechnologyCategoryList,
+} from "../../utils/content-utils";
 import ButtonLink from "../control/ButtonLink.astro";
 import WidgetLayout from "./WidgetLayout.astro";
 
-const categories = await getCategoryList();
+type Collection = "posts" | "blog" | "read" | "technology";
+
+interface Props {
+	class?: string;
+	style?: string;
+	collection?: Collection;
+}
+const className = Astro.props.class;
+const style = Astro.props.style;
+const collection = Astro.props.collection ?? "posts";
+
+const categories = await getCategories(collection);
+
+function getCategories(collection: Collection) {
+	switch (collection) {
+		case "blog":
+			return getBlogCategoryList();
+		case "read":
+			return getReadCategoryList();
+		case "technology":
+			return getTechnologyCategoryList();
+		default:
+			return getCategoryList();
+	}
+}
 
 const COLLAPSED_HEIGHT = "7.5rem";
 const COLLAPSE_THRESHOLD = 5;
 
 const isCollapsed = categories.length >= COLLAPSE_THRESHOLD;
-
-interface Props {
-	class?: string;
-	style?: string;
-}
-const className = Astro.props.class;
-const style = Astro.props.style;
 ---
 
 <WidgetLayout name={i18n(I18nKey.categories)} id="categories" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT}

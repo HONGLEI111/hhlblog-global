@@ -1,0 +1,13 @@
+---
+import ArchivePanel from "@components/ArchivePanel.svelte";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getSortedBlogList } from "@utils/content-utils";
+
+const sortedBlogList = await getSortedBlogList();
+---
+
+<MainGridLayout title={i18n(I18nKey.archive)} sidebarCollection="blog">
+    <ArchivePanel sortedPosts={sortedBlogList} collection="blog" client:only="svelte"></ArchivePanel>
+</MainGridLayout>
