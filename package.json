@@ -33,8 +33,10 @@
     "@iconify-json/fa6-brands": "^1.2.6",
     "@iconify-json/fa6-regular": "^1.2.4",
     "@iconify-json/fa6-solid": "^1.2.4",
+    "@iconify-json/flat-color-icons": "^1.2.3",
     "@iconify-json/ic": "^1.2.4",
     "@iconify-json/material-symbols": "^1.2.50",
+    "@iconify-json/tabler": "^1.2.33",
     "@iconify/svelte": "^4.2.0",
     "@swup/astro": "^1.7.0",
     "@tailwindcss/typography": "^0.5.19",
@@ -66,6 +68,7 @@
     "sharp": "^0.34.5",
     "stylus": "^0.64.0",
     "svelte": "^5.39.8",
+    "tailwind-merge": "^3.5.0",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "unist-util-visit": "^5.0.0"

@@ -1,0 +1,102 @@
+---
+import { Icon } from 'astro-icon/components';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Headline from '~/components/ui/Headline.astro';
+import type { Widget } from '~/types';
+
+export interface Project {
+  name: string;
+  description: string;
+  tech: string[];
+  link?: string;
+  github?: string;
+  icon?: string;
+}
+
+export interface Props extends Widget {
+  title?: string;
+  subtitle?: string;
+  items: Project[];
+}
+
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  items = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+} = Astro.props;
+---
+
+<WidgetWrapper id={id} isDark={isDark} containerClass={classes?.container as string} bg={bg}>
+  <Headline title={title} subtitle={subtitle} classes={classes?.headline as Record<string, string>} />
+
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      items.map((project, i) => (
+        <div
+          class="group flex flex-col p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 hover:border-primary/30 dark:hover:border-primary/30 hover:shadow-lg transition-all duration-300 intersect-once motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
+          style={`animation-delay: ${i * 100}ms`}
+        >
+          <!-- Icon -->
+          <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Icon name={project.icon || 'tabler:folder'} class="w-6 h-6" />
+          </div>
+
+          <!-- Content -->
+          <h3 class="font-bold text-lg text-heading mb-2 group-hover:text-primary transition-colors">
+            {project.name}
+          </h3>
+          <p class="text-sm text-muted leading-relaxed mb-4 flex-1">
+            {project.description}
+          </p>
+
+          <!-- Tech Pills -->
+          {
+            project.tech.length > 0 && (
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                {project.tech.map((t) => (
+                  <span class="px-2.5 py-0.5 text-xs font-medium rounded-full bg-primary/5 text-primary border border-primary/10">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )
+          }
+
+          <!-- Links -->
+          <div class="flex gap-3 mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
+            {
+              project.link && (
+                <a
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                >
+                  <Icon name="tabler:external-link" class="w-4 h-4" />
+                  预览
+                </a>
+              )
+            }
+            {
+              project.github && (
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-heading transition-colors"
+                >
+                  <Icon name="fa6-brands:github" class="w-4 h-4" />
+                  源码
+                </a>
+              )
+            }
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</WidgetWrapper>

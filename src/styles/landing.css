@@ -1,0 +1,174 @@
+/* Design tokens for landing page widgets (from astroblog) */
+@tailwind utilities;
+@tailwind components;
+
+:root {
+  --aw-font-sans: 'Roboto', sans-serif;
+  --aw-font-serif: 'Roboto', sans-serif;
+  --aw-font-heading: 'Roboto', sans-serif;
+
+  --aw-color-primary: rgb(1 97 239);
+  --aw-color-secondary: rgb(1 84 207);
+  --aw-color-accent: rgb(109 40 217);
+
+  --aw-color-text-heading: rgb(0 0 0);
+  --aw-color-text-default: rgb(16 16 16);
+  --aw-color-text-muted: rgb(16 16 16 / 66%);
+  --aw-color-bg-page: rgb(255 255 255);
+  --aw-color-bg-page-dark: rgb(3 6 32);
+}
+
+.dark {
+  --aw-color-text-heading: rgb(247, 248, 248);
+  --aw-color-text-default: rgb(229 236 246);
+  --aw-color-text-muted: rgb(229 236 246 / 66%);
+  --aw-color-bg-page: rgb(3 6 32);
+}
+
+/* Utility classes for landing widgets */
+@layer utilities {
+  .bg-page {
+    background-color: var(--aw-color-bg-page);
+  }
+  .bg-dark {
+    background-color: var(--aw-color-bg-page-dark);
+  }
+  .text-page {
+    color: var(--aw-color-text-default);
+  }
+  .text-muted {
+    color: var(--aw-color-text-muted);
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-full border-gray-400 border bg-transparent font-medium text-center text-base leading-snug transition py-3.5 px-6 md:px-8 ease-in duration-200 focus:ring-blue-500 focus:ring-offset-blue-200 focus:ring-2 focus:ring-offset-2 hover:bg-gray-100 hover:border-gray-600 dark:text-slate-300 dark:border-slate-500 dark:hover:bg-slate-800 dark:hover:border-slate-800 cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply btn font-semibold bg-primary text-white border-primary hover:bg-secondary hover:border-secondary hover:text-white dark:text-white dark:bg-primary dark:border-primary dark:hover:border-secondary dark:hover:bg-secondary;
+  }
+
+  .btn-secondary {
+    @apply btn;
+  }
+
+  .btn-tertiary {
+    @apply btn border-none shadow-none text-muted hover:text-gray-900 dark:text-gray-400 dark:hover:text-white;
+  }
+}
+
+/* Dropdown styles for landing widgets */
+.dropdown:focus .dropdown-menu,
+.dropdown:focus-within .dropdown-menu,
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+[astro-icon].icon-light > * {
+  stroke-width: 1.2;
+}
+
+[astro-icon].icon-bold > * {
+  stroke-width: 2.4;
+}
+
+/* Marquee tech stack */
+.marquee-wrapper {
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+}
+
+.marquee-row {
+  overflow: hidden;
+  padding: 0.5rem 0;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+}
+
+.marquee-track--left {
+  animation: marquee-left 30s linear infinite;
+}
+
+.marquee-track--right {
+  animation: marquee-right 35s linear infinite;
+}
+
+.marquee-row:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: rgb(229 231 235);
+  border: 1px solid rgb(229 231 235);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.dark .marquee-item {
+  background: rgb(55 65 81 / 0.4);
+  border-color: rgb(75 85 99 / 0.3);
+}
+
+.marquee-item:hover {
+  border-color: var(--aw-color-primary);
+  box-shadow: 0 4px 12px rgba(1, 97, 239, 0.15);
+}
+
+.marquee-item-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aw-color-primary);
+  flex-shrink: 0;
+}
+
+.marquee-item-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--aw-color-text-default);
+}
+
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

@@ -53,10 +53,12 @@ export default defineConfig({
 		}),
 		icon({
 			include: {
-				"preprocess: vitePreprocess(),": ["*"],
+				"material-symbols": ["*"],
 				"fa6-brands": ["*"],
 				"fa6-regular": ["*"],
 				"fa6-solid": ["*"],
+				"tabler": ["*"],
+				"flat-color-icons": ["*"],
 			},
 		}),
 		expressiveCode({
@@ -159,6 +161,11 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		resolve: {
+			alias: {
+				"~": new URL("./src", import.meta.url).pathname,
+			},
+		},
 		build: {
 			rollupOptions: {
 				onwarn(warning, warn) {

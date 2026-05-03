@@ -1,0 +1,108 @@
+---
+import Footer from "@components/Footer.astro";
+import Navbar from "@components/Navbar.astro";
+import ImageWrapper from "../components/misc/ImageWrapper.astro";
+import { siteConfig } from "../config";
+import {
+  BANNER_HEIGHT,
+  BANNER_HEIGHT_EXTEND,
+  MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
+} from "../constants/constants";
+import Layout from "./Layout.astro";
+import "../styles/landing.css";
+
+interface Props {
+  title?: string;
+  banner?: string;
+  description?: string;
+  lang?: string;
+  setOGTypeArticle?: boolean;
+}
+
+const {
+  title,
+  banner,
+  description,
+  lang,
+  setOGTypeArticle,
+} = Astro.props;
+
+const hasBannerCredit =
+  siteConfig.banner.enable && siteConfig.banner.credit.enable;
+const hasBannerLink = !!siteConfig.banner.credit.url;
+
+const mainPanelTop = siteConfig.banner.enable
+  ? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
+  : "5.5rem";
+---
+
+<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
+
+<!-- Navbar -->
+<slot slot="head" name="head"></slot>
+<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 md:px-4 mx-auto">
+    <div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all">
+        <Navbar></Navbar>
+    </div>
+</div>
+
+<!-- Banner -->
+{siteConfig.banner.enable && <div id="banner-wrapper" class={`absolute z-10 w-full transition duration-700 overflow-hidden`} style={`top: -${BANNER_HEIGHT_EXTEND}vh`}>
+    <ImageWrapper id="banner" alt="Banner image of the blog" class:list={["object-cover h-full transition duration-700 opacity-0 scale-105"]}
+                  src={siteConfig.banner.src} position={siteConfig.banner.position}
+                  loading="eager"
+                  fetchpriority="high"
+                  sizes="100vw"
+                  widths={[480, 640, 750, 828, 1080, 1280, 1536, 1920]}
+                  quality={68}
+    >
+    </ImageWrapper>
+    <div id="header-waves" class="waves absolute -bottom-px h-[10vh] max-h-[9.375rem] min-h-[3.125rem] w-full md:h-[15vh]">
+        <svg
+            class="waves"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 24 150 28"
+            preserveAspectRatio="none"
+            shape-rendering="geometricPrecision"
+        >
+            <defs>
+                <path
+                    id="gentle-wave"
+                    d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v48h-352z"
+                >
+                </path>
+            </defs>
+            <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" class="opacity-25" fill="var(--page-bg)"></use>
+                <use xlink:href="#gentle-wave" x="48" y="3" class="opacity-50" fill="var(--page-bg)"></use>
+                <use xlink:href="#gentle-wave" x="48" y="5" class="opacity-65" fill="var(--page-bg)"></use>
+                <use xlink:href="#gentle-wave" x="48" y="7" class="opacity-75" fill="var(--page-bg)"></use>
+            </g>
+        </svg>
+    </div>
+</div>}
+
+<!-- Main content – full width for landing widgets -->
+<div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}`}>
+    <div id="main-grid" class="transition duration-700 w-full left-0 right-0 mx-auto pointer-events-auto onload-animation">
+        <main id="swup-container" class="transition-swup-fade overflow-hidden">
+            <div id="content-wrapper">
+                <slot></slot>
+            </div>
+        </main>
+        <div class="footer onload-animation">
+            <Footer></Footer>
+        </div>
+    </div>
+</div>
+
+</Layout>
+
+<style>
+  :global(#banner img) {
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
+  }
+</style>

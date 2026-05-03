@@ -4,20 +4,118 @@ import Pagination from "../components/control/Pagination.astro";
 import PostPage from "../components/PostPage.astro";
 import { PAGE_SIZE } from "../constants/constants";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
+import HomeLayout from "../layouts/HomeLayout.astro";
 import { getSortedPosts } from "../utils/content-utils";
+import { profileConfig } from "../config";
 
+import AboutMe from "~/components/landing/AboutMe.astro";
+import TechStack from "~/components/landing/TechStack.astro";
+import MovingTechStack from "~/components/landing/MovingTechStack.astro";
+import BlogLatestPosts from "~/components/landing/BlogLatestPosts.astro";
+import Projects from "~/components/landing/Projects.astro";
 export const getStaticPaths = (async ({ paginate }) => {
-	const allBlogPosts = await getSortedPosts();
-	return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
+    const allBlogPosts = await getSortedPosts();
+    return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
 }) satisfies GetStaticPaths;
-// https://github.com/withastro/astro/issues/6507#issuecomment-1489916992
 
 const { page } = Astro.props;
 
 const len = page.data.length;
+const isHomePage = page.currentPage === 1;
 ---
 
-<MainGridLayout>
-    <PostPage page={page}></PostPage>
-    <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
-</MainGridLayout>
+{
+  isHomePage ? (
+    <HomeLayout>
+      <!-- Personal Introduction -->
+      <AboutMe
+        avatar={profileConfig.avatar}
+        name={profileConfig.name}
+        role="前端工程师"
+        company="Ingersoll Rand (英格索兰)"
+        bio="兴趣使然的网文作家，前端工程师~ 热爱技术，热爱生活，终身学习者。"
+        location="上海"
+        tags={["00后", "前端开发", "网文作家", "终身学习者"]}
+        socialLinks={profileConfig.links}
+      />
+
+      <!-- Blog Tech Stack -->
+      <TechStack
+        title="博客技术栈"
+        subtitle="本站使用以下技术构建，追求高性能与最佳开发体验"
+        columns={4}
+        items={[
+          { icon: 'tabler:rocket', name: 'Astro 5', description: '现代化的静态站点生成器' },
+          { icon: 'tabler:brand-tailwind', name: 'Tailwind CSS 3', description: '实用优先的 CSS 框架' },
+          { icon: 'tabler:braces', name: 'TypeScript', description: '类型安全的 JavaScript' },
+          { icon: 'tabler:arrows-left-right', name: 'Swup', description: '页面过渡动画' },
+        ]}
+      />
+
+      <!-- Latest Blog Posts -->
+      <BlogLatestPosts
+        title="最新文章"
+        information="记录技术学习、前端开发经验和日常思考。每一篇文章都经过精心打磨，希望对你有所帮助。"
+      />
+
+      <!-- My Tech Skills -->
+      <MovingTechStack
+        title="我的技术栈"
+        subtitle="多年积累的技术能力，持续学习与进步"
+        items={[
+          { icon: 'fa6-brands:react', name: 'React' },
+          { icon: 'fa6-brands:vuejs', name: 'Vue.js' },
+          { icon: 'tabler:braces', name: 'TypeScript' },
+          { icon: 'fa6-brands:js', name: 'JavaScript' },
+          { icon: 'fa6-brands:html5', name: 'HTML5' },
+          { icon: 'fa6-brands:css3-alt', name: 'CSS3' },
+          { icon: 'tabler:brand-tailwind', name: 'Tailwind CSS' },
+          { icon: 'tabler:rocket', name: 'Astro' },
+          { icon: 'tabler:stack', name: 'Svelte' },
+          { icon: 'fa6-brands:node-js', name: 'Node.js' },
+          { icon: 'tabler:git-branch', name: 'Git' },
+          { icon: 'tabler:code', name: 'VS Code' },
+          { icon: 'tabler:package', name: 'pnpm' },
+          { icon: 'tabler:bolt', name: 'Vite' },
+          { icon: 'tabler:file-text', name: 'Markdown' },
+        ]}
+      />
+
+      <!-- My Projects -->
+      <Projects
+        title="我的项目"
+        subtitle="以下是我参与和开发的一些项目，持续更新中"
+        items={[
+          {
+            name: '个人博客',
+            description: '基于 Astro + Tailwind CSS + Svelte 构建的个人博客，支持多内容集合、全文搜索、暗色模式、页面过渡动画等功能。',
+            tech: ['Astro', 'Tailwind CSS', 'Svelte', 'TypeScript'],
+            link: 'https://www.hehonglei.cn',
+            github: 'https://github.com/HONGLEI111',
+            icon: 'tabler:world',
+          },
+          {
+            name: ' 个人图库',
+            description: '具有上传、管理、读取、删除等全链路功能，覆盖文件全生命周期，支持鉴权、目录、图片审查、随机图等各项特性',
+            tech: ['Cloudflare R2','Telegram','RESTful APIs','WebDAV'],
+	    link: 'https://img.hehonglei.cn',
+            github: 'https://github.com/HONGLEI111',
+            icon: 'tabler:book',
+          },
+          {
+            name: '个人文件管理',
+            description: '个人在线文件托管服务',
+            tech: ['React', 'TypeScript', 'CSS Modules', 'Storybook'],
+            github: 'https://github.com/HONGLEI111',
+            icon: 'tabler:apps',
+          },
+        ]}
+      />
+    </HomeLayout>
+  ) : (
+    <MainGridLayout>
+      <PostPage page={page}></PostPage>
+      <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+    </MainGridLayout>
+  )
+}

@@ -1,0 +1,79 @@
+---
+import { Icon } from 'astro-icon/components';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Headline from '~/components/ui/Headline.astro';
+import type { Widget } from '~/types';
+
+export interface TechItem {
+  icon: string;
+  name: string;
+}
+
+export interface Props extends Widget {
+  title?: string;
+  subtitle?: string;
+  items: TechItem[];
+}
+
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  items = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+} = Astro.props;
+
+const halfIndex = Math.ceil(items.length / 2);
+const row1Items = items.slice(0, halfIndex);
+const row2Items = items.slice(halfIndex);
+---
+
+<WidgetWrapper id={id} isDark={isDark} containerClass={classes?.container as string} bg={bg}>
+  <Headline title={title} subtitle={subtitle} classes={classes?.headline as Record<string, string>} />
+
+  <div class="marquee-wrapper">
+    <div class="marquee-row">
+      <div class="marquee-track marquee-track--left">
+        {row1Items.map((item) => (
+          <div class="marquee-item">
+            <span class="marquee-item-icon">
+              <Icon name={item.icon} class="w-5 h-5" />
+            </span>
+            <span class="marquee-item-name">{item.name}</span>
+          </div>
+        ))}
+        {row1Items.map((item) => (
+          <div class="marquee-item" aria-hidden="true">
+            <span class="marquee-item-icon">
+              <Icon name={item.icon} class="w-5 h-5" />
+            </span>
+            <span class="marquee-item-name">{item.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="marquee-row">
+      <div class="marquee-track marquee-track--right">
+        {row2Items.map((item) => (
+          <div class="marquee-item">
+            <span class="marquee-item-icon">
+              <Icon name={item.icon} class="w-5 h-5" />
+            </span>
+            <span class="marquee-item-name">{item.name}</span>
+          </div>
+        ))}
+        {row2Items.map((item) => (
+          <div class="marquee-item" aria-hidden="true">
+            <span class="marquee-item-icon">
+              <Icon name={item.icon} class="w-5 h-5" />
+            </span>
+            <span class="marquee-item-name">{item.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</WidgetWrapper>
