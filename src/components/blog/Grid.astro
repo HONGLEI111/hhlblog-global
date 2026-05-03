@@ -5,6 +5,13 @@ import type { Post } from '~/types';
 import Image from '~/components/common/Image.astro';
 import { getFormattedDate } from '~/utils/utils';
 
+const fallbackCovers = [
+  'https://img.hehonglei.cn/file/1776633499508_128688708_p0.jpg',
+  'https://img.hehonglei.cn/file/1776633500887_137725199_p0.jpg',
+  'https://img.hehonglei.cn/file/1776633488500_133054821_p0.jpg',
+  'https://img.hehonglei.cn/file/1776633479084_121354629_p0.jpg',
+];
+
 export interface Props {
   posts?: Post[];
 }
@@ -17,7 +24,7 @@ export interface Props {
         <a href={post.permalink} class="group intersect-once motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
           <div class="relative aspect-[4/3] mb-4 rounded-md overflow-hidden bg-gray-200">
             <Image
-              src={`https://img.hehonglei.cn/random?t=${index}`}
+              src={post.image || fallbackCovers[index % fallbackCovers.length]}
               alt={post.title || ''}
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               layout="cover"
