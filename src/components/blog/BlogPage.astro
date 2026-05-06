@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getBlogUrlBySlug } from "@utils/url-utils";
+import { getPostUrlBySlug } from "@utils/url-utils";
 import BlogCard from "./BlogCard.astro";
 
 const { page } = Astro.props;
@@ -9,7 +9,7 @@ let delay = 0;
 const interval = 50;
 ---
 <div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
-    {page.data.map((entry: CollectionEntry<"blog">) => (
+    {page.data.map((entry: CollectionEntry<"posts">) => (
         <BlogCard
                 entry={entry}
                 title={entry.data.title}
@@ -17,7 +17,7 @@ const interval = 50;
                 category={entry.data.category}
                 published={entry.data.published}
                 updated={entry.data.updated}
-                url={getBlogUrlBySlug(entry.id)}
+                url={getPostUrlBySlug(entry.id)}
                 image={entry.data.image}
                 description={entry.data.description}
                 draft={entry.data.draft}

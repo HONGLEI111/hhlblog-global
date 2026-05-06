@@ -3,13 +3,11 @@
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 import {
-	getBlogTagList,
 	getReadTagList,
 	getTagList,
 	getTechnologyTagList,
 } from "../../utils/content-utils";
 import {
-	getBlogTagUrl,
 	getReadTagUrl,
 	getTagUrl,
 	getTechnologyTagUrl,
@@ -19,7 +17,7 @@ import WidgetLayout from "./WidgetLayout.astro";
 
 const COLLAPSED_HEIGHT = "7.5rem";
 
-type Collection = "posts" | "blog" | "read" | "technology";
+type Collection = "posts" | "read" | "technology";
 
 interface Props {
 	class?: string;
@@ -34,8 +32,6 @@ const tagUrl = getTagUrlForCollection(collection);
 
 function getTags(collection: Collection) {
 	switch (collection) {
-		case "blog":
-			return getBlogTagList();
 		case "read":
 			return getReadTagList();
 		case "technology":
@@ -47,8 +43,6 @@ function getTags(collection: Collection) {
 
 function getTagUrlForCollection(collection: Collection) {
 	switch (collection) {
-		case "blog":
-			return getBlogTagUrl;
 		case "read":
 			return getReadTagUrl;
 		case "technology":

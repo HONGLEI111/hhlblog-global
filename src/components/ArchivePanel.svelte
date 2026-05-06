@@ -4,7 +4,6 @@ import { onMount } from "svelte";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import {
-	getBlogUrlBySlug,
 	getPostUrlBySlug,
 	getReadUrlBySlug,
 	getTechnologyUrlBySlug,
@@ -13,7 +12,7 @@ import {
 export let tags: string[] = [];
 export let categories: string[] = [];
 export let sortedPosts: Post[] = [];
-export let collection: "posts" | "blog" | "read" | "technology" = "posts";
+export let collection: "posts" | "read" | "technology" = "posts";
 
 const params = new URLSearchParams(window.location.search);
 tags = params.has("tag") ? params.getAll("tag") : [];
@@ -49,8 +48,6 @@ function formatTag(tagList: string[]) {
 
 function getPostUrl(slug: string) {
 	switch (collection) {
-		case "blog":
-			return getBlogUrlBySlug(slug);
 		case "read":
 			return getReadUrlBySlug(slug);
 		case "technology":

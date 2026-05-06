@@ -16,10 +16,6 @@ export function getPostUrlBySlug(slug: string): string {
 	return url(`/posts/${slug}/`);
 }
 
-export function getBlogUrlBySlug(id: string): string {
-	return url(`/blog/${id.replace(/\.mdx?$/, "")}/`);
-}
-
 export function getTechnologyUrlBySlug(slug: string): string {
 	return url(`/technology/${slug.replace(/\.mdx?$/, "")}/`);
 }
@@ -31,11 +27,6 @@ export function getReadUrlBySlug(slug: string): string {
 export function getTagUrl(tag: string): string {
 	if (!tag) return url("/archive/");
 	return url(`/archive/?tag=${encodeURIComponent(tag.trim())}`);
-}
-
-export function getBlogTagUrl(tag: string): string {
-	if (!tag) return url("/blog/archive/");
-	return url(`/blog/archive/?tag=${encodeURIComponent(tag.trim())}`);
 }
 
 export function getReadTagUrl(tag: string): string {
@@ -56,16 +47,6 @@ export function getCategoryUrl(category: string | null): string {
 	)
 		return url("/archive/?uncategorized=true");
 	return url(`/archive/?category=${encodeURIComponent(category.trim())}`);
-}
-
-export function getBlogCategoryUrl(category: string | null): string {
-	if (
-		!category ||
-		category.trim() === "" ||
-		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
-	)
-		return url("/blog/archive/?uncategorized=true");
-	return url(`/blog/archive/?category=${encodeURIComponent(category.trim())}`);
 }
 
 export function getReadCategoryUrl(category: string | null): string {

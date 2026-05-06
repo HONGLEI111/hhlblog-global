@@ -2,7 +2,6 @@
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 import {
-	getBlogCategoryList,
 	getCategoryList,
 	getReadCategoryList,
 	getTechnologyCategoryList,
@@ -10,7 +9,7 @@ import {
 import ButtonLink from "../control/ButtonLink.astro";
 import WidgetLayout from "./WidgetLayout.astro";
 
-type Collection = "posts" | "blog" | "read" | "technology";
+type Collection = "posts" | "read" | "technology";
 
 interface Props {
 	class?: string;
@@ -25,8 +24,6 @@ const categories = await getCategories(collection);
 
 function getCategories(collection: Collection) {
 	switch (collection) {
-		case "blog":
-			return getBlogCategoryList();
 		case "read":
 			return getReadCategoryList();
 		case "technology":

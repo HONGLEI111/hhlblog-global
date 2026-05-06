@@ -6,8 +6,8 @@ import { render } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
-import { getSortedBlog } from "@utils/content-utils";
-import { getDir, getBlogUrlBySlug } from "@utils/url-utils";
+import { getSortedPosts } from "@utils/content-utils";
+import { getDir, getPostUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
 import ImageWrapper from "../../components/misc/ImageWrapper.astro";
@@ -16,7 +16,7 @@ import { profileConfig, siteConfig } from "../../config";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 
 export async function getStaticPaths() {
-	const blogEntries = await getSortedBlog();
+	const blogEntries = await getSortedPosts();
 
 	return blogEntries.map((entry) => {
 		const slug = entry.id.replace(/\.mdx?$/, "");
@@ -51,7 +51,7 @@ const jsonLd = {
 };
 ---
 
-<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings} sidebarCollection="blog">
+<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings} sidebarCollection="posts">
   <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
   <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
     <div id="post-container" class:list={["card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full", {}]}>
@@ -121,7 +121,7 @@ const jsonLd = {
   <!-- prev/next navigation -->
   <div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full">
     {entry.data.nextSlug ? (
-      <a href={getBlogUrlBySlug(entry.data.nextSlug)} aria-label={entry.data.nextTitle}
+      <a href={getPostUrlBySlug(entry.data.nextSlug)} aria-label={entry.data.nextTitle}
          class="w-full font-bold overflow-hidden active:scale-95">
         <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-start gap-4" >
           <Icon name="material-symbols:chevron-left-rounded" class="text-[2rem] text-[var(--primary)]" />
@@ -135,7 +135,7 @@ const jsonLd = {
     )}
 
     {entry.data.prevSlug ? (
-      <a href={getBlogUrlBySlug(entry.data.prevSlug)} aria-label={entry.data.prevTitle}
+      <a href={getPostUrlBySlug(entry.data.prevSlug)} aria-label={entry.data.prevTitle}
          class="w-full font-bold overflow-hidden active:scale-95">
         <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-end gap-4">
           <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75">

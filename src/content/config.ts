@@ -41,10 +41,6 @@ const postsCollection = defineCollection({
 const specCollection = defineCollection({
 	schema: z.object({}),
 });
-const blogCollection = defineCollection({
-        loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/blog' }),
-	schema: basePostSchema,
-});
 const technologyCollection = defineCollection({
         loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/technology' }),
 	schema: basePostSchema,
@@ -56,7 +52,6 @@ const readCollection = defineCollection({
 export const collections = {
 	posts: postsCollection,
 	spec: specCollection,
-	blog: blogCollection,
 	technology: technologyCollection,
 	read: readCollection,
 };
