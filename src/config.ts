@@ -81,7 +81,7 @@ export const profileConfig: ProfileConfig = {
 			icon: "material-symbols:mail-outline-rounded", // Visit https://icones.js.org/ for icon codes
 			// You will need to install the corresponding icon set if it's not already included
 			// `pnpm add @iconify-json/<icon-set-name>`
-			url: "mailto:stiplettt1445017782@outlook.com",
+			url: "mailto:contact@hehonglei.com",
 		},
 		{
 			name: "Discord",
