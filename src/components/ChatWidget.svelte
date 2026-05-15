@@ -58,7 +58,12 @@
       const truncated = selectedText.length > MAX_SELECTION_LENGTH
         ? selectedText.slice(0, MAX_SELECTION_LENGTH) + '...'
         : selectedText;
-      finalContent = `用户选取了以下文字：\n\n"""\n${truncated}\n"""\n\n问题：${text}`;
+      const extra = text.startsWith(selectedText) ? text.slice(selectedText.length).trim() : text;
+      if (extra) {
+        finalContent = `用户选取了以下文字：\n\n"""\n${truncated}\n"""\n\n问题：${extra}`;
+      } else {
+        finalContent = `用户选取了以下文字：\n\n"""\n${truncated}\n"""`;
+      }
       selectedText = '';
       showSelectionPopup = false;
     }
@@ -195,7 +200,12 @@
     isOpen = true;
     error = null;
     showSelectionPopup = false;
-    requestAnimationFrame(() => inputEl?.focus());
+    inputText = selectedText;
+    requestAnimationFrame(() => {
+      inputEl?.focus();
+      inputEl?.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      handleInput();
+    });
   }
 
   function dismissSelectionPopup() {
