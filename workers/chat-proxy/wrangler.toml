@@ -1,0 +1,7 @@
+name = "blog-chat-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-05-15"
+
+[vars]
+# 部署后运行: wrangler secret put DEEPSEEK_API_KEY
+# 或在 Cloudflare Dashboard 中设置

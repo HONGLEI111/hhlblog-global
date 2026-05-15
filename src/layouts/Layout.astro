@@ -20,6 +20,7 @@ import type { Favicon } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
 import "katex/dist/katex.css";
 import Notification from '../components/widget/Notification.astro';
+import ChatWidget from '@components/ChatWidget.svelte';
 
 
 interface Props {
@@ -177,7 +178,8 @@ const bannerOffset =
 		/>
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
-	</body>
+	<ChatWidget client:only="svelte"></ChatWidget>
+</body>
 </html>
 
 <style is:global define:vars={{
