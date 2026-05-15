@@ -17,6 +17,12 @@
   let error = $state<string | null>(null);
   let abortController: AbortController | null = null;
 
+  // Text selection context
+  let selectedText = $state('');
+  let showSelectionPopup = $state(false);
+  let popupPos = $state({ x: 0, y: 0 });
+  const MAX_SELECTION_LENGTH = 8000;
+
   let chatPanel: HTMLDivElement;
   let msgList: HTMLDivElement;
   let inputEl: HTMLTextAreaElement;
@@ -47,7 +53,17 @@
     const text = inputText.trim();
     if (!text || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: text };
+    let finalContent = text;
+    if (selectedText) {
+      const truncated = selectedText.length > MAX_SELECTION_LENGTH
+        ? selectedText.slice(0, MAX_SELECTION_LENGTH) + '...'
+        : selectedText;
+      finalContent = `用户选取了以下文字：\n\n"""\n${truncated}\n"""\n\n问题：${text}`;
+      selectedText = '';
+      showSelectionPopup = false;
+    }
+
+    const userMessage: Message = { role: 'user', content: finalContent };
     messages = [...messages, userMessage];
     inputText = '';
     isLoading = true;
@@ -137,12 +153,69 @@
     isOpen = false;
   }
 
+  function handleMouseUp(_e: MouseEvent) {
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        showSelectionPopup = false;
+        return;
+      }
+
+      const text = selection.toString().trim();
+      if (!text || text.length < 2) {
+        showSelectionPopup = false;
+        return;
+      }
+
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        if (chatPanel?.contains(range.commonAncestorContainer)) {
+          return;
+        }
+      }
+
+      selectedText = text;
+
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      const popupHeight = 36;
+      let top = rect.bottom + 6;
+      if (top + popupHeight > window.innerHeight - 10) {
+        top = rect.top - popupHeight - 6;
+      }
+      popupPos = {
+        x: Math.max(16, Math.min(rect.left + rect.width / 2, window.innerWidth - 16)),
+        y: Math.max(4, top),
+      };
+      showSelectionPopup = true;
+    }, 10);
+  }
+
+  function handleSelectionClick() {
+    isOpen = true;
+    error = null;
+    showSelectionPopup = false;
+    requestAnimationFrame(() => inputEl?.focus());
+  }
+
+  function dismissSelectionPopup() {
+    showSelectionPopup = false;
+    selectedText = '';
+    window.getSelection()?.removeAllRanges();
+  }
+
   onMount(() => {
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        closePanel();
+      if (e.key === 'Escape') {
+        if (isOpen) {
+          closePanel();
+        } else if (showSelectionPopup) {
+          dismissSelectionPopup();
+        }
       }
     });
+
+    document.addEventListener('mouseup', handleMouseUp);
   });
 
   $effect(() => {
@@ -151,6 +224,21 @@
     }
   });
 </script>
+
+<!-- Selection popup -->
+{#if showSelectionPopup}
+  <button
+    onclick={handleSelectionClick}
+    class="fixed z-[99] px-3 py-1.5 rounded-full shadow-lg
+           bg-[var(--primary)] text-white text-sm
+           flex items-center gap-1.5
+           hover:shadow-xl active:scale-95 transition-all"
+    style="top: {popupPos.y}px; left: {popupPos.x}px; transform: translateX(-50%);"
+  >
+    <Icon icon="material-symbols:smart-toy-outline" class="text-base" />
+    <span>问 AI</span>
+  </button>
+{/if}
 
 <!-- Floating button -->
 <button
