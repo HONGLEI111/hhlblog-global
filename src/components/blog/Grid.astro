@@ -15,6 +15,8 @@ const fallbackCovers = [
 export interface Props {
   posts?: Post[];
 }
+
+const visibleCount = 4;
 ---
 
 {
@@ -30,6 +32,8 @@ export interface Props {
               layout="cover"
               width={400}
               height={300}
+              loading={index < visibleCount ? 'eager' : 'lazy'}
+              fetchpriority={index === 0 ? 'high' : 'auto'}
             />
           </div>
           <div class="text-xs text-muted mb-1">
