@@ -3,7 +3,7 @@ title: Apifox 供应链投毒事件深度解析
 published: 2026-04-20
 description: '2026年3月，国内知名API协作平台Apifox遭遇严重的供应链投毒攻击。本文深入分析此次事件的技术细节、攻击链条、影响范围，并提供完整的排查与防护指南。'
 image: ''
-tags: [供应链安全, Electron安全, 前端安全]
+tags: [供应链安全, 前端安全]
 category: '安全'
 draft: false 
 lang: ''

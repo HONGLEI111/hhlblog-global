@@ -3,8 +3,8 @@ title: Claude Code 创始人 Boris Cherny：我已半年没手写一行代码
 published: 2026-05-08
 description: 'Claude Code 之父 Boris Cherny 自 2024 年 11 月起 100% 由 AI 生成代码，日发 150 个 PR，用 iPhone 调度数百个 Agent。本文整理了他的工作流、设计哲学与对编程行业未来的判断。'
 image: ''
-tags: [Claude Code, Boris Cherny, Anthropic, AI 编程, Agent]
-category: 'AI 工具'
+tags: [Claude Code, AI 编程]
+category: 'AI'
 draft: false
 lang: ''
 ---

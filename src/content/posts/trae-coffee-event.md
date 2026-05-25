@@ -3,8 +3,8 @@ title: Trae 请你喝咖啡：字节跳动 AI IDE 的诚意与野心
 published: 2026-05-06
 description: '字节跳动旗下 AI IDE Trae 推出"请你喝咖啡"活动，新用户注册即送咖啡券。本文将带你深入了解 Trae 的产品定位、核心功能，以及它如何在 AI 编程工具的红海中突围。'
 image: ''
-tags: [Trae, AI IDE, 字节跳动, 编程工具, AI 编程]
-category: 'AI 工具'
+tags: [Trae, AI IDE, AI 编程]
+category: 'AI'
 draft: false
 lang: ''
 ---

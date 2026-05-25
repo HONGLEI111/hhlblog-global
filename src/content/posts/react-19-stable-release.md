@@ -3,8 +3,8 @@ title: React 19 稳定版发布：Server Components 成为默认架构
 published: 2026-04-20
 description: 'React 19 稳定版正式发布，Server Components 结束实验阶段，成为官方推荐的默认渲染架构。React Compiler 自动优化，新 Hooks API，前端开发进入全栈新时代。'
 image: ''
-tags: [React, Server Components, React Compiler, 前端框架, 全栈开发]
-category: '前端框架'
+tags: [React, 前端]
+category: '前端'
 draft: false 
 lang: ''
 ---

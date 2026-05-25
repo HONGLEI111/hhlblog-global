@@ -3,8 +3,8 @@ title: Claude Code 安装与使用教程：从零开始的 AI 编程助手
 published: 2026-05-08
 description: '详细介绍 Claude Code 的安装方法、基础使用技巧与进阶工作流，帮助你快速将 AI 编程助手融入日常开发。'
 image: ''
-tags: [Claude Code, AI 编程, 开发工具, 教程, Anthropic]
-category: 'AI 工具'
+tags: [Claude Code, AI 编程, 开发工具]
+category: 'AI'
 draft: false
 lang: ''
 ---

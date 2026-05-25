@@ -3,8 +3,8 @@ title: firstpost
 published: 2026-04-07
 description: ''
 image: ''
-tags: [read]
-category: ''
+tags: []
+category: '示例'
 draft: false 
 lang: ''
 ---

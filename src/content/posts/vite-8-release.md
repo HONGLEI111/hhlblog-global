@@ -3,8 +3,8 @@ title: Vite 8 正式发布：Rust 驱动的前端工业革命
 published: 2026-04-20
 description: 'Vite 8 正式发布，这是第一个使用 Rust 打包器 Rolldown 驱动的稳定版本。构建速度暴涨 10 倍，统一开发和构建流程，标志着前端工程化进入新纪元。'
 image: ''
-tags: [Vite, Rust, 构建工具, Rolldown, 前端工程化]
-category: '前端框架'
+tags: [Vite, 构建工具, 前端]
+category: '前端'
 draft: false 
 lang: ''
 ---

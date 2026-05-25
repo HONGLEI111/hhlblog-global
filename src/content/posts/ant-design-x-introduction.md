@@ -3,8 +3,8 @@ title: Ant Design X 2.7 发布：RICH 范式与 Hybrid UI 重塑 AI 界面开发
 published: 2026-05-21
 description: 'Ant Design X 是 Ant Design 生态面向 AI 驱动界面的 React 组件库，基于 RICH 交互范式与 Hybrid UI 理念，提供流式 Markdown 渲染、A2UI 动态卡片、AI SDK 等完整解决方案。'
 image: ''
-tags: [Ant Design X, React, AI, 组件库, RICH, Hybrid UI, Markdown, 前端]
-category: '前端框架'
+tags: [Ant Design X, React, AI, 前端]
+category: '前端'
 draft: false
 lang: ''
 ---

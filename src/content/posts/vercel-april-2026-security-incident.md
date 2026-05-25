@@ -4,7 +4,7 @@ published: 2026-04-21
 description: '2026 年 4 月，全球主流前端部署平台 Vercel 遭遇严重安全入侵。攻击者通过第三方 AI 工具的 OAuth 漏洞切入，导致内部数据泄露并在黑市叫卖。本文基于多方安全报告，还原事件始末、分析攻击链条，并为开发者提供安全建议。'
 image: ''
 tags: [安全]
-category: '技术'
+category: '安全'
 draft: false 
 lang: ''
 ---
