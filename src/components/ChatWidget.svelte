@@ -233,6 +233,39 @@
       scrollToBottom();
     }
   });
+
+  $effect(() => {
+    if (!showSelectionPopup) return;
+
+    let rafId: number;
+    function onScroll() {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+          showSelectionPopup = false;
+          return;
+        }
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const popupHeight = 36;
+        let top = rect.bottom + 6;
+        if (top + popupHeight > window.innerHeight - 10) {
+          top = rect.top - popupHeight - 6;
+        }
+        popupPos = {
+          x: Math.max(16, Math.min(rect.left + rect.width / 2, window.innerWidth - 16)),
+          y: Math.max(4, top),
+        };
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(rafId);
+    };
+  });
 </script>
 
 <!-- Selection popup -->
