@@ -87,6 +87,8 @@ const mainPanelTop = siteConfig.banner.enable
 <div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}`}>
     <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto">
         <div id="main-grid" class="transition duration-700 w-full left-0 right-0 mx-auto onload-animation">
+	        <!-- Hidden sidebar placeholder for Swup transitions from non-home pages -->
+	        <div id="sidebar-sticky" class="hidden"></div>
         <main id="swup-container" class="transition-swup-fade overflow-hidden">
             <div id="content-wrapper">
                 <slot></slot>

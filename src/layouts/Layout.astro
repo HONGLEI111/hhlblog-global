@@ -479,6 +479,16 @@ const setup = () => {
 			}
 		}
 
+		// show/hide sidebar for the target page
+		const sidebarSticky = document.getElementById('sidebar-sticky')
+		if (sidebarSticky) {
+			if (isHome) {
+				sidebarSticky.classList.add('hidden')
+			} else {
+				sidebarSticky.classList.remove('hidden')
+			}
+		}
+
 		// increase the page height during page transition to prevent the scrolling animation from jumping
 		const heightExtend = document.getElementById('page-height-extend')
 		if (heightExtend) {
