@@ -17,7 +17,7 @@ export const APP_BLOG = {
     permalink: '/%slug%',
   },
   list: {
-    pathname: 'blog',
+    pathname: 'posts',
   },
   category: {
     pathname: 'category',

@@ -43,7 +43,7 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		{
                         name: "博客",
-                        url: "/blog/",
+                        url: "/posts/",
                         external: false,
                         icon: "material-symbols:group-outline-rounded",
                 },
