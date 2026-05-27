@@ -81,6 +81,13 @@ const bannerOffset =
 >
 	<head>
 
+
+		<!-- Prevent CSS transition flash on initial page load -->
+		<style id="prevent-flash">
+			*, *::before, *::after {
+				transition: none !important;
+			}
+		</style>
 		<title>{pageTitle}</title>
 
 		<meta charset="UTF-8" />
@@ -396,6 +403,14 @@ function init() {
 
 /* Load settings when entering the site */
 init();
+
+/* Remove flash-prevention style after first paint to re-enable smooth theme transitions */
+requestAnimationFrame(() => {
+	requestAnimationFrame(() => {
+		const preventFlash = document.getElementById('prevent-flash');
+		if (preventFlash) preventFlash.remove();
+	});
+});
 
 const setup = () => {
 	// TODO: temp solution to change the height of the banner
