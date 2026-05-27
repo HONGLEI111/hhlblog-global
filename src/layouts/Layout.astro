@@ -405,12 +405,24 @@ function init() {
 init();
 
 /* Remove flash-prevention style after first paint to re-enable smooth theme transitions */
-requestAnimationFrame(() => {
+function removePreventFlash() {
 	requestAnimationFrame(() => {
-		const preventFlash = document.getElementById('prevent-flash');
-		if (preventFlash) preventFlash.remove();
+		requestAnimationFrame(() => {
+			const preventFlash = document.getElementById('prevent-flash');
+			if (preventFlash) preventFlash.remove();
+		});
 	});
-});
+}
+removePreventFlash();
+
+/* Insert flash-prevention style for Swup page transitions */
+function addPreventFlash() {
+	if (document.getElementById('prevent-flash')) return;
+	const style = document.createElement('style');
+	style.id = 'prevent-flash';
+	style.textContent = '*, *::before, *::after { transition: none !important; }';
+	document.head.prepend(style);
+}
 
 const setup = () => {
 	// TODO: temp solution to change the height of the banner
@@ -444,6 +456,9 @@ const setup = () => {
 	})
 	window.swup.hooks.on('content:replace', initCustomScrollbar)
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
+		// Prevent flash during page transition
+		addPreventFlash();
+
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
 		if (pathsEqual(visit.to.url, url('/'))) {
@@ -472,6 +487,9 @@ const setup = () => {
 		}
 	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
+		// Re-enable transitions after page transition completes
+		removePreventFlash();
+
 		setTimeout(() => {
 			const heightExtend = document.getElementById('page-height-extend')
 			if (heightExtend) {
