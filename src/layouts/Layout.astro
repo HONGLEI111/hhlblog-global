@@ -84,7 +84,7 @@ const bannerOffset =
 
 		<!-- Prevent CSS transition flash on initial page load -->
 		<style id="prevent-flash">
-			*, *::before, *::after {
+			html, body {
 				transition: none !important;
 			}
 		</style>
@@ -420,7 +420,7 @@ function addPreventFlash() {
 	if (document.getElementById('prevent-flash')) return;
 	const style = document.createElement('style');
 	style.id = 'prevent-flash';
-	style.textContent = '*, *::before, *::after { transition: none !important; }';
+	style.textContent = 'html, body { transition: none !important; }';
 	document.head.prepend(style);
 }
 
@@ -461,10 +461,22 @@ const setup = () => {
 
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
-		if (pathsEqual(visit.to.url, url('/'))) {
+		const isHome = pathsEqual(visit.to.url, url('/'))
+		if (isHome) {
 			bodyElement!.classList.add('lg:is-home');
 		} else {
 			bodyElement!.classList.remove('lg:is-home');
+		}
+
+		// update #main-grid layout classes for the target page
+		const mainGrid = document.getElementById('main-grid')
+		if (mainGrid) {
+			const gridClasses = ['grid', 'grid-cols-[17.5rem_auto]', 'grid-rows-[auto_1fr_auto]', 'lg:grid-rows-[auto]', 'gap-4', 'px-0', 'md:px-4']
+			if (isHome) {
+				mainGrid.classList.remove(...gridClasses)
+			} else {
+				mainGrid.classList.add(...gridClasses)
+			}
 		}
 
 		// increase the page height during page transition to prevent the scrolling animation from jumping
