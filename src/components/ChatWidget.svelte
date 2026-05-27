@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Icon from '@iconify/svelte';
+  import type { SearchResult } from '@/global';
 
   interface Message {
     role: 'user' | 'assistant';
     content: string;
+    relatedArticles?: SearchResult[];
   }
 
   
@@ -23,6 +25,10 @@
   let popupPos = $state({ x: 0, y: 0 });
   const MAX_SELECTION_LENGTH = 8000;
 
+  // Pagefind state
+  let pagefindLoaded = $state(false);
+  let pagefindInit = false;
+
   let chatPanel: HTMLDivElement;
   let msgList: HTMLDivElement;
   let inputEl: HTMLTextAreaElement;
@@ -33,6 +39,32 @@
         msgList.scrollTop = msgList.scrollHeight;
       }
     });
+  }
+
+  function initPagefind() {
+    if (pagefindInit) return;
+    pagefindInit = true;
+    if (import.meta.env.DEV) return;
+    if (typeof window !== 'undefined' && window.pagefind?.search) {
+      pagefindLoaded = true;
+      return;
+    }
+    document.addEventListener('pagefindready', () => {
+      pagefindLoaded = true;
+    });
+  }
+
+  async function searchRelatedArticles(query: string): Promise<SearchResult[]> {
+    if (!pagefindLoaded || !window.pagefind) return [];
+    try {
+      const response = await window.pagefind.search(query);
+      const results = await Promise.all(
+        response.results.slice(0, 4).map((item) => item.data()),
+      );
+      return results;
+    } catch {
+      return [];
+    }
   }
 
   function togglePanel() {
@@ -77,6 +109,9 @@
 
     const assistantMessage: Message = { role: 'assistant', content: '' };
     messages = [...messages, assistantMessage];
+
+    // Search related articles in parallel (don't block streaming)
+    const relatedPromise = searchRelatedArticles(text);
 
     const controller = new AbortController();
     abortController = controller;
@@ -139,6 +174,13 @@
     } finally {
       isLoading = false;
       abortController = null;
+      relatedPromise.then((articles) => {
+        if (articles.length > 0) {
+          assistantMessage.relatedArticles = articles;
+          messages = [...messages.slice(0, -1), { ...assistantMessage }];
+          scrollToBottom();
+        }
+      });
     }
   }
 
@@ -215,6 +257,8 @@
   }
 
   onMount(() => {
+    initPagefind();
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (isOpen) {
@@ -359,6 +403,36 @@
               {/if}
             </div>
           </div>
+
+          {#if msg.relatedArticles && msg.relatedArticles.length > 0}
+            <div class="flex justify-start mt-2">
+              <div class="max-w-[85%] space-y-1.5">
+                <div class="text-xs font-medium text-[var(--shallow-text)] ml-1">
+                  相关文章
+                </div>
+                {#each msg.relatedArticles as article}
+                  <a
+                    href={article.url}
+                    class="block px-3 py-2 rounded-xl
+                           bg-[var(--btn-regular-bg)] hover:bg-[var(--btn-plain-bg-hover)]
+                           dark:bg-white/5 dark:hover:bg-white/8
+                           transition-colors group"
+                  >
+                    <div class="text-sm font-medium text-[var(--deep-text)]
+                                group-hover:text-[var(--primary)] transition-colors
+                                line-clamp-1">
+                      {article.meta.title}
+                    </div>
+                    {#if article.excerpt}
+                      <div class="text-xs text-[var(--shallow-text)] mt-0.5 line-clamp-2">
+                        {@html article.excerpt}
+                      </div>
+                    {/if}
+                  </a>
+                {/each}
+              </div>
+            </div>
+          {/if}
         {/if}
       {/each}
 
