@@ -97,6 +97,16 @@ let links: NavBarLink[] = navBarConfig.links.map(
         }
     }
 
+    /* Restore on hover */
+    #navbar[data-enable-banner="true"]:not(.navbar-scrolled):hover .navbar-inner {
+        background-color: var(--card-bg);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    #navbar[data-enable-banner="true"]:not(.navbar-scrolled):hover .navbar-anim-top {
+        background-color: var(--card-bg);
+    }
+
     /* Restore on scroll */
     #navbar[data-enable-banner="true"].navbar-scrolled .navbar-inner {
         background-color: var(--card-bg);
