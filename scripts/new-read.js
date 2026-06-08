@@ -49,7 +49,11 @@ description: ''
 image: ''
 tags: []
 category: ''
-draft: false 
+author: ''
+bookTitle: ''
+rating:
+cover: ''
+draft: false
 lang: ''
 ---
 `

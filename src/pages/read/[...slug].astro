@@ -96,9 +96,49 @@ const jsonLd = {
           updated={entry.data.updated}
           tags={entry.data.tags}
           category={entry.data.category}
+          author={entry.data.author}
         ></PostMetadata>
-        {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
+        {!entry.data.image && !(entry.data.cover || entry.data.bookTitle || entry.data.author) && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
       </div>
+
+      <!-- book info section -->
+      {(entry.data.cover || entry.data.bookTitle || entry.data.author) && (
+        <div class="flex flex-col md:flex-row gap-5 mb-8 onload-animation">
+          {entry.data.cover && (
+            <div class="flex-shrink-0 w-32 md:w-40 aspect-[3/4] rounded-lg overflow-hidden">
+              <ImageWrapper
+                src={entry.data.cover}
+                basePath={path.join("content/read/", getDir(entry.id))}
+                alt={entry.data.bookTitle || entry.data.title}
+                class="w-full h-full object-cover"
+                sizes="(min-width: 768px) 160px, 128px"
+                widths={[128, 160, 256, 320]}
+                quality={75}
+              />
+            </div>
+          )}
+          <div class="flex flex-col justify-center gap-2">
+            {entry.data.bookTitle && (
+              <h2 class="text-xl md:text-2xl font-bold text-90">{entry.data.bookTitle}</h2>
+            )}
+            {entry.data.author && (
+              <div class="text-base text-75">{entry.data.author}</div>
+            )}
+            {entry.data.rating && (
+              <div class="flex gap-0.5 text-[var(--primary)]">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Icon
+                    name={i < entry.data.rating
+                      ? "material-symbols:star-rounded"
+                      : "material-symbols:star-outline-rounded"}
+                    class="text-xl"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <!-- cover image -->
       {entry.data.image &&
@@ -150,3 +190,15 @@ const jsonLd = {
   </div>
 
 </MainGridLayout>
+
+<style>
+  .markdown-content > p:first-of-type {
+    font-style: italic;
+    border-left: 4px solid var(--primary);
+    padding-left: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 1.125rem;
+    color: var(--aw-color-text-muted);
+  }
+</style>

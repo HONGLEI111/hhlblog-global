@@ -45,9 +45,16 @@ const technologyCollection = defineCollection({
         loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/technology' }),
 	schema: basePostSchema,
 });
+const readPostSchema = basePostSchema.extend({
+	author: z.string().optional(),
+	bookTitle: z.string().optional(),
+	rating: z.number().min(1).max(5).optional(),
+	cover: z.string().optional(),
+});
+
 const readCollection = defineCollection({
-        loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/read' }), 
-	schema: basePostSchema,
+        loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/read' }),
+	schema: readPostSchema,
 });
 export const collections = {
 	posts: postsCollection,
