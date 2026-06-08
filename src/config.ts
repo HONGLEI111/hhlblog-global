@@ -106,3 +106,20 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	// Please select a dark theme, as this blog theme currently only supports dark background color
 	theme: "github-dark",
 };
+
+export interface FriendLink {
+	name: string;
+	url: string;
+	avatar?: string;
+	description: string;
+}
+
+export const friendsConfig: { friends: FriendLink[] } = {
+	friends: [
+		{
+			name: "阮一峰",
+			url: "https://www.ruanyifeng.com",
+			description: "阮一峰的网络日志",
+		},
+	],
+};

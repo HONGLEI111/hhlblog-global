@@ -1,6 +1,7 @@
 ---
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { Icon } from "astro-icon/components";
+import { friendsConfig } from "../../config";
 
 const tools = [
 	{
@@ -77,5 +78,48 @@ const tools = [
 				</a>
 			))}
 		</div>
+
+		{friendsConfig.friends.length > 0 && (
+			<>
+				<!-- Divider -->
+				<div class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed"></div>
+
+				<!-- Friends Section -->
+				<div class="flex items-center gap-2 mb-6">
+					<Icon name="material-symbols:favorite-rounded" class="text-[var(--primary)] w-7 h-7" />
+					<h2 class="text-2xl font-bold text-75">友链</h2>
+				</div>
+				<p class="text-sm text-50 mb-8 leading-relaxed">
+					常去逛逛的朋友们，欢迎<a href="mailto:contact@hehonglei.com" class="text-[var(--primary)] hover:underline">交换友链</a>。
+				</p>
+
+				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+					{friendsConfig.friends.map((f) => (
+						<a
+							href={f.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="group flex items-start gap-4 rounded-xl border border-[var(--line-color)] bg-transparent p-5 hover:bg-[var(--btn-regular-bg)] hover:border-[var(--primary)] transition-all"
+						>
+							{f.avatar && (
+								<img
+									src={f.avatar}
+									alt={`${f.name} 头像`}
+									class="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-[var(--line-color)] group-hover:ring-[var(--primary)] transition-all"
+									loading="lazy"
+								/>
+							)}
+							<div class="flex-1 min-w-0">
+								<div class="flex items-center justify-between mb-1">
+									<span class="text-lg font-bold text-75 group-hover:text-[var(--primary)] transition-colors truncate">{f.name}</span>
+									<Icon name="material-symbols:open-in-new-rounded" class="w-4 h-4 text-40 group-hover:text-[var(--primary)] transition-colors shrink-0 ml-2" />
+								</div>
+								<p class="text-sm text-50 leading-relaxed">{f.description}</p>
+							</div>
+						</a>
+					))}
+				</div>
+			</>
+		)}
 	</div>
 </MainGridLayout>
