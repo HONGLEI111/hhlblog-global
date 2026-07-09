@@ -1,5 +1,4 @@
 ---
-import type { GetStaticPaths } from "astro";
 import Pagination from "../components/controls/Pagination.astro";
 import PostPage from "../components/layout/PostPage.astro";
 import { PAGE_SIZE } from "../constants/constants";
@@ -13,17 +12,35 @@ import TechStack from "~/components/landing/TechStack.astro";
 import MovingTechStack from "~/components/landing/MovingTechStack.astro";
 import BlogLatestPosts from "~/components/landing/BlogLatestPosts.astro";
 import Projects from "~/components/landing/Projects.astro";
-export const getStaticPaths = (async ({ paginate }) => {
-    const allBlogPosts = await getSortedPosts();
-    return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
-}) satisfies GetStaticPaths;
 
-export const prerender = true;
+export const prerender = false;
 
-const { page } = Astro.props;
+const allBlogPosts = await getSortedPosts();
+const totalPosts = allBlogPosts.length;
+const totalPages = Math.max(Math.ceil(totalPosts / PAGE_SIZE), 1);
+
+const currentPage = Astro.params.page ? Number(Astro.params.page) : 1;
+
+const start = (currentPage - 1) * PAGE_SIZE;
+const end = start + PAGE_SIZE;
+const pageData = allBlogPosts.slice(start, end);
+
+const baseUrl = Astro.url.origin + "/";
+
+const page = {
+  data: pageData,
+  currentPage,
+  lastPage: totalPages,
+  url: {
+    first: baseUrl,
+    current: currentPage === 1 ? baseUrl : `${baseUrl}${currentPage}/`,
+    prev: currentPage > 1 ? (currentPage === 2 ? baseUrl : `${baseUrl}${currentPage - 1}/`) : undefined,
+    next: currentPage < totalPages ? `${baseUrl}${currentPage + 1}/` : undefined,
+  },
+};
 
 const len = page.data.length;
-const isHomePage = page.currentPage === 1;
+const isHomePage = currentPage === 1;
 ---
 
 {
