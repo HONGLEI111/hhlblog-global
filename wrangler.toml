@@ -1,0 +1,8 @@
+# Cloudflare Pages + Astro SSR configuration
+name = "hhlblog-global"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-07-09"
+compatibility_flags = ["nodejs_compat"]
+
+# Build command is set in Cloudflare Dashboard, not here
+# Environment variables like DEEPSEEK_API_KEY are set in Dashboard > Build & Deploy

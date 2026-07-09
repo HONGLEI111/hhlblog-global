@@ -7,7 +7,7 @@
     "start": "astro dev",
     "check": "astro check",
     "translate": "node scripts/translate-i18n.mjs",
-    "prebuild": "npm run translate",
+    "prebuild": "node scripts/translate-i18n.mjs",
     "build": "node scripts/generate-search-index.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
