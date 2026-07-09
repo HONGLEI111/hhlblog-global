@@ -1,4 +1,3 @@
-import { siteConfig } from "../config";
 import type I18nKey from "./i18nKey";
 import { en } from "./languages/en";
 import { ja, ko, zh_TW, vi, es } from "./languages/generated";
@@ -31,7 +30,6 @@ export function getTranslation(lang: string): Translation {
 	return map[lang.toLowerCase()] || defaultTranslation;
 }
 
-export function i18n(key: I18nKey): string {
-	const lang = siteConfig.lang || "zh_CN";
-	return getTranslation(lang)[key];
+export function i18n(key: I18nKey, lang?: string): string {
+	return getTranslation(lang || "en")[key];
 }

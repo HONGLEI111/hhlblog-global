@@ -53,8 +53,9 @@ function getTagUrlForCollection(collection: Collection) {
 }
 
 const isCollapsed = tags.length >= 20;
+const currentLang = Astro.locals?.lang;
 ---
-<WidgetLayout name={i18n(I18nKey.tags)} id="tags" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT} class={className} style={style}>
+<WidgetLayout name={i18n(I18nKey.tags, currentLang)} id="tags" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT} class={className} style={style}>
     <div class="flex gap-2 flex-wrap">
         {tags.map(t => (
             <ButtonTag href={tagUrl(t.name)} label={`View all posts with the ${t.name.trim()} tag`}>

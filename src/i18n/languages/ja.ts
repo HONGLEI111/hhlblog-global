@@ -35,4 +35,12 @@ export const ja: Translation = {
 	[Key.author]: "Author",
 	[Key.publishedAt]: "Published at",
 	[Key.license]: "License",
+
+	[Key.langEn]: "English",
+	[Key.langZhCN]: "简体中文",
+	[Key.langZhTW]: "繁體中文",
+	[Key.langJa]: "日本語",
+	[Key.langKo]: "한국어",
+	[Key.langVi]: "Tiếng Việt",
+	[Key.langEs]: "Español",
 };

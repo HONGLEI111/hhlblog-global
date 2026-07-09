@@ -32,3 +32,6 @@ yarn.lock
 
 # i18n translation cache
 .i18n-cache.json
+
+# generated search index
+public/search-index.json

@@ -1,30 +1,40 @@
 <script lang="ts">
   import I18nKey from "@i18n/i18nKey";
-  import { i18n } from "@i18n/translation";
+  import { clientI18n } from "@i18n/client";
   import Icon from "@iconify/svelte";
   import { url } from "@utils/url-utils.ts";
   import { onMount } from "svelte";
-  import type { SearchResult } from "@/global";
+  import Fuse from "fuse.js";
+
+  interface SearchIndexItem {
+    title: string;
+    description: string;
+    url: string;
+    tags: string[];
+  }
+
+  interface SearchResultItem {
+    url: string;
+    meta: { title: string };
+    excerpt: string;
+    content?: string;
+  }
 
   let keywordDesktop = $state("");
   let keywordMobile = $state("");
-  let result = $state<SearchResult[]>([]);
+  let result = $state<SearchResultItem[]>([]);
   let isSearching = $state(false);
   let initialized = $state(false);
   let debounceTimer: ReturnType<typeof setTimeout>;
+  let fuse: Fuse<SearchIndexItem> | null = $state(null);
 
   const MAX_INLINE_RESULTS = 5;
 
-  const fakeResult: SearchResult[] = [
+  const fakeResult: SearchResultItem[] = [
     {
       url: url("/"),
-      meta: { title: "This Is a Fake Search Result" },
-      excerpt: "Because Pagefind cannot work in the <mark>dev</mark> environment.",
-    },
-    {
-      url: url("/"),
-      meta: { title: "If You Want to Test the Search" },
-      excerpt: "Try running <mark>pnpm build && pnpm preview</mark> instead.",
+      meta: { title: "Search Example" },
+      excerpt: "This is a <mark>search</mark> result example.",
     },
   ];
 
@@ -45,37 +55,59 @@
     }
   };
 
+  async function loadSearchIndex() {
+    try {
+      const response = await fetch("/search-index.json");
+      if (!response.ok) throw new Error("Search index not found");
+      const data: SearchIndexItem[] = await response.json();
+      fuse = new Fuse(data, {
+        keys: ["title", "description", "tags"],
+        threshold: 0.3,
+        includeMatches: true,
+      });
+      initialized = true;
+      console.log(`Search index loaded: ${data.length} items`);
+    } catch (e) {
+      console.warn("Search index not available, using fallback:", e);
+      initialized = true;
+    }
+  }
+
   const doSearch = async (keyword: string, isDesktop: boolean): Promise<void> => {
     if (!keyword.trim()) {
       setPanelVisibility(false, isDesktop);
       result = [];
       return;
     }
-    if (!initialized) return;
+    if (!initialized || import.meta.env.DEV) {
+      if (import.meta.env.DEV) {
+        result = fakeResult;
+        setPanelVisibility(true, isDesktop);
+      }
+      return;
+    }
 
     isSearching = true;
 
     try {
-      let searchResults: SearchResult[] = [];
-
-      if (import.meta.env.PROD && window.pagefind) {
-        const response = await window.pagefind.search(keyword);
-        searchResults = await Promise.all(
-          response.results.map((item) => item.data()),
-        );
-      } else if (import.meta.env.DEV) {
-        searchResults = fakeResult;
-      }
-
-      result = searchResults;
-      if (searchResults.length > 0) {
-        setPanelVisibility(true, isDesktop);
+      if (fuse) {
+        const fuseResults = fuse.search(keyword);
+        result = fuseResults.slice(0, 20).map((r) => ({
+          url: r.item.url,
+          meta: { title: r.item.title },
+          excerpt: r.item.description || "",
+        }));
+      } else {
+        result = [];
       }
     } catch (error) {
       console.error("Search error:", error);
       result = [];
     } finally {
       isSearching = false;
+      if (result.length > 0) {
+        setPanelVisibility(true, isDesktop);
+      }
     }
   };
 
@@ -86,33 +118,11 @@
 
   onMount(() => {
     if (import.meta.env.DEV) {
-      console.log("Pagefind mock enabled in development mode.");
+      console.log("Search mock enabled in development mode.");
       initialized = true;
       return;
     }
-
-    if (typeof window !== "undefined" && window.pagefind?.search) {
-      console.log("Pagefind already loaded, initializing search immediately.");
-      initialized = true;
-      return;
-    }
-
-    document.addEventListener("pagefindready", () => {
-      console.log("Pagefind ready event received.");
-      initialized = true;
-    }, { once: true });
-
-    document.addEventListener("pagefindloaderror", () => {
-      console.warn("Pagefind load error. Search will be limited.");
-      initialized = true;
-    }, { once: true });
-
-    setTimeout(() => {
-      if (!initialized) {
-        console.log("Fallback: Initializing search after timeout.");
-        initialized = true;
-      }
-    }, 3000);
+    loadSearchIndex();
   });
 
   $effect(() => {
@@ -130,7 +140,7 @@
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
 ">
     <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-    <input placeholder="{i18n(I18nKey.search)}" bind:value={keywordDesktop} onfocus={() => search(keywordDesktop, true)}
+    <input placeholder="{clientI18n(I18nKey.search)}" bind:value={keywordDesktop} onfocus={() => search(keywordDesktop, true)}
            class="transition-all pl-10 text-sm bg-transparent outline-0
          h-full w-40 active:w-60 focus:w-60 text-black/50 dark:text-white/50"
     >
@@ -152,7 +162,7 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
   ">
         <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder={i18n(I18nKey.search)} bind:value={keywordMobile}
+        <input placeholder={clientI18n(I18nKey.search)} bind:value={keywordMobile}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
                focus:w-60 text-black/50 dark:text-white/50"
         >
@@ -161,7 +171,7 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
     <!-- search results -->
     {#if isSearching}
         <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-black/50 dark:text-white/50">
-            {i18n(I18nKey.searchLoading)}
+            {clientI18n(I18nKey.searchLoading)}
         </div>
     {:else if result.length > 0}
         {#each result.slice(0, MAX_INLINE_RESULTS) as item}
@@ -170,23 +180,12 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
                class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
            rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
                 <div class="transition inline-flex font-bold group-hover:text-[var(--primary)]">
-                    {@html item.meta.title}
+                    {item.meta.title}
                     <Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
                 </div>
-                {#if item.excerpt.includes('<mark>')}
+                {#if item.excerpt}
                     <div class="transition text-sm text-black/50 dark:text-white/50 mt-0.5">
                         {@html item.excerpt}
-                    </div>
-                {/if}
-                {#if item.content?.includes('<mark>')}
-                    <div class="transition text-sm mt-0.5 flex items-start gap-1.5">
-                        <span class="inline-block rounded-md px-1.5 py-px text-xs font-semibold shrink-0"
-                              style="background: var(--btn-plain-bg-active); color: var(--primary)">
-                            {i18n(I18nKey.searchContent)}
-                        </span>
-                        <span class="text-black/30 dark:text-white/30">
-                            {@html item.content}
-                        </span>
                     </div>
                 {/if}
             </a>
@@ -195,17 +194,17 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
             <a href="/search?q={encodeURIComponent(keywordDesktop || keywordMobile)}"
                onclick={() => closePanel()}
                class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] text-[var(--primary)] font-bold text-center">
-                {i18n(I18nKey.searchViewMore).replace('{count}', (result.length - MAX_INLINE_RESULTS).toString())}
+                {clientI18n(I18nKey.searchViewMore).replace('{count}', (result.length - MAX_INLINE_RESULTS).toString())}
                 <Icon icon="fa6-solid:arrow-right" class="transition text-[0.75rem] ml-1 inline"></Icon>
             </a>
         {/if}
     {:else if (keywordDesktop || keywordMobile)}
         <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-black/50 dark:text-white/50">
-            {i18n(I18nKey.searchNoResults)}
+            {clientI18n(I18nKey.searchNoResults)}
         </div>
     {:else}
         <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-black/50 dark:text-white/50">
-            {i18n(I18nKey.searchTypeSomething)}
+            {clientI18n(I18nKey.searchTypeSomething)}
         </div>
     {/if}
 </div>

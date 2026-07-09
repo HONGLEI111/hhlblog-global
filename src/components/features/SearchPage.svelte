@@ -1,6 +1,6 @@
 <script lang="ts">
   import I18nKey from "@i18n/i18nKey";
-  import { i18n } from "@i18n/translation";
+  import { clientI18n } from "@i18n/client";
   import Icon from "@iconify/svelte";
   import { onMount } from "svelte";
   import type { SearchResult } from "@/global";
@@ -91,7 +91,7 @@
                 <Icon icon="material-symbols:search" class="text-[1.5rem]"></Icon>
             </div>
             <div class="text-3xl font-bold">
-                {i18n(I18nKey.search)}
+                {clientI18n(I18nKey.search)}
             </div>
         </div>
     </div>
@@ -105,7 +105,7 @@
             <input
                 type="text"
                 class="block w-full p-4 pl-10 text-sm bg-transparent border border-black/10 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] hover:border-black/20 dark:hover:border-white/20 text-black/75 dark:text-white/75 placeholder:opacity-50 transition-colors outline-hidden"
-                placeholder={i18n(I18nKey.search)}
+                placeholder={clientI18n(I18nKey.search)}
                 bind:value={keyword}
                 oninput={handleInput}
             >
@@ -135,11 +135,11 @@
         </div>
     {:else if keyword}
         <div class="card-base p-10 text-center text-black/50 dark:text-white/50 rounded-[var(--radius-large)]">
-            {i18n(I18nKey.searchNoResults)}
+            {clientI18n(I18nKey.searchNoResults)}
         </div>
     {:else}
         <div class="card-base p-10 text-center text-black/50 dark:text-white/50 rounded-[var(--radius-large)]">
-            {i18n(I18nKey.searchTypeSomething)}
+            {clientI18n(I18nKey.searchTypeSomething)}
         </div>
     {/if}
 </div>

@@ -98,7 +98,7 @@ const minutes = remarkPluginFrontmatter.minutes;
         <div class="flex items-center gap-2 text-xs text-30 mt-auto pt-2">
             <span>{formatDateToYYYYMMDD(published)}</span>
             <span>·</span>
-            <span>{minutes} {i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}</span>
+            <span>{minutes} {i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount, currentLang)}</span>
             {rating && (
                 <>
                     <span>·</span>

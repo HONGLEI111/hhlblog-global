@@ -6,8 +6,9 @@ import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPostsList } from "@utils/content-utils";
 
 const sortedBlogList = await getSortedPostsList();
+const currentLang = Astro.locals?.lang;
 ---
 
-<MainGridLayout title={i18n(I18nKey.archive)} sidebarCollection="posts">
+<MainGridLayout title={i18n(I18nKey.archive, currentLang)} sidebarCollection="posts">
     <ArchivePanel sortedPosts={sortedBlogList} collection="posts" client:only="svelte"></ArchivePanel>
 </MainGridLayout>
