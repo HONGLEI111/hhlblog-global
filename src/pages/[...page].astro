@@ -1,17 +1,16 @@
 ---
+import AboutMe from "~/components/landing/AboutMe.astro";
+import BlogLatestPosts from "~/components/landing/BlogLatestPosts.astro";
+import MovingTechStack from "~/components/landing/MovingTechStack.astro";
+import Projects from "~/components/landing/Projects.astro";
+import TechStack from "~/components/landing/TechStack.astro";
 import Pagination from "../components/controls/Pagination.astro";
 import PostPage from "../components/layout/PostPage.astro";
-import { PAGE_SIZE } from "../constants/constants";
-import MainGridLayout from "../layouts/MainGridLayout.astro";
-import HomeLayout from "../layouts/HomeLayout.astro";
-import { getSortedPosts } from "../utils/content-utils";
 import { profileConfig } from "../config";
-
-import AboutMe from "~/components/landing/AboutMe.astro";
-import TechStack from "~/components/landing/TechStack.astro";
-import MovingTechStack from "~/components/landing/MovingTechStack.astro";
-import BlogLatestPosts from "~/components/landing/BlogLatestPosts.astro";
-import Projects from "~/components/landing/Projects.astro";
+import { PAGE_SIZE } from "../constants/constants";
+import HomeLayout from "../layouts/HomeLayout.astro";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { getSortedPosts } from "../utils/content-utils";
 
 export const prerender = false;
 
@@ -28,15 +27,26 @@ const pageData = allBlogPosts.slice(start, end);
 const baseUrl = Astro.url.origin + "/";
 
 const page = {
-  data: pageData,
-  currentPage,
-  lastPage: totalPages,
-  url: {
-    first: baseUrl,
-    current: currentPage === 1 ? baseUrl : `${baseUrl}${currentPage}/`,
-    prev: currentPage > 1 ? (currentPage === 2 ? baseUrl : `${baseUrl}${currentPage - 1}/`) : undefined,
-    next: currentPage < totalPages ? `${baseUrl}${currentPage + 1}/` : undefined,
-  },
+	data: pageData,
+	start,
+	end: Math.min(end, totalPosts),
+	total: totalPosts,
+	size: PAGE_SIZE,
+	currentPage,
+	lastPage: totalPages,
+	url: {
+		first: baseUrl,
+		last: totalPages > 1 ? `${baseUrl}${totalPages}/` : baseUrl,
+		current: currentPage === 1 ? baseUrl : `${baseUrl}${currentPage}/`,
+		prev:
+			currentPage > 1
+				? currentPage === 2
+					? baseUrl
+					: `${baseUrl}${currentPage - 1}/`
+				: undefined,
+		next:
+			currentPage < totalPages ? `${baseUrl}${currentPage + 1}/` : undefined,
+	},
 };
 
 const len = page.data.length;
