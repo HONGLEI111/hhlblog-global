@@ -6,6 +6,7 @@ import {
 	getReadCategoryUrl,
 	getTechnologyCategoryUrl,
 } from "@utils/url-utils.ts";
+import { loadTranslations, translateField } from "./translated-content";
 
 // // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
@@ -47,44 +48,103 @@ async function getRawSortedTechnology() {
 	return sorted;
 }
 
-export async function getSortedPosts() {
+export async function getSortedPosts(locale?: string) {
 	const sorted = await getRawSortedPosts();
 
+	if (!locale || locale === "zh_CN" || locale === "zh_cn") {
+		for (let i = 1; i < sorted.length; i++) {
+			sorted[i].data.nextSlug = sorted[i - 1].slug;
+			sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		}
+		for (let i = 0; i < sorted.length - 1; i++) {
+			sorted[i].data.prevSlug = sorted[i + 1].slug;
+			sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		}
+		return sorted;
+	}
+
+	const translations = await loadTranslations(locale, "posts");
+
+	// Apply translated title/description
+	for (const post of sorted) {
+		post.data.title = translateField(translations, post.slug, "title", post.data.title);
+		post.data.description = translateField(translations, post.slug, "description", post.data.description);
+	}
+
+	// Translate prev/next titles too
 	for (let i = 1; i < sorted.length; i++) {
 		sorted[i].data.nextSlug = sorted[i - 1].slug;
-		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		sorted[i].data.nextTitle = translateField(translations, sorted[i - 1].slug, "title", sorted[i - 1].data.title);
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
 		sorted[i].data.prevSlug = sorted[i + 1].slug;
-		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		sorted[i].data.prevTitle = translateField(translations, sorted[i + 1].slug, "title", sorted[i + 1].data.title);
 	}
 
 	return sorted;
 }
-export async function getSortedRead() {
+export async function getSortedRead(locale?: string) {
 	const sorted = await getRawSortedRead();
 
+	if (!locale || locale === "zh_CN" || locale === "zh_cn") {
+		for (let i = 1; i < sorted.length; i++) {
+			sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
+			sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		}
+		for (let i = 0; i < sorted.length - 1; i++) {
+			sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
+			sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		}
+		return sorted;
+	}
+
+	const translations = await loadTranslations(locale, "read");
+
+	for (const post of sorted) {
+		post.data.title = translateField(translations, post.id.replace(/\.mdx?$/, ""), "title", post.data.title);
+		post.data.description = translateField(translations, post.id.replace(/\.mdx?$/, ""), "description", post.data.description);
+	}
+
 	for (let i = 1; i < sorted.length; i++) {
 		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
-		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		sorted[i].data.nextTitle = translateField(translations, sorted[i - 1].id.replace(/\.mdx?$/, ""), "title", sorted[i - 1].data.title);
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
 		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
-		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		sorted[i].data.prevTitle = translateField(translations, sorted[i + 1].id.replace(/\.mdx?$/, ""), "title", sorted[i + 1].data.title);
 	}
 
 	return sorted;
 }
-export async function getSortedTechnology() {
+export async function getSortedTechnology(locale?: string) {
 	const sorted = await getRawSortedTechnology();
+
+	if (!locale || locale === "zh_CN" || locale === "zh_cn") {
+		for (let i = 1; i < sorted.length; i++) {
+			sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
+			sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		}
+		for (let i = 0; i < sorted.length - 1; i++) {
+			sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
+			sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		}
+		return sorted;
+	}
+
+	const translations = await loadTranslations(locale, "technology");
+
+	for (const post of sorted) {
+		post.data.title = translateField(translations, post.id.replace(/\.mdx?$/, ""), "title", post.data.title);
+		post.data.description = translateField(translations, post.id.replace(/\.mdx?$/, ""), "description", post.data.description);
+	}
 
 	for (let i = 1; i < sorted.length; i++) {
 		sorted[i].data.nextSlug = sorted[i - 1].id.replace(/\.mdx?$/, "");
-		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		sorted[i].data.nextTitle = translateField(translations, sorted[i - 1].id.replace(/\.mdx?$/, ""), "title", sorted[i - 1].data.title);
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
 		sorted[i].data.prevSlug = sorted[i + 1].id.replace(/\.mdx?$/, "");
-		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		sorted[i].data.prevTitle = translateField(translations, sorted[i + 1].id.replace(/\.mdx?$/, ""), "title", sorted[i + 1].data.title);
 	}
 
 	return sorted;
@@ -101,36 +161,59 @@ export type TechnologyForList = {
 	slug: string;
 	data: CollectionEntry<"technology">["data"];
 };
-export async function getSortedPostsList(): Promise<PostForList[]> {
+export async function getSortedPostsList(locale?: string): Promise<PostForList[]> {
 	const sortedFullPosts = await getRawSortedPosts();
 
-	// delete post.body
-	const sortedPostsList = sortedFullPosts.map((post) => ({
+	const entries = sortedFullPosts.map((post) => ({
 		slug: post.slug,
 		data: post.data,
 	}));
 
-	return sortedPostsList;
+	if (!locale || locale === "zh_CN" || locale === "zh_cn") return entries;
+
+	const translations = await loadTranslations(locale, "posts");
+	for (const entry of entries) {
+		entry.data.title = translateField(translations, entry.slug, "title", entry.data.title);
+		entry.data.description = translateField(translations, entry.slug, "description", entry.data.description);
+	}
+
+	return entries;
 }
-export async function getSortedReadList(): Promise<ReadForList[]> {
+export async function getSortedReadList(locale?: string): Promise<ReadForList[]> {
 	const sortedFullRead = await getRawSortedRead();
 
-	const sortedReadList = sortedFullRead.map((read) => ({
+	const entries = sortedFullRead.map((read) => ({
 		slug: read.id.replace(/\.mdx?$/, ""),
 		data: read.data,
 	}));
 
-	return sortedReadList;
+	if (!locale || locale === "zh_CN" || locale === "zh_cn") return entries;
+
+	const translations = await loadTranslations(locale, "read");
+	for (const entry of entries) {
+		entry.data.title = translateField(translations, entry.slug, "title", entry.data.title);
+		entry.data.description = translateField(translations, entry.slug, "description", entry.data.description);
+	}
+
+	return entries;
 }
-export async function getSortedTechnologyList(): Promise<TechnologyForList[]> {
+export async function getSortedTechnologyList(locale?: string): Promise<TechnologyForList[]> {
 	const sortedFullTechnology = await getRawSortedTechnology();
 
-	const sortedTechnologyList = sortedFullTechnology.map((technology) => ({
+	const entries = sortedFullTechnology.map((technology) => ({
 		slug: technology.id.replace(/\.mdx?$/, ""),
 		data: technology.data,
 	}));
 
-	return sortedTechnologyList;
+	if (!locale || locale === "zh_CN" || locale === "zh_cn") return entries;
+
+	const translations = await loadTranslations(locale, "technology");
+	for (const entry of entries) {
+		entry.data.title = translateField(translations, entry.slug, "title", entry.data.title);
+		entry.data.description = translateField(translations, entry.slug, "description", entry.data.description);
+	}
+
+	return entries;
 }
 export type Tag = {
 	name: string;

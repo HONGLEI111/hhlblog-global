@@ -7,6 +7,7 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedRead } from "@utils/content-utils";
+import { getTranslatedBodyHtml } from "@utils/translated-content";
 import { getDir, getReadUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
@@ -15,19 +16,14 @@ import PostMetadata from "../../components/read/PostMeta.astro";
 import { profileConfig, siteConfig } from "../../config";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 
-export async function getStaticPaths() {
-	const entries = await getSortedRead();
+const slug = Astro.params.slug;
 
-	return entries.map((entry) => {
-		const slug = entry.id.replace(/\.mdx?$/, "");
-		return {
-			params: { slug },
-			props: { entry },
-		};
-	});
+const allEntries = await getSortedRead();
+const entry = allEntries.find((e) => e.id.replace(/\.mdx?$/, "") === slug);
+
+if (!entry) {
+	return new Response("Not found", { status: 404 });
 }
-
-const { entry } = Astro.props;
 const currentLang = Astro.locals?.lang;
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 
@@ -50,7 +46,12 @@ const jsonLd = {
 		? entry.data.lang.replace("_", "-")
 		: siteConfig.lang.replace("_", "-"),
 };
-export const prerender = true;
+export const prerender = false;
+
+const translatedHtml =
+	currentLang && currentLang !== "zh_CN" && currentLang !== "zh_cn"
+		? await getTranslatedBodyHtml(currentLang, "read", entry.id.replace(/\.mdx?$/, ""))
+		: null;
 ---
 
 <MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings} sidebarCollection="read">
@@ -152,7 +153,7 @@ export const prerender = true;
       }
 
       <Markdown class="mb-6 markdown-content onload-animation">
-        <Content />
+        {translatedHtml ? <Fragment set:html={translatedHtml} /> : <Content />}
       </Markdown>
 
       {licenseConfig.enable && <License title={entry.data.title} slug={entry.id} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}

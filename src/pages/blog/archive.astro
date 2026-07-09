@@ -5,7 +5,7 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPostsList } from "@utils/content-utils";
 
-const sortedBlogList = await getSortedPostsList();
+const sortedBlogList = await getSortedPostsList(Astro.locals?.lang);
 const currentLang = Astro.locals?.lang;
 ---
 

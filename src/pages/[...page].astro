@@ -14,7 +14,7 @@ import { getSortedPosts } from "../utils/content-utils";
 
 export const prerender = false;
 
-const allBlogPosts = await getSortedPosts();
+const allBlogPosts = await getSortedPosts(Astro.locals?.lang);
 const totalPosts = allBlogPosts.length;
 const totalPages = Math.max(Math.ceil(totalPosts / PAGE_SIZE), 1);
 

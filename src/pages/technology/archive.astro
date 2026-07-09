@@ -5,7 +5,7 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedTechnologyList } from "@utils/content-utils";
 
-const sortedTechnologyList = await getSortedTechnologyList();
+const sortedTechnologyList = await getSortedTechnologyList(Astro.locals?.lang);
 const currentLang = Astro.locals?.lang;
 ---
 

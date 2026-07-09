@@ -6,6 +6,7 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
+import { getTranslatedBodyHtml } from "@utils/translated-content";
 import { getDir, getPostUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
@@ -14,15 +15,15 @@ import PostMetadata from "../../components/layout/PostMeta.astro";
 import { profileConfig, siteConfig } from "../../config";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 
-export async function getStaticPaths() {
-	const blogEntries = await getSortedPosts();
-	return blogEntries.map((entry) => ({
-		params: { slug: entry.slug },
-		props: { entry },
-	}));
-}
+const slug = Astro.params.slug;
 
-const { entry } = Astro.props;
+// Manually lookup entry (getStaticPaths is ignored when prerender=false)
+const allPosts = await getSortedPosts();
+const entry = allPosts.find((p) => p.slug === slug);
+
+if (!entry) {
+	return new Response("Not found", { status: 404 });
+}
 const currentLang = Astro.locals?.lang;
 const { Content, headings } = await entry.render();
 
@@ -45,7 +46,13 @@ const jsonLd = {
 		: siteConfig.lang.replace("_", "-"),
 	// TODO include cover image here
 };
-export const prerender = true;
+export const prerender = false;
+
+// Load translated body HTML for non-Chinese languages
+const translatedHtml =
+	currentLang && currentLang !== "zh_CN" && currentLang !== "zh_cn"
+		? await getTranslatedBodyHtml(currentLang, "posts", entry.slug)
+		: null;
 ---
 <MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
@@ -109,7 +116,7 @@ export const prerender = true;
 
 
             <Markdown class="mb-6 markdown-content onload-animation">
-                <Content />
+				{translatedHtml ? <Fragment set:html={translatedHtml} /> : <Content />}
             </Markdown>
 
             {licenseConfig.enable && <License title={entry.data.title} slug={entry.slug} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}
