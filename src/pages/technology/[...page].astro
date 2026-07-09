@@ -15,6 +15,7 @@ export const getStaticPaths = (async ({ paginate }) => {
 const { page } = Astro.props;
 
 const len = page.data.length;
+export const prerender = true;
 ---
 
 <MainGridLayout sidebarCollection="technology">

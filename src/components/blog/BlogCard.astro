@@ -5,6 +5,8 @@ import { Icon } from "astro-icon/components";
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 import { getDir } from "../../utils/url-utils";
+
+const currentLang = Astro.locals?.lang;
 import ImageWrapper from "../misc/ImageWrapper.astro";
 import BlogMetadata from "./BlogMeta.astro";
 

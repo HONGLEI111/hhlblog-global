@@ -8,6 +8,8 @@ import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 import { getDir } from "../../utils/url-utils";
 import ImageWrapper from "../misc/ImageWrapper.astro";
 
+const currentLang = Astro.locals?.lang;
+
 interface Props {
     class?: string;
     entry: CollectionEntry<"read">;
