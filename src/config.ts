@@ -8,8 +8,8 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: " 贺宏磊的个人博客",
-	subtitle: "欢迎访问，贺宏磊的个人网站！",
+	title: "Honglei He's Blog",
+	subtitle: "Welcome to Honglei He's personal site!",
 	lang: "en", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
 		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
@@ -42,25 +42,25 @@ export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
 		{
-                        name: "博客",
+                        name: "Blog",
                         url: "/posts/",
                         external: false,
                         icon: "material-symbols:group-outline-rounded",
                 },
                 {
-                        name: "技术",
+                        name: "Tech",
                         url: "/technology/",
                         external: false,
                         icon: "material-symbols:volunteer-activism-outline-rounded",
                 },
                 {
-                        name: "阅读",
+                        name: "Reading",
                         url: "/read/",
                         external: false,
                         icon: "material-symbols:build-outline-rounded",
                 },
                 {
-                        name: "工具",
+                        name: "Tools",
                         url: "/tools/",
                         external: false,
                         icon: "material-symbols:build-outline-rounded",
@@ -73,7 +73,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/avatar.gif", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "Honglei He",
-	bio: "兴趣使然的网文作家，前端工程师~",
+	bio: "A hobbyist web novelist and frontend engineer~",
 	links: [
 		{
 			name: "Email",
@@ -119,7 +119,7 @@ export const friendsConfig: { friends: FriendLink[] } = {
 		{
 			name: "阮一峰",
 			url: "https://www.ruanyifeng.com",
-			description: "阮一峰的网络日志",
+			description: "Ruan Yifeng's Blog",
 		},
 	],
 };
