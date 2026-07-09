@@ -32,3 +32,9 @@ yarn.lock
 
 # i18n translation cache
 .i18n-cache.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
