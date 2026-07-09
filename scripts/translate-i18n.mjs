@@ -1,15 +1,18 @@
 /**
  * Build-time AI translation script for UI i18n strings.
  *
- * Reads zh_CN.ts as the source of truth and uses the Anthropic API
- * to translate the 25 UI keys into target languages.
+ * Reads zh_CN.ts as the source of truth and uses DeepSeek API
+ * (or Anthropic API as fallback) to translate UI keys into target languages.
  *
  * Caching: a JSON cache file (.i18n-cache.json) stores a hash of the
  * source values per locale. If unchanged, translation is skipped.
  *
  * Usage:
- *   ANTHROPIC_API_KEY=... node scripts/translate-i18n.mjs
- *   ANTHROPIC_MODEL=... node scripts/translate-i18n.mjs   (optional override)
+ *   DEEPSEEK_API_KEY=sk-xxx node scripts/translate-i18n.mjs
+ *   DEEPSEEK_API_KEY=sk-xxx DEEPSEEK_MODEL=deepseek-chat node scripts/translate-i18n.mjs
+ *
+ * Or with Anthropic:
+ *   ANTHROPIC_API_KEY=sk-ant-xxx node scripts/translate-i18n.mjs
  */
 
 import { readFile, writeFile } from "node:fs/promises";
@@ -33,8 +36,15 @@ const TARGETS = {
   es: "Spanish",
 };
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
-const API_KEY = process.env.ANTHROPIC_API_KEY;
+// API provider detection: prefer DeepSeek, fall back to Anthropic
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+
+const USE_DEEPSEEK = !!DEEPSEEK_API_KEY;
+const API_KEY = USE_DEEPSEEK ? DEEPSEEK_API_KEY : ANTHROPIC_API_KEY;
+const MODEL = USE_DEEPSEEK ? DEEPSEEK_MODEL : ANTHROPIC_MODEL;
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -76,6 +86,7 @@ function formatTranslationFile(locale, translations) {
     { keys: ["lightMode", "darkMode", "systemMode"] },
     { keys: ["more"] },
     { keys: ["author", "publishedAt", "license"] },
+    { keys: ["langEn", "langZhCN", "langZhTW", "langJa", "langKo", "langVi", "langEs"] },
   ];
 
   for (let gi = 0; gi < groups.length; gi++) {
@@ -95,7 +106,7 @@ function formatTranslationFile(locale, translations) {
 
 async function translateBatch(keysAndValues, targetLang, targetName) {
   /**
-   * Call Anthropic API to translate a batch of UI strings.
+   * Call DeepSeek or Anthropic API to translate a batch of UI strings.
    * Returns { key: translated_value }.
    */
   const entries = Object.entries(keysAndValues);
@@ -120,35 +131,62 @@ Important rules:
 - Keep translations short - these are UI labels, nav items, and metadata tags
 - "wordCount"/"wordsCount" should be the unit for word count (Chinese "字" might become "characters" or a locale-appropriate word)
 - "postCount"/"postsCount" translates to "article" or the locale equivalent (not "post" like mail)
+- For the "lang*" keys: these are language names displayed in the language switcher. Translate them appropriately.
 - Return ONLY the JSON object, no other text.`;
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 2048,
-      temperature: 0.2,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
+  let responseText;
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Anthropic API error ${response.status}: ${err}`);
+  if (USE_DEEPSEEK) {
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2048,
+        temperature: 0.2,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`DeepSeek API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    responseText = data.choices[0].message.content;
+  } else {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2048,
+        temperature: 0.2,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Anthropic API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    responseText = data.content[0].text;
   }
 
-  const data = await response.json();
-  const content = data.content[0].text;
-
   // Extract JSON from the response (handle possible markdown wrapping)
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    throw new Error(`Could not parse JSON from response: ${content.slice(0, 200)}`);
+    throw new Error(`Could not parse JSON from response: ${responseText.slice(0, 200)}`);
   }
 
   try {
@@ -162,11 +200,13 @@ Important rules:
 
 async function main() {
   if (!API_KEY) {
-    console.warn("⚠️  ANTHROPIC_API_KEY not set. Skipping AI translation.");
+    console.warn("⚠️  No API key set. Skipping AI translation.");
+    console.warn("   Set DEEPSEEK_API_KEY or ANTHROPIC_API_KEY to enable build-time translation.");
     console.warn("   Using existing language files as-is.");
-    console.warn("   Set ANTHROPIC_API_KEY to enable build-time translation.");
     return;
   }
+
+  console.log(`🤖 Using ${USE_DEEPSEEK ? "DeepSeek" : "Anthropic"} API (model: ${MODEL})`);
 
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const sourcePath = resolve(root, SOURCE_FILE);
