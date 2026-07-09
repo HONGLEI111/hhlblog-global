@@ -3,7 +3,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
-import ConfigCarrier from "@components/ConfigCarrier.astro";
+import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 import { profileConfig, siteConfig } from "@/config";
 import {
 	AUTO_MODE,
@@ -20,7 +20,7 @@ import type { Favicon } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
 import "katex/dist/katex.css";
 import Notification from '../components/widget/Notification.astro';
-import ChatWidget from '@components/ChatWidget.svelte';
+import ChatWidget from '@components/features/ChatWidget.svelte';
 
 
 interface Props {

@@ -6,6 +6,8 @@
     "dev": "astro dev --host 0.0.0.0 --port 4321",
     "start": "astro dev",
     "check": "astro check",
+    "translate": "node scripts/translate-i18n.mjs",
+    "prebuild": "npm run translate",
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
