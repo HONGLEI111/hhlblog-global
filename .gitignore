@@ -30,6 +30,9 @@ yarn.lock
 .idea
 *.iml
 
+# wrangler
+.wrangler/
+
 # i18n translation cache
 .i18n-cache.json
 

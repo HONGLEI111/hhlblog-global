@@ -18,6 +18,8 @@ export const getStaticPaths = (async ({ paginate }) => {
     return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
 }) satisfies GetStaticPaths;
 
+export const prerender = true;
+
 const { page } = Astro.props;
 
 const len = page.data.length;

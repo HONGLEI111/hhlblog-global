@@ -86,6 +86,8 @@ export default defineConfig({
 					"tag-rounded",
 					"text-snippet-outline-rounded",
 					"volunteer-activism-outline-rounded",
+					"draw-rounded",
+					"table-rounded",
 				],
 				"fa6-brands": [
 					"creative-commons",
