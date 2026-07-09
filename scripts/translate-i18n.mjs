@@ -29,11 +29,9 @@ const LANGUAGES_DIR = "src/i18n/languages";
 
 // Target languages: locale code -> language name for the AI prompt
 const TARGETS = {
-  ja: "Japanese",
-  ko: "Korean",
-  zh_TW: "Traditional Chinese (Taiwan)",
-  vi: "Vietnamese",
+  en: "English",
   es: "Spanish",
+  fr: "French",
 };
 
 // API provider detection: prefer DeepSeek, fall back to Anthropic

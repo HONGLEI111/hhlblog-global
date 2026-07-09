@@ -4,13 +4,12 @@
 	import Icon from "@iconify/svelte";
 
 	const languages: { code: string; label: string }[] = [
-		{ code: "en", label: "English" },
 		{ code: "zh_CN", label: "简体中文" },
+		{ code: "en", label: "English" },
+		{ code: "es", label: "Español" },
+		{ code: "fr", label: "Français" },
 		{ code: "zh_TW", label: "繁體中文" },
 		{ code: "ja", label: "日本語" },
-		{ code: "ko", label: "한국어" },
-		{ code: "vi", label: "Tiếng Việt" },
-		{ code: "es", label: "Español" },
 	];
 
 	function getCurrentLang(): string {
