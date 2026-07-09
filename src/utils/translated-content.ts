@@ -41,7 +41,6 @@ function normalizeLocale(locale?: string): string {
   if (lower === "ko" || lower === "ko_kr" || lower === "ko-kr") return "ko";
   if (lower === "vi" || lower === "vi_vn" || lower === "vi-vn") return "vi";
   if (lower === "es" || lower === "es_es" || lower === "es-es") return "es";
-  if (lower === "fr" || lower === "fr_fr" || lower === "fr-fr") return "fr";
   if (lower === "en" || lower === "en_us") return "en";
   return locale;
 }

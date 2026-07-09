@@ -7,7 +7,6 @@
 		{ code: "zh_CN", label: "简体中文" },
 		{ code: "en", label: "English" },
 		{ code: "es", label: "Español" },
-		{ code: "fr", label: "Français" },
 		{ code: "zh_TW", label: "繁體中文" },
 		{ code: "ja", label: "日本語" },
 	];

@@ -38,7 +38,6 @@ const SOURCE_LOCALE = "zh_CN";
 const TARGETS = {
   en: "English",
   es: "Spanish",
-  fr: "French",
 };
 
 // API provider detection: prefer DeepSeek, fall back to Anthropic

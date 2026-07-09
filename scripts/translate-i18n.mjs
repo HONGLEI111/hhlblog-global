@@ -31,7 +31,6 @@ const LANGUAGES_DIR = "src/i18n/languages";
 const TARGETS = {
   en: "English",
   es: "Spanish",
-  fr: "French",
 };
 
 // API provider detection: prefer DeepSeek, fall back to Anthropic
