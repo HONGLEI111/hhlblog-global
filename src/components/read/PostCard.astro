@@ -51,7 +51,7 @@ const { remarkPluginFrontmatter } = await render(entry);
 const minutes = remarkPluginFrontmatter.minutes;
 ---
 
-<div class:list={["card-base flex flex-col w-full rounded-[var(--radius-large)] overflow-hidden", className]} style={style}>
+<div data-collection="read" data-post-slug={entry.id.replace(/\.mdx?$/, "")} class:list={["card-base flex flex-col w-full rounded-[var(--radius-large)] overflow-hidden", className]} style={style}>
     <!-- Cover image -->
     <a href={url} aria-label={displayBookTitle}
        class:list={["group relative block w-full overflow-hidden",
@@ -83,7 +83,7 @@ const minutes = remarkPluginFrontmatter.minutes;
     <div class="p-4 flex flex-col gap-1 flex-1">
         <!-- Book title -->
         <a href={url} class="transition font-bold text-base text-90 line-clamp-1 hover:text-[var(--primary)] dark:hover:text-[var(--primary)]">
-            {displayBookTitle}
+            <span data-post-title>{displayBookTitle}</span>
         </a>
 
         <!-- Author -->

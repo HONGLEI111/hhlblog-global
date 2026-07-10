@@ -2,10 +2,11 @@ import { getSortedPosts } from '@/utils/content-utils';
 
 export interface FindLatestPostsOptions {
   count?: number;
+  locale?: string;
 }
 
-export async function findLatestPosts({ count = 4 }: FindLatestPostsOptions = {}) {
-  const posts = await getSortedPosts();
+export async function findLatestPosts({ count = 4, locale }: FindLatestPostsOptions = {}) {
+  const posts = await getSortedPosts(locale);
   return posts.slice(0, count).map((post) => ({
     id: post.id,
     slug: post.slug,

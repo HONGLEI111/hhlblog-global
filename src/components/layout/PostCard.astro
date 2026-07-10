@@ -43,6 +43,8 @@ const currentLang = Astro.locals?.lang;
 ---
 
 <article
+  data-collection="posts"
+  data-post-slug={entry.slug}
   class:list={[
     "card-base card-shadow group overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg",
     className
@@ -77,7 +79,7 @@ const currentLang = Astro.locals?.lang;
       <h2
         class="text-lg sm:text-xl md:text-2xl font-bold leading-snug text-90 transition-colors duration-200 group-hover/title:text-[var(--primary)] dark:group-hover/title:text-[var(--primary)]"
       >
-        {title}
+        <span data-post-title>{title}</span>
       </h2>
     </a>
 
@@ -94,7 +96,7 @@ const currentLang = Astro.locals?.lang;
 
     <!-- Description -->
     <div class:list={["text-75 leading-relaxed mb-3 sm:mb-4", {"line-clamp-2": !description}]}>
-      {description || remarkPluginFrontmatter.excerpt}
+      <span data-post-desc>{description || remarkPluginFrontmatter.excerpt}</span>
     </div>
 
     <!-- Word count and read time -->

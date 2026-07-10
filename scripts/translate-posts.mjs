@@ -476,9 +476,44 @@ async function main() {
   await writeFile(CACHE_FILE, JSON.stringify(cache, null, 2), "utf-8");
   console.log(`📦 Cache saved to ${CACHE_FILE}`);
 
+  // Generate combined titles JSON for client-side listing page translation
+  await generateTitlesJson();
+  console.log("📦 Titles JSON written to public/translated-titles.json");
+
   // Summary
   const totalCached = Object.values(cache).reduce((sum, l) => sum + Object.keys(l).length, 0);
   console.log(`\n✨ Done! ${totalTranslated} translated, ${totalCached - totalTranslated} cached.`);
+}
+
+// ── Titles JSON Generator ───────────────────────────────────────────
+// Combines all translated frontmatter into a single JSON file
+// for client-side title swapping on static listing pages.
+
+async function generateTitlesJson() {
+  const output = {};
+
+  for (const locale of Object.keys(TARGETS)) {
+    for (const collection of COLLECTIONS) {
+      const jsonPath = resolve(TRANSLATED_DIR, locale, `${collection.name}.json`);
+      if (!existsSync(jsonPath)) continue;
+
+      const data = JSON.parse(await readFile(jsonPath, "utf-8"));
+      if (!output[collection.name]) output[collection.name] = {};
+      if (!output[collection.name][locale]) output[collection.name][locale] = {};
+
+      output[collection.name][locale] = data;
+    }
+  }
+
+  // Also include the UI-only languages (zh_TW, ja) with empty data
+  // so the language switcher doesn't break on listing pages
+  const publicDir = resolve(ROOT, "public");
+  await mkdir(publicDir, { recursive: true });
+  await writeFile(
+    resolve(publicDir, "translated-titles.json"),
+    JSON.stringify(output),
+    "utf-8",
+  );
 }
 
 main().catch((err) => {

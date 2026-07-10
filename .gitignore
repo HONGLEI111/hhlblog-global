@@ -42,3 +42,4 @@ public/search-index.json
 # generated post translations
 src/content/translated/
 .i18n-posts-cache.json
+public/translated-titles.json
