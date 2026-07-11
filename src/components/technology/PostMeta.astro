@@ -55,6 +55,7 @@ const currentLang = Astro.locals?.lang;
         </div>
         <div class="flex flex-row flex-nowrap items-center">
             <a href={getTechnologyCategoryUrl(category)} aria-label={`View all posts in the ${category} category`}
+               data-post-category
                class="link-lg transition text-50 text-sm font-medium
                             hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap">
                 {category || i18n(I18nKey.uncategorized, currentLang)}
@@ -72,6 +73,7 @@ const currentLang = Astro.locals?.lang;
             {(tags && tags.length > 0) && tags.map((tag, i) => (
                 <div class:list={[{"hidden": i == 0}, "mx-1.5 text-[var(--meta-divider)] text-sm"]}>/</div>
                 <a href={getTechnologyTagUrl(tag)} aria-label={`View all posts with the ${tag.trim()} tag`}
+                   data-post-tag={tag.trim()}
                    class="link-lg transition text-50 text-sm font-medium
                                 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap">
                     {tag.trim()}

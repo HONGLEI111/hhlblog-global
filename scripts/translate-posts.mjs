@@ -177,6 +177,68 @@ function extractTextBlocks(body) {
   return { text: processed, protected: PROTECTED };
 }
 
+function extractToc(markdown) {
+  /** Extract table of contents from markdown headings. */
+  const headings = [];
+  const lines = markdown.split("\n");
+  for (const line of lines) {
+    const match = line.match(/^(#{1,4})\s+(.+)/);
+    if (match) {
+      const depth = match[1].length;
+      const text = match[2].replace(/[`*_~\[\]]/g, "").trim();
+      const slug = text.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-|-$/g, "");
+      headings.push({ text, slug, depth });
+    }
+  }
+  return headings;
+}
+
+async function translateTagsAndCategory(tags, category, targetLang, targetName) {
+  /** Translate tags array and category string. Returns { tags, category }. */
+  if ((!tags || tags.length === 0) && (!category || !category.trim())) {
+    return { tags: tags || [], category: category || "" };
+  }
+
+  const prompt = `Translate the following blog post metadata from Simplified Chinese to ${targetName} (${targetLang}).
+
+${tags.length > 0 ? `Tags (array):\n${JSON.stringify(tags)}` : ""}
+${category && category.trim() ? `\nCategory:\n"${category}"` : ""}
+
+Rules:
+- Translate each tag individually to natural ${targetName}
+- Keep technical acronyms as-is (React, Vue, CSS, API, etc.)
+- Category should be a short, natural translation
+- Return ONLY valid JSON:
+{
+  "tags": [${tags.length > 0 ? '"translated1", "translated2"' : ''}],
+  "category": "${category || ''}"
+}`;
+
+  let responseText;
+
+  if (USE_DEEPSEEK) {
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, temperature: 0.2, messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!response.ok) throw new Error(`DeepSeek API error ${response.status}: ${await response.text()}`);
+    responseText = (await response.json()).choices[0].message.content;
+  } else {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, temperature: 0.2, messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!response.ok) throw new Error(`Anthropic API error ${response.status}: ${await response.text()}`);
+    responseText = (await response.json()).content[0].text;
+  }
+
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`Could not parse JSON: ${responseText.slice(0, 200)}`);
+  return JSON.parse(jsonMatch[0]);
+}
+
 function restoreProtected(text, protectedBlocks) {
   return text.replace(/\x00PROTECTED(\d+)\x00/g, (_, i) => {
     const idx = parseInt(i, 10);
@@ -391,11 +453,26 @@ async function translateCollection(collectionDir, collectionName, cache) {
         // Translate frontmatter
         const translatedFm = await translateFrontmatter(title, description, locale, langName);
 
+        // Translate tags and category
+        const tags = frontmatter.tags || [];
+        const category = frontmatter.category || "";
+        let translatedMeta = { tags, category };
+        if (tags.length > 0 || (category && category.trim())) {
+          try {
+            translatedMeta = await translateTagsAndCategory(tags, category, locale, langName);
+          } catch (e) {
+            console.warn(`    ⚠️  Tag/category translation failed: ${e.message}, keeping originals`);
+          }
+        }
+
         // Translate body
         let translatedBodyMarkdown = body;
         if (body.length > 0) {
           translatedBodyMarkdown = await translateBody(body, locale, langName);
         }
+
+        // Extract TOC from translated markdown
+        const toc = extractToc(translatedBodyMarkdown);
 
         // Render to HTML
         const html = md.render(translatedBodyMarkdown);
@@ -413,6 +490,9 @@ async function translateCollection(collectionDir, collectionName, cache) {
         existingFm[slug] = {
           title: translatedFm.title || title,
           description: translatedFm.description !== undefined ? translatedFm.description : description,
+          tags: translatedMeta.tags || tags,
+          category: translatedMeta.category || category,
+          toc,
         };
         await writeFile(jsonPath, JSON.stringify(existingFm, null, 2), "utf-8");
 

@@ -7,7 +7,7 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedRead } from "@utils/content-utils";
-import { getTranslatedBodyHtml } from "@utils/translated-content";
+import { getTranslatedBodyHtml, loadPostMetadata } from "@utils/translated-content";
 import { getDir, getReadUrlBySlug } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
@@ -29,6 +29,20 @@ const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 
 const words = remarkPluginFrontmatter.words;
 const minutes = remarkPluginFrontmatter.minutes;
+
+// Apply translated metadata
+const readSlug = entry.id.replace(/\.mdx?$/, "");
+let meta = null;
+if (currentLang && currentLang !== "zh_CN" && currentLang !== "zh_cn") {
+	meta = await loadPostMetadata(currentLang, "read", readSlug);
+	if (meta) {
+		if (meta.title) entry.data.title = meta.title;
+		if (meta.description) entry.data.description = meta.description;
+		if (meta.tags) entry.data.tags = meta.tags;
+		if (meta.category) entry.data.category = meta.category;
+	}
+}
+const translatedHeadings = meta?.toc?.length ? meta.toc : headings;
 
 const jsonLd = {
 	"@context": "https://schema.org",
@@ -54,7 +68,7 @@ const translatedHtml =
 		: null;
 ---
 
-<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings} sidebarCollection="read">
+<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={translatedHeadings} sidebarCollection="read">
   <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
   <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
     <div id="post-container" class:list={["card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full", {}]}>

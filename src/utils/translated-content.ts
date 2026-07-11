@@ -95,6 +95,14 @@ export async function getTranslatedBodyHtml(
 
 // ── Translated field helpers ──────────────────────────────────────────
 
+export interface PostMetadata {
+  title?: string;
+  description?: string;
+  tags?: string[];
+  category?: string;
+  toc?: { text: string; slug: string; depth: number }[];
+}
+
 export function translateField(
   translations: Translations,
   slug: string,
@@ -108,4 +116,36 @@ export function translateField(
   if (field === "description" && t.description !== undefined) return t.description;
 
   return original;
+}
+
+export function translateTags(translations: Translations, slug: string, original: string[]): string[] {
+  const t = translations[slug] as any;
+  return t?.tags?.length > 0 ? t.tags : original;
+}
+
+export function translateCategory(translations: Translations, slug: string, original: string): string {
+  const t = translations[slug] as any;
+  return t?.category && t.category.trim() ? t.category : original;
+}
+
+export function translateToc(translations: Translations, slug: string): { text: string; slug: string; depth: number }[] | null {
+  const t = translations[slug] as any;
+  return t?.toc?.length > 0 ? t.toc : null;
+}
+
+export async function loadPostMetadata(
+  locale: string,
+  collection: string,
+  slug: string,
+): Promise<PostMetadata | null> {
+  const translations = await loadTranslations(locale, collection);
+  const t = translations[slug] as any;
+  if (!t) return null;
+  return {
+    title: t.title,
+    description: t.description,
+    tags: t.tags,
+    category: t.category,
+    toc: t.toc,
+  };
 }

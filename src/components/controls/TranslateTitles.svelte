@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 
-	let applied = false;
-
 	onMount(() => {
 		const lang = localStorage.getItem("lang");
 		if (!lang || lang === "zh_CN" || lang === "zh_cn") return;
-
 		applyTranslations(lang);
 	});
 
@@ -16,38 +13,51 @@
 			if (!resp.ok) return;
 			const data = await resp.json();
 
-			// Map language code
 			const locale = mapLocale(lang);
 			if (!locale) return;
 
-			// Walk all collections
 			for (const collection of ["posts", "read", "technology"]) {
 				const titles = data[collection]?.[locale];
 				if (!titles) continue;
 
-				// Find all elements with data-post-slug in this collection
-				const elements = document.querySelectorAll(`[data-collection="${collection}"][data-post-slug]`);
+				const elements = document.querySelectorAll(
+					`[data-collection="${collection}"][data-post-slug]`
+				);
 				elements.forEach((el) => {
 					const slug = el.getAttribute("data-post-slug");
 					if (!slug || !titles[slug]) return;
 
-					// Replace title
+					// Title
 					const titleEl = el.querySelector("[data-post-title]");
 					if (titleEl && titles[slug].title) {
 						titleEl.textContent = titles[slug].title;
 					}
 
-					// Replace description
+					// Description
 					const descEl = el.querySelector("[data-post-desc]");
 					if (descEl && titles[slug].description) {
 						descEl.textContent = titles[slug].description;
 					}
+
+					// Category
+					const catEl = el.querySelector("[data-post-category]");
+					if (catEl && titles[slug].category) {
+						catEl.textContent = titles[slug].category;
+					}
+
+					// Tags (by order — aligned arrays)
+					if (titles[slug].tags?.length > 0) {
+						const tagEls = el.querySelectorAll("[data-post-tag]");
+						tagEls.forEach((tagEl, i) => {
+							if (titles[slug].tags[i]) {
+								tagEl.textContent = titles[slug].tags[i];
+							}
+						});
+					}
 				});
 			}
-
-			applied = true;
-		} catch (e) {
-			// Silently fail — keep original Chinese titles
+		} catch {
+			// Silently fail
 		}
 	}
 
@@ -58,5 +68,3 @@
 		return null;
 	}
 </script>
-
-<!-- This component renders nothing — it's logic-only -->
