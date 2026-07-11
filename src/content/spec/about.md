@@ -1,25 +1,26 @@
-# 👋 关于我 | About Me
+# 👋 About Me
 
-> **贺宏磊** | 00 后 | 上海 📍
-
----
-
-## 💼 职业信息
-- **职位**：前端工程师 (Frontend Engineer)
-- **公司**：Ingersoll Rand (英格索兰)[irco.com](https://www.irco.com)
-
-## 🎨 个人标签
-- `00 后`
-- `前端开发`
-- `网文作家`
-- `终身学习者`
-
-## 📚 兴趣爱好
-- ✍️ **写作**：网文创作，记录生活
-- 📖 **读书**：保持阅读习惯，汲取知识
-- 🏊 **游泳**：热爱运动，保持活力
+> **Honglei He** | Gen Z | China 🇨🇳
 
 ---
 
+## 💼 Work
 
+- **Role**: Frontend Engineer
+- **Location**: China
+
+## 🎨 Tags
+
+- `Gen Z`
+- `Frontend Development`
+- `Web Novelist`
+- `Lifelong Learner`
+
+## 📚 Interests
+
+- ✍️ **Writing**: Web novel author, documenting life through stories
+- 📖 **Reading**: Always curious, always learning
+- 🏊 **Swimming**: Stay active, stay energized
+
+---
 
