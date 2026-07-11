@@ -556,6 +556,10 @@ async function main() {
   await writeFile(CACHE_FILE, JSON.stringify(cache, null, 2), "utf-8");
   console.log(`📦 Cache saved to ${CACHE_FILE}`);
 
+  // Translate landing page content
+  await translateLandingContent();
+  console.log("🌐 Landing content translated");
+
   // Generate combined titles JSON for client-side listing page translation
   await generateTitlesJson();
   console.log("📦 Titles JSON written to public/translated-titles.json");
@@ -563,6 +567,137 @@ async function main() {
   // Summary
   const totalCached = Object.values(cache).reduce((sum, l) => sum + Object.keys(l).length, 0);
   console.log(`\n✨ Done! ${totalTranslated} translated, ${totalCached - totalTranslated} cached.`);
+}
+
+// ── Landing Content Translator ──────────────────────────────────────
+// Translates src/config/landing-content.json to all target languages.
+
+async function translateLandingContent() {
+  const sourcePath = resolve(ROOT, "src", "config", "landing-content.json");
+  if (!existsSync(sourcePath)) {
+    console.log("  ⏭️  landing-content.json not found, skipping");
+    return;
+  }
+
+  const cacheKey = "landing-content";
+  const sourceContent = await readFile(sourcePath, "utf-8");
+  const sourceHash = hashContent(sourceContent);
+  const source = JSON.parse(sourceContent);
+
+  for (const [locale, langName] of Object.entries(TARGETS)) {
+    const cached = cache[cacheKey]?.[locale];
+    if (cached && cached.sourceHash === sourceHash) {
+      console.log(`  ⏭️  [${locale}] landing: cached, skipping`);
+      continue;
+    }
+
+    console.log(`  🤖 [${locale}] Translating landing content (${langName})...`);
+
+    try {
+      const translated = {};
+
+      // Translate hero
+      const heroPrompt = `Translate these landing page hero texts from Simplified Chinese to ${langName} (${locale}).
+Return ONLY valid JSON: { "greeting": "...", "title": "...", "description": "..." }
+
+greeting: "${source.hero.greeting}"
+title: "${source.hero.title}"
+description: "${source.hero.description}"
+
+Rules: Keep "Hi, I'm Honglei He" in greeting as-is if it's English name. Translate naturally for a tech landing page.`;
+
+      const heroResponse = await callAI(heroPrompt);
+      const heroJson = parseAIJson(heroResponse);
+      translated.hero = {
+        greeting: heroJson.greeting || source.hero.greeting,
+        title: heroJson.title || source.hero.title,
+        description: heroJson.description || source.hero.description,
+      };
+
+      // Translate features
+      translated.features = [];
+      for (const feat of source.features) {
+        const featPrompt = `Translate this feature card from Simplified Chinese to ${langName} (${locale}).
+Title: "${feat.title}"
+Description: "${feat.description}"
+Return ONLY valid JSON: { "title": "...", "description": "..." }`;
+
+        const featResponse = await callAI(featPrompt);
+        const featJson = parseAIJson(featResponse);
+        translated.features.push({
+          icon: feat.icon,
+          title: featJson.title || feat.title,
+          description: featJson.description || feat.description,
+        });
+      }
+
+      // Translate CTA
+      const ctaPrompt = `Translate these CTA texts from Simplified Chinese to ${langName} (${locale}).
+title: "${source.cta.title}"
+description: "${source.cta.description}"
+Return ONLY valid JSON: { "title": "...", "description": "..." }`;
+
+      const ctaResponse = await callAI(ctaPrompt);
+      const ctaJson = parseAIJson(ctaResponse);
+      translated.cta = {
+        title: ctaJson.title || source.cta.title,
+        description: ctaJson.description || source.cta.description,
+      };
+
+      // Translate latestPosts
+      const lpPrompt = `Translate these blog section labels from Simplified Chinese to ${langName} (${locale}).
+title: "${source.latestPosts.title}"
+information: "${source.latestPosts.information}"
+Return ONLY valid JSON: { "title": "...", "information": "..." }`;
+
+      const lpResponse = await callAI(lpPrompt);
+      const lpJson = parseAIJson(lpResponse);
+      translated.latestPosts = {
+        title: lpJson.title || source.latestPosts.title,
+        information: lpJson.information || source.latestPosts.information,
+      };
+
+      // Write translated landing.json
+      const outDir = resolve(TRANSLATED_DIR, locale);
+      await mkdir(outDir, { recursive: true });
+      await writeFile(resolve(outDir, "landing.json"), JSON.stringify(translated, null, 2), "utf-8");
+
+      // Update cache
+      if (!cache[cacheKey]) cache[cacheKey] = {};
+      cache[cacheKey][locale] = { sourceHash };
+      console.log("    ✅ Done");
+    } catch (err) {
+      console.error(`    ❌ Failed: ${err.message}`);
+    }
+  }
+}
+
+// ── AI Helper ───────────────────────────────────────────────────────
+
+async function callAI(prompt) {
+  if (USE_DEEPSEEK) {
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, temperature: 0.2, messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!response.ok) throw new Error(`DeepSeek API error ${response.status}`);
+    return (await response.json()).choices[0].message.content;
+  } else {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, temperature: 0.2, messages: [{ role: "user", content: prompt }] }),
+    });
+    if (!response.ok) throw new Error(`Anthropic API error ${response.status}`);
+    return (await response.json()).content[0].text;
+  }
+}
+
+function parseAIJson(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error(`Could not parse JSON: ${text.slice(0, 200)}`);
+  return JSON.parse(match[0]);
 }
 
 // ── Titles JSON Generator ───────────────────────────────────────────

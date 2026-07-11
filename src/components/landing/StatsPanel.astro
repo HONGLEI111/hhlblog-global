@@ -1,0 +1,24 @@
+---
+export interface Props {
+  stats: Record<string, string>;
+  labels: Record<string, string>;
+}
+
+const { stats, labels } = Astro.props;
+const entries = Object.keys(stats);
+---
+
+<div class="px-4 py-12 md:py-16">
+  <div class="max-w-3xl mx-auto card-base rounded-2xl p-8 md:p-12">
+    <div class="grid grid-cols-3 gap-8 text-center">
+      {entries.map((key, i) => (
+        <div class="onload-animation" style={`animation-delay: ${i * 100}ms`}>
+          <div class="text-3xl md:text-4xl font-extrabold text-[var(--primary)] mb-2">
+            {stats[key]}
+          </div>
+          <div class="text-sm text-50 font-medium">{labels[key] || key}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>

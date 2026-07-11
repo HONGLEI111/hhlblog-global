@@ -128,6 +128,37 @@ export function translateCategory(translations: Translations, slug: string, orig
   return t?.category && t.category.trim() ? t.category : original;
 }
 
+// ── Landing page content ──────────────────────────────────────────────
+
+const landingModules = import.meta.glob<{ default: any }>(
+  "../content/translated/*/landing.json",
+  { eager: false },
+);
+
+export async function loadLandingContent(locale?: string): Promise<any> {
+  if (!locale || locale === "zh_CN" || locale === "zh_cn") {
+    // Return Chinese source directly
+    return (await import("../config/landing-content.json")).default;
+  }
+
+  const normalized = locale.toLowerCase();
+  let key = `../content/translated/${normalized}/landing.json`;
+
+  // Map locale variants
+  if (normalized === "en" || normalized === "en_us") key = "../content/translated/en/landing.json";
+  if (normalized === "es" || normalized === "es_es") key = "../content/translated/es/landing.json";
+
+  const loader = landingModules[key];
+  if (!loader) return (await import("../config/landing-content.json")).default;
+
+  try {
+    const mod = await loader();
+    return (mod as any).default || mod;
+  } catch {
+    return (await import("../config/landing-content.json")).default;
+  }
+}
+
 export function translateToc(translations: Translations, slug: string): { text: string; slug: string; depth: number }[] | null {
   const t = translations[slug] as any;
   return t?.toc?.length > 0 ? t.toc : null;
