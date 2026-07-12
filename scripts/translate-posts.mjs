@@ -557,7 +557,7 @@ async function main() {
   console.log(`📦 Cache saved to ${CACHE_FILE}`);
 
   // Translate landing page content
-  await translateLandingContent();
+  await translateLandingContent(cache);
   console.log("🌐 Landing content translated");
 
   // Generate combined titles JSON for client-side listing page translation
@@ -572,7 +572,7 @@ async function main() {
 // ── Landing Content Translator ──────────────────────────────────────
 // Translates src/config/landing-content.json to all target languages.
 
-async function translateLandingContent() {
+async function translateLandingContent(cache) {
   const sourcePath = resolve(ROOT, "src", "config", "landing-content.json");
   if (!existsSync(sourcePath)) {
     console.log("  ⏭️  landing-content.json not found, skipping");
