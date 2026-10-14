@@ -32,6 +32,32 @@ interface UiMessage extends ChatMessage {
 const PROXY_URL = (import.meta.env.PUBLIC_CHAT_PROXY_URL ?? "").trim();
 
 /**
+ * Turnstile site key. Public by design — it identifies the widget, not the
+ * caller. When it is set the widget fetches a challenge token and sends it with
+ * every question, which is what the proxy actually gates on; `Origin` cannot do
+ * that job, because a caller writes that header itself.
+ *
+ * When it is empty the widget sends no token, which only works against a proxy
+ * that has no TURNSTILE_SECRET_KEY — i.e. local development.
+ */
+const TURNSTILE_SITE_KEY = (
+	import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? ""
+).trim();
+
+/** Explicit rendering, so the challenge is loaded only when it is needed. */
+const TURNSTILE_SCRIPT =
+	"https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
+interface TurnstileApi {
+	render: (element: HTMLElement, options: Record<string, unknown>) => string;
+	reset: (widgetId?: string) => void;
+}
+
+function turnstileApi(): TurnstileApi | undefined {
+	return (window as unknown as { turnstile?: TurnstileApi }).turnstile;
+}
+
+/**
  * The rendered article root. Identical selector to the one pagefind indexes, so
  * "what the AI may read" and "what the search index knows" cannot drift apart:
  * pages without it (home, archive, tag lists) simply get no article context.
@@ -78,6 +104,14 @@ let popupPos = $state({ x: 0, y: 0 });
 // Article context (the page the reader is currently on)
 let articleTitle = $state("");
 let hasArticle = $state(false);
+
+// Turnstile state. `turnstileToken` is the challenge response for the *next*
+// question; it is cleared and reissued after every send, because tokens are
+// single-use and a replay is rejected upstream.
+let turnstileToken = $state("");
+let turnstileContainer = $state<HTMLDivElement | undefined>(undefined);
+let turnstileWidgetId: string | undefined;
+let turnstileScript: Promise<void> | null = null;
 
 // Pagefind state: the search bundle is loaded on demand from the navbar, and is
 // unavailable in dev (no index is built).
@@ -139,6 +173,64 @@ function ensurePagefind(): Promise<boolean> {
 			};
 		},
 	);
+}
+
+/**
+ * Load the Turnstile script once, on demand. Deliberately not part of the page
+ * load: the widget is `client:idle`, most readers never open it, and loading a
+ * challenge on every page view would cost a third-party request for nothing.
+ */
+function ensureTurnstile(): Promise<void> {
+	if (!TURNSTILE_SITE_KEY || typeof window === "undefined")
+		return Promise.resolve();
+	if (!turnstileScript) {
+		turnstileScript = new Promise<void>((resolve) => {
+			if (turnstileApi()) {
+				resolve();
+				return;
+			}
+			const script = document.createElement("script");
+			script.src = TURNSTILE_SCRIPT;
+			script.async = true;
+			script.defer = true;
+			script.onload = () => resolve();
+			// A failed load must not hang the send path: resolve, and the guard in
+			// sendMessage reports the missing challenge instead.
+			script.onerror = () => resolve();
+			document.head.append(script);
+		});
+	}
+	return turnstileScript;
+}
+
+/** Render the challenge into the panel. Idempotent: one widget per panel. */
+async function mountTurnstile(): Promise<void> {
+	if (!TURNSTILE_SITE_KEY || turnstileWidgetId || !turnstileContainer) return;
+	await ensureTurnstile();
+	const api = turnstileApi();
+	if (!api || turnstileWidgetId || !turnstileContainer) return;
+	turnstileWidgetId = api.render(turnstileContainer, {
+		sitekey: TURNSTILE_SITE_KEY,
+		// Invisible unless Cloudflare decides an interaction is needed, so the
+		// panel keeps its shape for the reader who never sees a challenge.
+		appearance: "interaction-only",
+		callback: (token: string) => {
+			turnstileToken = token;
+		},
+		"expired-callback": () => {
+			turnstileToken = "";
+		},
+		"error-callback": () => {
+			turnstileToken = "";
+		},
+	});
+}
+
+/** Tokens are single-use, so every question needs a freshly issued one. */
+function refreshTurnstileToken(): void {
+	if (!TURNSTILE_SITE_KEY) return;
+	turnstileToken = "";
+	if (turnstileWidgetId) turnstileApi()?.reset(turnstileWidgetId);
 }
 
 function currentArticleBody(): Element | null {
@@ -321,11 +413,21 @@ async function sendMessage(preset?: string) {
 			return;
 		}
 
+		// Send only a token the challenge actually issued: guessing here would just
+		// trade a clear message for a 403 from the proxy.
+		if (TURNSTILE_SITE_KEY && !turnstileToken) {
+			error =
+				"Waiting for the verification challenge — please try again in a moment.";
+			void mountTurnstile();
+			return;
+		}
+
 		const response = await fetch(PROXY_URL, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				messages: trimmed.messages,
+				...(TURNSTILE_SITE_KEY ? { turnstileToken } : {}),
 				...(workspace ? { context: workspace } : {}),
 				...(snippets.length > 0 ? { grounding: snippets } : {}),
 			}),
@@ -390,6 +492,10 @@ async function sendMessage(preset?: string) {
 	} finally {
 		isLoading = false;
 		abortController = null;
+
+		// The token was spent by this request (or by an aborted one that still
+		// reached the proxy), so get a fresh challenge for the next question.
+		refreshTurnstileToken();
 
 		// Attach the retrieval hits to the reply, skipping any URL already shown
 		// earlier in the conversation.
@@ -488,6 +594,13 @@ function dismissSelectionPopup() {
 	selectedText = "";
 	window.getSelection()?.removeAllRanges();
 }
+
+// Render the challenge the first time the panel is on screen. An effect rather
+// than the open handler, because the container does not exist until the panel
+// has rendered.
+$effect(() => {
+	if (isOpen && turnstileContainer) void mountTurnstile();
+});
 
 onMount(() => {
 	// pagefind may already be loaded by an earlier search on this page.
@@ -794,6 +907,11 @@ const suggestions = $derived(
 
     <!-- Input -->
     <div class="shrink-0 px-3 py-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
+      {#if TURNSTILE_SITE_KEY}
+        <!-- Rendered only when the proxy is gated; the challenge stays invisible
+             unless Cloudflare asks for an interaction. -->
+        <div bind:this={turnstileContainer} class="empty:hidden mb-2"></div>
+      {/if}
       {#if droppedTurns > 0}
         <div class="text-[0.6875rem] text-[var(--shallow-text)] px-1 pb-1.5">
           Conversation is long — the earliest {droppedTurns} messages were dropped

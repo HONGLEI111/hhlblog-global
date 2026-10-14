@@ -89,6 +89,29 @@ try {
 		});
 	});
 
+	// The widget now waits for a Turnstile token before it will send anything, so
+	// the challenge is stubbed too — otherwise this check would only pass against
+	// a build made without PUBLIC_TURNSTILE_SITE_KEY. `reset` re-issues a token,
+	// mirroring the real widget, which the widget calls after every reply.
+	await page.route("https://challenges.cloudflare.com/**", async (route) => {
+		await route.fulfill({
+			status: 200,
+			headers: { "Content-Type": "application/javascript" },
+			body: [
+				"window.turnstile = {",
+				"  render: (el, options) => {",
+				"    window.__turnstileCallback = options.callback;",
+				'    options.callback("chat-check-token");',
+				'    return "chat-check-widget";',
+				"  },",
+				"  reset: () => {",
+				'    if (window.__turnstileCallback) window.__turnstileCallback("chat-check-token");',
+				"  },",
+				"};",
+			].join("\n"),
+		});
+	});
+
 	const panel = page.locator("#ai-chat-panel");
 	const openPanel = async () => {
 		await page.locator('button[aria-label="AI assistant"]').click();
@@ -130,6 +153,16 @@ try {
 	});
 
 	check("request sent to proxy", requestCount === 1, `count=${requestCount}`);
+	// Only a build made with a site key sends one; asserted so a change that
+	// silently dropped the token cannot pass here, where the proxy is stubbed and
+	// therefore never returns the 403 the real one would.
+	if ((process.env.PUBLIC_TURNSTILE_SITE_KEY ?? "").trim()) {
+		check(
+			"turnstile token sent",
+			typeof captured?.turnstileToken === "string" && captured.turnstileToken.length > 0,
+			`token=${captured?.turnstileToken ? "present" : "missing"}`,
+		);
+	}
 	check(
 		"context.url is the article",
 		!!captured?.context?.url?.includes(ARTICLE),

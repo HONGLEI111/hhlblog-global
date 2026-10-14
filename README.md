@@ -127,24 +127,38 @@ node scripts/check-translations.mjs   # fails if user-visible text still contain
 
 The chat widget is **disabled unless you point it at a proxy**. It never calls a third-party endpoint on its own.
 
-1. Deploy the proxy in `workers/chat-proxy/`:
+1. Create a **Turnstile** widget (dashboard → Turnstile) for the hostname the site is served from. You get a public site key and a secret.
+
+2. Deploy the proxy in `workers/chat-proxy/`:
 
    ```bash
    cd workers/chat-proxy
    pnpm install
    wrangler secret put DEEPSEEK_API_KEY
+   wrangler secret put TURNSTILE_SECRET_KEY
    # Set ALLOWED_ORIGINS to the exact origins allowed to call it, e.g.
    #   ALLOWED_ORIGINS="https://www.example.com"
    wrangler deploy
    ```
 
-2. Point the site at it and rebuild:
+3. Point the site at it and rebuild:
 
    ```bash
-   PUBLIC_CHAT_PROXY_URL="https://your-proxy.workers.dev/" pnpm build
+   PUBLIC_CHAT_PROXY_URL="https://your-proxy.workers.dev/" \
+   PUBLIC_TURNSTILE_SITE_KEY="0x4AAA..." \
+   pnpm build
    ```
 
-Without `PUBLIC_CHAT_PROXY_URL` the widget is not mounted at all, and the internal guard keeps any stray call from reaching the network. The proxy strips client-supplied system prompts, so it cannot be repurposed as a general-purpose LLM endpoint.
+Without `PUBLIC_CHAT_PROXY_URL` the widget is not mounted at all, and the internal guard keeps any stray call from reaching the network.
+
+### Security model — read this before exposing the proxy
+
+The endpoint is public by nature, so it needs a gate that a caller cannot write for itself:
+
+- **`ALLOWED_ORIGINS` is not that gate.** It compares the `Origin` header, and `Origin` is set by the caller — `curl` can send any value, so the list only stops a browser on another site and a scanner that does not bother to spoof. It is still worth setting, as a first filter.
+- **Turnstile is the gate.** The token is issued by Cloudflare's challenge and is single-use, which is something a script cannot cheaply forge. `TURNSTILE_SECRET_KEY` is therefore required in production: with no secret the proxy **refuses every origin except `http://localhost:4321`** rather than running open.
+- **The proxy cannot be "just an article helper".** It strips client-supplied system messages and only injects article context whose URL is on this site, but `messages` and `context.text` are still caller-controlled text — so treat it as a general-purpose LLM endpoint that happens to be gated, and cap what it can spend.
+- **Cap the spend at the provider, not just here.** The proxy sends `max_tokens` (see `MAX_OUTPUT_TOKENS`) and rate-limits per IP, but only the provider's own spend limit is unbypassable — set one in the DeepSeek console.
 
 > The query tokenizer in `src/utils/chat-context.ts` is tuned for Chinese
 > (no word delimiters, Chinese stopwords). English queries fall back to

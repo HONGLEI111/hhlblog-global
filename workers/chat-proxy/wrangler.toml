@@ -10,6 +10,16 @@ compatibility_date = "2025-05-15"
 # Set it per deployment, e.g. in the Cloudflare dashboard or with:
 #   wrangler deploy --var ALLOWED_ORIGINS:"https://www.example.com"
 #
-# The API key is a secret, never a var:
-#   wrangler secret put DEEPSEEK_API_KEY
+# This list is NOT the security gate — `Origin` is a header the caller writes and
+# curl can forge it. Turnstile (below) is what actually gates the endpoint.
 ALLOWED_ORIGINS = ""
+
+# Secrets are never vars. Both of these are set with `wrangler secret put`:
+#
+#   DEEPSEEK_API_KEY     the upstream model key
+#   TURNSTILE_SECRET_KEY the Turnstile secret for this hostname
+#
+# TURNSTILE_SECRET_KEY is what makes the proxy safe to expose, so it is required
+# in production: with no secret the worker refuses every origin except
+# http://localhost:4321 rather than running as an open LLM endpoint.
+# Create the widget (site key + secret) under Turnstile in the dashboard.

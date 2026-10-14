@@ -1,8 +1,15 @@
 import { buildSystemPrompt } from "./prompt.ts";
 import { ARTICLE_HOSTS, parseBody, resolveGrounding } from "./request.ts";
+import { verifyTurnstile } from "./turnstile.ts";
 
 interface Env {
   DEEPSEEK_API_KEY: string;
+  /**
+   * Turnstile secret. When set, every request must carry a token the challenge
+   * issued. When absent the proxy only serves the local dev origin — see the
+   * check in `fetch`, because "no secret" must not mean "no gate".
+   */
+  TURNSTILE_SECRET_KEY?: string;
   /** Comma-separated exact origins allowed to call this proxy. */
   ALLOWED_ORIGINS?: string;
 }
@@ -12,24 +19,40 @@ interface Env {
 const MODEL = "deepseek-flash";
 
 /**
+ * Ceiling on a single reply, so one request cannot turn into an unbounded bill.
+ * A blog answer is a few paragraphs; the widget renders no long-form output.
+ */
+const MAX_OUTPUT_TOKENS = 1024;
+
+/** The dev origin `allowedOrigins` falls back to when ALLOWED_ORIGINS is unset. */
+const DEV_ORIGIN = "http://localhost:4321";
+
+/**
  * Exact-match CORS allowlist, read from the ALLOWED_ORIGINS var so a fork never
  * inherits someone else's domain. Do NOT use prefix matching: an origin such as
  * "https://example.com.evil.com" must never pass the check. Do not put server
  * IPs in here — they would be visible in this public repo; for remote dev,
  * tunnel the dev server instead:
  *   ssh -L 4321:127.0.0.1:4321 user@server   →   open http://localhost:4321
+ *
+ * This is NOT a security boundary on its own: `Origin` is a header the caller
+ * writes, so any non-browser client can forge it. Turnstile is what actually
+ * gates the endpoint; this list only stops a browser on another site and a
+ * scanner that does not bother to spoof.
  */
 function allowedOrigins(env: Env): Set<string> {
   const configured = (env.ALLOWED_ORIGINS ?? '')
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
-  return new Set(configured.length > 0 ? configured : ['http://localhost:4321']);
+  return new Set(configured.length > 0 ? configured : [DEV_ORIGIN]);
 }
 
-// Simple per-IP sliding-window rate limit backed by the Cache API.
+// Simple per-IP sliding-window rate limit backed by the Cache API. With Turnstile
+// in front this is a second layer, not the gate, so it stays generous enough for
+// a reader typing quickly and low enough to blunt a script.
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_MAX_REQUESTS = 6;
 
 const corsHeaders = (origin: string) => ({
   'Access-Control-Allow-Origin': origin,
@@ -119,6 +142,17 @@ export default {
       });
     }
 
+    // Fail closed: with no Turnstile secret the proxy cannot tell a reader from a
+    // script, and the Origin check cannot either. Rather than run open, it serves
+    // local development only — so a deployment that forgets the secret stops
+    // working instead of quietly becoming a free LLM endpoint.
+    if (!env.TURNSTILE_SECRET_KEY && origin !== DEV_ORIGIN) {
+      return new Response('Turnstile is not configured', {
+        status: 503,
+        headers: corsHeaders(origin),
+      });
+    }
+
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     if (await isRateLimited(ip)) {
       return new Response('Too Many Requests', {
@@ -151,6 +185,24 @@ export default {
     }
 
     const { messages, context } = parsed;
+
+    // The token is verified before anything is sent upstream, and the reason is
+    // logged rather than returned: it would tell a caller which part to fix.
+    if (env.TURNSTILE_SECRET_KEY) {
+      const turnstile = await verifyTurnstile({
+        token: parsed.turnstileToken,
+        secret: env.TURNSTILE_SECRET_KEY,
+        remoteIp: ip,
+      });
+      if (!turnstile.ok) {
+        console.error('Turnstile rejected', turnstile.reason);
+        return new Response('Forbidden', {
+          status: 403,
+          headers: corsHeaders(origin),
+        });
+      }
+    }
+
     const grounding = resolveGrounding(
       (rawBody as { grounding?: unknown }).grounding,
       requestOrigin(request, origin),
@@ -172,6 +224,7 @@ export default {
         // thinking by default, and reasoning deltas would be billed, streamed to
         // the browser and then discarded.
         thinking: { type: 'disabled' },
+        max_tokens: MAX_OUTPUT_TOKENS,
         stream: true,
       }),
     });

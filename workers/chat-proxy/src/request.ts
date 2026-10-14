@@ -24,7 +24,7 @@ export interface ResolvedContext {
 }
 
 export type ParseResult =
-  | { ok: true; messages: ChatMessage[]; context: ResolvedContext | null }
+  | { ok: true; messages: ChatMessage[]; context: ResolvedContext | null; turnstileToken: string }
   | { ok: false; error: string; status: number };
 
 /** Site-wide retrieval snippets (from the reader's pagefind index). */
@@ -39,6 +39,12 @@ export interface GroundingSnippet {
 export const MAX_MESSAGES = 30;
 export const MAX_TOTAL_CHARS = 30_000;
 export const ALLOWED_ROLES = new Set<string>(["user", "assistant"]);
+
+/**
+ * Turnstile tokens are roughly 2 KB; anything longer is not a real one, and
+ * bounding it here keeps an oversized token out of the verification call.
+ */
+export const MAX_TURNSTILE_TOKEN_CHARS = 2048;
 
 // Article context limits. CONTEXT_MIN_CHARS exists so that a stray element
 // (a nav bar, a single heading) is never mistaken for article body text.
@@ -151,7 +157,7 @@ export function parseBody(body: unknown, allowedHosts: ReadonlySet<string>): Par
     return { ok: false, error: "Invalid JSON", status: 400 };
   }
 
-  const raw = body as { messages?: unknown; context?: unknown };
+  const raw = body as { messages?: unknown; context?: unknown; turnstileToken?: unknown };
 
   if (!Array.isArray(raw.messages) || raw.messages.length === 0) {
     return { ok: false, error: "Missing messages array", status: 400 };
@@ -184,5 +190,12 @@ export function parseBody(body: unknown, allowedHosts: ReadonlySet<string>): Par
     return { ok: false, error: "Payload too large", status: 413 };
   }
 
-  return { ok: true, messages, context: resolveContext(raw.context, allowedHosts) };
+  // Carried through unverified on purpose: whether a token is *required* is a
+  // deployment decision (see index.ts), so parseBody only normalizes its shape.
+  const turnstileToken =
+    typeof raw.turnstileToken === "string"
+      ? raw.turnstileToken.trim().slice(0, MAX_TURNSTILE_TOKEN_CHARS)
+      : "";
+
+  return { ok: true, messages, context: resolveContext(raw.context, allowedHosts), turnstileToken };
 }

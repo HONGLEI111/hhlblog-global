@@ -5,6 +5,7 @@ import {
 	CONTEXT_MAX_CHARS,
 	CONTEXT_MIN_CHARS,
 	MAX_MESSAGES,
+	MAX_TURNSTILE_TOKEN_CHARS,
 	parseBody,
 	resolveContext,
 	resolveGrounding,
@@ -187,6 +188,41 @@ describe("parseBody", () => {
 		expect(result.ok).toBe(true);
 		if (!result.ok) return;
 		expect(result.context).toBeNull();
+	});
+
+	it("carries the Turnstile token through, trimmed", () => {
+		const result = parseBody(
+			{ messages: [{ role: "user", content: "hi" }], turnstileToken: "  tok-123  " },
+			ARTICLE_HOSTS,
+		);
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.turnstileToken).toBe("tok-123");
+	});
+
+	it("defaults the token to empty rather than failing, since requiring it is a deployment choice", () => {
+		for (const body of [
+			{ messages: [{ role: "user", content: "hi" }] },
+			{ messages: [{ role: "user", content: "hi" }], turnstileToken: 42 },
+			{ messages: [{ role: "user", content: "hi" }], turnstileToken: null },
+		]) {
+			const result = parseBody(body, ARTICLE_HOSTS);
+			expect(result.ok).toBe(true);
+			if (!result.ok) return;
+			expect(result.turnstileToken).toBe("");
+		}
+	});
+
+	it("caps an oversized token instead of forwarding it", () => {
+		const result = parseBody(
+			{ messages: [{ role: "user", content: "hi" }], turnstileToken: "x".repeat(5000) },
+			ARTICLE_HOSTS,
+		);
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.turnstileToken).toHaveLength(MAX_TURNSTILE_TOKEN_CHARS);
 	});
 });
 
