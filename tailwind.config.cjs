@@ -32,7 +32,7 @@ module.exports = {
   plugins: [
     require("@tailwindcss/typography"),
     plugin(({ addVariant }) => {
-      addVariant('intersect', '&:not([no-intersect])');
+      addVariant('intersect', '&[data-intersected]');
     }),
   ],
 }

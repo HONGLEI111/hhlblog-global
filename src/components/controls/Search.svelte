@@ -1,137 +1,160 @@
 <script lang="ts">
-  import I18nKey from "@i18n/i18nKey";
-  import { clientI18n } from "@i18n/client";
-  import Icon from "@iconify/svelte";
-  import { url } from "@utils/url-utils.ts";
-  import { onMount } from "svelte";
-  import Fuse from "fuse.js";
+import Icon from "@components/common/Icon.svelte";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { url } from "@utils/url-utils.ts";
+import sanitizeHtml from "sanitize-html";
+import { onMount } from "svelte";
+import type { SearchResult } from "@/global";
 
-  interface SearchIndexItem {
-    title: string;
-    description: string;
-    url: string;
-    tags: string[];
-  }
+let keywordDesktop = $state("");
+let keywordMobile = $state("");
+let result = $state<SearchResult[]>([]);
+let isSearching = $state(false);
+let pagefindLoaded = $state(false);
+let initialized = $state(false);
 
-  interface SearchResultItem {
-    url: string;
-    meta: { title: string };
-    excerpt: string;
-    content?: string;
-  }
+const fakeResult: SearchResult[] = [
+	{
+		url: url("/"),
+		meta: {
+			title: "This Is a Fake Search Result",
+		},
+		excerpt:
+			"Because the search cannot work in the <mark>dev</mark> environment.",
+	},
+	{
+		url: url("/"),
+		meta: {
+			title: "If You Want to Test the Search",
+		},
+		excerpt: "Try running <mark>npm build && npm preview</mark> instead.",
+	},
+];
 
-  let keywordDesktop = $state("");
-  let keywordMobile = $state("");
-  let result = $state<SearchResultItem[]>([]);
-  let isSearching = $state(false);
-  let initialized = $state(false);
-  let debounceTimer: ReturnType<typeof setTimeout>;
-  let fuse: Fuse<SearchIndexItem> | null = $state(null);
+const togglePanel = () => {
+	const panel = document.getElementById("search-panel");
+	panel?.classList.toggle("float-panel-closed");
+};
 
-  const MAX_INLINE_RESULTS = 5;
+const requestPagefindLoad = () => {
+	document.dispatchEvent(new CustomEvent("pagefind:load"));
+};
 
-  const fakeResult: SearchResultItem[] = [
-    {
-      url: url("/"),
-      meta: { title: "Search Example" },
-      excerpt: "This is a <mark>search</mark> result example.",
-    },
-  ];
+const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
+	const panel = document.getElementById("search-panel");
+	if (!panel || !isDesktop) return;
 
-  const togglePanel = () => {
-    const panel = document.getElementById("search-panel");
-    panel?.classList.toggle("float-panel-closed");
-  };
+	if (show) {
+		panel.classList.remove("float-panel-closed");
+	} else {
+		panel.classList.add("float-panel-closed");
+	}
+};
 
-  const closePanel = () => {
-    document.getElementById("search-panel")?.classList.add("float-panel-closed");
-  };
+const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
+	requestPagefindLoad();
+	if (!keyword) {
+		setPanelVisibility(false, isDesktop);
+		result = [];
+		return;
+	}
 
-  const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
-    const panel = document.getElementById("search-panel");
-    if (!panel) return;
-    if (isDesktop) {
-      show ? panel.classList.remove("float-panel-closed") : panel.classList.add("float-panel-closed");
-    }
-  };
+	if (!initialized) {
+		return;
+	}
 
-  async function loadSearchIndex() {
-    try {
-      const response = await fetch("/search-index.json");
-      if (!response.ok) throw new Error("Search index not found");
-      const data: SearchIndexItem[] = await response.json();
-      fuse = new Fuse(data, {
-        keys: ["title", "description", "tags"],
-        threshold: 0.3,
-        includeMatches: true,
-      });
-      initialized = true;
-      console.log(`Search index loaded: ${data.length} items`);
-    } catch (e) {
-      console.warn("Search index not available, using fallback:", e);
-      initialized = true;
-    }
-  }
+	isSearching = true;
 
-  const doSearch = async (keyword: string, isDesktop: boolean): Promise<void> => {
-    if (!keyword.trim()) {
-      setPanelVisibility(false, isDesktop);
-      result = [];
-      return;
-    }
-    if (!initialized || import.meta.env.DEV) {
-      if (import.meta.env.DEV) {
-        result = fakeResult;
-        setPanelVisibility(true, isDesktop);
-      }
-      return;
-    }
+	try {
+		let searchResults: SearchResult[] = [];
 
-    isSearching = true;
+		if (import.meta.env.PROD && pagefindLoaded && window.pagefind) {
+			const response = await window.pagefind.search(keyword);
+			searchResults = await Promise.all(
+				response.results.map((item) => item.data()),
+			);
+		} else if (import.meta.env.DEV) {
+			searchResults = fakeResult;
+		} else {
+			searchResults = [];
+			console.error("Pagefind is not available in production environment.");
+		}
 
-    try {
-      if (fuse) {
-        const fuseResults = fuse.search(keyword);
-        result = fuseResults.slice(0, 20).map((r) => ({
-          url: r.item.url,
-          meta: { title: r.item.title },
-          excerpt: r.item.description || "",
-        }));
-      } else {
-        result = [];
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      result = [];
-    } finally {
-      isSearching = false;
-      if (result.length > 0) {
-        setPanelVisibility(true, isDesktop);
-      }
-    }
-  };
+		result = searchResults;
+		setPanelVisibility(result.length > 0, isDesktop);
+	} catch (error) {
+		console.error("Search error:", error);
+		result = [];
+		setPanelVisibility(false, isDesktop);
+	} finally {
+		isSearching = false;
+	}
+};
 
-  const search = (keyword: string, isDesktop: boolean) => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => doSearch(keyword, isDesktop), 300);
-  };
+function tryInitSearch() {
+	pagefindLoaded =
+		typeof window !== "undefined" &&
+		!!window.pagefind &&
+		typeof window.pagefind.search === "function";
+	initialized = true;
 
-  onMount(() => {
-    if (import.meta.env.DEV) {
-      console.log("Search mock enabled in development mode.");
-      initialized = true;
-      return;
-    }
-    loadSearchIndex();
-  });
+	// Re-run queries typed before Pagefind became ready (search is now
+	// event-driven; there is no $effect auto-search anymore).
+	if (keywordDesktop) search(keywordDesktop, true);
+	if (keywordMobile) search(keywordMobile, false);
+}
 
-  $effect(() => {
-    if (initialized) search(keywordDesktop, true);
-  });
+onMount(() => {
+	// DEV mode: always use fake results immediately
+	if (import.meta.env.DEV) {
+		console.log(
+			"Pagefind is not available in development mode. Using mock data.",
+		);
+		initialized = true;
+		return;
+	}
 
-  $effect(() => {
-    if (initialized) search(keywordMobile, false);
-  });
+	// If Pagefind is already loaded, initialize immediately
+	if (typeof window !== "undefined" && window.pagefind?.search) {
+		console.log("Pagefind already loaded, initializing search immediately.");
+		tryInitSearch();
+		return;
+	}
+
+	// Wait for pagefindready event
+	document.addEventListener("pagefindready", () => {
+		console.log("Pagefind ready event received.");
+		tryInitSearch();
+	});
+
+	document.addEventListener("pagefindloaderror", () => {
+		console.warn(
+			"Pagefind load error event received. Search functionality will be limited.",
+		);
+		tryInitSearch();
+	});
+
+	// Fallback: check if pagefind loaded after a delay
+	setTimeout(() => {
+		if (!initialized) {
+			console.log("Fallback: Initializing search after timeout.");
+			tryInitSearch();
+		}
+	}, 3000);
+});
+
+// NOTE: auto-search via $effect was removed. search() writes a new array to
+// `result` and reads `result.length`, which made the effect depend on its own
+// output and loop forever (Svelte "effect_update_depth_exceeded"). Search is
+// now triggered by explicit oninput handlers below.
+const handleDesktopInput = (e: Event) => {
+	search((e.currentTarget as HTMLInputElement).value, true);
+};
+
+const handleMobileInput = (e: Event) => {
+	search((e.currentTarget as HTMLInputElement).value, false);
+};
 </script>
 
 <!-- search bar for desktop view -->
@@ -140,14 +163,14 @@
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
 ">
     <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-    <input placeholder="{clientI18n(I18nKey.search)}" bind:value={keywordDesktop} onfocus={() => search(keywordDesktop, true)}
+    <input placeholder="{i18n(I18nKey.search)}" bind:value={keywordDesktop} onclick={requestPagefindLoad} onfocus={() => search(keywordDesktop, true)} oninput={handleDesktopInput}
            class="transition-all pl-10 text-sm bg-transparent outline-0
          h-full w-40 active:w-60 focus:w-60 text-black/50 dark:text-white/50"
     >
 </div>
 
 <!-- toggle btn for phone/tablet view -->
-<button onclick={togglePanel} aria-label="Search Panel" id="search-switch"
+<button onclick={() => { requestPagefindLoad(); togglePanel(); }} aria-label="Search Panel" id="search-switch"
         class="btn-plain scale-animation lg:!hidden rounded-lg w-11 h-11 active:scale-90">
     <Icon icon="material-symbols:search" class="text-[1.25rem]"></Icon>
 </button>
@@ -162,51 +185,25 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
   ">
         <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder={clientI18n(I18nKey.search)} bind:value={keywordMobile}
+        <input placeholder="Search" bind:value={keywordMobile} onclick={requestPagefindLoad} onfocus={requestPagefindLoad} oninput={handleMobileInput}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
                focus:w-60 text-black/50 dark:text-white/50"
         >
     </div>
 
     <!-- search results -->
-    {#if isSearching}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-black/50 dark:text-white/50">
-            {clientI18n(I18nKey.searchLoading)}
-        </div>
-    {:else if result.length > 0}
-        {#each result.slice(0, MAX_INLINE_RESULTS) as item}
-            <a href={item.url}
-               onclick={() => closePanel()}
-               class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
-           rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
-                <div class="transition inline-flex font-bold group-hover:text-[var(--primary)]">
-                    {item.meta.title}
-                    <Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
-                </div>
-                {#if item.excerpt}
-                    <div class="transition text-sm text-black/50 dark:text-white/50 mt-0.5">
-                        {@html item.excerpt}
-                    </div>
-                {/if}
-            </a>
-        {/each}
-        {#if result.length > MAX_INLINE_RESULTS}
-            <a href="/search?q={encodeURIComponent(keywordDesktop || keywordMobile)}"
-               onclick={() => closePanel()}
-               class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] text-[var(--primary)] font-bold text-center">
-                {clientI18n(I18nKey.searchViewMore).replace('{count}', (result.length - MAX_INLINE_RESULTS).toString())}
-                <Icon icon="fa6-solid:arrow-right" class="transition text-[0.75rem] ml-1 inline"></Icon>
-            </a>
-        {/if}
-    {:else if (keywordDesktop || keywordMobile)}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-black/50 dark:text-white/50">
-            {clientI18n(I18nKey.searchNoResults)}
-        </div>
-    {:else}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-black/50 dark:text-white/50">
-            {clientI18n(I18nKey.searchTypeSomething)}
-        </div>
-    {/if}
+    {#each result as item}
+        <a href={item.url}
+           class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
+       rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
+            <div class="transition text-90 inline-flex font-bold group-hover:text-[var(--primary)]">
+                {item.meta.title}<Icon icon="fa6-solid:chevron-right" class="transition text-[0.75rem] translate-x-1 my-auto text-[var(--primary)]"></Icon>
+            </div>
+            <div class="transition text-sm text-50">
+                {@html sanitizeHtml(item.excerpt, { allowedTags: ['mark'] })}
+            </div>
+        </a>
+    {/each}
 </div>
 
 <style>

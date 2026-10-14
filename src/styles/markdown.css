@@ -91,6 +91,63 @@
         }
     }
 
+    /* ── Code Tabs ── */
+    .code-tabs {
+        @apply my-4;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        background: var(--codeblock-bg);
+    }
+
+    .code-tabs-header {
+        @apply flex flex-row;
+        padding: 0.5rem 0.75rem 0;
+        background: var(--codeblock-topbar-bg);
+    }
+
+    .code-tab-btn {
+        @apply px-3 py-1 text-sm font-medium rounded-t-md transition cursor-pointer select-none;
+        font-family: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        color: oklch(0.55 0.02 var(--hue));
+        background: transparent;
+        border: none;
+        outline: none;
+        margin-right: 0.125rem;
+    }
+    .code-tab-btn:hover {
+        color: oklch(0.75 0.05 var(--hue));
+        background: oklch(0.25 0.01 var(--hue));
+    }
+    .code-tab-btn.active {
+        color: var(--primary);
+        background: var(--codeblock-bg);
+    }
+
+    .code-tab-panel {
+        display: none;
+    }
+    .code-tab-panel.active {
+        display: block;
+    }
+
+    /* Remove top margin from .expressive-code when inside a tab panel */
+    .code-tab-panel .expressive-code {
+        @apply my-0;
+    }
+    /* Remove top border radius from code frames inside tabs */
+    .code-tab-panel .frame {
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+    }
+    /* Hide expressive-code frame header (language badge + title) inside
+       code tabs, since the code-tabs header already provides tab buttons */
+    .code-tab-panel .header,
+    .code-tab-panel figcaption.header,
+    .code-tab-panel .frame .header,
+    .code-tab-panel .frame figcaption {
+        display: none !important;
+    }
+
 
     ul, ol {
         li::marker {
@@ -118,14 +175,43 @@
         overflow-x: auto;
         margin: 1em 0;
     }
+}
 
-    pre.mermaid {
-        @apply bg-transparent border-none p-0 my-4 text-left overflow-x-auto;
-        font-size: inherit;
-        font-family: inherit;
-        svg {
-            @apply mx-auto block max-w-full rounded-xl;
-        }
+/* ---- Diagrams (build-time SVG from src/plugins/rehype-mermaid-svg.mjs) --- */
+
+.custom-md figure.diagram {
+    @apply relative my-6 p-4 rounded-xl;
+    background: var(--diagram-bg);
+    border: 1px solid var(--line-divider);
+}
+
+.custom-md .diagram-canvas {
+    @apply flex justify-center items-center w-full overflow-x-auto;
+}
+
+.custom-md .diagram-canvas svg {
+    @apply block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* The generated SVG carries no font of its own (the external Google Fonts
+   import is stripped at build time), so it inherits the site typography. */
+.custom-md .diagram-canvas svg text {
+    font-family: inherit;
+}
+
+/* On narrow screens stop shrinking the diagram and scroll it instead: scaling
+   a wide flowchart down to ~350px makes its labels unreadable. The scroll
+   belongs to the figure so the card frame stays put. */@media (max-width: 640px) {
+    .custom-md figure.diagram {
+        overflow-x: auto;
     }
 
+    .custom-md .diagram-canvas {
+        /* Sized to the content so the figure owns the single scrollbar. */
+        justify-content: flex-start;
+        width: max-content;
+        min-width: 100%;
+    }
 }

@@ -1,15 +1,22 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getPostUrlBySlug } from "@utils/url-utils";
+import { getPostUrlBySlug, getTechnologyUrlBySlug } from "@utils/url-utils";
 import BlogCard from "./BlogCard.astro";
 
-const { page } = Astro.props;
+interface Props {
+	page: { data: (CollectionEntry<"posts"> | CollectionEntry<"technology">)[] };
+	collection?: "posts" | "technology";
+}
+
+const { page, collection = "posts" } = Astro.props;
+const getUrlBySlug =
+	collection === "technology" ? getTechnologyUrlBySlug : getPostUrlBySlug;
 
 let delay = 0;
 const interval = 50;
 ---
 <div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
-    {page.data.map((entry: CollectionEntry<"posts">) => (
+    {page.data.map((entry) => (
         <BlogCard
                 entry={entry}
                 title={entry.data.title}
@@ -17,10 +24,10 @@ const interval = 50;
                 category={entry.data.category}
                 published={entry.data.published}
                 updated={entry.data.updated}
-                url={getPostUrlBySlug(entry.id)}
+                url={getUrlBySlug(entry.id)}
                 image={entry.data.image}
                 description={entry.data.description}
-                draft={entry.data.draft}
+                collection={collection}
                 class:list="onload-animation"
                 style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
         ></BlogCard>

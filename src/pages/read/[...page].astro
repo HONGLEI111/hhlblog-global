@@ -5,7 +5,6 @@ import PostPage from "../../components/read/PostPage.astro";
 import { PAGE_SIZE } from "../../constants/constants";
 import MainGridLayout from "../../layouts/MainGridLayout.astro";
 import { getSortedRead } from "../../utils/content-utils";
-import TranslateTitles from "../../components/controls/TranslateTitles.svelte";
 
 export const getStaticPaths = (async ({ paginate }) => {
 	const allBlogPosts = await getSortedRead();
@@ -16,11 +15,23 @@ export const getStaticPaths = (async ({ paginate }) => {
 const { page } = Astro.props;
 
 const len = page.data.length;
-export const prerender = true;
+const isFirstPage = page.currentPage === 1;
+const listingTitle = isFirstPage ? "阅读" : `阅读 - 第 ${page.currentPage} 页`;
+const listingDescription = "读书笔记与阅读分享。";
+const canonical = isFirstPage
+	? undefined
+	: new URL(page.url.first ?? "/read/", Astro.site).href;
+const prevHref = page.url.prev
+	? new URL(page.url.prev, Astro.site).href
+	: undefined;
+const nextHref = page.url.next
+	? new URL(page.url.next, Astro.site).href
+	: undefined;
 ---
 
-<MainGridLayout sidebarCollection="read">
+<MainGridLayout title={listingTitle} description={listingDescription} canonical={canonical} sidebarCollection="read">
+    {prevHref && <link slot="head" rel="prev" href={prevHref} />}
+    {nextHref && <link slot="head" rel="next" href={nextHref} />}
     <PostPage page={page}></PostPage>
     <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
-  <TranslateTitles client:load />
 </MainGridLayout>

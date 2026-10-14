@@ -1,5 +1,5 @@
 ---
-import { render, type CollectionEntry } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import path from "node:path";
 import { Icon } from "astro-icon/components";
 import I18nKey from "../../i18n/i18nKey";
@@ -8,50 +8,54 @@ import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 import { getDir } from "../../utils/url-utils";
 import ImageWrapper from "../misc/ImageWrapper.astro";
 
-const currentLang = Astro.locals?.lang;
-
 interface Props {
-    class?: string;
-    entry: CollectionEntry<"read">;
-    title: string;
-    url: string;
-    published: Date;
-    updated?: Date;
-    tags: string[];
-    category: string | null;
-    image: string;
-    description: string;
-    draft: boolean;
-    style: string;
-    author?: string;
-    bookTitle?: string;
-    rating?: number;
-    cover?: string;
+	class?: string;
+	entry: CollectionEntry<"read">;
+	title: string;
+	url: string;
+	published: Date;
+	updated?: Date;
+	tags: string[];
+	category: string | null;
+	image: string;
+	description: string;
+	draft: boolean;
+	style: string;
+	author?: string;
+	bookTitle?: string;
+	rating?: number;
+	cover?: string;
 }
 const {
-    entry,
-    title,
-    url,
-    published,
-    style,
-    author,
-    bookTitle,
-    rating,
-    cover,
-    image,
+	entry,
+	title,
+	url,
+	published,
+	style,
+	author,
+	bookTitle,
+	rating,
+	cover,
+	image,
 } = Astro.props;
 const className = Astro.props.class;
 
 const displayCover = cover || image;
-const hasCover = displayCover !== undefined && displayCover !== null && displayCover !== "";
+const hasCover =
+	displayCover !== undefined && displayCover !== null && displayCover !== "";
 const displayBookTitle = bookTitle || title;
 const showExcerptTitle = bookTitle && bookTitle !== title;
 
-const { remarkPluginFrontmatter } = await render(entry);
+const remarkPluginFrontmatter =
+	entry.data as CollectionEntry<"read">["data"] & {
+		excerpt: string;
+		words: number;
+		minutes: number;
+	};
 const minutes = remarkPluginFrontmatter.minutes;
 ---
 
-<div data-collection="read" data-post-slug={entry.id.replace(/\.mdx?$/, "")} class:list={["card-base flex flex-col w-full rounded-[var(--radius-large)] overflow-hidden", className]} style={style}>
+<div class:list={["card-base flex flex-col w-full rounded-[var(--radius-large)] overflow-hidden", className]} style={style}>
     <!-- Cover image -->
     <a href={url} aria-label={displayBookTitle}
        class:list={["group relative block w-full overflow-hidden",
@@ -68,8 +72,7 @@ const minutes = remarkPluginFrontmatter.minutes;
                 <ImageWrapper src={displayCover} basePath={path.join("content/read/", getDir(entry.id))} alt={displayBookTitle}
                           class="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                           sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                          widths={[320, 480, 640, 768]}
-                          quality={70}>
+                          widths={[320, 480, 640, 768]}>
                 </ImageWrapper>
             </>
         ) : (
@@ -83,7 +86,7 @@ const minutes = remarkPluginFrontmatter.minutes;
     <div class="p-4 flex flex-col gap-1 flex-1">
         <!-- Book title -->
         <a href={url} class="transition font-bold text-base text-90 line-clamp-1 hover:text-[var(--primary)] dark:hover:text-[var(--primary)]">
-            <span data-post-title>{displayBookTitle}</span>
+            {displayBookTitle}
         </a>
 
         <!-- Author -->
@@ -100,7 +103,7 @@ const minutes = remarkPluginFrontmatter.minutes;
         <div class="flex items-center gap-2 text-xs text-30 mt-auto pt-2">
             <span>{formatDateToYYYYMMDD(published)}</span>
             <span>·</span>
-            <span>{minutes} {i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount, currentLang)}</span>
+            <span>{minutes} {i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}</span>
             {rating && (
                 <>
                     <span>·</span>

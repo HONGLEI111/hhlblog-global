@@ -82,3 +82,21 @@ export function getDir(path: string): string {
 export function url(path: string) {
 	return joinUrl("", import.meta.env.BASE_URL, path);
 }
+
+/**
+ * Resolve an article's cover image to an absolute URL for OpenGraph / Twitter.
+ * Falls back to the site-wide `og-image.jpg` when the field is empty, or when
+ * the value is a content-relative path (those are optimized into hashed
+ * `_astro/` assets at build time and have no stable public URL to reference
+ * from `<head>`).
+ */
+export function resolveOgImage(
+	src: string | undefined,
+	site: URL | undefined,
+): string {
+	const fallback = site ? new URL("/og-image.jpg", site).href : "/og-image.jpg";
+	if (!src) return fallback;
+	if (/^https?:\/\//i.test(src)) return src;
+	if (src.startsWith("/")) return site ? new URL(src, site).href : src;
+	return fallback;
+}

@@ -5,8 +5,9 @@ import Navbar from "@components/layout/Navbar.astro";
 import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
+import TocContainer from "../components/layout/TocContainer.astro";
 import ImageWrapper from "../components/misc/ImageWrapper.astro";
-import TOC from "../components/widget/TOC.astro";
+import MobileTOC from "../components/widget/MobileTOC.astro";
 import { siteConfig } from "../config";
 import {
 	BANNER_HEIGHT,
@@ -23,6 +24,9 @@ interface Props {
 	setOGTypeArticle?: boolean;
 	headings?: MarkdownHeading[];
 	sidebarCollection?: "posts" | "read" | "technology";
+	canonical?: string;
+	ogImage?: string;
+	excerpt?: string;
 }
 
 const {
@@ -33,6 +37,9 @@ const {
 	setOGTypeArticle,
 	headings = [],
 	sidebarCollection = "posts",
+	canonical,
+	ogImage,
+	excerpt,
 } = Astro.props;
 const hasBannerCredit =
 	siteConfig.banner.enable && siteConfig.banner.credit.enable;
@@ -43,7 +50,7 @@ const mainPanelTop = siteConfig.banner.enable
 	: "5.5rem";
 ---
 
-<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
+<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} canonical={canonical} ogImage={ogImage} excerpt={excerpt}>
 
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>
@@ -55,15 +62,12 @@ const mainPanelTop = siteConfig.banner.enable
 
 <!-- Banner -->
 {siteConfig.banner.enable && <div id="banner-wrapper" class={`absolute z-10 w-full transition duration-700 overflow-hidden`} style={`top: -${BANNER_HEIGHT_EXTEND}vh`}>
-    <ImageWrapper id="banner" alt="Banner image of the blog" class:list={["object-cover h-full transition duration-700 opacity-0 scale-105"]}
+    <ImageWrapper id="banner" alt="Banner image of the blog" class:list={[]}
                   src={siteConfig.banner.src} position={siteConfig.banner.position}
                   loading="eager"
                   fetchpriority="high"
                   sizes="100vw"
-                  width={1920}
-                  height={1080}
-                  widths={[480, 640, 750, 828, 1080, 1280, 1536, 1920]}
-                  quality={68}
+                  widths={[360, 480, 640, 750, 828, 1080, 1280, 1536, 1920, 2048, 2560]}
     >
     </ImageWrapper>
     <div id="header-waves" class="waves absolute -bottom-px h-[10vh] max-h-[9.375rem] min-h-[3.125rem] w-full md:h-[15vh]">
@@ -119,14 +123,13 @@ const mainPanelTop = siteConfig.banner.enable
                 <div id="content-wrapper" class="onload-animation">
                     <!-- the overflow-hidden here prevent long text break the layout-->
                     <!-- make id different from windows.swup global property -->
+                    <MobileTOC headings={headings}></MobileTOC>
                     <slot></slot>
-                    <div class="footer col-span-2 onload-animation hidden lg:block">
-                        <Footer></Footer>
-                    </div>
                 </div>
             </main>
 
-            <div class="footer col-span-2 onload-animation block lg:hidden">
+            <!-- Single full-width footer (col-span-2 spans both grid columns). -->
+            <div class="footer col-span-2 onload-animation block">
                 <Footer></Footer>
             </div>
         </div>
@@ -136,25 +139,7 @@ const mainPanelTop = siteConfig.banner.enable
 </div>
 
 <!-- The things that should be under the banner, only the TOC for now -->
-<div class="absolute w-full z-0 hidden 2xl:block">
-    <div class="relative max-w-[var(--page-width)] mx-auto">
-        <!-- TOC component -->
-        {siteConfig.toc.enable && <div id="toc-wrapper" class:list={["hidden lg:block transition absolute top-0 -right-[var(--toc-width)] w-[var(--toc-width)] items-center",
-            {"toc-hide": siteConfig.banner.enable}]}
-        >
-            <div id="toc-inner-wrapper" class="fixed top-14 w-[var(--toc-width)] h-[calc(100vh_-_20rem)] overflow-y-scroll overflow-x-hidden hide-scrollbar">
-                <div id="toc" class="w-full h-full transition-swup-fade ">
-                    <div class="h-8 w-full"></div>
-                    <TOC headings={headings}></TOC>
-                    <div class="h-8 w-full"></div>
-                </div>
-            </div>
-        </div>}
-
-        <!-- #toc needs to exist for Swup to work normally -->
-        {!siteConfig.toc.enable && <div id="toc"></div>}
-    </div>
-</div>
+<TocContainer headings={headings}></TocContainer>
 </Layout>
 
 <style>

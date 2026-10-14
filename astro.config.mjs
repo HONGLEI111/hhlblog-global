@@ -1,4 +1,5 @@
-import cloudflare from "@astrojs/cloudflare";
+import fs from "node:fs";
+import path from "node:path";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
@@ -15,7 +16,6 @@ import rehypeSlug from "rehype-slug";
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
-import { remarkMermaidClient } from "./src/plugins/remark-mermaid-client.mjs";
 import remarkSectionize from "remark-sectionize";
 import { expressiveCodeConfig } from "./src/config.ts";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
@@ -25,16 +25,72 @@ import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
+import { CodeTabsComponent } from "./src/plugins/rehype-component-code-tabs.mjs";
+import { rehypeMermaidSvg } from "./src/plugins/rehype-mermaid-svg.mjs";
+
+/** Recursively list files under a directory. */
+function walkFiles(dir) {
+	const out = [];
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const full = path.join(dir, entry.name);
+		if (entry.isDirectory()) out.push(...walkFiles(full));
+		else out.push(full);
+	}
+	return out;
+}
+
+/**
+ * Build a pathname -> lastmod (ISO) map from the content collections, so the
+ * sitemap can emit a per-page <lastmod>. Uses the frontmatter `updated` date
+ * when present, falling back to `published`.
+ */
+function buildLastmodMap() {
+	const map = new Map();
+	const collections = [
+		{ dir: "src/content/posts", prefix: "/posts/" },
+		{ dir: "src/content/technology", prefix: "/technology/" },
+		{ dir: "src/content/read", prefix: "/read/" },
+	];
+	for (const { dir, prefix } of collections) {
+		if (!fs.existsSync(dir)) continue;
+		for (const file of walkFiles(dir)) {
+			if (!file.endsWith(".md")) continue;
+			const rel = path.relative(dir, file).replace(/\\/g, "/");
+			const slug = rel.replace(/\.md$/, "").replace(/\/index$/, "");
+			const raw = fs.readFileSync(file, "utf8");
+			const updated = raw.match(/^updated:\s*["']?([^"'\n]+)["']?\s*$/m)?.[1];
+			const published = raw.match(/^published:\s*["']?([^"'\n]+)["']?\s*$/m)?.[1];
+			const dateStr = updated || published;
+			if (!dateStr) continue;
+			try {
+				map.set(`${prefix}${slug}/`, new Date(dateStr).toISOString());
+			} catch {
+				// ignore unparseable dates
+			}
+		}
+	}
+	return map;
+}
+
+let lastmodMap;
+function getLastmodMap() {
+	if (!lastmodMap) lastmodMap = buildLastmodMap();
+	return lastmodMap;
+}
 
 // https://astro.build/config
 export default defineConfig({
 	site: "https://www.hehonglei.cn",
 	base: "/",
-	output: "server",
-	adapter: cloudflare(),
 	trailingSlash: "always",
+	build: {
+		inlineStylesheets: "always",
+	},
 	image: {
-		domains: ["img.hehonglei.cn", "e1a585c0.imghub-bl9.pages.dev"],
+		remotePatterns: [
+			{ protocol: "https", hostname: "**.hehonglei.cn" },
+			{ protocol: "https", hostname: "**.pages.dev" },
+		],
 	},
 	integrations: [
 		tailwind({
@@ -45,7 +101,7 @@ export default defineConfig({
 			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
 			// the default value `transition-` cause transition delay
 			// when the Tailwind class `transition-all` is used
-			containers: ["main", "#toc", "#sidebar-sticky"],
+			containers: ["main", "#toc", "#sidebar"],
 			smoothScrolling: true,
 			cache: true,
 			preload: true,
@@ -56,87 +112,16 @@ export default defineConfig({
 		}),
 		icon({
 			include: {
-				"material-symbols": [
-					"arrow-forward-rounded",
-					"book-2-outline-rounded",
-					"book-2-rounded",
-					"bookmark-rounded",
-					"build-circle-rounded",
-					"build-outline-rounded",
-					"calendar-today-outline-rounded",
-					"chevron-left-rounded",
-					"chevron-right-rounded",
-					"copyright-outline-rounded",
-					"edit-calendar-outline-rounded",
-					"folder-open-rounded",
-					"group-outline-rounded",
-					"home-outline-rounded",
-					"image-rounded",
-					"keyboard-arrow-up-rounded",
-					"mail-outline-rounded",
-					"menu-rounded",
-					"more-horiz",
-					"notes-rounded",
-					"open-in-new-rounded",
-					"palette-outline",
-					"person-outline-rounded",
-					"photo-library-rounded",
-					"schedule-outline-rounded",
-					"star-rounded",
-					"tag-rounded",
-					"text-snippet-outline-rounded",
-					"volunteer-activism-outline-rounded",
-					"draw-rounded",
-					"table-rounded",
-				],
-				"fa6-brands": [
-					"creative-commons",
-					"css3-alt",
-					"github",
-					"html5",
-					"js",
-					"node-js",
-					"react",
-					"vuejs",
-				],
-				"fa6-regular": [
-					"address-card",
-				],
-				"fa6-solid": [
-					"arrow-up-right-from-square",
-				],
-				"tabler": [
-					"apps",
-					"arrows-left-right",
-					"bolt",
-					"book",
-					"braces",
-					"brand-svelte",
-					"brand-tailwind",
-					"briefcase",
-					"cloud",
-					"code",
-					"external-link",
-					"file-text",
-					"folder",
-					"git-branch",
-					"git-pull-request",
-					"language",
-					"palette",
-					"info-square",
-					"map-pin",
-					"package",
-					"rocket",
-					"stack",
-					"world",
-				],
-				"ic": [
-					"baseline-discord",
-				],
+				"material-symbols": ["*"],
+				"fa6-brands": ["*"],
+				"fa6-regular": ["*"],
+				"fa6-solid": ["*"],
+				"tabler": ["*"],
+				"flat-color-icons": ["*"],
 			},
 		}),
 		expressiveCode({
-			themes: [expressiveCodeConfig.theme, expressiveCodeConfig.theme],
+			themes: [expressiveCodeConfig.theme],
 			plugins: [
 				pluginCollapsibleSections(),
 				pluginLineNumbers(),
@@ -179,12 +164,19 @@ export default defineConfig({
 				showCopyToClipboardButton: false,
 			}
 		}),
-		svelte(),
-		sitemap(),
+        svelte(),
+		sitemap({
+			// Exclude paginated listing pages (e.g. /posts/2/, /3/); the first
+			// page is the canonical entry for the collection.
+			filter: (page) => !/\/\d+\/$/.test(new URL(page).pathname),
+			serialize: (item) => {
+				const lastmod = getLastmodMap().get(new URL(item.url).pathname);
+				return lastmod ? { ...item, lastmod } : item;
+			},
+		}),
 	],
 	markdown: {
 		remarkPlugins: [
-			remarkMermaidClient,
 			remarkMath,
 			remarkReadingTime,
 			remarkExcerpt,
@@ -194,6 +186,7 @@ export default defineConfig({
 			parseDirectiveNode,
 		],
 		rehypePlugins: [
+			rehypeMermaidSvg,
 			rehypeKatex,
 			rehypeSlug,
 			[
@@ -206,6 +199,7 @@ export default defineConfig({
 						important: (x, y) => AdmonitionComponent(x, y, "important"),
 						caution: (x, y) => AdmonitionComponent(x, y, "caution"),
 						warning: (x, y) => AdmonitionComponent(x, y, "warning"),
+						"code-tabs": CodeTabsComponent,
 					},
 				},
 			],
@@ -241,6 +235,8 @@ export default defineConfig({
 			},
 		},
 		build: {
+			// Explicit browser floor, aligned with the CSS feature floor (oklch colors).
+			target: ["chrome111", "edge111", "firefox113", "safari15.4", "ios15.4"],
 			rollupOptions: {
 				onwarn(warning, warn) {
 					// temporarily suppress this warning

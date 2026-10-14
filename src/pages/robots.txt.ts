@@ -1,7 +1,5 @@
 import type { APIRoute } from "astro";
 
-export const prerender = true;
-
 const robotsTxt = `
 User-agent: *
 Disallow: /_astro/

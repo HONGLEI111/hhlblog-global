@@ -1,6 +1,6 @@
+import { siteConfig } from "../config";
 import type I18nKey from "./i18nKey";
 import { en } from "./languages/en";
-import { ja, ko, zh_TW, vi, es } from "./languages/generated";
 import { zh_CN } from "./languages/zh_CN";
 
 export type Translation = {
@@ -9,27 +9,22 @@ export type Translation = {
 
 const defaultTranslation = en;
 
+// Only the languages reachable from siteConfig.lang are bundled. To add a
+// language back, import its dictionary and add its entries here (see the
+// other files under ./languages/ for the shape).
 const map: { [key: string]: Translation } = {
 	en: en,
 	en_us: en,
 	en_gb: en,
 	en_au: en,
 	zh_cn: zh_CN,
-	zh_tw: zh_TW,
-	ja: ja,
-	ja_jp: ja,
-	ko: ko,
-	ko_kr: ko,
-	vi: vi,
-	vi_vn: vi,
-	es: es,
-	es_es: es,
 };
 
 export function getTranslation(lang: string): Translation {
 	return map[lang.toLowerCase()] || defaultTranslation;
 }
 
-export function i18n(key: I18nKey, lang?: string): string {
-	return getTranslation(lang || "en")[key];
+export function i18n(key: I18nKey): string {
+	const lang = siteConfig.lang || "en";
+	return getTranslation(lang)[key];
 }

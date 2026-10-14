@@ -1,0 +1,68 @@
+/*
+  Color fallbacks for browsers without oklch() support
+  (Chrome/Edge < 111, Firefox < 113, Safari < 15.4).
+  These static values approximate the oklch theme at the default hue 250.
+  Modern browsers ignore this block entirely, so it can never override
+  the dynamic --hue based theme.
+*/
+@supports not (color: oklch(0.56 0.14 250)) {
+  :root {
+    --primary: #5a55c9;
+    --page-bg: #f4f3fa;
+    --card-bg: #ffffff;
+    --btn-content: #413d9e;
+    --btn-regular-bg: #eceaf7;
+    --btn-regular-bg-hover: #ddd9f2;
+    --btn-regular-bg-active: #cfc9ec;
+    --btn-plain-bg-hover: #eceaf7;
+    --btn-plain-bg-active: #f9f8fd;
+    --btn-card-bg-hover: #fbfbfe;
+    --btn-card-bg-active: #dedbef;
+    --deep-text: #2a283f;
+    --inline-code-bg: #eceaf7;
+    --inline-code-color: #413d9e;
+    --selection-bg: #ddd9f2;
+    --codeblock-selection: #4a468f;
+    --codeblock-bg: #262438;
+    --codeblock-topbar-bg: #454158;
+    --license-block-bg: rgba(0, 0, 0, 0.03);
+    --link-underline: #e9e7f6;
+    --link-hover: #eceaf7;
+    --link-active: #dedbef;
+    --float-panel-bg: #ffffff;
+    --toc-badge-bg: #dedbef;
+    --toc-btn-hover: #e9e7f6;
+    --toc-btn-active: #dedbef;
+    --toc-item-active: #6b66d6;
+  }
+
+  :root.dark {
+    --primary: #c6c2ff;
+    --page-bg: #232130;
+    --card-bg: #322f42;
+    --btn-content: #dedbff;
+    --btn-regular-bg: #4a4670;
+    --btn-regular-bg-hover: #565285;
+    --btn-regular-bg-active: #635e99;
+    --btn-plain-bg-hover: #454161;
+    --btn-plain-bg-active: #3c3854;
+    --btn-card-bg-hover: #454161;
+    --btn-card-bg-active: #565285;
+    --deep-text: #e8e6f7;
+    --inline-code-bg: #4a4670;
+    --inline-code-color: #dedbff;
+    --selection-bg: #5a55c9;
+    --codeblock-selection: #5a55c9;
+    --codeblock-bg: #262438;
+    --codeblock-topbar-bg: #1b1929;
+    --license-block-bg: #262438;
+    --link-underline: #5a55c9;
+    --link-hover: #5a55c9;
+    --link-active: #4a468f;
+    --float-panel-bg: #2b293c;
+    --toc-badge-bg: #4a4670;
+    --toc-btn-hover: #34313f;
+    --toc-btn-active: #3c3854;
+    --toc-item-active: #8a86e0;
+  }
+}

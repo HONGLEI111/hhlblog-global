@@ -2,45 +2,37 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const vi: Translation = {
-	[Key.home]: "Home",
-	[Key.about]: "About",
-	[Key.archive]: "Archive",
-	[Key.search]: "Search",
+	[Key.home]: "Trang chủ",
+	[Key.about]: "Giới thiệu",
+	[Key.archive]: "Kho bài",
+	[Key.search]: "Tìm kiếm",
 
-	[Key.tags]: "Tags",
-	[Key.categories]: "Categories",
-	[Key.recentPosts]: "Recent Posts",
+	[Key.tags]: "Thẻ",
+	[Key.categories]: "Danh mục",
+	[Key.recentPosts]: "Bài viết mới nhất",
 
-	[Key.comments]: "Comments",
+	[Key.comments]: "Bình luận",
 
-	[Key.untitled]: "Untitled",
-	[Key.uncategorized]: "Uncategorized",
-	[Key.noTags]: "No Tags",
+	[Key.untitled]: "Không tiêu đề",
+	[Key.uncategorized]: "Chưa phân loại",
+	[Key.noTags]: "Chưa có thẻ",
 
-	[Key.wordCount]: "word",
-	[Key.wordsCount]: "words",
-	[Key.minuteCount]: "minute",
-	[Key.minutesCount]: "minutes",
-	[Key.postCount]: "post",
-	[Key.postsCount]: "posts",
+	[Key.wordCount]: "từ",
+	[Key.wordsCount]: "từ",
+	[Key.minuteCount]: "phút đọc",
+	[Key.minutesCount]: "phút đọc",
+	[Key.postCount]: "bài viết",
+	[Key.postsCount]: "bài viết",
 
-	[Key.themeColor]: "Theme Color",
+	[Key.themeColor]: "Màu giao diện",
 
-	[Key.lightMode]: "Light",
-	[Key.darkMode]: "Dark",
-	[Key.systemMode]: "System",
+	[Key.lightMode]: "Sáng",
+	[Key.darkMode]: "Tối",
+	[Key.systemMode]: "Hệ thống",
 
-	[Key.more]: "More",
+	[Key.more]: "Thêm",
 
-	[Key.author]: "Author",
-	[Key.publishedAt]: "Published at",
-	[Key.license]: "License",
-
-	[Key.langEn]: "English",
-	[Key.langZhCN]: "简体中文",
-	[Key.langZhTW]: "繁體中文",
-	[Key.langJa]: "日本語",
-	[Key.langKo]: "한국어",
-	[Key.langVi]: "Tiếng Việt",
-	[Key.langEs]: "Español",
+	[Key.author]: "Tác giả",
+	[Key.publishedAt]: "Đăng vào lúc",
+	[Key.license]: "Giấy phép bản quyền",
 };

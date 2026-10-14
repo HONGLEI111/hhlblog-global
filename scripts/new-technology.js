@@ -16,7 +16,7 @@ const args = process.argv.slice(2)
 
 if (args.length === 0) {
   console.error(`Error: No filename argument provided
-Usage: npm run new technology -- <filename>`)
+Usage: npm run new-technology -- <filename>`)
   process.exit(1) // Terminate the script and return error code 1
 }
 

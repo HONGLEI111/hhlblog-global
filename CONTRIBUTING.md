@@ -18,4 +18,8 @@ Before submitting code, please run the appropriate commands to check for errors 
 ```bash
 pnpm check
 pnpm format
+pnpm test
 ```
+
+The browser smoke checks (`pnpm check:responsive`, `pnpm check:nav`, `pnpm check:chat`) run against a
+served build, so start them after `pnpm build && pnpm preview`.

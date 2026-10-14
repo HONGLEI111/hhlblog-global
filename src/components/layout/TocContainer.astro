@@ -1,0 +1,42 @@
+---
+import type { MarkdownHeading } from "astro";
+import { siteConfig } from "../../config";
+import TOC from "../widget/TOC.astro";
+
+interface Props {
+	headings?: MarkdownHeading[];
+}
+
+const { headings = [] } = Astro.props;
+---
+
+<!--
+  Swup container scaffolding — shared by every layout.
+
+  `#toc` is one of the containers configured in astro.config.mjs, and Swup aborts a visit
+  ("[swup] Container mismatch, aborting") as soon as a container is missing from either the
+  current or the incoming document, handing the navigation back to the browser as a full page
+  load. Rendering this block from one component keeps the two documents structurally identical,
+  including the wrapper element and its classes: Swup only swaps the innerHTML of `#toc`, so a
+  wrapper that differs between layouts (or a container that only exists on some pages) would
+  either break the transition or leave the swapped TOC mispositioned.
+-->
+<div class="absolute w-full z-0 hidden 2xl:block">
+    <div class="relative max-w-[var(--page-width)] mx-auto">
+        <!-- TOC component -->
+        {siteConfig.toc.enable && <div id="toc-wrapper" class:list={["hidden lg:block transition absolute top-0 -right-[var(--toc-width)] w-[var(--toc-width)] items-center",
+            {"toc-hide": siteConfig.banner.enable}]}
+        >
+            <div id="toc-inner-wrapper" class="fixed top-14 w-[var(--toc-width)] h-[calc(100vh_-_20rem)] overflow-y-scroll overflow-x-hidden hide-scrollbar">
+                <div id="toc" class="w-full h-full transition-swup-fade ">
+                    <div class="h-8 w-full"></div>
+                    <TOC headings={headings}></TOC>
+                    <div class="h-8 w-full"></div>
+                </div>
+            </div>
+        </div>}
+
+        <!-- #toc needs to exist for Swup to work normally -->
+        {!siteConfig.toc.enable && <div id="toc"></div>}
+    </div>
+</div>

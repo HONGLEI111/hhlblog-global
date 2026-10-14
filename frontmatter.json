@@ -13,7 +13,7 @@
     {
       "name": "default",
       "pageBundle": true,
-      "previewPath": "'blog'",
+      "previewPath": "'posts/{{slug}}'",
       "filePrefix": null,
       "clearEmpty": true,
       "fields": [
@@ -57,8 +57,8 @@
           "type": "boolean"
         },
         {
-          "title": "language",
-          "name": "language",
+          "title": "lang",
+          "name": "lang",
           "type": "string"
         }
       ]

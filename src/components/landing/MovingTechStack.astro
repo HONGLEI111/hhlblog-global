@@ -1,28 +1,28 @@
 ---
-import { Icon } from 'astro-icon/components';
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import Headline from '~/components/ui/Headline.astro';
-import type { Widget } from '~/types';
+import { Icon } from "astro-icon/components";
+import Headline from "~/components/ui/Headline.astro";
+import WidgetWrapper from "~/components/ui/WidgetWrapper.astro";
+import type { Widget } from "~/types";
 
 export interface TechItem {
-  icon: string;
-  name: string;
+	icon: string;
+	name: string;
 }
 
 export interface Props extends Widget {
-  title?: string;
-  subtitle?: string;
-  items: TechItem[];
+	title?: string;
+	subtitle?: string;
+	items: TechItem[];
 }
 
 const {
-  title = await Astro.slots.render('title'),
-  subtitle = await Astro.slots.render('subtitle'),
-  items = [],
-  id,
-  isDark = false,
-  classes = {},
-  bg = await Astro.slots.render('bg'),
+	title = await Astro.slots.render("title"),
+	subtitle = await Astro.slots.render("subtitle"),
+	items = [],
+	id,
+	isDark = false,
+	classes = {},
+	bg = await Astro.slots.render("bg"),
 } = Astro.props;
 
 const halfIndex = Math.ceil(items.length / 2);

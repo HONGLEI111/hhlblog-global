@@ -5,10 +5,9 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedReadList } from "@utils/content-utils";
 
-const sortedReadList = await getSortedReadList(Astro.locals?.lang);
-const currentLang = Astro.locals?.lang;
+const sortedReadList = await getSortedReadList();
 ---
 
-<MainGridLayout title={i18n(I18nKey.archive, currentLang)} sidebarCollection="read">
+<MainGridLayout title={i18n(I18nKey.archive)} sidebarCollection="read">
     <ArchivePanel sortedPosts={sortedReadList} collection="read" client:only="svelte"></ArchivePanel>
 </MainGridLayout>

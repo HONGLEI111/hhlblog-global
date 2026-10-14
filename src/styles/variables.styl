@@ -90,6 +90,17 @@ define({
   --admonitions-color-warning: oklch(0.7 0.14 60) oklch(0.75 0.14 60)
   --admonitions-color-caution: oklch(0.6 0.2 25) oklch(0.65 0.2 25)
 
+  /* Diagram palette. The SVGs are generated at build time carrying these
+     variable *references* rather than baked colours, so light/dark and the
+     site hue restyle them at paint time without a re-render. */
+  --diagram-bg: white oklch(0.230 0.015 var(--hue))
+  --diagram-ink: oklch(0.25 0.02 var(--hue)) oklch(0.92 0.01 var(--hue))
+  --diagram-muted: oklch(0.45 0.02 var(--hue)) oklch(0.72 0.02 var(--hue))
+  --diagram-surface: oklch(0.955 0.025 var(--hue)) oklch(0.295 0.028 var(--hue))
+  --diagram-border: oklch(0.80 0.045 var(--hue)) oklch(0.46 0.04 var(--hue))
+  --diagram-line: oklch(0.62 0.03 var(--hue)) oklch(0.62 0.03 var(--hue))
+  --diagram-accent: oklch(0.58 0.13 var(--hue)) oklch(0.78 0.10 var(--hue))
+
   --toc-badge-bg: oklch(0.89 0.050 var(--hue)) var(--btn-regular-bg)
   --toc-btn-hover: oklch(0.926 0.015 var(--hue)) oklch(0.22 0.02 var(--hue))
   --toc-btn-active: oklch(0.90 0.015 var(--hue)) oklch(0.25 0.02 var(--hue))

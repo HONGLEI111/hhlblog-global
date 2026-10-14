@@ -38,12 +38,11 @@ lang: ''
 以字符串 `"ABRACADABRA"` 为例，首先统计字符频率：
 
 ```mermaid
-pie title 字符频率分布
-    "A (5次)" : 5
-    "B (2次)" : 2
-    "R (2次)" : 2
-    "C (1次)" : 1
-    "D (1次)" : 1
+xychart-beta horizontal
+    title "字符频率分布"
+    x-axis [A, B, R, C, D]
+    y-axis "出现次数" 0 --> 5
+    bar [5, 2, 2, 1, 1]
 ```
 
 ### 霍夫曼树构建流程（贪心策略）

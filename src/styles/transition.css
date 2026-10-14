@@ -1,3 +1,24 @@
+/* Banner entrance: transform-only (no opacity fade).
+   Elements fading in from opacity:0 delay LCP to the end of the animation,
+   so keep the banner fully visible from the first paint. */
+@keyframes banner-settle {
+    0% {
+        /* Animate the independent `scale` property instead of `transform`:
+           #banner carries Tailwind's `translate-y-[var(--bannerOffset)]`, which compiles to
+           `transform: translate(...)`. A keyframe on `transform` replaces that translate for
+           the whole animation, so the banner sits BANNER_HEIGHT_EXTEND/2 (15vh) too high and
+           snaps down when the animation ends. `scale` composes with the translate instead. */
+        scale: 1.05;
+    }
+    100% {
+        scale: 1;
+    }
+}
+
+#banner {
+    animation: 700ms ease-out banner-settle;
+}
+
 /* Page transition animations with Swup */
 html.is-changing .transition-swup-fade {
     @apply transition-all duration-200
@@ -24,6 +45,19 @@ html.is-animating .transition-swup-fade {
     animation: 300ms fade-in-up;
     animation-fill-mode: forwards;
 }
+
+/* Entrance animations belong to the first paint of a document only. Swup swaps the innerHTML
+   of its containers, so every swapped-in `.onload-animation` element would replay the fade on
+   top of Swup's own `transition-swup-fade` (double fade + duplicated slide) — and the per-card
+   inline `animation-delay`s would make the content trickle in as if it were loading again.
+   A zero duration/delay skips all of that visually while still dispatching
+   `animationstart`/`animationend`, which TOC.astro waits for before measuring its anchors.
+   `!important` is required to beat the inline `animation-delay` styles on cards and pagination. */
+html.swup-nav .onload-animation {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+}
+
 #navbar {
     animation-delay: 0ms
 }

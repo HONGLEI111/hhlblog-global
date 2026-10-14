@@ -9,16 +9,28 @@ import type { LIGHT_DARK_MODE } from "@/types/config";
 
 export function getDefaultHue(): number {
 	const fallback = "250";
+	// SSR guard: this runs during static rendering when the component is SSR-rendered
+	if (typeof document === "undefined") {
+		return Number.parseInt(fallback, 10);
+	}
 	const configCarrier = document.getElementById("config-carrier");
 	return Number.parseInt(configCarrier?.dataset.hue || fallback, 10);
 }
 
 export function getHue(): number {
+	// SSR guard: no localStorage during static rendering
+	if (typeof localStorage === "undefined") {
+		return getDefaultHue();
+	}
 	const stored = localStorage.getItem("hue");
 	return stored ? Number.parseInt(stored, 10) : getDefaultHue();
 }
 
 export function setHue(hue: number): void {
+	// SSR guard: no localStorage/document during static rendering
+	if (typeof localStorage === "undefined" || typeof document === "undefined") {
+		return;
+	}
 	localStorage.setItem("hue", String(hue));
 	const r = document.querySelector(":root") as HTMLElement;
 	if (!r) {

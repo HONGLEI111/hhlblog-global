@@ -1,0 +1,52 @@
+---
+import type { MarkdownHeading } from "astro";
+import { siteConfig } from "../../config";
+
+interface Props {
+	headings: MarkdownHeading[];
+}
+
+const { headings = [] } = Astro.props;
+
+let minDepth = 10;
+for (const heading of headings) {
+	minDepth = Math.min(minDepth, heading.depth);
+}
+
+const maxLevel = siteConfig.toc.depth;
+const visibleHeadings = headings.filter(
+	(heading) => heading.depth < minDepth + maxLevel,
+);
+
+const removeTailingHash = (text: string) => {
+	const lastIndexOfHash = text.lastIndexOf("#");
+	if (lastIndexOfHash !== text.length - 1) {
+		return text;
+	}
+	return text.substring(0, lastIndexOfHash);
+};
+---
+
+<!-- Collapsible TOC shown below 2xl where the fixed right rail is unavailable -->
+{visibleHeadings.length > 0 && (
+	<details class="card-base group mb-4 px-4 sm:px-0 2xl:hidden">
+		<summary class="cursor-pointer select-none list-none flex items-center justify-between px-4 py-3 font-bold text-75 hover:text-[var(--primary)] transition-colors [&::-webkit-details-marker]:hidden">
+			<span class="flex items-center gap-2">
+				<span class="w-1 h-4 rounded-md bg-[var(--primary)]"></span>
+				目录
+			</span>
+			<span class="transition-transform group-open:rotate-180 text-black/60 dark:text-white/60 text-sm" aria-hidden="true">▼</span>
+		</summary>
+		<div class="px-2 pb-2 max-h-[50vh] overflow-y-auto overscroll-contain">
+			{visibleHeadings.map((heading) => (
+				<a href={'#' + heading.slug} class="flex gap-2 px-2 py-1.5 rounded-lg text-sm text-75 hover:bg-[var(--btn-plain-bg-hover)] transition-colors">
+					<span class:list={["shrink-0 w-1.5 h-1.5 rounded-sm mt-1.5",
+						{ "bg-[var(--toc-badge-bg)]": heading.depth === minDepth },
+						{ "bg-black/20 dark:bg-white/20": heading.depth > minDepth },
+					]}></span>
+					<span class:list={[{"font-bold": heading.depth === minDepth}, {"ml-2": heading.depth > minDepth}]}>{removeTailingHash(heading.text)}</span>
+				</a>
+			))}
+		</div>
+	</details>
+)}

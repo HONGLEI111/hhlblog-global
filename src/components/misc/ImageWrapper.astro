@@ -15,10 +15,14 @@ interface Props {
 	width?: number;
 	height?: number;
 	widths?: number[];
+	/** Quality for the AVIF source. AVIF and WebP do not share a quality scale. */
+	avifQuality?: number;
+	webpQuality?: number;
+	/** Kept for backwards compatibility: sets both format qualities at once. */
 	quality?: number;
 }
 
-import { Image } from "astro:assets";
+import { getImage } from "astro:assets";
 import { url } from "../../utils/url-utils";
 
 const {
@@ -34,7 +38,9 @@ const {
 	width,
 	height,
 	widths,
-	quality = 72,
+	avifQuality = 50,
+	webpQuality = 72,
+	quality,
 } = Astro.props;
 const className = Astro.props.class;
 
@@ -49,14 +55,36 @@ const isOptimizableRemote =
 	src.startsWith("https://img.hehonglei.cn/") ||
 	src.startsWith("https://e1a585c0.imghub-bl9.pages.dev/");
 
+/*
+ * Animated sources must NOT go through the image pipeline. Verified on the 2-frame
+ * avatar.gif (576x576, pageHeight 576, delay 150ms):
+ *   1. For formats that can carry animation the frames get flattened — the emitted
+ *      `.avif` had `pages=1`, i.e. a still image, which is what froze the sidebar avatar.
+ *   2. For formats that do keep the frames, sharp concatenates them into a single
+ *      canvas (576x576 x 2 frames -> 576x1152) while `width`/`height` come from the
+ *      per-frame metadata (576x576), so the browser squeezes both frames into a square
+ *      box instead of cycling them.
+ * The old `<img src={gif}>` path worked precisely because it bypassed all of this.
+ * Animated images are few and small, so serving the real animated file beats squeezing
+ * one more format out of them.
+ */
+const isAnimated = isLocal && path.extname(src).toLowerCase() === ".gif";
+
 // TODO temporary workaround for images dynamic import
 // https://github.com/withastro/astro/issues/3373
 // biome-ignore lint/suspicious/noImplicitAnyLet: <check later>
 let img;
 if (isLocal) {
-	const files = import.meta.glob<ImageMetadata>("../../**", {
-		import: "default",
-	});
+	// Only glob the image directories. Globbing the whole src tree is wasteful
+	// and pulls every CSS/Stylus file into the bundle as a side effect.
+	const files = {
+		...import.meta.glob<ImageMetadata>("../../assets/**", {
+			import: "default",
+		}),
+		...import.meta.glob<ImageMetadata>("../../content/**", {
+			import: "default",
+		}),
+	};
 	let normalizedPath = path
 		.normalize(path.join("../../", basePath, src))
 		.replace(/\\/g, "/");
@@ -72,36 +100,96 @@ if (isLocal) {
 const imageClass = "w-full h-full object-cover";
 const imageStyle = `object-position: ${position}`;
 
-const localImageProps = {
-	loading,
-	decoding,
-	fetchpriority,
-	sizes,
-	width,
-	height,
-	widths,
-	formats: ["avif", "webp"] as const,
-	quality,
-};
+/*
+ * AVIF and WebP quality numbers are NOT the same scale: measured on this site's
+ * artwork, AVIF q50 is visually identical to WebP q72 while being ~25% smaller.
+ * A single shared `quality` therefore either wastes bytes (AVIF encoded too high)
+ * or visibly degrades the image — so each format is encoded separately here.
+ *
+ * `<Picture>` cannot express this: it runs `getImage` once per format with the
+ * same shared props, which is also why the previous `formats=[...]` prop on
+ * `<Image>` was a silent no-op (no `.avif` was ever emitted).
+ */
+async function buildSource(
+	input: ImageMetadata | string,
+	format: "avif" | "webp",
+) {
+	return getImage({
+		src: input,
+		format,
+		quality: quality ?? (format === "avif" ? avifQuality : webpQuality),
+		width,
+		height,
+		widths,
+		inferSize: typeof input === "string",
+	} as Parameters<typeof getImage>[0]);
+}
 
-const externalImageProps = {
-	loading,
-	decoding,
-	fetchpriority,
-	sizes,
-	width,
-	height,
-};
+const optimizable =
+	!isAnimated && ((isLocal && !!img) || (!isLocal && isOptimizableRemote));
+const sourceInput = isLocal ? img : src;
+const avifSource = optimizable
+	? await buildSource(sourceInput as ImageMetadata | string, "avif")
+	: undefined;
+const webpSource = optimizable
+	? await buildSource(sourceInput as ImageMetadata | string, "webp")
+	: undefined;
 
-const remoteOptimizedImageProps = {
-	...localImageProps,
-	inferSize: false,
-};
+// `srcSet.attribute` is `""` when no candidates were produced — either because no
+// `widths`/`densities` were given, or because the source is a format Astro passes
+// through untouched (e.g. the animated GIF avatar). An empty `srcset` is an HTML
+// error, so drop the attribute entirely in that case.
+const avifSrcSet = avifSource?.srcSet.attribute || undefined;
+const webpSrcSet = webpSource?.srcSet.attribute || undefined;
+
+// Animated files are served as-is, so the three output shapes are: animated original,
+// optimised `<picture>`, or the raw URL for anything the pipeline cannot touch.
+const animatedImage = isAnimated && img ? img : undefined;
 ---
+
 <div id={id} class:list={[className, 'overflow-hidden relative']}>
     <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>
-    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} {...localImageProps}/>}
-    {!isLocal && isOptimizableRemote && (width && height) && <Image src={src} alt={alt || ""} class={imageClass} style={imageStyle} {...remoteOptimizedImageProps}/>}
-    {!isLocal && isOptimizableRemote && !(width && height) && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} {...externalImageProps}/>}
-    {!isLocal && !isOptimizableRemote && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} {...externalImageProps}/>}
+    {animatedImage ? (
+      <img
+        src={animatedImage.src}
+        width={animatedImage.width}
+        height={animatedImage.height}
+        alt={alt || ""}
+        class={imageClass}
+        style={imageStyle}
+        loading={loading}
+        decoding={decoding}
+        fetchpriority={fetchpriority}
+      />
+    ) : avifSource && webpSource ? (
+      <picture>
+        <source srcset={avifSrcSet} type="image/avif" sizes={sizes}/>
+        <img
+          src={webpSource.src}
+          srcset={webpSrcSet}
+          width={webpSource.attributes.width}
+          height={webpSource.attributes.height}
+          alt={alt || ""}
+          class={imageClass}
+          style={imageStyle}
+          loading={loading}
+          decoding={decoding}
+          fetchpriority={fetchpriority}
+          sizes={sizes}
+        />
+      </picture>
+    ) : (
+      <img
+        src={isPublic ? url(src) : src}
+        width={width}
+        height={height}
+        alt={alt || ""}
+        class={imageClass}
+        style={imageStyle}
+        loading={loading}
+        decoding={decoding}
+        fetchpriority={fetchpriority}
+        sizes={sizes}
+      />
+    )}
 </div>

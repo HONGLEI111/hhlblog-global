@@ -2,45 +2,37 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const es: Translation = {
-	[Key.home]: "Home",
-	[Key.about]: "About",
-	[Key.archive]: "Archive",
-	[Key.search]: "Search",
+	[Key.home]: "Inicio",
+	[Key.about]: "Sobre mí",
+	[Key.archive]: "Archivo",
+	[Key.search]: "Buscar",
 
-	[Key.tags]: "Tags",
-	[Key.categories]: "Categories",
-	[Key.recentPosts]: "Recent Posts",
+	[Key.tags]: "Etiquetas",
+	[Key.categories]: "Categorías",
+	[Key.recentPosts]: "Publicaciones recientes",
 
-	[Key.comments]: "Comments",
+	[Key.comments]: "Comentarios",
 
-	[Key.untitled]: "Untitled",
-	[Key.uncategorized]: "Uncategorized",
-	[Key.noTags]: "No Tags",
+	[Key.untitled]: "Sin título",
+	[Key.uncategorized]: "Sin categoría",
+	[Key.noTags]: "Sin etiquetas",
 
-	[Key.wordCount]: "word",
-	[Key.wordsCount]: "words",
-	[Key.minuteCount]: "minute",
-	[Key.minutesCount]: "minutes",
-	[Key.postCount]: "post",
-	[Key.postsCount]: "posts",
+	[Key.wordCount]: "palabra",
+	[Key.wordsCount]: "palabras",
+	[Key.minuteCount]: "minuto",
+	[Key.minutesCount]: "minutos",
+	[Key.postCount]: "publicación",
+	[Key.postsCount]: "publicaciones",
 
-	[Key.themeColor]: "Theme Color",
+	[Key.themeColor]: "Color del tema",
 
-	[Key.lightMode]: "Light",
-	[Key.darkMode]: "Dark",
-	[Key.systemMode]: "System",
+	[Key.lightMode]: "Claro",
+	[Key.darkMode]: "Oscuro",
+	[Key.systemMode]: "Sistema",
 
-	[Key.more]: "More",
+	[Key.more]: "Más",
 
-	[Key.author]: "Author",
-	[Key.publishedAt]: "Published at",
-	[Key.license]: "License",
-
-	[Key.langEn]: "English",
-	[Key.langZhCN]: "简体中文",
-	[Key.langZhTW]: "繁體中文",
-	[Key.langJa]: "日本語",
-	[Key.langKo]: "한국어",
-	[Key.langVi]: "Tiếng Việt",
-	[Key.langEs]: "Español",
+	[Key.author]: "Autor",
+	[Key.publishedAt]: "Publicado el",
+	[Key.license]: "Licencia",
 };

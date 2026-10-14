@@ -1,6 +1,7 @@
 ---
-import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/jetbrains-mono/wght.css";
 import "@fontsource-variable/jetbrains-mono/wght-italic.css";
+import "katex/dist/katex.css";
 
 interface Props {
 	class: string;
@@ -23,7 +24,19 @@ document.addEventListener("click", function (e: MouseEvent) {
             .map(el => el.textContent)
             .map(t => t === "\n" ? "" : t)
             .join("\n");
-        navigator.clipboard.writeText(code);
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(code);
+        } else {
+            // Fallback for older browsers / non-secure contexts
+            const ta = document.createElement("textarea");
+            ta.value = code;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand("copy"); } catch {}
+            ta.remove();
+        }
 
         const timeoutId = target.getAttribute("data-timeout-id");
         if (timeoutId) {
@@ -39,5 +52,50 @@ document.addEventListener("click", function (e: MouseEvent) {
 
         target.setAttribute("data-timeout-id", newTimeoutId.toString());
     }
+
+    // ── Code Tabs: tab switching ──
+    const tabBtn = (e.target as Element).closest(".code-tab-btn");
+    if (tabBtn) {
+        const lang = (tabBtn as HTMLElement).dataset.lang;
+        if (!lang) return;
+
+        const container = tabBtn.closest(".code-tabs");
+        if (container) switchCodeTab(container, lang);
+
+        // Persist language preference
+        localStorage.setItem("preferred-code-lang", lang);
+
+        // Sync all other code-tabs on the page
+        document.querySelectorAll(".code-tabs").forEach((other) => {
+            if (other !== container && other.querySelector(`.code-tab-panel[data-lang="${lang}"]`)) {
+                switchCodeTab(other, lang);
+            }
+        });
+    }
 });
+
+// ── Code Tabs helpers ──
+function switchCodeTab(container: Element, lang: string) {
+    container.querySelectorAll(".code-tab-btn").forEach((btn) => {
+        btn.classList.toggle("active", (btn as HTMLElement).dataset.lang === lang);
+    });
+    container.querySelectorAll(".code-tab-panel").forEach((panel) => {
+        panel.classList.toggle("active", (panel as HTMLElement).dataset.lang === lang);
+    });
+}
+
+function initCodeTabs() {
+    const preferred = localStorage.getItem("preferred-code-lang");
+    if (preferred) {
+        document.querySelectorAll(".code-tabs").forEach((container) => {
+            if (container.querySelector(`.code-tab-panel[data-lang="${preferred}"]`)) {
+                switchCodeTab(container, preferred);
+            }
+        });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", initCodeTabs);
+// Swup page transition re-init
+document.addEventListener("swup:contentReplaced", initCodeTabs);
 </script>

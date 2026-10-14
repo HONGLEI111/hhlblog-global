@@ -1,5 +1,8 @@
 # 🍥Fuwari
 
+> **Note:** This file is a translation of the upstream [Fuwari](https://github.com/saicaca/fuwari) template's README and may be outdated.
+> Current project documentation: [README.md](../README.md) (English) · [README.zh_CN.md](../README.zh_CN.md) (中文).
+
 [Astro](https://astro.build)로 구축된 정적 블로그 템플릿입니다.
 
 [**🖥️미리보기 (Vercel)**](https://fuwari.vercel.app)

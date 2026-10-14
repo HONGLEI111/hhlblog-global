@@ -69,7 +69,7 @@
         @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg)] transition;
     }
     h1, h2, h3, h4, h5, h6, p, a, span, li, ul, ol, blockquote, code, pre, table, th, td, strong {
-        @apply transition;
+        @apply transition-colors;
     }
     .card-shadow {
         @apply drop-shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]
@@ -130,7 +130,16 @@
     }
 
     #toc-inner-wrapper {
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2rem, black calc(100% - 2rem), transparent 100%);
         mask-image: linear-gradient(to bottom, transparent 0%, black 2rem, black calc(100% - 2rem), transparent 100%);
+    }
+
+    /* Prefer dvh on mobile browsers with dynamic toolbars (the Tailwind class
+       already provides the 100vh fallback). */
+    @supports (height: 100dvh) {
+        #toc-inner-wrapper {
+            height: calc(100dvh - 20rem);
+        }
     }
 
     .hide-scrollbar {
@@ -213,4 +222,28 @@
         color: var(--codeblock-bg);
     }
   }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    html, body {
+        transition: none !important;
+    }
+    .waves > .parallax use,
+    .marquee-track--left,
+    .marquee-track--right {
+        animation: none !important;
+    }
+    .onload-animation {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Banner fade-in must also respect reduced-motion (appended: replace-file EIO workaround) */
+@media (prefers-reduced-motion: reduce) {
+    #banner {
+        animation: none !important;
+        opacity: 1 !important;
+    }
 }

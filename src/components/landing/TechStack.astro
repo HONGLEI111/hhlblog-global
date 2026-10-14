@@ -1,37 +1,37 @@
 ---
-import { Icon } from 'astro-icon/components';
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import Headline from '~/components/ui/Headline.astro';
-import type { Widget } from '~/types';
+import { Icon } from "astro-icon/components";
+import Headline from "~/components/ui/Headline.astro";
+import WidgetWrapper from "~/components/ui/WidgetWrapper.astro";
+import type { Widget } from "~/types";
 
 export interface TechItem {
-  icon: string;
-  name: string;
-  description?: string;
+	icon: string;
+	name: string;
+	description?: string;
 }
 
 export interface Props extends Widget {
-  title?: string;
-  subtitle?: string;
-  items: TechItem[];
-  columns?: 2 | 3 | 4;
+	title?: string;
+	subtitle?: string;
+	items: TechItem[];
+	columns?: 2 | 3 | 4;
 }
 
 const {
-  title = await Astro.slots.render('title'),
-  subtitle = await Astro.slots.render('subtitle'),
-  items = [],
-  columns = 4,
-  id,
-  isDark = false,
-  classes = {},
-  bg = await Astro.slots.render('bg'),
+	title = await Astro.slots.render("title"),
+	subtitle = await Astro.slots.render("subtitle"),
+	items = [],
+	columns = 4,
+	id,
+	isDark = false,
+	classes = {},
+	bg = await Astro.slots.render("bg"),
 } = Astro.props;
 
 const gridCols = {
-  2: 'sm:grid-cols-2',
-  3: 'sm:grid-cols-2 lg:grid-cols-3',
-  4: 'sm:grid-cols-2 lg:grid-cols-4',
+	2: "sm:grid-cols-2",
+	3: "sm:grid-cols-2 lg:grid-cols-3",
+	4: "sm:grid-cols-2 lg:grid-cols-4",
 };
 ---
 

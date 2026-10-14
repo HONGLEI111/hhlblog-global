@@ -16,9 +16,10 @@ for (const heading of headings) {
 }
 
 const className = Astro.props.class;
-const isPostsRoute = Astro.url.pathname.startsWith(url("/posts/"))
-    || Astro.url.pathname.startsWith(url("/technology/"))
-    || Astro.url.pathname.startsWith(url("/read/"));
+const isPostsRoute =
+	Astro.url.pathname.startsWith(url("/posts/")) ||
+	Astro.url.pathname.startsWith(url("/technology/")) ||
+	Astro.url.pathname.startsWith(url("/read/"));
 
 const removeTailingHash = (text: string) => {
 	let lastIndexOfHash = text.lastIndexOf("#");
@@ -205,16 +206,27 @@ class TableOfContents extends HTMLElement {
     connectedCallback() {
         // wait for the onload animation to finish, which makes the `getBoundingClientRect` return correct values
         const element = document.querySelector('.prose');
-        if (element) {
-            element.addEventListener('animationend', () => {
-                this.init();
-            }, { once: true });
-        } else {
+        if (!element) {
             console.debug('Animation element not found');
+            return;
         }
+        element.addEventListener('animationend', () => {
+            this.init();
+        }, { once: true });
+        // After a Swup swap the entrance animation is made instantaneous (`html.swup-nav`),
+        // so do not depend on the event alone: if the animation is already over or disabled,
+        // initialize on the next frame instead.
+        requestAnimationFrame(() => {
+            const style = getComputedStyle(element);
+            if (style.animationName === 'none' || style.animationDuration === '0s') {
+                this.init();
+            }
+        });
     };
 
     init() {
+        if (this.tocEl) return; // the animationend handler and the fallback can both fire
+
         this.tocEl = document.getElementById(
             "toc-inner-wrapper"
         );

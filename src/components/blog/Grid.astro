@@ -1,22 +1,36 @@
 ---
-import { Icon } from 'astro-icon/components';
-
-import type { Post } from '~/types';
-import Image from '~/components/common/Image.astro';
-import { getFormattedDate } from '~/utils/utils';
+import { Image as AstroImage } from "astro:assets";
+import path from "node:path";
+import fallbackCover1 from "~/assets/fallback-covers/fallback-cover-1.avif";
+import fallbackCover2 from "~/assets/fallback-covers/fallback-cover-2.avif";
+import fallbackCover3 from "~/assets/fallback-covers/fallback-cover-3.avif";
+import fallbackCover4 from "~/assets/fallback-covers/fallback-cover-4.avif";
+import ImageWrapper from "~/components/misc/ImageWrapper.astro";
+import type { Post } from "~/types";
+import { getDir } from "~/utils/url-utils";
+import { getFormattedDate } from "~/utils/utils";
 
 const fallbackCovers = [
-  'https://img.hehonglei.cn/file/1776633499508_128688708_p0.jpg',
-  'https://img.hehonglei.cn/file/1776633500887_137725199_p0.jpg',
-  'https://img.hehonglei.cn/file/1776633488500_133054821_p0.jpg',
-  'https://img.hehonglei.cn/file/1776633479084_121354629_p0.jpg',
+	fallbackCover1,
+	fallbackCover2,
+	fallbackCover3,
+	fallbackCover4,
 ];
 
 export interface Props {
-  posts?: Post[];
+	posts?: Post[];
 }
 
 const visibleCount = 4;
+
+/*
+ * Card width is 276px in the 4-column desktop grid; 2x DPR therefore wants ~552
+ * device pixels. The old [400, 768] list had no candidate between them, so the
+ * browser always picked 400w and upscaled it — that, not the `quality` setting,
+ * was what made these covers look soft.
+ */
+const coverWidths = [400, 560, 800, 1120];
+const coverSizes = "(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 276px";
 ---
 
 {
@@ -24,17 +38,29 @@ const visibleCount = 4;
     <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
       {Astro.props.posts.map((post, index) => (
         <a href={post.permalink} class="group intersect-once motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
-          <div class="relative aspect-[4/3] mb-4 rounded-md overflow-hidden bg-gray-200">
-            <Image
-              src={post.image || fallbackCovers[index % fallbackCovers.length]}
-              alt={post.title || ''}
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              layout="cover"
-              width={400}
-              height={300}
-              loading={index < visibleCount ? 'eager' : 'lazy'}
-              fetchpriority={index === 0 ? 'high' : 'auto'}
-            />
+          <div class="relative aspect-[2/1] mb-4 rounded-md overflow-hidden bg-gray-200">
+            {typeof post.image === 'string' && post.image ? (
+              <ImageWrapper
+                src={post.image}
+                basePath={path.join("content/posts/", getDir(post.id))}
+                alt={post.title || ''}
+                class="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                widths={coverWidths}
+                sizes={coverSizes}
+                loading="lazy"
+              />
+            ) : (
+              <AstroImage
+                src={fallbackCovers[index % fallbackCovers.length]}
+                alt={post.title || ''}
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                widths={coverWidths}
+                sizes={coverSizes}
+                format="webp"
+                quality={72}
+                loading="lazy"
+              />
+            )}
           </div>
           <div class="text-xs text-muted mb-1">
             {post.publishDate && <time datetime={post.publishDate.toISOString()}>{getFormattedDate(post.publishDate)}</time>}

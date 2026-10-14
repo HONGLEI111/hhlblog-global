@@ -1,0 +1,51 @@
+name: Responsive Smoke Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  responsive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build site
+        run: pnpm build
+
+      - name: Run responsive + navigation smoke tests
+        run: |
+          pnpm preview --host 0.0.0.0 --port 4321 &
+          PREVIEW_PID=$!
+          sleep 5
+          STATUS=0
+          node scripts/responsive-check.mjs http://localhost:4321 || STATUS=$?
+          node scripts/nav-check.mjs http://localhost:4321 || STATUS=$?
+          kill $PREVIEW_PID || true
+          exit $STATUS

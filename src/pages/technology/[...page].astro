@@ -1,11 +1,10 @@
 ---
 import type { GetStaticPaths } from "astro";
+import BlogPage from "../../components/blog/BlogPage.astro";
 import Pagination from "../../components/controls/Pagination.astro";
-import PostPage from "../../components/technology/PostPage.astro";
 import { PAGE_SIZE } from "../../constants/constants";
 import MainGridLayout from "../../layouts/MainGridLayout.astro";
 import { getSortedTechnology } from "../../utils/content-utils";
-import TranslateTitles from "../../components/controls/TranslateTitles.svelte";
 
 export const getStaticPaths = (async ({ paginate }) => {
 	const allBlogPosts = await getSortedTechnology();
@@ -16,11 +15,23 @@ export const getStaticPaths = (async ({ paginate }) => {
 const { page } = Astro.props;
 
 const len = page.data.length;
-export const prerender = true;
+const isFirstPage = page.currentPage === 1;
+const listingTitle = isFirstPage ? "技术" : `技术 - 第 ${page.currentPage} 页`;
+const listingDescription = "数据结构与算法、前端基础等技术文章列表。";
+const canonical = isFirstPage
+	? undefined
+	: new URL(page.url.first ?? "/technology/", Astro.site).href;
+const prevHref = page.url.prev
+	? new URL(page.url.prev, Astro.site).href
+	: undefined;
+const nextHref = page.url.next
+	? new URL(page.url.next, Astro.site).href
+	: undefined;
 ---
 
-<MainGridLayout sidebarCollection="technology">
-    <PostPage page={page}></PostPage>
+<MainGridLayout title={listingTitle} description={listingDescription} canonical={canonical} sidebarCollection="technology">
+    {prevHref && <link slot="head" rel="prev" href={prevHref} />}
+    {nextHref && <link slot="head" rel="next" href={nextHref} />}
+    <BlogPage page={page} collection="technology"></BlogPage>
     <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
-  <TranslateTitles client:load />
 </MainGridLayout>

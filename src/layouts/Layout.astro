@@ -1,9 +1,15 @@
 ---
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "@fontsource/roboto/latin-400.css";
+import "@fontsource/roboto/latin-500.css";
+import "@fontsource/roboto/latin-700.css";
+// The font files themselves, so they can be preloaded: the @font-face rules sit
+// in the inlined CSS, so the browser only discovers the fonts *after* it has
+// parsed that CSS — a late, very-high-priority font request that delays the
+// first paint and competes with the LCP image.
+import robotoLatin400 from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?url";
+import robotoLatin500 from "@fontsource/roboto/files/roboto-latin-500-normal.woff2?url";
+import robotoLatin700 from "@fontsource/roboto/files/roboto-latin-700-normal.woff2?url";
 
-import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 import { profileConfig, siteConfig } from "@/config";
 import {
 	AUTO_MODE,
@@ -18,9 +24,14 @@ import {
 import { defaultFavicons } from "../constants/icon";
 import type { Favicon } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
-import "katex/dist/katex.css";
-import Notification from '../components/widget/Notification.astro';
-
+import "../styles/variables.styl";
+import "../styles/markdown.css";
+import "../styles/markdown-extend.styl";
+import "../styles/scrollbar.css";
+import "../styles/transition.css";
+import "../styles/expressive-code.css";
+import "../styles/legacy-fallback.css";
+import ChatWidget from "@components/features/ChatWidget.svelte";
 
 interface Props {
 	title?: string;
@@ -28,9 +39,21 @@ interface Props {
 	description?: string;
 	lang?: string;
 	setOGTypeArticle?: boolean;
+	canonical?: string;
+	ogImage?: string;
+	excerpt?: string;
 }
 
-let { title, banner, description, lang, setOGTypeArticle } = Astro.props;
+let {
+	title,
+	banner,
+	description,
+	lang,
+	setOGTypeArticle,
+	canonical,
+	ogImage,
+	excerpt,
+} = Astro.props;
 
 // apply a class to the body element to decide the height of the banner, only used for initial page load
 // Swup can update the body for each page visit, but it's after the page transition, causing a delay for banner height change
@@ -38,13 +61,11 @@ let { title, banner, description, lang, setOGTypeArticle } = Astro.props;
 const isHomePage = pathsEqual(Astro.url.pathname, url("/"));
 
 // defines global css variables
-// why doing this in Layout instead of GlobalStyles: https://github.com/withastro/astro/issues/6728#issuecomment-1502203757
 const configHue = siteConfig.themeColor.hue;
 if (!banner || typeof banner !== "string" || banner.trim() === "") {
 	banner = siteConfig.banner.src;
 }
 
-// TODO don't use post cover as banner for now
 banner = siteConfig.banner.src;
 
 const enableBanner = siteConfig.banner.enable;
@@ -56,12 +77,16 @@ if (title) {
 	pageTitle = `${siteConfig.title} - ${siteConfig.subtitle}`;
 }
 
+const metaDescription = (description || excerpt || pageTitle).trim();
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = ogImage ?? new URL("/og-image.jpg", Astro.site).href;
+
 const favicons: Favicon[] =
 	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
 
 // const siteLang = siteConfig.lang.replace('_', '-')
 if (!lang) {
-	lang = Astro.locals?.lang || siteConfig.lang;
+	lang = `${siteConfig.lang}`;
 }
 const siteLang = lang.replace("_", "-");
 
@@ -81,30 +106,35 @@ const bannerOffset =
 	<head>
 
 
-		<!-- Google Tag Manager -->
-		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-		j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-		'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-		})(window,document,'script','dataLayer','GTM-W5L96G2X');</script>
-		<!-- End Google Tag Manager -->
-
 		<!-- Prevent CSS transition flash on initial page load -->
 		<style id="prevent-flash">
 			html, body {
 				transition: none !important;
 			}
 		</style>
+		<!-- Without JS the scroll-reveal elements would stay opacity-0; force them visible. -->
+		<noscript>
+			<style>
+				@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+					.intersect-once, .intersect-quarter, .intersect-no-queue { opacity: 1 !important; }
+				}
+			</style>
+		</noscript>
 		<title>{pageTitle}</title>
+		<link rel="canonical" href={canonicalUrl} />
 
 		<meta charset="UTF-8" />
-		<meta name="description" content={description || pageTitle}>
+		<meta name="description" content={metaDescription}>
 		<meta name="author" content={profileConfig.name}>
 
+		<!-- 百度站长平台站点验证（仅首页输出） -->
+		{isHomePage && <meta name="baidu-site-verification" content="codeva-mfTB8hvjqT" />}
+
 		<meta property="og:site_name" content={siteConfig.title}>
+		<meta property="og:locale" content={siteLang}>
 		<meta property="og:url" content={Astro.url}>
 		<meta property="og:title" content={pageTitle}>
-		<meta property="og:description" content={description || pageTitle}>
+		<meta property="og:description" content={metaDescription}>
 		{setOGTypeArticle ? (
         <meta property="og:type" content="article" />
         ) : (
@@ -112,14 +142,12 @@ const bannerOffset =
         )}
 
 		<meta name="twitter:card" content="summary_large_image">
-		<meta property="twitter:url" content={Astro.url}>
+		<meta name="twitter:url" content={Astro.url}>
 		<meta name="twitter:title" content={pageTitle}>
-		<meta name="twitter:description" content={description || pageTitle}>
+		<meta name="twitter:description" content={metaDescription}>
 
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="generator" content={Astro.generator} />
-		<link rel="dns-prefetch" href="//img.hehonglei.cn" />
-		<link rel="preconnect" href="https://img.hehonglei.cn" crossorigin="anonymous" />
 		{favicons.map(favicon => (
 			<link rel="icon"
 				  href={favicon.src.startsWith('/') ? url(favicon.src) : favicon.src}
@@ -127,6 +155,18 @@ const bannerOffset =
 				  media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
 			/>
 		))}
+
+		<link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png">
+		<link rel="preload" as="font" type="font/woff2" crossorigin href={robotoLatin400} />
+		<link rel="preload" as="font" type="font/woff2" crossorigin href={robotoLatin500} />
+		<link rel="preload" as="font" type="font/woff2" crossorigin href={robotoLatin700} />
+		<link rel="manifest" href="/manifest.webmanifest">
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f6fb">
+		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#232130">
+		<meta property="og:image" content={ogImageUrl}>
+		<meta property="og:image:width" content="1200">
+		<meta property="og:image:height" content="630">
+		<meta name="twitter:image" content={ogImageUrl}>
 
 		<!-- Set the theme before the page is rendered to avoid a flash -->
 		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
@@ -166,36 +206,23 @@ const bannerOffset =
 
 		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
 
-		<!-- Microsoft Clarity -->
-		<script is:inline>
-			(function(c,l,a,r,i,t,y){
-				c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-				t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-				y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-			})(window, document, "clarity", "script", "wq7nw5wvb7");
-		</script>
-
 	</head>
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
 		  data-overlayscrollbars-initialize
 	>
-		<!-- Google Tag Manager (noscript) -->
-		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W5L96G2X"
-		height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-		<!-- End Google Tag Manager (noscript) -->
-		<ConfigCarrier></ConfigCarrier>
 		<slot />
-		<!-- 首次访问首页时的欢迎通知 -->
-		<Notification
-		  title="👋 欢迎光临"
-		  message="感谢访问我的博客，希望你喜欢这里的内容！"
-		  type="success"
-		  duration={4000}
-		  position="top-right"
-		  isHomePage={isHomePage}
-		/>
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
+	<ChatWidget client:idle></ChatWidget>
+
+	<!-- PWA: register the service worker for offline caching of static assets -->
+	{import.meta.env.PROD && <script is:inline>
+		if ("serviceWorker" in navigator) {
+			window.addEventListener("load", () => {
+				navigator.serviceWorker.register("/sw.js").catch(() => {});
+			});
+		}
+	</script>}
 </body>
 </html>
 
@@ -206,28 +233,34 @@ const bannerOffset =
 }}>
 @tailwind components;
 @layer components {
-	.enable-banner.is-home #banner-wrapper {
-		@apply h-[var(--banner-height-home)] translate-y-[var(--banner-height-extend)]
-	}
 	.enable-banner #banner-wrapper {
 		@apply h-[var(--banner-height-home)]
-	}
-
-	.enable-banner.is-home #banner {
-		@apply h-[var(--banner-height-home)] translate-y-0
 	}
 	.enable-banner #banner {
 		@apply h-[var(--banner-height-home)] translate-y-[var(--bannerOffset)]
 	}
-	.enable-banner.is-home #main-grid {
-		@apply translate-y-[var(--banner-height-extend)];
-	}
 	.enable-banner #top-row {
 		@apply h-[calc(var(--banner-height-home)_-_4.5rem)] transition-all duration-300
 	}
-	.enable-banner.is-home #sidebar-sticky {
-		@apply top-[calc(1rem_-_var(--banner-height-extend))]
+
+	/* Home page (desktop lg+): taller banner. The body carries the literal class
+	   `lg:is-home`, so these rules are gated to the lg breakpoint to match the
+	   `window.innerWidth >= 1024` check in the scroll handler. */
+	@media (min-width: 1024px) {
+		.enable-banner.lg\:is-home #banner-wrapper {
+			@apply h-[var(--banner-height-home)] translate-y-[var(--banner-height-extend)]
+		}
+		.enable-banner.lg\:is-home #banner {
+			@apply h-[var(--banner-height-home)] translate-y-0
+		}
+		.enable-banner.lg\:is-home #main-grid {
+			@apply translate-y-[var(--banner-height-extend)];
+		}
+		.enable-banner.lg\:is-home #sidebar-sticky {
+			@apply top-[calc(1rem_-_var(--banner-height-extend))]
+		}
 	}
+
 	.navbar-hidden {
 		@apply opacity-0 -translate-y-16
 	}
@@ -236,12 +269,15 @@ const bannerOffset =
 
 <script>
 import 'overlayscrollbars/overlayscrollbars.css';
-import {
-	OverlayScrollbars,
-	// ScrollbarsHidingPlugin,
-	// SizeObserverPlugin,
-	// ClickScrollPlugin
-} from 'overlayscrollbars';
+// OverlayScrollbars is a progressive enhancement (custom scrollbars). Load its JS
+// lazily so it doesn't bloat the initial bundle.
+let overlayscrollbarsPromise: Promise<any> | null = null;
+async function getOverlayScrollbars(): Promise<any> {
+	if (!overlayscrollbarsPromise) {
+		overlayscrollbarsPromise = import('overlayscrollbars');
+	}
+	return overlayscrollbarsPromise;
+}
 import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
 import {pathsEqual, url} from "../utils/url-utils";
 import {
@@ -251,50 +287,6 @@ import {
 	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT
 } from "../constants/constants";
 import { siteConfig } from '../config';
-
-/* Preload fonts */
-// (async function() {
-// 	try {
-// 		await Promise.all([
-// 			document.fonts.load("400 1em Roboto"),
-// 			document.fonts.load("700 1em Roboto"),
-// 		]);
-// 		document.body.classList.remove("hidden");
-// 	} catch (error) {
-// 		console.log("Failed to load fonts:", error);
-// 	}
-// })();
-
-/* TODO This is a temporary solution for style flicker issue when the transition is activated */
-/* issue link: https://github.com/withastro/astro/issues/8711, the solution get from here too */
-/* update: fixed in Astro 3.2.4 */
-/*
-function disableAnimation() {
-	const css = document.createElement('style')
-	css.appendChild(
-		document.createTextNode(
-			`*{
-              -webkit-transition:none!important;
-              -moz-transition:none!important;
-              -o-transition:none!important;
-              -ms-transition:none!important;
-              transition:none!important
-              }`
-		)
-	)
-	document.head.appendChild(css)
-
-	return () => {
-		// Force restyle
-		;(() => window.getComputedStyle(document.body))()
-
-		// Wait for next tick before removing
-		setTimeout(() => {
-			document.head.removeChild(css)
-		}, 1)
-	}
-}
-*/
 
 const bannerEnabled = !!document.getElementById('banner-wrapper')
 
@@ -326,9 +318,10 @@ function loadHue() {
 	setHue(getHue())
 }
 
-function initCustomScrollbar() {
+async function initCustomScrollbar() {
 	const bodyElement = document.querySelector('body');
 	if (!bodyElement) return;
+	const { OverlayScrollbars } = await getOverlayScrollbars();
 	OverlayScrollbars(
 		// docs say that a initialization to the body element would affect native functionality like window.scrollTo
 		// but just leave it here for now
@@ -404,11 +397,20 @@ function showBanner() {
 }
 
 function init() {
-	// disableAnimation()()		// TODO
 	loadTheme();
 	loadHue();
-	initCustomScrollbar();
 	showBanner();
+}
+
+/* OverlayScrollbars init is expensive (scrollbar host + observers on the whole body).
+   Defer it off the critical path so it does not delay first paint / LCP. */
+function idleInitScrollbar() {
+	initCustomScrollbar();
+}
+if (typeof window.requestIdleCallback === "function") {
+	window.requestIdleCallback(idleInitScrollbar, { timeout: 2000 });
+} else {
+	setTimeout(idleInitScrollbar, 300);
 }
 
 /* Load settings when entering the site */
@@ -448,8 +450,11 @@ const setup = () => {
 	})
 */
 	window.swup.hooks.on('link:click', () => {
-		// Remove the delay for the first time page load
-		document.documentElement.style.setProperty('--content-delay', '0ms')
+		// NOTE: `--content-delay` used to be rewritten to 0ms here. Changing an animation-delay
+		// restarts the animation, so that replayed the outgoing page's entrance animations (every
+		// card jumped back to opacity 0 on click) — a visible flash right before the swap.
+		// Swapped-in content no longer animates at all (`html.swup-nav` in transition.css), so the
+		// delay does not need adjusting either.
 
 		// prevent elements from overlapping the navbar
 		if (!bannerEnabled) {
@@ -465,18 +470,12 @@ const setup = () => {
 		}
 	})
 	window.swup.hooks.on('content:replace', initCustomScrollbar)
-	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
-		// Prevent flash during page transition
-		addPreventFlash();
-
-		// change banner height immediately when a link is clicked
-		const bodyElement = document.querySelector('body')
+	window.swup.hooks.on('content:replace', (visit: {to: {url: string}}) => {
+		// Swup only swaps the innerHTML of the containers (`main`, `#toc`, `#sidebar`);
+		// it does not sync their classes. Sync the grid/sidebar layout here — after the content
+		// has been swapped and while the outgoing content is still faded out — instead of in
+		// `visit:start`, where the `display` change would jump before the fade-out even begins.
 		const isHome = pathsEqual(visit.to.url, url('/'))
-		if (isHome) {
-			bodyElement!.classList.add('lg:is-home');
-		} else {
-			bodyElement!.classList.remove('lg:is-home');
-		}
 
 		// update #main-grid layout classes for the target page
 		const mainGrid = document.getElementById('main-grid')
@@ -489,14 +488,59 @@ const setup = () => {
 			}
 		}
 
-		// show/hide sidebar for the target page
-		const sidebarSticky = document.getElementById('sidebar-sticky')
-		if (sidebarSticky) {
+		// show/hide the sidebar (Profile + categories + tags) for the target page.
+		// The grid placement classes live on the `#sidebar` element itself, which Swup
+		// does not swap, so they must be synced together with the `hidden` state.
+		const sidebar = document.getElementById('sidebar')
+		if (sidebar) {
+			const sidebarClasses = [
+				'mb-4', 'row-start-2', 'row-end-3', 'col-span-2',
+				'lg:row-start-1', 'lg:row-end-2', 'lg:col-span-1', 'lg:max-w-[17.5rem]',
+			]
 			if (isHome) {
-				sidebarSticky.classList.add('hidden')
+				sidebar.classList.add('hidden')
+				sidebar.classList.remove(...sidebarClasses)
 			} else {
-				sidebarSticky.classList.remove('hidden')
+				sidebar.classList.remove('hidden')
+				sidebar.classList.add(...sidebarClasses)
 			}
+		}
+
+		// sync the grid column classes of `main` and the footer, which also differ
+		// between the home (full-width) and non-home (grid) layouts
+		const swupContainer = document.getElementById('swup-container')
+		if (swupContainer) {
+			if (isHome) {
+				swupContainer.classList.remove('col-span-2', 'lg:col-span-1')
+			} else {
+				swupContainer.classList.add('col-span-2', 'lg:col-span-1')
+			}
+		}
+
+		const footer = document.querySelector('#main-grid .footer')
+		if (footer) {
+			if (isHome) {
+				footer.classList.remove('col-span-2', 'block')
+			} else {
+				footer.classList.add('col-span-2', 'block')
+			}
+		}
+	})
+	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
+		// Prevent flash during page transition
+		addPreventFlash();
+
+		// From now on the document is navigated in place: anything the swap inserts must not
+		// replay the first-paint entrance animations (see `html.swup-nav` in transition.css).
+		document.documentElement.classList.add('swup-nav');
+
+		// change banner height immediately when a link is clicked
+		const bodyElement = document.querySelector('body')
+		const isHome = pathsEqual(visit.to.url, url('/'))
+		if (isHome) {
+			bodyElement!.classList.add('lg:is-home');
+		} else {
+			bodyElement!.classList.remove('lg:is-home');
 		}
 
 		// increase the page height during page transition to prevent the scrolling animation from jumping
@@ -511,18 +555,13 @@ const setup = () => {
 			toc.classList.add('toc-not-ready')
 		}
 	});
-	window.swup.hooks.on('page:view', () => {
-		// hide the temp high element when the transition is done
-		const heightExtend = document.getElementById('page-height-extend')
-		if (heightExtend) {
-			heightExtend.classList.remove('hidden')
-		}
-	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
 		// Re-enable transitions after page transition completes
 		removePreventFlash();
 
 		setTimeout(() => {
+			// The page-height extend is only needed while the transition (and its smooth scroll)
+			// is in flight; `visit:start` re-adds it on the way in.
 			const heightExtend = document.getElementById('page-height-extend')
 			if (heightExtend) {
 				heightExtend.classList.add('hidden')
@@ -542,46 +581,75 @@ if (window?.swup?.hooks) {
 	document.addEventListener('swup:enable', setup)
 }
 
-let backToTopBtn = document.getElementById('back-to-top-btn');
-let toc = document.getElementById('toc-wrapper');
-let navbar = document.getElementById('navbar-wrapper')
-function scrollFunction() {
-	let bannerHeight = window.innerHeight * (BANNER_HEIGHT / 100)
+// ── Consolidated scroll handling ──
+// One rAF-throttled handler replaces the two previous scroll listeners
+// (Layout's `onscroll` + Navbar's `initBannerTransparency`). DOM refs are
+// cached and classes are only written when their state actually changes.
+const backToTopBtn = document.getElementById('back-to-top-btn');
+const toc = document.getElementById('toc-wrapper');
+const navbarWrapper = document.getElementById('navbar-wrapper');
+const navbarEl = document.getElementById('navbar');
 
-	if (backToTopBtn) {
-		if (document.body.scrollTop > bannerHeight || document.documentElement.scrollTop > bannerHeight) {
-			backToTopBtn.classList.remove('hide')
-		} else {
-			backToTopBtn.classList.add('hide')
-		}
+const NAVBAR_HEIGHT = 72;
+const NAVBAR_SCROLLED_THRESHOLD = 50;
+
+const scrollState = {
+	backToTop: false,
+	toc: false,
+	navbarHidden: false,
+	navbarScrolled: false,
+};
+
+function setScrollClass(
+	el: HTMLElement | null,
+	cls: string,
+	on: boolean,
+	stateKey: keyof typeof scrollState,
+) {
+	if (!el) return;
+	if (scrollState[stateKey] === on) return; // no change, skip the DOM write
+	scrollState[stateKey] = on;
+	el.classList.toggle(cls, on);
+}
+
+function updateOnScroll() {
+	const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+	const bannerHeight = window.innerHeight * (BANNER_HEIGHT / 100);
+
+	// Back-to-top + TOC visibility (below the banner).
+	setScrollClass(backToTopBtn, 'hide', scrollTop <= bannerHeight, 'backToTop');
+	if (bannerEnabled) {
+		setScrollClass(toc, 'toc-hide', scrollTop <= bannerHeight, 'toc');
 	}
 
-	if (bannerEnabled && toc) {
-		if (document.body.scrollTop > bannerHeight || document.documentElement.scrollTop > bannerHeight) {
-			toc.classList.remove('toc-hide')
-		} else {
-			toc.classList.add('toc-hide')
-		}
+	// Navbar transparency over the banner (subtle scroll).
+	if (navbarEl && navbarEl.getAttribute('data-enable-banner') === 'true') {
+		setScrollClass(navbarEl, 'navbar-scrolled', scrollTop > NAVBAR_SCROLLED_THRESHOLD, 'navbarScrolled');
 	}
 
-	if (!bannerEnabled) return
-	if (navbar) {
-		const NAVBAR_HEIGHT = 72
-		const MAIN_PANEL_EXCESS_HEIGHT = MAIN_PANEL_OVERLAPS_BANNER_HEIGHT * 16			// The height the main panel overlaps the banner
-
-		let bannerHeight = BANNER_HEIGHT
+	// Navbar hide when scrolling deep into the banner.
+	if (bannerEnabled && navbarWrapper) {
+		const MAIN_PANEL_EXCESS_HEIGHT = MAIN_PANEL_OVERLAPS_BANNER_HEIGHT * 16; // The height the main panel overlaps the banner
+		let targetBannerHeight = BANNER_HEIGHT;
 		if (document.body.classList.contains('lg:is-home') && window.innerWidth >= 1024) {
-			bannerHeight = BANNER_HEIGHT_HOME
+			targetBannerHeight = BANNER_HEIGHT_HOME;
 		}
-		let threshold = window.innerHeight * (bannerHeight / 100) - NAVBAR_HEIGHT - MAIN_PANEL_EXCESS_HEIGHT - 16
-		if (document.body.scrollTop >= threshold || document.documentElement.scrollTop >= threshold) {
-			navbar.classList.add('navbar-hidden')
-		} else {
-			navbar.classList.remove('navbar-hidden')
-		}
+		const threshold = window.innerHeight * (targetBannerHeight / 100) - NAVBAR_HEIGHT - MAIN_PANEL_EXCESS_HEIGHT - 16;
+		setScrollClass(navbarWrapper, 'navbar-hidden', scrollTop >= threshold, 'navbarHidden');
 	}
 }
-window.onscroll = scrollFunction
+
+let scrollTicking = false;
+function onScroll() {
+	if (scrollTicking) return;
+	scrollTicking = true;
+	requestAnimationFrame(() => {
+		updateOnScroll();
+		scrollTicking = false;
+	});
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+updateOnScroll();
 
 window.onresize = () => {
 	// calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
@@ -593,68 +661,27 @@ window.onresize = () => {
 </script>
 
 <script>
-import mermaid from 'mermaid';
+import type PhotoSwipeLightbox from "photoswipe/lightbox"
 
-function getMermaidTheme(): 'dark' | 'default' {
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'default';
-}
+// PhotoSwipe is only needed when the user opens an image; load it lazily.
+// The type-only import above is erased at build time, so nothing is bundled.
+// Note: import() must be called inside the function — a module-level import()
+// would start fetching immediately when the script is evaluated.
+let lightbox: PhotoSwipeLightbox | undefined
+let lightboxPromise: Promise<PhotoSwipeLightbox> | null = null
 
-async function renderMermaid() {
-  const els = document.querySelectorAll<HTMLElement>('pre.mermaid:not([data-processed="true"])');
-  if (els.length === 0) return;
-
-  // Save original diagram source before mermaid replaces element content
-  els.forEach(el => {
-    if (!el.hasAttribute('data-mermaid-source')) {
-      el.setAttribute('data-mermaid-source', el.textContent ?? '');
-    }
-  });
-
-  mermaid.initialize({ startOnLoad: false, theme: getMermaidTheme() });
-  await mermaid.run({ nodes: Array.from(els) });
-}
-
-async function rerenderMermaidOnThemeChange() {
-  const processed = document.querySelectorAll<HTMLElement>('pre.mermaid[data-processed="true"]');
-  processed.forEach(el => {
-    const source = el.getAttribute('data-mermaid-source');
-    if (source) {
-      el.textContent = source;
-      el.removeAttribute('data-processed');
-    }
-  });
-  await renderMermaid();
-}
-
-// Re-render diagrams when dark/light theme is toggled
-const themeObserver = new MutationObserver(rerenderMermaidOnThemeChange);
-themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
-// Initial render
-renderMermaid();
-
-// Re-render after Swup page transitions
-const setupMermaid = () => {
-  window.swup.hooks.on('page:view', renderMermaid);
-};
-if (window.swup) {
-  setupMermaid();
-} else {
-  document.addEventListener('swup:enable', setupMermaid);
-}
-</script>
-
-<script>
-import PhotoSwipeLightbox from "photoswipe/lightbox"
-import "photoswipe/style.css"
-
-let lightbox: PhotoSwipeLightbox
-let pswp = import("photoswipe")
-
-function createPhotoSwipe() {
-	lightbox = new PhotoSwipeLightbox({
+async function ensurePhotoSwipe(): Promise<PhotoSwipeLightbox> {
+	if (lightbox) return lightbox;
+	if (!lightboxPromise) {
+		lightboxPromise = (async () => {
+			await import("photoswipe/style.css");
+			await import("../styles/photoswipe.css");
+			const pswpPromise = import("photoswipe");
+			const { default: PhotoSwipeLightbox } = await import("photoswipe/lightbox");
+			await pswpPromise;
+			lightbox = new PhotoSwipeLightbox({
 		gallery: ".custom-md img, #post-cover img",
-		pswpModule: () => pswp,
+		pswpModule: () => pswpPromise,
 		closeSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/></svg>',
 		zoomSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M340-540h-40q-17 0-28.5-11.5T260-580q0-17 11.5-28.5T300-620h40v-40q0-17 11.5-28.5T380-700q17 0 28.5 11.5T420-660v40h40q17 0 28.5 11.5T500-580q0 17-11.5 28.5T460-540h-40v40q0 17-11.5 28.5T380-460q-17 0-28.5-11.5T340-500v-40Zm40 220q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>',
 		padding: { top: 20, bottom: 20, left: 20, right: 20 },
@@ -680,20 +707,38 @@ function createPhotoSwipe() {
 	})
 
 	lightbox.init()
+	return lightbox
+		})()
+	}
+	return lightboxPromise
 }
 
-const setup = () => {
-	if (!lightbox) {
-		createPhotoSwipe()
-	}
-	window.swup.hooks.on("page:view", () => {
-		createPhotoSwipe()
-	})
+// Lazy open: PhotoSwipe is only loaded the first time the user clicks an
+// article image. After that the lightbox behaves exactly as before.
+document.addEventListener("click", async (event) => {
+	const img = (event.target as Element | null)?.closest?.(".custom-md img, #post-cover img");
+	if (!(img instanceof HTMLImageElement)) return;
+	event.preventDefault();
+	event.stopPropagation();
+	const box = await ensurePhotoSwipe();
+	const gallery = Array.from(document.querySelectorAll<HTMLImageElement>(".custom-md img, #post-cover img"));
+	const index = Math.max(0, gallery.indexOf(img));
+	// Pass the DOM elements themselves; the domItemData filter above maps them
+	// to src/msrc/dimensions exactly as the old click-through behavior did.
+	box.loadAndOpen(index, { gallery: img, items: gallery });
+});
 
+const setup = () => {
+	// Recreate the lightbox after each Swup page transition, since the
+	// previous DOM gallery no longer exists.
 	window.swup.hooks.on(
 		"content:replace",
 		() => {
-			lightbox?.destroy?.()
+			if (lightbox) {
+				lightbox.destroy();
+				lightbox = undefined;
+				lightboxPromise = null;
+			}
 		},
 		{ before: true },
 	)
@@ -703,5 +748,60 @@ if (window.swup) {
 	setup()
 } else {
 	document.addEventListener("swup:enable", setup)
+}
+</script>
+
+<script>
+// Scroll-reveal: elements marked with `intersect-*` classes are hidden by
+// `motion-safe:md:opacity-0` and revealed by `intersect:animate-fade` (the
+// `intersect` variant targets `[data-intersected]`). Drive that reveal with an
+// IntersectionObserver so widgets fade in as they enter the viewport instead of
+// all animating at once on every page load / Swup navigation.
+let intersectObserver: IntersectionObserver | null = null;
+
+function initIntersectReveal() {
+	const elements = document.querySelectorAll<HTMLElement>(
+		'.intersect-once, .intersect-quarter, .intersect-no-queue',
+	);
+
+	intersectObserver?.disconnect();
+
+	if (elements.length === 0) return;
+
+	// Fallback: reveal everything if IntersectionObserver is unavailable, so
+	// content never stays permanently hidden.
+	if (!('IntersectionObserver' in window)) {
+		elements.forEach((el) => el.setAttribute('data-intersected', ''));
+		return;
+	}
+
+	intersectObserver = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				const el = entry.target as HTMLElement;
+				const once = el.classList.contains('intersect-once');
+				if (entry.isIntersecting) {
+					el.setAttribute('data-intersected', '');
+					if (once) intersectObserver!.unobserve(el);
+				} else if (!once) {
+					el.removeAttribute('data-intersected');
+				}
+			});
+		},
+		{ threshold: 0, rootMargin: '0px 0px -10% 0px' },
+	);
+
+	elements.forEach((el) => intersectObserver!.observe(el));
+}
+
+initIntersectReveal();
+
+const setupIntersectReveal = () => {
+	window.swup.hooks.on('content:replace', initIntersectReveal);
+};
+if (window.swup) {
+	setupIntersectReveal();
+} else {
+	document.addEventListener('swup:enable', setupIntersectReveal);
 }
 </script>

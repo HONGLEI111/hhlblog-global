@@ -1,5 +1,8 @@
 # 🍥Fuwari
 
+> **注意：** 本文档是上游 [Fuwari](https://github.com/saicaca/fuwari) 模板 README 的翻译，可能已过时。
+> 当前项目文档请见 [README.zh_CN.md](../README.zh_CN.md)（中文）与 [README.md](../README.md)（英文）。
+
 基于 [Astro](https://astro.build) 开发的静态博客模板。
 
 [**🖥️在线预览（Vercel）**](https://fuwari.vercel.app)

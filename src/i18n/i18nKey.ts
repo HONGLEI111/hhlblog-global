@@ -3,12 +3,6 @@ enum I18nKey {
 	about = "about",
 	archive = "archive",
 	search = "search",
-	searchNoResults = "searchNoResults",
-	searchTypeSomething = "searchTypeSomething",
-	searchLoading = "searchLoading",
-	searchSummary = "searchSummary",
-	searchContent = "searchContent",
-	searchViewMore = "searchViewMore",
 
 	tags = "tags",
 	categories = "categories",
@@ -38,15 +32,6 @@ enum I18nKey {
 	author = "author",
 	publishedAt = "publishedAt",
 	license = "license",
-
-	// Language names for the language switcher
-	langEn = "langEn",
-	langZhCN = "langZhCN",
-	langZhTW = "langZhTW",
-	langJa = "langJa",
-	langKo = "langKo",
-	langVi = "langVi",
-	langEs = "langEs",
 }
 
 export default I18nKey;

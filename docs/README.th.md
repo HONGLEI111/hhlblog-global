@@ -1,5 +1,8 @@
 # 🍥Fuwari
 
+> **Note:** This file is a translation of the upstream [Fuwari](https://github.com/saicaca/fuwari) template's README and may be outdated.
+> Current project documentation: [README.md](../README.md) (English) · [README.zh_CN.md](../README.zh_CN.md) (中文).
+
 แม่แบบสำหรับเว็บบล็อกแบบ static สร้างด้วย [Astro](https://astro.build)
 
 [**🖥️ ตัวอย่างการใช้งานจริง (Vercel)**](https://fuwari.vercel.app)

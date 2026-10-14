@@ -1,27 +1,26 @@
 ---
-import type { Content as Props } from '~/types';
-import Headline from '~/components/ui/Headline.astro';
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import Image from '~/components/common/Image.astro';
-import Button from '~/components/ui/Button.astro';
-import ItemGrid from '~/components/ui/ItemGrid.astro';
+import Button from "~/components/ui/Button.astro";
+import Headline from "~/components/ui/Headline.astro";
+import ItemGrid from "~/components/ui/ItemGrid.astro";
+import WidgetWrapper from "~/components/ui/WidgetWrapper.astro";
+import type { Content as Props } from "~/types";
 
 const {
-  title = await Astro.slots.render('title'),
-  subtitle = await Astro.slots.render('subtitle'),
-  tagline,
-  content = await Astro.slots.render('content'),
-  callToAction,
-  items = [],
-  columns,
-  image = await Astro.slots.render('image'),
-  isReversed = false,
-  isAfterContent = false,
+	title = await Astro.slots.render("title"),
+	subtitle = await Astro.slots.render("subtitle"),
+	tagline,
+	content = await Astro.slots.render("content"),
+	callToAction,
+	items = [],
+	columns,
+	image = await Astro.slots.render("image"),
+	isReversed = false,
+	isAfterContent = false,
 
-  id,
-  isDark = false,
-  classes = {},
-  bg = await Astro.slots.render('bg'),
+	id,
+	isDark = false,
+	classes = {},
+	bg = await Astro.slots.render("bg"),
 } = Astro.props;
 ---
 
@@ -72,19 +71,7 @@ const {
         {
           image && (
             <div class="relative m-auto max-w-4xl">
-              {typeof image === 'string' ? (
-                <Fragment set:html={image} />
-              ) : (
-                <Image
-                  class="mx-auto w-full rounded-lg bg-gray-500 shadow-lg"
-                  width={500}
-                  height={500}
-                  widths={[400, 768]}
-                  sizes="(max-width: 768px) 100vw, 432px"
-                  layout="responsive"
-                  {...image}
-                />
-              )}
+              <Fragment set:html={image} />
             </div>
           )
         }

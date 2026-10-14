@@ -1,33 +1,33 @@
 ---
-import { Icon } from 'astro-icon/components';
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import ImageWrapper from '../misc/ImageWrapper.astro';
-import type { Widget } from '~/types';
+import { Icon } from "astro-icon/components";
+import WidgetWrapper from "~/components/ui/WidgetWrapper.astro";
+import type { Widget } from "~/types";
+import ImageWrapper from "../misc/ImageWrapper.astro";
 
 export interface Props extends Widget {
-  avatar: string;
-  name: string;
-  role: string;
-  company: string;
-  bio: string;
-  location: string;
-  tags: string[];
-  socialLinks: { name: string; icon: string; url: string }[];
+	avatar: string;
+	name: string;
+	role: string;
+	company: string;
+	bio: string;
+	location: string;
+	tags: string[];
+	socialLinks: { name: string; icon: string; url: string }[];
 }
 
 const {
-  avatar,
-  name,
-  role,
-  company,
-  bio,
-  location,
-  tags = [],
-  socialLinks = [],
-  id,
-  isDark = false,
-  classes = {},
-  bg,
+	avatar,
+	name,
+	role,
+	company,
+	bio,
+	location,
+	tags = [],
+	socialLinks = [],
+	id,
+	isDark = false,
+	classes = {},
+	bg,
 } = Astro.props;
 ---
 

@@ -1,5 +1,5 @@
 import { defineCollection, z } from "astro:content";
-import { glob } from 'astro/loaders';
+import { glob } from "astro/loaders";
 
 const basePostSchema = z.object({
 	title: z.string(),
@@ -42,7 +42,10 @@ const specCollection = defineCollection({
 	schema: z.object({}),
 });
 const technologyCollection = defineCollection({
-        loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/technology' }),
+	loader: glob({
+		pattern: ["*.md", "!voyager-*"],
+		base: "./src/content/technology",
+	}),
 	schema: basePostSchema,
 });
 const readPostSchema = basePostSchema.extend({
@@ -53,7 +56,7 @@ const readPostSchema = basePostSchema.extend({
 });
 
 const readCollection = defineCollection({
-        loader: glob({ pattern: ['*.md', '!voyager-*'], base: './src/content/read' }),
+	loader: glob({ pattern: ["*.md", "!voyager-*"], base: "./src/content/read" }),
 	schema: readPostSchema,
 });
 export const collections = {

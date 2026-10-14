@@ -30,11 +30,26 @@ yarn.lock
 .idea
 *.iml
 
-# wrangler
+# claude code
+.claude/
+
+# personal writing workflow files
+.daily-post-log.json
+.daily-post-topics.md
+
+# wrangler (workers/chat-proxy)
 .wrangler/
 
 # i18n translation cache
 .i18n-cache.json
+
+# pnpm local store (auto-created on install)
+.pnpm-store/
+
+# temp caches
+.tmp-cache/
+.tmp-data/
+.tmp-*
 
 # generated search index
 public/search-index.json

@@ -1,92 +1,95 @@
 ---
+import { render } from "astro:content";
 import path from "node:path";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
-import { render } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedRead } from "@utils/content-utils";
-import { getTranslatedBodyHtml, loadPostMetadata } from "@utils/translated-content";
-import { getDir, getReadUrlBySlug } from "@utils/url-utils";
+import { getDir, getReadUrlBySlug, resolveOgImage } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import { licenseConfig } from "src/config";
+import PostMetadata from "../../components/common/PostMeta.astro";
 import ImageWrapper from "../../components/misc/ImageWrapper.astro";
-import PostMetadata from "../../components/read/PostMeta.astro";
 import { profileConfig, siteConfig } from "../../config";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 
-const slug = Astro.params.slug;
+export async function getStaticPaths() {
+	const entries = await getSortedRead();
 
-const allEntries = await getSortedRead();
-const entry = allEntries.find((e) => e.id.replace(/\.mdx?$/, "") === slug);
-
-if (!entry) {
-	return new Response("Not found", { status: 404 });
+	return entries.map((entry) => {
+		const slug = entry.id.replace(/\.mdx?$/, "");
+		return {
+			params: { slug },
+			props: { entry },
+		};
+	});
 }
-const currentLang = Astro.locals?.lang;
+
+const { entry } = Astro.props;
+const rating = entry.data.rating ?? 0;
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 
 const words = remarkPluginFrontmatter.words;
 const minutes = remarkPluginFrontmatter.minutes;
 
-// Apply translated metadata
-const readSlug = entry.id.replace(/\.mdx?$/, "");
-let meta = null;
-if (currentLang && currentLang !== "zh_CN" && currentLang !== "zh_cn") {
-	meta = await loadPostMetadata(currentLang, "read", readSlug);
-	if (meta) {
-		if (meta.title) entry.data.title = meta.title;
-		if (meta.description) entry.data.description = meta.description;
-		if (meta.tags) entry.data.tags = meta.tags;
-		if (meta.category) entry.data.category = meta.category;
-	}
-}
-const translatedHeadings = meta?.toc?.length ? meta.toc : headings;
+const ogImage = resolveOgImage(
+	entry.data.image || entry.data.cover,
+	Astro.site,
+);
+const excerpt = (entry.data as { excerpt?: string }).excerpt;
 
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "BlogPosting",
+	mainEntityOfPage: {
+		"@type": "WebPage",
+		"@id": new URL(Astro.url.pathname, Astro.site).href,
+	},
 	headline: entry.data.title,
-	description: entry.data.description || entry.data.title,
+	description: entry.data.description || excerpt || entry.data.title,
+	image: ogImage,
 	keywords: entry.data.tags,
 	author: {
 		"@type": "Person",
 		name: profileConfig.name,
 		url: Astro.site,
 	},
+	publisher: {
+		"@type": "Person",
+		name: profileConfig.name,
+		url: Astro.site,
+	},
 	datePublished: formatDateToYYYYMMDD(entry.data.published),
+	dateModified: formatDateToYYYYMMDD(
+		entry.data.updated ?? entry.data.published,
+	),
 	inLanguage: entry.data.lang
 		? entry.data.lang.replace("_", "-")
 		: siteConfig.lang.replace("_", "-"),
 };
-export const prerender = false;
-
-const translatedHtml =
-	currentLang && currentLang !== "zh_CN" && currentLang !== "zh_cn"
-		? await getTranslatedBodyHtml(currentLang, "read", entry.id.replace(/\.mdx?$/, ""))
-		: null;
 ---
 
-<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={translatedHeadings} sidebarCollection="read">
+<MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} excerpt={excerpt} ogImage={ogImage} lang={entry.data.lang} setOGTypeArticle={true} headings={headings} sidebarCollection="read">
   <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
   <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
     <div id="post-container" class:list={["card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full", {}]}>
 
       <!-- word count and reading time -->
-      <div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation">
+      <div class="flex flex-row text-black/60 dark:text-white/60 gap-5 mb-3 transition onload-animation">
         <div class="flex flex-row items-center">
           <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
             <Icon name="material-symbols:notes-rounded"></Icon>
           </div>
-          <div class="text-sm">{words} {" " + i18n(I18nKey.wordsCount, currentLang)}</div>
+          <div class="text-sm">{words} {" " + i18n(I18nKey.wordsCount)}</div>
         </div>
         <div class="flex flex-row items-center">
           <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2">
             <Icon name="material-symbols:schedule-outline-rounded"></Icon>
           </div>
           <div class="text-sm">
-            {minutes} {" " + i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount, currentLang)}
+            {minutes} {" " + i18n(minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
           </div>
         </div>
       </div>
@@ -114,6 +117,7 @@ const translatedHtml =
           tags={entry.data.tags}
           category={entry.data.category}
           author={entry.data.author}
+          collection="read"
         ></PostMetadata>
         {!entry.data.image && !(entry.data.cover || entry.data.bookTitle || entry.data.author) && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
       </div>
@@ -129,8 +133,7 @@ const translatedHtml =
                 alt={entry.data.bookTitle || entry.data.title}
                 class="w-full h-full object-cover"
                 sizes="(min-width: 768px) 160px, 128px"
-                widths={[128, 160, 256, 320]}
-                quality={75}
+                widths={[128, 160, 256, 320, 480, 640]}
               />
             </div>
           )}
@@ -141,11 +144,11 @@ const translatedHtml =
             {entry.data.author && (
               <div class="text-base text-75">{entry.data.author}</div>
             )}
-            {entry.data.rating && (
+            {rating > 0 && (
               <div class="flex gap-0.5 text-[var(--primary)]">
                 {Array.from({ length: 5 }, (_, i) => (
                   <Icon
-                    name={i < entry.data.rating
+                    name={i < rating
                       ? "material-symbols:star-rounded"
                       : "material-symbols:star-outline-rounded"}
                     class="text-xl"
@@ -162,12 +165,11 @@ const translatedHtml =
         <ImageWrapper id="post-cover" src={entry.data.image} basePath={path.join("content/read/", getDir(entry.id))}
                       class="mb-8 rounded-xl banner-container onload-animation"
                       sizes="(min-width: 1200px) 864px, (min-width: 768px) calc(100vw - 8rem), calc(100vw - 3rem)"
-                      widths={[480, 640, 768, 960, 1200]}
-                      quality={70}/>
+                      widths={[480, 640, 768, 960, 1280, 1600]}/>
       }
 
       <Markdown class="mb-6 markdown-content onload-animation">
-        {translatedHtml ? <Fragment set:html={translatedHtml} /> : <Content />}
+        <Content />
       </Markdown>
 
       {licenseConfig.enable && <License title={entry.data.title} slug={entry.id} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}

@@ -16,9 +16,6 @@ function stripInvalidXmlChars(str: string): string {
 	);
 }
 
-
-export const prerender = true;
-
 export async function GET(context: APIContext) {
 	const blog = await getSortedPosts();
 
