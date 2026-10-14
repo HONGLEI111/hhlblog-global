@@ -260,4 +260,18 @@ describe("buildSystemPrompt", () => {
 			"only part of the article is included",
 		);
 	});
+
+	it("gives the configured contact address and calls it the preferred channel", () => {
+		const prompt = buildSystemPrompt(null, [], "contact@example.com");
+
+		expect(prompt).toContain("contact@example.com");
+		expect(prompt).toContain("preferred way");
+		expect(prompt).toContain("Do not invent");
+	});
+
+	it("says nothing about contacting the author when no address is configured", () => {
+		// A fork with no CONTACT_EMAIL must not have the model improvise one.
+		expect(buildSystemPrompt(null)).not.toContain("contact the author");
+		expect(buildSystemPrompt(null, [], "")).not.toContain("contact the author");
+	});
 });

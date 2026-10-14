@@ -12,6 +12,11 @@ interface Env {
   TURNSTILE_SECRET_KEY?: string;
   /** Comma-separated exact origins allowed to call this proxy. */
   ALLOWED_ORIGINS?: string;
+  /**
+   * Address the assistant should give when asked how to reach the author. Empty
+   * by default so a fork does not advertise someone else's inbox.
+   */
+  CONTACT_EMAIL?: string;
 }
 
 // Current DeepSeek model. The legacy names `deepseek-chat` / `deepseek-reasoner`
@@ -217,7 +222,7 @@ export default {
       body: JSON.stringify({
         model: MODEL,
         messages: [
-          { role: 'system', content: buildSystemPrompt(context, grounding) },
+          { role: 'system', content: buildSystemPrompt(context, grounding, env.CONTACT_EMAIL ?? '') },
           ...messages,
         ],
         // Blog Q&A wants a fast answer, not a chain of thought: Flash enables

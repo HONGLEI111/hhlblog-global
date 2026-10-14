@@ -77,6 +77,12 @@ export const profileConfig: ProfileConfig = {
 	bio: "An open-source blog theme — Astro 5, Svelte 5 and Tailwind CSS.",
 	links: [
 		{
+			// First on purpose: email is the channel the About page recommends.
+			name: "Email",
+			icon: "fa6-solid:envelope",
+			url: "mailto:contact@hehonglei.com",
+		},
+		{
 			name: "GitHub",
 			icon: "fa6-brands:github",
 			url: "https://github.com/HONGLEI111/hhlblog-global",

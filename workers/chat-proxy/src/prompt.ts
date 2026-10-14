@@ -42,14 +42,29 @@ function groundingSection(snippets: GroundingSnippet[]): string {
   ].join("\n");
 }
 
+/**
+ * How to reach the author. The widget offers "How can I get in touch?" as one of
+ * its starting questions, so without this the assistant would have to invent an
+ * address or refuse; the address is a per-deployment var rather than a literal
+ * here, so a fork does not advertise someone else's inbox.
+ */
+function contactSection(email: string): string {
+  return [
+    `If the user asks how to contact the author, tell them to email ${email}, and that email is the preferred way to reach the author.`,
+    "Do not invent, guess or substitute any other address, social account or phone number.",
+  ].join("\n");
+}
+
 export function buildSystemPrompt(
   context: ResolvedContext | null,
   snippets: GroundingSnippet[] = [],
+  contactEmail = "",
 ): string {
   return [
     "You are the AI assistant for this blog. Answer in English, and keep answers concise, accurate and useful.",
     "Format answers as Markdown: tag code blocks with a language, and use lists and emphasis where they help.",
     "If the user asks who you are, say that you are this blog's AI assistant.",
+    contactEmail ? contactSection(contactEmail) : "",
     context ? contextSection(context) : "The user is not on an article page, so you cannot know which article they are reading.",
     snippets.length > 0 ? groundingSection(snippets) : "",
   ]

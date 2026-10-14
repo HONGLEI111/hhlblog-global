@@ -14,6 +14,12 @@ compatibility_date = "2025-05-15"
 # curl can forge it. Turnstile (below) is what actually gates the endpoint.
 ALLOWED_ORIGINS = ""
 
+# Address the assistant gives when a reader asks how to contact the author. The
+# widget's suggested questions include "How can I get in touch?", so leaving this
+# empty means the assistant can only say it does not know. Set it per deployment:
+#   wrangler deploy --var CONTACT_EMAIL:"you@example.com"
+CONTACT_EMAIL = ""
+
 # Secrets are never vars. Both of these are set with `wrangler secret put`:
 #
 #   DEEPSEEK_API_KEY     the upstream model key
