@@ -1,3 +1,5 @@
+<!-- Please write this pull request in English; see CONTRIBUTING.md. -->
+
 ## Type of change
 
 - [ ] Bug fix (a non-breaking change that fixes an issue)

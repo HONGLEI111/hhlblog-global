@@ -13,6 +13,8 @@ Please keep each pull request focused on a single purpose. Avoid mixing unrelate
 
 Please use the [Conventional Commits](https://www.conventionalcommits.org/) format for your commit messages whenever possible. This keeps our history clear and consistent.
 
+Please write commit messages, pull request titles and pull request descriptions in **English**. The site is English-only and this repository is public, so the history and the pull request list are read by people who may not read another language. See the Language convention in [`AGENTS.md`](AGENTS.md) for the one exception (quoting non-English material the change is about).
+
 Before submitting code, please run the appropriate commands to check for errors and format your code.
 
 ```bash
