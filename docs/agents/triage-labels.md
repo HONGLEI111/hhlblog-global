@@ -1,6 +1,6 @@
-# Triage 标签
+# Triage labels
 
-Skills 使用五个 canonical triage roles。这个文件把这些 roles 映射到此 repo issue tracker 中实际使用的 label 字符串。
+Skills speak in terms of five canonical triage roles. This file maps those roles onto the label strings actually used in this repo's issue tracker.
 
 | Label in mattpocock/skills | Label in our tracker | Meaning                                  |
 | -------------------------- | -------------------- | ---------------------------------------- |
@@ -10,6 +10,6 @@ Skills 使用五个 canonical triage roles。这个文件把这些 roles 映射�
 | `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
 | `wontfix`                  | `wontfix`            | Will not be actioned                     |
 
-当某个 skill 提到 role（例如 “apply the AFK-ready triage label”）时，使用此表中对应的 label 字符串。
+When a skill names a role (for example "apply the AFK-ready triage label"), use the label string this table maps it to.
 
-本 repo 使用默认字符串：右侧列与左侧一致。如果将来改用其他 label 名（例如用 `bug:triage` 表示 `needs-triage`），只编辑右侧列，避免 `/triage` 创建重复 labels。
+This repo uses the default strings: the right-hand column matches the left. If you later adopt different label names (for example `bug:triage` for `needs-triage`), edit only the right-hand column, so that `/triage` does not create duplicate labels.

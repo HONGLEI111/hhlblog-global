@@ -37,8 +37,10 @@ catch { try { browser = await chromium.launch({ channel: "chrome" }); } catch { 
   const viewport = await page.getAttribute('meta[name="viewport"]', "content");
   check("viewport: initial-scale + viewport-fit=cover", !!viewport && viewport.includes("initial-scale=1") && viewport.includes("viewport-fit=cover"), viewport || "MISSING");
   await page.waitForTimeout(1000);
-  const chatBtn = await page.locator('button[aria-label="AI 助手"]').count();
-  check("homepage: AI chat button hydrated via client:idle", chatBtn > 0);
+  // The chat widget is opt-in: Layout only mounts it when PUBLIC_CHAT_PROXY_URL
+  // is set at build time, so an unconfigured build must ship no chat button.
+  const chatBtn = await page.locator('button[aria-label="AI assistant"]').count();
+  check("homepage: chat widget absent while PUBLIC_CHAT_PROXY_URL is unset", chatBtn === 0, chatBtn + " button(s)");
   check("homepage: no page errors", errors.length === 0, errors.slice(0, 3).join(" | "));
   await ctx.close();
 }
@@ -63,7 +65,7 @@ catch { try { browser = await chromium.launch({ channel: "chrome" }); } catch { 
   check("mermaid page: no client-side render target left behind", rawSource === 0, rawSource + " pre.mermaid");
   const externalFont = urls.filter((u) => u.includes("fonts.googleapis") || u.includes("fonts.gstatic"));
   check("mermaid page: no Google Fonts request from diagrams", externalFont.length === 0, externalFont.join(",").slice(0, 120));
-  const drawer = await page.locator("details summary:has-text('目录')").count();
+  const drawer = await page.locator("details summary:has-text('Table of Contents')").count();
   check("post page @1280px: drawer TOC available below 2xl", drawer > 0);
   await ctx.close();
 }

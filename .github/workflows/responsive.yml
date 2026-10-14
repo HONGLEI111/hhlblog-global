@@ -39,7 +39,7 @@ jobs:
       - name: Build site
         run: pnpm build
 
-      - name: Run responsive + navigation smoke tests
+      - name: Run responsive, navigation and optimization smoke tests
         run: |
           pnpm preview --host 0.0.0.0 --port 4321 &
           PREVIEW_PID=$!
@@ -47,5 +47,6 @@ jobs:
           STATUS=0
           node scripts/responsive-check.mjs http://localhost:4321 || STATUS=$?
           node scripts/nav-check.mjs http://localhost:4321 || STATUS=$?
+          node scripts/verify-optimizations.mjs http://localhost:4321 || STATUS=$?
           kill $PREVIEW_PID || true
           exit $STATUS

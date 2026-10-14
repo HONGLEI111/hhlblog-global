@@ -165,6 +165,7 @@ All commands run from the project root:
 | `pnpm test` | Vitest unit tests |
 | `pnpm check:responsive` | Playwright responsive smoke test (needs a running server) |
 | `pnpm check:nav` | Playwright navigation smoke test (needs a running server) |
+| `pnpm check:optimizations` | Playwright payload/diagram/PWA assertions (needs a running server) |
 | `pnpm new-post` / `new-technology` / `new-read` | Scaffold content |
 | `pnpm format` / `pnpm lint` | Biome (these **write** files) |
 | `pnpm clean` | Remove `dist/`, `.astro/` and temp caches |

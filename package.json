@@ -33,6 +33,7 @@
     "check:responsive": "node scripts/responsive-check.mjs",
     "check:nav": "node scripts/nav-check.mjs",
     "check:chat": "node scripts/chat-check.mjs",
+    "check:optimizations": "node scripts/verify-optimizations.mjs",
     "astro": "astro",
     "type-check": "tsc --noEmit --isolatedDeclarations",
     "test": "vitest run",
