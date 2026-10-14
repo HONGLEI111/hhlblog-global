@@ -8,8 +8,9 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "贺宏磊的个人博客",
-	subtitle: "欢迎访问，贺宏磊的个人网站！",
+	title: "HHLBlog",
+	subtitle:
+		"A modern, content-first blog built with Astro, Svelte and Tailwind CSS.",
 	lang: "en", // English-only build; selects the dictionary in src/i18n/translation.ts
 	themeColor: {
 		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
@@ -42,25 +43,25 @@ export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
 		{
-			name: "博客",
+			name: "Blog",
 			url: "/posts/",
 			external: false,
 			icon: "material-symbols:group-outline-rounded",
 		},
 		{
-			name: "技术",
+			name: "Technology",
 			url: "/technology/",
 			external: false,
 			icon: "material-symbols:volunteer-activism-outline-rounded",
 		},
 		{
-			name: "阅读",
+			name: "Reading",
 			url: "/read/",
 			external: false,
 			icon: "material-symbols:build-outline-rounded",
 		},
 		{
-			name: "工具",
+			name: "Tools",
 			url: "/tools/",
 			external: false,
 			icon: "material-symbols:build-outline-rounded",
@@ -71,26 +72,19 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/avatar.gif", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
-	name: "Honglei He",
-	bio: "兴趣使然的网文作家，前端工程师~",
+	avatar: "assets/images/avatar.webp", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+	name: "HHLBlog",
+	bio: "An open-source blog theme — Astro 5, Svelte 5 and Tailwind CSS.",
 	links: [
-		{
-			name: "Email",
-			icon: "material-symbols:mail-outline-rounded", // Visit https://icones.js.org/ for icon codes
-			// You will need to install the corresponding icon set if it's not already included
-			// `pnpm add @iconify-json/<icon-set-name>`
-			url: "mailto:contact@hehonglei.com",
-		},
-		{
-			name: "Discord",
-			icon: "ic:baseline-discord",
-			url: "https://discord.com",
-		},
 		{
 			name: "GitHub",
 			icon: "fa6-brands:github",
-			url: "https://github.com/HONGLEI111",
+			url: "https://github.com/HONGLEI111/hhlblog-global",
+		},
+		{
+			name: "RSS",
+			icon: "material-symbols:rss-feed-rounded",
+			url: "/rss.xml",
 		},
 	],
 };
@@ -115,11 +109,6 @@ export interface FriendLink {
 }
 
 export const friendsConfig: { friends: FriendLink[] } = {
-	friends: [
-		{
-			name: "阮一峰",
-			url: "https://www.ruanyifeng.com",
-			description: "阮一峰的网络日志",
-		},
-	],
+	// Add your own links here; the Tools page hides this section while it is empty.
+	friends: [],
 };

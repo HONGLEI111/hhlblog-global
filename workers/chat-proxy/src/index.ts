@@ -3,22 +3,29 @@ import { ARTICLE_HOSTS, parseBody, resolveGrounding } from "./request.ts";
 
 interface Env {
   DEEPSEEK_API_KEY: string;
+  /** Comma-separated exact origins allowed to call this proxy. */
+  ALLOWED_ORIGINS?: string;
 }
 
 // Current DeepSeek model. The legacy names `deepseek-chat` / `deepseek-reasoner`
 // were retired on 2026-07-24; `deepseek-flash` is the V4.1 Flash model.
 const MODEL = "deepseek-flash";
 
-// Exact-match CORS allowlist. Do NOT use prefix matching here: an origin such
-// as "https://www.hehonglei.cn.evil.com" must never pass the check.
-// Do not put server IPs here (they would be visible in this public repo).
-// For remote dev, tunnel the dev server to your local machine instead:
-//   ssh -L 4321:127.0.0.1:4321 user@server   →   open http://localhost:4321
-const ALLOWED_ORIGINS = new Set([
-  'https://www.hehonglei.cn',
-  'https://hehonglei.cn',
-  'http://localhost:4321',
-]);
+/**
+ * Exact-match CORS allowlist, read from the ALLOWED_ORIGINS var so a fork never
+ * inherits someone else's domain. Do NOT use prefix matching: an origin such as
+ * "https://example.com.evil.com" must never pass the check. Do not put server
+ * IPs in here — they would be visible in this public repo; for remote dev,
+ * tunnel the dev server instead:
+ *   ssh -L 4321:127.0.0.1:4321 user@server   →   open http://localhost:4321
+ */
+function allowedOrigins(env: Env): Set<string> {
+  const configured = (env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return new Set(configured.length > 0 ? configured : ['http://localhost:4321']);
+}
 
 // Simple per-IP sliding-window rate limit backed by the Cache API.
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -85,7 +92,7 @@ function requestOrigin(request: Request, originHeader: string): string {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const origin = request.headers.get('Origin') || '';
-    const isAllowed = ALLOWED_ORIGINS.has(origin);
+    const isAllowed = allowedOrigins(env).has(origin);
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {

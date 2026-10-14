@@ -31,18 +31,16 @@ import { chromium } from "playwright";
 const BASE = process.argv[2] || process.env.BASE_URL || "http://localhost:4321";
 const ARTICLE = "/posts/ai-agent-architecture-patterns/";
 
-// Read the proxy URL from the component instead of hard-coding it, so this check
-// keeps working if the worker moves.
-const componentSource = readFileSync(
-	path.resolve("src/components/features/ChatWidget.svelte"),
-	"utf8",
-);
-const proxyMatch = componentSource.match(/PROXY_URL\s*=\s*"([^"]+)"/);
-if (!proxyMatch) {
-	console.error("chat-check: could not find PROXY_URL in ChatWidget.svelte");
+// The widget takes its endpoint from PUBLIC_CHAT_PROXY_URL at build time, so
+// this check must be pointed at the same value the site was built with.
+const proxyUrl = (process.env.PUBLIC_CHAT_PROXY_URL ?? "").trim();
+if (!proxyUrl) {
+	console.error(
+		"chat-check: set PUBLIC_CHAT_PROXY_URL to the endpoint the site was built with",
+	);
 	process.exit(1);
 }
-const proxyPattern = `${proxyMatch[1].replace(/\/+$/, "")}/**`;
+const proxyPattern = `${proxyUrl.replace(/\/+$/, "")}/**`;
 
 const results = [];
 function check(name, ok, detail = "") {
@@ -77,11 +75,11 @@ try {
 		requestCount++;
 		captured = JSON.parse(route.request().postData() || "{}");
 		replySeq++;
-		replyMarker = `回复标记${replySeq}`;
+		replyMarker = `reply-marker-${replySeq}`;
 		const chunks = [
-			{ choices: [{ delta: { content: "**多智能体** " } }] },
-			{ choices: [{ delta: { content: `${replyMarker} 架构：\n\n` } }] },
-			{ choices: [{ delta: { content: "- 要点一\n- 要点二\n\n```js\nconst a = 1;\n```" } }] },
+			{ choices: [{ delta: { content: "**Multi-agent** " } }] },
+			{ choices: [{ delta: { content: `${replyMarker} architecture:\n\n` } }] },
+			{ choices: [{ delta: { content: "- Point one\n- Point two\n\n```js\nconst a = 1;\n```" } }] },
 		];
 		const body = `${chunks.map((c) => `data: ${JSON.stringify(c)}\n\n`).join("")}data: [DONE]\n\n`;
 		await route.fulfill({
@@ -93,7 +91,7 @@ try {
 
 	const panel = page.locator("#ai-chat-panel");
 	const openPanel = async () => {
-		await page.locator('button[aria-label="AI 助手"]').click();
+		await page.locator('button[aria-label="AI assistant"]').click();
 		await panel.waitFor({ state: "visible", timeout: 5000 });
 	};
 	const articleTitle = () =>
@@ -112,20 +110,20 @@ try {
 
 	await openPanel();
 	check("panel opens", true);
-	const header = await panel.locator('span[title="回答会参考这篇文章"]').textContent();
+	const header = await panel.locator('span[title="Answers will reference this article"]').textContent();
 	check("header names current article", !!header && header.length > 4, header || "(none)");
 	check(
 		"article-specific suggestion shown",
-		(await panel.locator("button", { hasText: "总结这篇文章" }).count()) > 0,
+		(await panel.locator("button", { hasText: "Summarize this article" }).count()) > 0,
 	);
 
 	// 2. Send a question and inspect the outgoing request. Wait on the request
 	//    itself: a restored conversation may already contain the reply text.
-	await panel.locator("textarea").fill("这篇文章的核心结论是什么？");
-	const firstRequest = page.waitForRequest((req) => req.url().includes("ai-api.hehonglei.com"), {
+	await panel.locator("textarea").fill("What is the key takeaway of this article?");
+	const firstRequest = page.waitForRequest((req) => req.url().startsWith(proxyUrl), {
 		timeout: 15000,
 	});
-	await panel.locator('button[aria-label="发送"]').click();
+	await panel.locator('button[aria-label="Send"]').click();
 	await firstRequest;
 	await page.waitForFunction((m) => document.body.innerText.includes(m), replyMarker, {
 		timeout: 15000,
@@ -145,7 +143,7 @@ try {
 	);
 	check(
 		"context text excludes nav/UI chrome",
-		!(captured?.context?.text || "").includes("复制"),
+		!(captured?.context?.text || "").includes("Copy"),
 	);
 	check(
 		"no client-supplied system role",
@@ -174,8 +172,8 @@ try {
 
 	// 5. A Swup navigation must refresh the article label, since the widget lives
 	//    outside the swapped containers and never remounts.
-	await panel.locator('button[aria-label="关闭"]').click();
-	const prevLink = page.locator('a[aria-label^="上一篇"]').first();
+	await panel.locator('button[aria-label="Close"]').click();
+	const prevLink = page.locator('a[aria-label^="Previous post"]').first();
 	check("article has a next-article link to navigate with", (await prevLink.count()) > 0);
 	const titleBeforeClick = await articleTitle();
 	await prevLink.click();
@@ -193,11 +191,11 @@ try {
 	await openPanel();
 	const currentTitle = await articleTitle();
 	const swupHeader = await panel
-		.locator('span[title="回答会参考这篇文章"]')
+		.locator('span[title="Answers will reference this article"]')
 		.filter({ hasText: currentTitle.slice(0, 10) })
 		.first()
 		.textContent({ timeout: 5000 });
-	const headerTitle = (swupHeader || "").replace(/^基于《/, "").replace(/》$/, "").trim();
+	const headerTitle = (swupHeader || "").replace(/^Grounded in “/, "").replace(/”$/, "").trim();
 	check(
 		"header follows swup navigation",
 		!!headerTitle && (await page.title()).startsWith(headerTitle),
@@ -209,11 +207,11 @@ try {
 	//    pagefind ANDs its terms and a too-specific query returns nothing.
 	captured = null;
 	const requestsBeforeRetrieval = requestCount;
-	await panel.locator("textarea").fill("向量数据库是怎么做检索的？");
-	const secondRequest = page.waitForRequest((req) => req.url().includes("ai-api.hehonglei.com"), {
+	await panel.locator("textarea").fill("How does a vector database do retrieval?");
+	const secondRequest = page.waitForRequest((req) => req.url().startsWith(proxyUrl), {
 		timeout: 15000,
 	});
-	await panel.locator('button[aria-label="发送"]').click();
+	await panel.locator('button[aria-label="Send"]').click();
 	await secondRequest;
 	await page.waitForTimeout(1200);
 	check(
@@ -237,10 +235,10 @@ try {
 	);
 
 	// 7. Clearing the conversation empties it.
-	await panel.locator('button[aria-label="清空对话"]').click();
+	await panel.locator('button[aria-label="Clear conversation"]').click();
 	check(
 		"clear conversation returns to empty state",
-		(await panel.locator("text=可以问我关于这篇文章的问题").count()) > 0,
+		(await panel.locator("text=Ask me anything about this article").count()) > 0,
 	);
 
 	// 8. A page without an article must not send context.
@@ -249,13 +247,13 @@ try {
 	await openPanel();
 	check(
 		"home page falls back to generic prompts",
-		(await panel.locator("button", { hasText: "这个博客主要写什么" }).count()) > 0,
+		(await panel.locator("button", { hasText: "What is this blog about" }).count()) > 0,
 	);
-	await panel.locator("textarea").fill("这个博客主要写什么？");
-	const homeRequest = page.waitForRequest((req) => req.url().includes("ai-api.hehonglei.com"), {
+	await panel.locator("textarea").fill("What is this blog about?");
+	const homeRequest = page.waitForRequest((req) => req.url().startsWith(proxyUrl), {
 		timeout: 15000,
 	});
-	await panel.locator('button[aria-label="发送"]').click();
+	await panel.locator('button[aria-label="Send"]').click();
 	await homeRequest;
 	await page.waitForTimeout(1200);
 	check(

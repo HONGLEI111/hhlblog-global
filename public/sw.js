@@ -1,5 +1,5 @@
 /* Minimal service worker: cache-first for hashed static assets, network-first for HTML. */
-const CACHE = "fuwariblog-static-v1";
+const CACHE = "hhlblog-static-v1";
 const PRECACHE_ASSET = /^\/(_astro|pagefind|favicon|images|fonts)\//;
 
 self.addEventListener("install", () => {

@@ -1,7 +1,26 @@
 {
   "name": "hhlblog-global",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "description": "A fast, content-first blog built with Astro 5, Svelte 5 and Tailwind CSS, with a fully static English-only output.",
+  "license": "MIT",
+  "author": "HHLBlog contributors",
+  "homepage": "https://www.hehonglei.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HONGLEI111/hhlblog-global.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HONGLEI111/hhlblog-global/issues"
+  },
+  "keywords": [
+    "astro",
+    "svelte",
+    "tailwindcss",
+    "blog",
+    "static-site",
+    "pagefind"
+  ],
   "engines": {
     "node": ">=22"
   },

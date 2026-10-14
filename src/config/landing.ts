@@ -1,13 +1,8 @@
 export const SITE = {
-	name: "贺宏磊的个人博客",
-	site: "https://www.hehonglei.cn",
+	name: "HHLBlog",
+	site: "https://www.hehonglei.com",
 	base: "/",
 	trailingSlash: true,
-};
-
-export const I18N = {
-	language: "zh-CN",
-	textDirection: "ltr",
 };
 
 export const APP_BLOG = {

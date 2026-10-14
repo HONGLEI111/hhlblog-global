@@ -8,9 +8,9 @@ export interface Props extends Widget {
 	avatar: string;
 	name: string;
 	role: string;
-	company: string;
+	company?: string;
 	bio: string;
-	location: string;
+	location?: string;
 	tags: string[];
 	socialLinks: { name: string; icon: string; url: string }[];
 }
@@ -54,8 +54,14 @@ const {
           <Icon name="tabler:briefcase" class="w-4 h-4" />
           {role}
         </span>
-        <span class="text-muted text-sm">@</span>
-        <span class="text-sm font-medium text-heading">{company}</span>
+        {
+          company && (
+            <>
+              <span class="text-muted text-sm">@</span>
+              <span class="text-sm font-medium text-heading">{company}</span>
+            </>
+          )
+        }
       </div>
       {
         location && (

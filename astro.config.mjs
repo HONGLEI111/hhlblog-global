@@ -80,7 +80,7 @@ function getLastmodMap() {
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://www.hehonglei.cn",
+	site: "https://www.hehonglei.com",
 	base: "/",
 	trailingSlash: "always",
 	build: {
@@ -88,7 +88,7 @@ export default defineConfig({
 	},
 	image: {
 		remotePatterns: [
-			{ protocol: "https", hostname: "**.hehonglei.cn" },
+			{ protocol: "https", hostname: "**.hehonglei.com" },
 			{ protocol: "https", hostname: "**.pages.dev" },
 		],
 	},

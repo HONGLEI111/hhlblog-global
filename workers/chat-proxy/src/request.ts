@@ -54,8 +54,8 @@ const MAX_SNIPPET_TITLE = 200;
  * context is allowed to claim it is quoting.
  */
 export const ARTICLE_HOSTS: ReadonlySet<string> = new Set([
-  "www.hehonglei.cn",
-  "hehonglei.cn",
+  "www.hehonglei.com",
+  "hehonglei.com",
   "localhost:4321",
   "127.0.0.1:4321",
 ]);

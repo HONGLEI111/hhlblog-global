@@ -192,7 +192,7 @@ describe("buildWorkspace", () => {
 		const result = buildWorkspace(
 			asElement(el("div")),
 			"标题".repeat(300),
-			"https://www.hehonglei.cn/posts/x/",
+			"https://example.com/posts/x/",
 			[],
 			budget,
 			() => article,
@@ -201,7 +201,7 @@ describe("buildWorkspace", () => {
 		expect(result).not.toBeNull();
 		expect(result?.truncated).toBe(true);
 		expect(result?.title.length).toBe(200);
-		expect(result?.url).toBe("https://www.hehonglei.cn/posts/x/");
+		expect(result?.url).toBe("https://example.com/posts/x/");
 		expect((result?.text ?? "").length).toBeLessThanOrEqual(budget);
 	});
 });

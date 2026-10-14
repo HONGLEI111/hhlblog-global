@@ -79,6 +79,10 @@ const metaDescription = (description || excerpt || pageTitle).trim();
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = ogImage ?? new URL("/og-image.jpg", Astro.site).href;
 
+// The AI chat widget is opt-in: it needs a proxy endpoint that the reader can
+// actually reach. Set PUBLIC_CHAT_PROXY_URL to enable it (see README > AI chat).
+const chatProxyUrl = (import.meta.env.PUBLIC_CHAT_PROXY_URL ?? "").trim();
+
 const favicons: Favicon[] =
 	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
 
@@ -120,9 +124,6 @@ const bannerOffset =
 		<meta charset="UTF-8" />
 		<meta name="description" content={metaDescription}>
 		<meta name="author" content={profileConfig.name}>
-
-		<!-- 百度站长平台站点验证（仅首页输出） -->
-		{isHomePage && <meta name="baidu-site-verification" content="codeva-mfTB8hvjqT" />}
 
 		<meta property="og:site_name" content={siteConfig.title}>
 		<meta property="og:locale" content={siteLang}>
@@ -207,7 +208,7 @@ const bannerOffset =
 		<slot />
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
 		<div id="page-height-extend" class="hidden h-[300vh]"></div>
-	<ChatWidget client:idle></ChatWidget>
+	{chatProxyUrl && <ChatWidget client:idle></ChatWidget>}
 
 	<!-- PWA: register the service worker for offline caching of static assets -->
 	{import.meta.env.PROD && <script is:inline>

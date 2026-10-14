@@ -51,9 +51,15 @@ const isLocal = !(
 	src.startsWith("data:")
 );
 const isPublic = src.startsWith("/");
-const isOptimizableRemote =
-	src.startsWith("https://img.hehonglei.cn/") ||
-	src.startsWith("https://e1a585c0.imghub-bl9.pages.dev/");
+// Remote hosts that may be sent through Astro's image pipeline. Keep this in
+// sync with `image.remotePatterns` in astro.config.mjs.
+const OPTIMIZABLE_REMOTE_PREFIXES = [
+	"https://img.hehonglei.com/",
+	"https://e1a585c0.imghub-bl9.pages.dev/",
+];
+const isOptimizableRemote = OPTIMIZABLE_REMOTE_PREFIXES.some((prefix) =>
+	src.startsWith(prefix),
+);
 
 /*
  * Animated sources must NOT go through the image pipeline. Verified on the 2-frame

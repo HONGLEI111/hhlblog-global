@@ -1,8 +1,8 @@
 {
-  "name": "贺宏磊的个人博客",
-  "short_name": "贺宏磊的博客",
-  "description": "欢迎访问，贺宏磊的个人网站！",
-  "lang": "zh-CN",
+  "name": "HHLBlog",
+  "short_name": "HHLBlog",
+  "description": "A modern, content-first blog built with Astro, Svelte and Tailwind CSS.",
+  "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

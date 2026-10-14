@@ -23,7 +23,13 @@ interface UiMessage extends ChatMessage {
 	interrupted?: boolean;
 }
 
-const PROXY_URL = "https://ai-api.hehonglei.com/";
+/**
+ * Proxy endpoint of the chat backend. Read from PUBLIC_CHAT_PROXY_URL so a fork
+ * never inherits someone else's server; when it is empty the widget is not
+ * mounted at all (see Layout.astro) and the guard in sendMessage keeps any
+ * stray call from hitting the network.
+ */
+const PROXY_URL = (import.meta.env.PUBLIC_CHAT_PROXY_URL ?? "").trim();
 
 /**
  * The rendered article root. Identical selector to the one pagefind indexes, so
@@ -309,6 +315,11 @@ async function sendMessage(preset?: string) {
 
 		const workspace = currentWorkspace(queryTerms(text));
 		const { snippets } = await retrieval;
+
+		if (!PROXY_URL) {
+			error = "The AI assistant is not configured for this deployment.";
+			return;
+		}
 
 		const response = await fetch(PROXY_URL, {
 			method: "POST",
