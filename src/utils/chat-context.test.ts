@@ -286,6 +286,41 @@ describe("queryTerms", () => {
 	it("splits Chinese stopword compounds out of a single run", () => {
 		expect(queryTerms("什么是向量数据库")).toEqual(["向量数据库"]);
 	});
+
+	it("keeps an English word that merely contains a stopword", () => {
+		// "the" in theory, "and" in android, "for" in format, "with" in without:
+		// the fragment-trimming loop exists for Chinese runs, and applying it to
+		// Latin tokens used to leave "ory", "roid", "mat" and "out" behind.
+		expect(queryTerms("How does the theory of android format work?")).toEqual([
+			"theory",
+			"android",
+			"format",
+			"work",
+		]);
+		expect(
+			queryTerms("Why is the deployment without a database slow?"),
+		).toEqual(["deployment", "without", "database", "slow"]);
+	});
+
+	it("keeps a word a stopword sits inside, not only at its edge", () => {
+		expect(queryTerms("vector database retrieval performance")).toEqual([
+			"vector",
+			"database",
+			"retrieval",
+			"performance",
+		]);
+	});
+
+	it("drops English function words and conversational verbs", () => {
+		expect(queryTerms("What is this blog about?")).toEqual(["blog"]);
+		expect(
+			queryTerms("Can you explain the caching strategy in this article?"),
+		).toEqual(["caching", "strategy", "article"]);
+		expect(queryTerms("Find me a few posts about RAG")).toEqual([
+			"posts",
+			"rag",
+		]);
+	});
 });
 
 describe("toGroundingSnippets", () => {

@@ -279,7 +279,7 @@ export function trimHistory(
 	let result = kept.slice(-maxMessages);
 
 	// Re-attach the first turn when it fell out of the window; a follow-up like
-	// "那它呢？" is meaningless without the question it refers to.
+	// "and what about that?" is meaningless without the question it refers to.
 	const first = messages[0];
 	const firstIncluded = result.some((m) => m === first);
 	if (!firstIncluded && first.content.length + used <= maxChars) {
@@ -289,7 +289,15 @@ export function trimHistory(
 	return { messages: result, dropped: original - result.length };
 }
 
-const QUERY_STOPWORDS = new Set([
+/**
+ * Words that carry no search signal, split by the way each script needs to be
+ * matched. Chinese has no word delimiters, so a Chinese stopword has to be cut
+ * out of the run itself ("为什么这个" arrives as a single token). Latin words do
+ * have boundaries, so an English stopword must only match a whole token —
+ * removing the substring "the" from "theory" would leave "ory" and turn a real
+ * query into noise.
+ */
+const CJK_STOPWORDS = new Set([
 	"什么",
 	"为什么",
 	"怎么",
@@ -318,29 +326,128 @@ const QUERY_STOPWORDS = new Set([
 	"了",
 	"吗",
 	"呢",
-	"what",
-	"why",
-	"how",
-	"the",
-	"and",
-	"for",
-	"with",
-	"does",
-	"this",
-	"that",
 ]);
 
+const LATIN_STOPWORDS = new Set([
+	"a",
+	"an",
+	"the",
+	"and",
+	"or",
+	"but",
+	"if",
+	"then",
+	"than",
+	"so",
+	"as",
+	"of",
+	"to",
+	"in",
+	"on",
+	"at",
+	"by",
+	"for",
+	"with",
+	"about",
+	"from",
+	"into",
+	"is",
+	"are",
+	"was",
+	"were",
+	"be",
+	"been",
+	"being",
+	"do",
+	"does",
+	"did",
+	"have",
+	"has",
+	"had",
+	"can",
+	"could",
+	"should",
+	"would",
+	"will",
+	"may",
+	"might",
+	"must",
+	"i",
+	"me",
+	"my",
+	"we",
+	"us",
+	"our",
+	"you",
+	"your",
+	"it",
+	"its",
+	"this",
+	"that",
+	"these",
+	"those",
+	"there",
+	"here",
+	"what",
+	"which",
+	"who",
+	"whom",
+	"whose",
+	"when",
+	"where",
+	"why",
+	"how",
+	"not",
+	"no",
+	"any",
+	"all",
+	"some",
+	"few",
+	"more",
+	"most",
+	"much",
+	"many",
+	"very",
+	"just",
+	"also",
+	"again",
+	"only",
+	"please",
+	"thanks",
+	// Conversational verbs the reader types but an article rarely contains; kept
+	// out so a question like "explain the caching strategy" searches for the
+	// topic instead of for the word "explain".
+	"tell",
+	"say",
+	"said",
+	"give",
+	"show",
+	"find",
+	"get",
+	"got",
+	"want",
+	"need",
+	"know",
+	"let",
+	"help",
+	"explain",
+	"summarize",
+	"describe",
+]);
+
+/** A token made only of Han characters, i.e. one that has no word boundaries. */
+const CJK_RUN = /^[\u4e00-\u9fa5]+$/;
+
 /**
- * Reduce a natural-language question to search tokens. Raw Chinese questions
- * are poor BM25 queries, so keep only the substantive tokens: Latin words, and
- * Chinese runs of two or more characters.
+ * Reduce a natural-language question to search tokens. A raw question is a poor
+ * BM25 query, so keep only the substantive tokens: Latin words, and Chinese runs
+ * of two or more characters.
  */
 export function queryTerms(question: string, maxTerms = 8): string[] {
-	// Chinese has no word delimiters, so a whole run like "为什么这个" arrives as
-	// one token. Cut the stopwords out of the run first, otherwise every Chinese
-	// question keeps its interrogative prefix and the search terms are noise.
 	let normalized = question.toLowerCase();
-	for (const stopword of QUERY_STOPWORDS) {
+	// Cut Chinese stopwords out of the run first: an interrogative prefix such as
+	// "为什么这个" would otherwise stay glued to the topic and become search noise.
+	for (const stopword of CJK_STOPWORDS) {
 		normalized = normalized.split(stopword).join(" ");
 	}
 
@@ -350,25 +457,34 @@ export function queryTerms(question: string, maxTerms = 8): string[] {
 	const terms: string[] = [];
 
 	for (const token of tokens) {
-		// Repeatedly strip stopword fragments from either end: "是向量数据库"
-		// still carries the copula after the interrogative was cut.
 		let term = token.replace(/^[._-]+|[._-]+$/g, "");
-		let changed = true;
-		while (changed && term.length >= 2) {
-			changed = false;
-			for (const stopword of QUERY_STOPWORDS) {
-				if (term.startsWith(stopword) && term.length > stopword.length) {
-					term = term.slice(stopword.length);
-					changed = true;
-				}
-				if (term.endsWith(stopword) && term.length > stopword.length) {
-					term = term.slice(0, -stopword.length);
-					changed = true;
+
+		// Only a Chinese run gets its stopword fragments trimmed: it may still
+		// carry a particle after the interrogative was cut ("是向量数据库"). A
+		// Latin token has boundaries already, so trimming here corrupts words.
+		if (CJK_RUN.test(term)) {
+			let changed = true;
+			while (changed && term.length >= 2) {
+				changed = false;
+				for (const stopword of CJK_STOPWORDS) {
+					if (term.startsWith(stopword) && term.length > stopword.length) {
+						term = term.slice(stopword.length);
+						changed = true;
+					}
+					if (term.endsWith(stopword) && term.length > stopword.length) {
+						term = term.slice(0, -stopword.length);
+						changed = true;
+					}
 				}
 			}
 		}
 
-		if (term.length < 2 || QUERY_STOPWORDS.has(term) || seen.has(term))
+		if (
+			term.length < 2 ||
+			CJK_STOPWORDS.has(term) ||
+			LATIN_STOPWORDS.has(term) ||
+			seen.has(term)
+		)
 			continue;
 		seen.add(term);
 		terms.push(term);
@@ -450,10 +566,11 @@ export const EMPTY_HITS: QueryHits = { results: [], snippets: [] };
  * Query strings to try, most specific first.
  *
  * Pagefind treats the terms as an AND: a conversational question such as
- * "向量数据库是怎么做检索的？" tokenizes to `向量数据库 做检索`, and any single term
- * that appears nowhere in the corpus makes the whole search return zero hits.
- * Dropping the trailing terms one at a time keeps the question usable for
- * retrieval while still preferring the most specific query.
+ * "how does the vector database do retrieval?" tokenizes to `vector database
+ * retrieval`, and any single term that appears nowhere in the corpus makes the
+ * whole search return zero hits. Dropping the trailing terms one at a time keeps
+ * the question usable for retrieval while still preferring the most specific
+ * query.
  */
 export function queryTermsWithFallbacks(
 	question: string,
