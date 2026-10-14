@@ -17,6 +17,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# content translation pass bookkeeping (scripts/translate-content.mjs)
+.translate-content-cache.json
+
 # macOS-specific files
 .DS_Store
 
