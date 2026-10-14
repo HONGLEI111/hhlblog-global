@@ -45,15 +45,15 @@ interface PersistedState {
 }
 
 const GENERIC_SUGGESTIONS = [
-	"这个博客主要写什么？",
-	"帮我找几篇讲 RAG 的文章",
-	"怎么联系博主？",
+	"What is this blog about?",
+	"Find me a few posts about RAG",
+	"How can I get in touch?",
 ];
 
 const ARTICLE_SUGGESTIONS = [
-	"用几句话总结这篇文章",
-	"这篇文章的核心结论是什么？",
-	"文中提到的例子能再解释一下吗",
+	"Summarize this article in a few sentences",
+	"What is the key takeaway of this article?",
+	"Can you explain the example in the article again?",
 ];
 
 let isOpen = $state(false);
@@ -269,9 +269,9 @@ async function sendMessage(preset?: string) {
 			? text.slice(selectedText.length).trim()
 			: text;
 		if (extra) {
-			finalContent = `用户选取了以下文字：\n\n"""\n${truncated}\n"""\n\n问题：${extra}`;
+			finalContent = `The user selected the following text:\n\n"""\n${truncated}\n"""\n\nQuestion: ${extra}`;
 		} else {
-			finalContent = `用户选取了以下文字：\n\n"""\n${truncated}\n"""`;
+			finalContent = `The user selected the following text:\n\n"""\n${truncated}\n"""`;
 		}
 		selectedText = "";
 		showSelectionPopup = false;
@@ -370,8 +370,8 @@ async function sendMessage(preset?: string) {
 			// saying so is more useful than a generic failure.
 			error =
 				e instanceof Error && e.message === "HTTP 429"
-					? "提问太快了，请等一分钟再试"
-					: "请求失败，请稍后重试";
+					? "Too many questions in a row — please wait a minute and try again"
+					: "Request failed. Please try again later.";
 			if (assistantMessage.content === "") {
 				messages = messages.slice(0, -1);
 			}
@@ -600,14 +600,14 @@ const suggestions = $derived(
     style="top: {popupPos.y}px; left: {popupPos.x}px; transform: translateX(-50%);"
   >
     <Icon icon="material-symbols:smart-toy-outline" class="text-base" />
-    <span>问 AI</span>
+    <span>Ask AI</span>
   </button>
 {/if}
 
 <!-- Floating button -->
 <button
   onclick={togglePanel}
-  aria-label="AI 助手"
+  aria-label="AI assistant"
   aria-expanded={isOpen}
   aria-controls="ai-chat-panel"
   style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); right: calc(1.5rem + env(safe-area-inset-right, 0px));"
@@ -635,7 +635,7 @@ const suggestions = $derived(
            card-base shadow-xl rounded-2xl flex flex-col"
     role="dialog"
     aria-modal="true"
-    aria-label="AI 对话"
+    aria-label="AI chat"
   >
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-3 border-b
@@ -643,14 +643,14 @@ const suggestions = $derived(
       <div class="flex flex-col min-w-0">
         <div class="flex items-center gap-2">
           <Icon icon="material-symbols:smart-toy-outline" class="text-lg text-[var(--primary)]" />
-          <span class="font-medium text-sm text-[var(--deep-text)]">AI 助手</span>
+          <span class="font-medium text-sm text-[var(--deep-text)]">AI assistant</span>
         </div>
         {#if hasArticle && articleTitle}
           <span
             class="text-[0.6875rem] text-[var(--shallow-text)] truncate max-w-[210px] mt-0.5"
-            title="回答会参考这篇文章"
+            title="Answers will reference this article"
           >
-            基于《{articleTitle}》
+            Grounded in “{articleTitle}”
           </span>
         {/if}
       </div>
@@ -659,13 +659,13 @@ const suggestions = $derived(
           <button
             onclick={clearConversation}
             class="btn-plain w-8 h-8 rounded-lg"
-            aria-label="清空对话"
-            title="清空对话"
+            aria-label="Clear conversation"
+            title="Clear conversation"
           >
             <Icon icon="material-symbols:delete-outline" class="text-lg" />
           </button>
         {/if}
-        <button onclick={closePanel} class="btn-plain w-8 h-8 rounded-lg" aria-label="关闭">
+        <button onclick={closePanel} class="btn-plain w-8 h-8 rounded-lg" aria-label="Close">
           <Icon icon="material-symbols:close" class="text-lg" />
         </button>
       </div>
@@ -683,7 +683,7 @@ const suggestions = $derived(
                     text-[var(--shallow-text)] text-sm gap-3">
           <Icon icon="material-symbols:smart-toy-outline" class="text-3xl opacity-40" />
           <p>
-            {hasArticle ? "可以问我关于这篇文章的问题" : "有什么可以帮你的？"}
+            {hasArticle ? "Ask me anything about this article" : "What can I help you with?"}
           </p>
           <div class="flex flex-wrap gap-2 justify-center px-2">
             {#each suggestions as suggestion}
@@ -719,7 +719,7 @@ const suggestions = $derived(
                 <!-- Rendered as sanitized Markdown (see @utils/chat-markdown.ts). -->
                 <div data-chat-markdown>{@html renderMarkdown(msg.content)}</div>
                 {#if msg.interrupted}
-                  <div class="text-[0.6875rem] text-[var(--shallow-text)] mt-1">已停止</div>
+                  <div class="text-[0.6875rem] text-[var(--shallow-text)] mt-1">Stopped</div>
                 {/if}
               {:else if isLoading}
                 <span class="flex gap-1 py-1">
@@ -735,9 +735,9 @@ const suggestions = $derived(
                 class="btn-plain text-[0.6875rem] px-2 py-0.5 rounded-md opacity-0
                        group-hover:opacity-100 focus-visible:opacity-100
                        text-[var(--shallow-text)] transition-opacity"
-                aria-label="复制回答"
+                aria-label="Copy answer"
               >
-                复制
+                Copy
               </button>
             {/if}
           </div>
@@ -746,7 +746,7 @@ const suggestions = $derived(
             <div class="flex justify-start mt-2">
               <div class="max-w-[85%] space-y-1.5">
                 <div class="text-xs font-medium text-[var(--shallow-text)] ml-1">
-                  相关文章
+                  Related posts
                 </div>
                 {#each msg.relatedArticles as article}
                   <a
@@ -785,7 +785,7 @@ const suggestions = $derived(
     <div class="shrink-0 px-3 py-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
       {#if droppedTurns > 0}
         <div class="text-[0.6875rem] text-[var(--shallow-text)] px-1 pb-1.5">
-          对话较长，已省略最早的 {droppedTurns} 条消息
+          Conversation is long — the earliest {droppedTurns} messages were dropped
         </div>
       {/if}
       <div class="flex items-end gap-2">
@@ -795,8 +795,8 @@ const suggestions = $derived(
           onkeydown={handleKeydown}
           oninput={handleInput}
           rows="1"
-          placeholder={hasArticle ? "问点关于这篇文章的问题..." : "输入问题..."}
-          aria-label="输入问题"
+          placeholder={hasArticle ? "Ask about this article..." : "Type a question..."}
+          aria-label="Ask a question"
           disabled={isLoading}
           class="flex-1 resize-none rounded-xl px-3 py-2 text-sm
                  bg-black/[0.04] dark:bg-white/5
@@ -808,7 +808,7 @@ const suggestions = $derived(
           <button
             onclick={stopStreaming}
             class="btn-regular w-9 h-9 rounded-xl shrink-0 !bg-red-500 !text-white"
-            aria-label="停止"
+            aria-label="Stop"
           >
             <Icon icon="material-symbols:stop" class="text-lg" />
           </button>
@@ -819,7 +819,7 @@ const suggestions = $derived(
             class="btn-regular w-9 h-9 rounded-xl shrink-0 disabled:opacity-40"
             class:!bg-[var(--primary)]={!!inputText.trim()}
             class:!text-white={!!inputText.trim()}
-            aria-label="发送"
+            aria-label="Send"
           >
             <Icon icon="material-symbols:arrow-upward" class="text-lg" />
           </button>

@@ -37,7 +37,6 @@ interface Props {
 	title?: string;
 	banner?: string;
 	description?: string;
-	lang?: string;
 	setOGTypeArticle?: boolean;
 	canonical?: string;
 	ogImage?: string;
@@ -48,7 +47,6 @@ let {
 	title,
 	banner,
 	description,
-	lang,
 	setOGTypeArticle,
 	canonical,
 	ogImage,
@@ -84,11 +82,7 @@ const ogImageUrl = ogImage ?? new URL("/og-image.jpg", Astro.site).href;
 const favicons: Favicon[] =
 	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
 
-// const siteLang = siteConfig.lang.replace('_', '-')
-if (!lang) {
-	lang = `${siteConfig.lang}`;
-}
-const siteLang = lang.replace("_", "-");
+const siteLang = siteConfig.lang.replace("_", "-");
 
 const bannerOffsetByPosition = {
 	top: `${BANNER_HEIGHT_EXTEND}vh`,

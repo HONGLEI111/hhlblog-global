@@ -15,8 +15,9 @@ const { page } = Astro.props;
 
 const len = page.data.length;
 const isFirstPage = page.currentPage === 1;
-const listingTitle = isFirstPage ? "博客" : `博客 - 第 ${page.currentPage} 页`;
-const listingDescription = "技术学习、前端开发经验与日常思考的博客文章列表。";
+const listingTitle = isFirstPage ? "Blog" : `Blog - Page ${page.currentPage}`;
+const listingDescription =
+	"A list of posts on software engineering, frontend development, and everyday notes.";
 const canonical = isFirstPage
 	? undefined
 	: new URL(page.url.first ?? "/posts/", Astro.site).href;

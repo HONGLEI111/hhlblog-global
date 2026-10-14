@@ -40,9 +40,6 @@ yarn.lock
 # wrangler (workers/chat-proxy)
 .wrangler/
 
-# i18n translation cache
-.i18n-cache.json
-
 # pnpm local store (auto-created on install)
 .pnpm-store/
 
@@ -50,11 +47,3 @@ yarn.lock
 .tmp-cache/
 .tmp-data/
 .tmp-*
-
-# generated search index
-public/search-index.json
-
-# generated post translations
-src/content/translated/
-.i18n-posts-cache.json
-public/translated-titles.json

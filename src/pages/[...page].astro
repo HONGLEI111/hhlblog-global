@@ -22,7 +22,7 @@ const { page } = Astro.props;
 const len = page.data.length;
 const isHomePage = page.currentPage === 1;
 
-const listTitle = isHomePage ? undefined : `第 ${page.currentPage} 页`;
+const listTitle = isHomePage ? undefined : `Page ${page.currentPage}`;
 const listCanonical = isHomePage ? undefined : new URL("/", Astro.site).href;
 
 const websiteJsonLd = {

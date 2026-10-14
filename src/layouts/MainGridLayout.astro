@@ -20,7 +20,6 @@ interface Props {
 	title?: string;
 	banner?: string;
 	description?: string;
-	lang?: string;
 	setOGTypeArticle?: boolean;
 	headings?: MarkdownHeading[];
 	sidebarCollection?: "posts" | "read" | "technology";
@@ -33,7 +32,6 @@ const {
 	title,
 	banner,
 	description,
-	lang,
 	setOGTypeArticle,
 	headings = [],
 	sidebarCollection = "posts",
@@ -50,7 +48,7 @@ const mainPanelTop = siteConfig.banner.enable
 	: "5.5rem";
 ---
 
-<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} canonical={canonical} ogImage={ogImage} excerpt={excerpt}>
+<Layout title={title} banner={banner} description={description} setOGTypeArticle={setOGTypeArticle} canonical={canonical} ogImage={ogImage} excerpt={excerpt}>
 
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>
