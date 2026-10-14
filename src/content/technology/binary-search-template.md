@@ -82,10 +82,10 @@ The most familiar scenario: find an exact value in an array, return its index if
 
 ```mermaid
 graph LR
-    A["区间 [0,6] mid=3 值 7"] --> B["7 < 9 答案在右半"]
-    B --> C["区间 [4,6] mid=5 值 11"]
-    C --> D["11 > 9 答案在左半"]
-    D --> E["区间 [4,4] mid=4 值 9 命中"]
+    A["Interval [0,6] mid=3 value 7"] --> B["7 < 9 answer is in the right half"]
+    B --> C["Interval [4,6] mid=5 value 11"]
+    C --> D["11 > 9 answer is in the left half"]
+    D --> E["Interval [4,4] mid=4 value 9 hit"]
 ```
 
 This one is most intuitive with a **closed interval on both ends `[left, right]`**: return `return mid` immediately on a hit, and if the loop ends, it means nothing was found.
@@ -229,9 +229,9 @@ Tracing through it step by step, you can see how the interval shrinks down to th
 
 ```mermaid
 graph LR
-    A["[0,5) mid=2 a[2]=2 >= 2 收右端"] --> B["[0,2) mid=1 a[1]=2 >= 2 收右端"]
-    B --> C["[0,1) mid=0 a[0]=1 < 2 收左端"]
-    C --> D["[1,1) 区间空 返回 left = 1"]
+    A["[0,5) mid=2 a[2]=2 >= 2 shrink right end"] --> B["[0,2) mid=1 a[1]=2 >= 2 shrink right end"]
+    B --> C["[0,1) mid=0 a[0]=1 < 2 shrink left end"]
+    C --> D["[1,1) interval empty return left = 1"]
 ```
 
 ### Key Points

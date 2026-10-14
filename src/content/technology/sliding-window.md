@@ -43,11 +43,11 @@ window: [left ...... right]
 
 ```mermaid
 graph LR
-    A[右指针加入元素] --> B[更新窗口状态]
-    B --> C{窗口是否合法?}
-    C -->|否| D[左指针收缩]
+    A[Add right pointer element] --> B[Update window state]
+    B --> C{Is window valid?}
+    C -->|No| D[Shrink left pointer]
     D --> B
-    C -->|是| E[更新答案]
+    C -->|Yes| E[Update answer]
 ```
 
 The reason sliding window is O(n) is that each element is added by the right pointer at most once and removed by the left pointer at most once.
@@ -243,10 +243,10 @@ If the window state cannot be updated in O(1) or amortized O(1), the sliding win
 
 ```mermaid
 graph LR
-    A[定义窗口含义] --> B[右指针扩张]
-    B --> C[更新窗口状态]
-    C --> D[左指针收缩]
-    D --> E[更新答案]
+    A[Define window meaning] --> B[Expand right pointer]
+    B --> C[Update window state]
+    C --> D[Shrink left pointer]
+    D --> E[Update answer]
 ```
 
 **Key Points**:

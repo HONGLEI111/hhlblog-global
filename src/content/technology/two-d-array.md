@@ -252,9 +252,9 @@ Adding one extra row and one extra column as sentinels makes boundary calculatio
 
 ```mermaid
 graph LR
-    A[行列坐标] --> B[方向移动]
-    B --> C[边界判断]
-    C --> D[遍历/搜索/变换]
+    A[Row/column coordinates] --> B[Directional movement]
+    B --> C[Boundary checking]
+    C --> D[Traversal/search/transformation]
 ```
 
 - The core of 2D arrays is row-column coordinates and boundary checking.

@@ -222,9 +222,9 @@ Using a comparison function as a constructor parameter allows the same heap impl
 
  ```mermaid
 graph LR
-    A[数组表示完全二叉树] --> B[上浮维护堆序]
-    B --> C[下沉维护堆序]
-    C --> D[优先队列接口]
+    A[Array representation of a complete binary tree] --> B[Sift up to maintain heap order]
+    B --> C[Sift down to maintain heap order]
+    C --> D[Priority queue interface]
 ```
 
 - A heap is a complete binary tree represented as an array.

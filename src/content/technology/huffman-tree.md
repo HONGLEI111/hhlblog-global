@@ -36,9 +36,9 @@ Using the string `"ABRACADABRA"` as an example, first count the character freque
 
 ```mermaid
 xychart-beta horizontal
-    title "字符频率分布"
+    title "Character frequency distribution"
     x-axis [A, B, R, C, D]
-    y-axis "出现次数" 0 --> 5
+    y-axis "Occurrence count" 0 --> 5
     bar [5, 2, 2, 1, 1]
 ```
 
@@ -52,7 +52,7 @@ The final Huffman tree constructed:
 
 ```mermaid
 graph TD
-    Root(["🔵 根 (11)"]) --> A(["🟢 A:5"])
+    Root(["🔵 Root (11)"]) --> A(["🟢 A:5"])
     Root --> Node6(["⚪ (6)"])
     Node6 --> Node2(["⚪ (2)"])
     Node6 --> Node4(["⚪ (4)"])
@@ -358,11 +358,11 @@ The canonical version can compress the code table from O(n × code length) to O(
 
 ```mermaid
 graph LR
-    A[统计字符频率] --> B[构建最小堆]
-    B --> C[贪心合并节点]
-    C --> D[生成霍夫曼树]
-    D --> E[DFS 生成编码表]
-    E --> F[编码 / 解码]
+    A[Count character frequencies] --> B[Build min-heap]
+    B --> C[Greedily merge nodes]
+    C --> D[Generate Huffman tree]
+    D --> E[DFS to generate encoding table]
+    E --> F[Encode / Decode]
 ```
 
 **Key points**:

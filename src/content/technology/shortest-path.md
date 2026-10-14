@@ -279,11 +279,11 @@ In practical engineering, also pay attention to distance overflow, representatio
 
 ```mermaid
 graph LR
-    A[判断边权] --> B{有负权?}
-    B -->|否| C[Dijkstra]
-    B -->|是| D[Bellman-Ford]
-    A --> E{需要所有点对?}
-    E -->|是| F[Floyd-Warshall]
+    A[Determine edge weights] --> B{Has negative weights?}
+    B -->|No| C[Dijkstra]
+    B -->|Yes| D[Bellman-Ford]
+    A --> E{Need all pairs?}
+    E -->|Yes| F[Floyd-Warshall]
 ```
 
 **Key Points**:

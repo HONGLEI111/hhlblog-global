@@ -45,10 +45,10 @@ If `nums[left] + nums[right]` is too large, move the right pointer left; if too 
 
 ```mermaid
 graph LR
-    A[计算两端和] --> B{等于目标?}
-    B -->|是| C[返回答案]
-    B -->|太小| D[left 右移]
-    B -->|太大| E[right 左移]
+    A[Compute sum of both ends] --> B{Equals target?}
+    B -->|Yes| C[Return answer]
+    B -->|Too small| D[Move left right]
+    B -->|Too large| E[Move right left]
     D --> A
     E --> A
 ```
@@ -241,10 +241,10 @@ Don't just memorize templates for two-pointer code; explain why moving a certain
 
 ```mermaid
 graph LR
-    A[确定指针模式] --> B[定义不变量]
-    B --> C[移动一个或两个指针]
-    C --> D[维护结果]
-    D --> E[直到指针相遇或扫描结束]
+    A[Determine pointer pattern] --> B[Define invariant]
+    B --> C[Move one or both pointers]
+    C --> D[Maintain result]
+    D --> E[Until pointers meet or scan ends]
 ```
 
 **Key points**:

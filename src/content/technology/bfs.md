@@ -37,11 +37,11 @@ BFS expands outward layer by layer like ripples in water:
 
  ```mermaid
 graph TD
-    S[起点 step=0] --> A[第一层 step=1]
-    S --> B[第一层 step=1]
-    A --> C[第二层 step=2]
-    A --> D[第二层 step=2]
-    B --> E[第二层 step=2]
+    S[Start step=0] --> A[First layer step=1]
+    S --> B[First layer step=1]
+    A --> C[Second layer step=2]
+    A --> D[Second layer step=2]
+    B --> E[Second layer step=2]
 ```
 
 ### Level-Order Expansion
@@ -284,10 +284,10 @@ JavaScript array `shift()` shifts subsequent elements; for large queue scenarios
 
 ```mermaid
 graph LR
-    A[起点入队] --> B[处理当前层]
-    B --> C[发现未访问邻居]
-    C --> D[邻居入队]
-    D --> E[步数加一]
+    A[Enqueue start] --> B[Process current layer]
+    B --> C[Find unvisited neighbors]
+    C --> D[Enqueue neighbors]
+    D --> E[Increment step count]
     E --> B
 ```
 

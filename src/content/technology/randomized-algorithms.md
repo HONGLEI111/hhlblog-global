@@ -37,10 +37,10 @@ Fisher-Yates shuffle fixes positions from back to front, each time selecting an 
 
 ```mermaid
 graph LR
-    A[待洗牌数组] --> B[从最后一位开始]
-    B --> C[随机选择 0..i]
-    C --> D[交换到位置 i]
-    D --> E[i 左移]
+    A[Array to shuffle] --> B[Start from the last position]
+    B --> C[Randomly pick 0..i]
+    C --> D[Swap into position i]
+    D --> E[Move i left]
     E --> C
 ```
 
@@ -251,10 +251,10 @@ The correctness of randomized algorithms is usually probabilistic, and a single 
 
 ```mermaid
 graph LR
-    A[明确概率目标] --> B[选择随机模型]
-    B --> C[实现抽样或分流]
-    C --> D[验证分布]
-    D --> E[处理可复现和安全要求]
+    A[Clarify the probability goal] --> B[Choose a random model]
+    B --> C[Implement sampling or branching]
+    C --> D[Verify the distribution]
+    D --> E[Handle reproducibility and security requirements]
 ```
 
 **Key points**:

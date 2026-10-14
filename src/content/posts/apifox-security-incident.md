@@ -90,20 +90,20 @@ This domain mimics the format of the official domain, aiming to bypass the vigil
 
 ```mermaid
 graph TD
-    A[用户启动 Apifox 客户端] --> B[加载 CDN JS 文件]
-    B --> C{文件是否被投毒?}
-    C -->|是| D[执行恶意代码]
-    C -->|否| E[正常运行]
-    D --> F[收集主机信息]
-    F --> G[生成主机指纹 SHA-256]
-    G --> H[连接 C2 服务器 apifox.it.com]
-    H --> I[下载第二阶段载荷]
-    I --> J[RSA 解密载荷]
-    J --> K[eval 执行恶意代码]
-    K --> L[窃取敏感文件]
-    L --> M[AES-256-GCM 加密数据]
-    M --> N[回传到攻击者服务器]
-    N --> O[30分钟-3小时后重复]
+    A[User launches the Apifox client] --> B[Load CDN JS file]
+    B --> C{Is the file poisoned?}
+    C -->|Yes| D[Execute malicious code]
+    C -->|No| E[Run normally]
+    D --> F[Collect host information]
+    F --> G[Generate host fingerprint SHA-256]
+    G --> H[Connect to C2 server apifox.it.com]
+    H --> I[Download second-stage payload]
+    I --> J[RSA decrypt payload]
+    J --> K[eval executes malicious code]
+    K --> L[Steal sensitive files]
+    L --> M[AES-256-GCM encrypt data]
+    M --> N[Exfiltrate to attacker server]
+    N --> O[Repeat after 30 minutes to 3 hours]
 ```
 
 ### 3.2 Attack Phase Details

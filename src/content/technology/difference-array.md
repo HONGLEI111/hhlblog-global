@@ -52,11 +52,11 @@ diff: 1  3  1  1 -1
 
 ```mermaid
 graph LR
-    A[区间修改] --> B[修改左端点]
-    A --> C[修改右端点后一位]
-    B --> D[批量操作完成]
+    A[Range update] --> B[Modify left endpoint]
+    A --> C[One past the modified right endpoint]
+    B --> D[Batch operation complete]
     C --> D
-    D --> E[前缀和还原数组]
+    D --> E[Restore array from prefix sum]
 ```
 
 ---
@@ -231,10 +231,10 @@ If the business logic requires immediately reading the range sum after each modi
 
 ```mermaid
 graph LR
-    A[原数组] --> B[构建差分]
-    B --> C[区间修改只改两端]
-    C --> D[累计所有操作]
-    D --> E[前缀和还原]
+    A[Original array] --> B[Build difference array]
+    B --> C[Range update only changes two ends]
+    C --> D[Accumulate all operations]
+    D --> E[Restore from prefix sum]
 ```
 
 **Key points**:

@@ -239,9 +239,9 @@ A queue emphasizes "not losing data," while a buffer emphasizes "keeping the lat
 
 ```mermaid
 graph LR
-    A[固定容量] --> B[head 读取]
-    A --> C[tail 写入]
-    B --> D[取模回绕]
+    A[Fixed capacity] --> B[head read]
+    A --> C[tail write]
+    B --> D[modulo wraparound]
     C --> D
 ```
 

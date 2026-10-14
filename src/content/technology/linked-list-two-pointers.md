@@ -222,9 +222,9 @@ After the two pointers swap starting points, the path lengths are equalized, so 
 
 ```mermaid
 graph LR
-    A[定义指针距离] --> B[同步移动]
-    B --> C[触发相遇/定位]
-    C --> D[执行判断或删除]
+    A[Define pointer distance] --> B[Move in sync]
+    B --> C[Trigger meeting/location]
+    C --> D[Execute judgment or deletion]
 ```
 
 - Linked list two pointers use movement relationships instead of index-based positioning.

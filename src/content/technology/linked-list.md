@@ -214,9 +214,9 @@ The value of linked lists in engineering often isn't in using them alone, but in
 
 ```mermaid
 graph LR
-    A[节点定义] --> B[next 串联]
-    B --> C[插入/删除重连]
-    C --> D[虚拟头简化边界]
+    A[Node definition] --> B[next chaining]
+    B --> C[insert/delete reconnection]
+    C --> D[dummy head simplifies boundaries]
 ```
 
 - Linked lists maintain order through reference relationships, not contiguous indices.

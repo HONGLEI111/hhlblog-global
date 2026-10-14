@@ -244,11 +244,11 @@ DP optimization cannot focus solely on space reduction; it must also ensure that
 
 ```mermaid
 graph LR
-    A[定义状态] --> B[推导转移]
-    B --> C[初始化边界]
-    C --> D[确定遍历顺序]
-    D --> E[计算答案]
-    E --> F[必要时状态压缩]
+    A[Define states] --> B[Derive transitions]
+    B --> C[Initialize boundaries]
+    C --> D[Determine iteration order]
+    D --> E[Compute the answer]
+    E --> F[Compress states if needed]
 ```
 
 **Key Takeaways**:

@@ -227,9 +227,9 @@ Whether to compress in engineering depends on data scale, memory pressure, and q
 
 ```mermaid
 graph LR
-    A[插入字符串] --> B[逐字符建边]
-    B --> C[标记单词结束]
-    C --> D[查询单词或前缀]
+    A[Insert string] --> B[Build edges character by character]
+    B --> C[Mark end of word]
+    C --> D[Query word or prefix]
 ```
 
 - A Trie uses tree paths to represent strings.

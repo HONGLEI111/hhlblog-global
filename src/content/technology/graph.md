@@ -254,11 +254,11 @@ In JavaScript/TypeScript, if node indices are contiguous, `number[][]` is usuall
 
 ```mermaid
 graph LR
-    A[边列表输入] --> B[构建图表示]
-    B --> C[DFS/BFS 遍历]
-    B --> D[入度统计]
-    D --> E[拓扑排序]
-    B --> F[连通性/路径问题]
+    A[Edge list input] --> B[Build graph representation]
+    B --> C[DFS/BFS traversal]
+    B --> D[In-degree counting]
+    D --> E[Topological sort]
+    B --> F[Connectivity/path problems]
 ```
 
 **Key points**:

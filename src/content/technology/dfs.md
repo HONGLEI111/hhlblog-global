@@ -254,10 +254,10 @@ In tree structures, recursion is usually the clearest; in graphs and large grids
 
 ```mermaid
 graph LR
-    A[访问当前节点] --> B[标记 visited]
-    B --> C[处理当前状态]
-    C --> D[递归或压栈邻居]
-    D --> E[回退或合并结果]
+    A[Visit current node] --> B[Mark visited]
+    B --> C[Process current state]
+    C --> D[Recurse or push neighbors]
+    D --> E[Backtrack or merge results]
 ```
 
 **Key Points**:

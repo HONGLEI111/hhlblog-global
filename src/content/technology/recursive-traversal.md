@@ -222,11 +222,11 @@ Because the stack is last-in, first-out, you must push the right child first and
 
 ```mermaid
 graph LR
-    A[进入节点] --> B[前序位置]
-    B --> C[遍历左子树]
-    C --> D[中序位置]
-    D --> E[遍历右子树]
-    E --> F[后序位置]
+    A[Enter node] --> B[Pre-order position]
+    B --> C[Traverse left subtree]
+    C --> D[In-order position]
+    D --> E[Traverse right subtree]
+    E --> F[Post-order position]
 ```
 
 - The difference between preorder, inorder, and postorder is where the current node is processed.

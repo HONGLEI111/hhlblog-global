@@ -204,10 +204,10 @@ General recommendations:
 
 ```mermaid
 graph LR
-    A[key] --> B[hash 函数]
-    B --> C[桶下标]
-    C --> D[存取 value]
-    C --> E[处理冲突]
+    A[key] --> B[hash function]
+    B --> C[bucket index]
+    C --> D[store/retrieve value]
+    C --> E[handle collisions]
 ```
 
 - Hash tables improve lookup efficiency through key-to-position mapping.

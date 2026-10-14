@@ -201,9 +201,9 @@ This turns dequeue into O(1), which is especially suitable for trees or graphs w
 
 ```mermaid
 graph LR
-    A[根节点入队] --> B[处理当前层]
-    B --> C[子节点入队]
-    C --> D[进入下一层]
+    A[Enqueue root node] --> B[Process current level]
+    B --> C[Enqueue child nodes]
+    C --> D[Move to next level]
 ```
 
 - Level-order traversal is BFS on a binary tree.

@@ -56,10 +56,10 @@ function findUserByMap(id: number): User | undefined {
 
 ```mermaid
 graph LR
-    A[输入规模 n 增长] --> B[线性扫描 O(n)]
-    A --> C[哈希查找 O(1)]
-    B --> D[数据越大越慢]
-    C --> E[查询成本基本稳定]
+    A[Input size n grows] --> B[Linear scan O(n)]
+    A --> C[Hash lookup O(1)]
+    B --> D[The larger the data, the slower]
+    C --> E[Query cost stays basically stable]
 ```
 
 Big O notation keeps only the fastest-growing term:
@@ -245,10 +245,10 @@ Frontend scenarios also have complexity issues: rendering large lists, search su
 
 ```mermaid
 graph LR
-    A[确定输入规模] --> B[数循环和递归]
-    B --> C[保留最高阶]
-    C --> D[分析额外空间]
-    D --> E[结合数据量决策]
+    A[Determine the input size] --> B[Count loops and recursion]
+    B --> C[Keep the highest order]
+    C --> D[Analyze extra space]
+    D --> E[Decide based on data volume]
 ```
 
 **Key points**:

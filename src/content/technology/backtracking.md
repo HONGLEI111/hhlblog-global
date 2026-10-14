@@ -37,9 +37,9 @@ Taking the full permutations of `[1, 2, 3]` as an example, each level selects a 
 
 ```mermaid
 graph TD
-    A[空路径] --> B[选择 1]
-    A --> C[选择 2]
-    A --> D[选择 3]
+    A[Empty path] --> B[Choice 1]
+    A --> C[Choice 2]
+    A --> D[Choice 3]
     B --> B1[1,2]
     B --> B2[1,3]
     B1 --> B11[1,2,3]
@@ -240,11 +240,11 @@ In N-Queens, using the three sets `cols / diag1 / diag2` instead of scanning cel
 
 ```mermaid
 graph LR
-    A[定义路径状态] --> B[枚举当前选择]
-    B --> C[检查约束]
-    C --> D[做选择]
-    D --> E[递归下一层]
-    E --> F[撤销选择]
+    A[Define path state] --> B[Enumerate current choices]
+    B --> C[Check constraints]
+    C --> D[Make a choice]
+    D --> E[Recurse to next level]
+    E --> F[Undo choice]
 ```
 
 **Key Takeaways**:

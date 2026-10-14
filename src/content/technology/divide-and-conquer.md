@@ -263,9 +263,9 @@ Production sorting usually does not hand-write quicksort; more often, the divide
 
 ```mermaid
 graph LR
-    A[分解问题] --> B[递归求解子问题]
-    B --> C[合并结果]
-    C --> D[得到原问题答案]
+    A[Decompose the problem] --> B[Recursively solve subproblems]
+    B --> C[Merge the results]
+    C --> D[Obtain the answer to the original problem]
 ```
 
 **Key points**:

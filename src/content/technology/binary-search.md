@@ -37,10 +37,10 @@ Taking the array `[1, 3, 5, 7, 9, 11, 13]` and searching for `9` as an example:
 
 ```mermaid
 graph LR
-    A[区间 0..6 mid=3 值 7] --> B[目标更大 排除左半]
-    B --> C[区间 4..6 mid=5 值 11]
-    C --> D[目标更小 排除右半]
-    D --> E[区间 4..4 找到 9]
+    A[Range 0..6 mid=3 value 7] --> B[Target is larger, exclude left half]
+    B --> C[Range 4..6 mid=5 value 11]
+    C --> D[Target is smaller, exclude right half]
+    D --> E[Range 4..4 found 9]
 ```
 
 The key to binary search is not how to write `mid`, but being able to prove after each comparison that the eliminated half definitely does not contain the answer.
@@ -233,11 +233,11 @@ In production code, it is recommended to first clarify the meaning of the interv
 
 ```mermaid
 graph LR
-    A[确认单调性] --> B[定义搜索区间]
-    B --> C[计算 mid]
-    C --> D[判断答案方向]
-    D --> E[排除一半]
-    E --> F[返回边界或目标]
+    A[Confirm monotonicity] --> B[Define search range]
+    B --> C[Compute mid]
+    C --> D[Determine answer direction]
+    D --> E[Exclude half]
+    E --> F[Return boundary or target]
 ```
 
 **Key takeaways**:

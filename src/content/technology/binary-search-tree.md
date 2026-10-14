@@ -225,10 +225,10 @@ In engineering, if you need stable ordered-set capabilities, you usually use bal
 
 ```mermaid
 graph LR
-    A[维护有序性] --> B[查找路径]
-    B --> C[插入/删除]
-    C --> D[中序验证]
-    D --> E[平衡性优化]
+    A[Maintain ordering] --> B[Search path]
+    B --> C[Insert/Delete]
+    C --> D[In-order validation]
+    D --> E[Balance optimization]
 ```
 
 - A BST adds the left-smaller-right-larger sorting constraint on top of a binary tree.

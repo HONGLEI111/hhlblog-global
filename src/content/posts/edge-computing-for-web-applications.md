@@ -28,11 +28,11 @@ One diagram makes the difference clear:
 
 ```mermaid
 flowchart LR
-  U[用户] -->|200ms 往返| O[源站: 应用 + 数据库]
+  U[User] -->|200ms round trip| O[Origin: app + database]
   O --> U
 
-  U2[用户] -->|10ms| P[最近的边缘节点]
-  P -->|仅当需要时回源, 200ms| O2[源站: 数据库 / 重逻辑]
+  U2[User] -->|10ms| P[Nearest edge node]
+  P -->|Origin fetch only when needed, 200ms| O2[Origin: database / heavy logic]
   P --> U2
 ```
 

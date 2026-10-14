@@ -50,10 +50,10 @@ nums[1] + nums[2] + nums[3] = 3 + 5 + 2 = 10
 
 ```mermaid
 graph LR
-    A[原数组] --> B[构建 prefix]
-    B --> C[区间右端累计]
-    B --> D[区间左端之前累计]
-    C --> E[相减得到区间和]
+    A[Original array] --> B[Build prefix]
+    B --> C[Cumulative up to interval right end]
+    B --> D[Cumulative before interval left end]
+    C --> E[Subtract to get interval sum]
     D --> E
 ```
 
@@ -221,10 +221,10 @@ If the array is modified frequently, ordinary prefix sums require rebuilding aft
 
 ```mermaid
 graph LR
-    A[原数组] --> B[构建前缀数组]
-    B --> C[右端累计值]
-    B --> D[左端前累计值]
-    C --> E[区间结果]
+    A[Original array] --> B[Build prefix array]
+    B --> C[Cumulative value at right end]
+    B --> D[Cumulative value before left end]
+    C --> E[Interval result]
     D --> E
 ```
 

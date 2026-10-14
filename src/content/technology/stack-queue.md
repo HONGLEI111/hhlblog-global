@@ -211,8 +211,8 @@ If the queue size is small, using `shift` directly is acceptable; if the queue i
 
 ```mermaid
 graph LR
-    A[栈 LIFO] --> C[括号/递归/单调栈]
-    B[队列 FIFO] --> D[BFS/缓冲区/单调队列]
+    A[Stack LIFO] --> C[Parentheses/recursion/monotonic stack]
+    B[Queue FIFO] --> D[BFS/buffer/monotonic queue]
 ```
 
 - A stack is last in, first out; a queue is first in, first out.

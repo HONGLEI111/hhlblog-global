@@ -212,10 +212,10 @@ The criterion for choosing is not "which is more advanced," but whether the curr
 
 ```mermaid
 graph LR
-    A[连续下标] --> B[随机访问]
-    B --> C[顺序遍历]
-    C --> D[原地修改]
-    C --> E[返回新数组]
+    A[Contiguous indices] --> B[Random access]
+    B --> C[Sequential traversal]
+    C --> D[In-place modification]
+    C --> E[Return a new array]
 ```
 
 - The core advantage of arrays is index access and sequential traversal.

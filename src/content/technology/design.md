@@ -38,8 +38,8 @@ Taking the LRU cache as an example, the hash table handles O(1) node lookup, whi
 ```mermaid
 graph LR
     M[Map key -> Node] --> A[head]
-    A --> B[最近使用]
-    B --> C[较旧]
+    A --> B[Recently used]
+    B --> C[Older]
     C --> D[tail]
 ```
 
@@ -314,10 +314,10 @@ When solving design problems, first list the APIs, then list the invariants that
 
 ```mermaid
 graph LR
-    A[明确 API] --> B[分析复杂度要求]
-    B --> C[选择基础结构]
-    C --> D[定义不变量]
-    D --> E[实现并维护状态同步]
+    A[Explicit API] --> B[Analyze complexity requirements]
+    B --> C[Choose the underlying structure]
+    C --> D[Define invariants]
+    D --> E[Implement and maintain state synchronization]
 ```
 
 **Key points**:

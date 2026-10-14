@@ -40,10 +40,10 @@ graph TD
     A[factorial 4] --> B[factorial 3]
     B --> C[factorial 2]
     C --> D[factorial 1]
-    D --> E[返回 1]
-    E --> F[返回 2]
-    F --> G[返回 6]
-    G --> H[返回 24]
+    D --> E[Return 1]
+    E --> F[Return 2]
+    F --> G[Return 6]
+    G --> H[Return 24]
 ```
 
 Recursion involves two directions:
@@ -207,10 +207,10 @@ Tail-recursive code is closer to iteration, but in JavaScript/TypeScript environ
 
 ```mermaid
 graph LR
-    A[定义终止条件] --> B[缩小问题规模]
-    B --> C[递归求解子问题]
-    C --> D[合并返回值]
-    D --> E[必要时缓存或改迭代]
+    A[Define the base case] --> B[Reduce the problem size]
+    B --> C[Recursively solve the subproblem]
+    C --> D[Merge the return values]
+    D --> E[Cache or convert to iteration when necessary]
 ```
 
 **Key points**:

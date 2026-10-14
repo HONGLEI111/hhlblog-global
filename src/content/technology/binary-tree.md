@@ -241,9 +241,9 @@ Null node markers are part of the structural information. Without them, many tre
 
 ```mermaid
 graph LR
-    A[定义当前节点任务] --> B[处理左子树]
-    B --> C[处理右子树]
-    C --> D[合并返回值]
+    A[Define current node task] --> B[Process left subtree]
+    B --> C[Process right subtree]
+    C --> D[Merge return values]
 ```
 
 - The core model of a binary tree is the root node, left subtree, and right subtree.
