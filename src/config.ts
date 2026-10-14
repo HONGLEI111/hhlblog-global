@@ -72,7 +72,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/avatar.webp", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+	avatar: "assets/images/avatar.gif", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "HHLBlog",
 	bio: "An open-source blog theme — Astro 5, Svelte 5 and Tailwind CSS.",
 	links: [
