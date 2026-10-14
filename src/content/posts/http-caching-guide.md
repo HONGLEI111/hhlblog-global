@@ -52,10 +52,10 @@ Negotiated caching relies on two pairs of HTTP headers:
 **Last-Modified / If-Modified-Since**
 
 ```
-# 响应头
+# Response headers
 Last-Modified: Tue, 01 Jul 2026 10:30:00 GMT
 
-# 后续请求头
+# Subsequent request headers
 If-Modified-Since: Tue, 01 Jul 2026 10:30:00 GMT
 ```
 
@@ -64,10 +64,10 @@ The server compares the file's last modification time. The drawback is that the 
 **ETag / If-None-Match**
 
 ```
-# 响应头
+# Response headers
 ETag: "abc123"
 
-# 后续请求头
+# Subsequent request headers
 If-None-Match: "abc123"
 ```
 
@@ -126,13 +126,13 @@ Cache-Control: public, max-age=0, must-revalidate
 For REST API responses, the caching strategy depends on the real-time requirements of the data:
 
 ```javascript
-// 用户个人信息：不缓存
+// User personal info: do not cache
 res.setHeader('Cache-Control', 'private, no-cache, no-store');
 
-// 公共的文章列表：可以缓存 60 秒
+// Public article list: can cache for 60 seconds
 res.setHeader('Cache-Control', 'public, max-age=60');
 
-// 近乎不变的数据（如国家列表）：缓存 1 天
+// Nearly unchanging data (e.g. country list): cache for 1 day
 res.setHeader('Cache-Control', 'public, max-age=86400');
 ```
 
@@ -159,7 +159,7 @@ Modern web applications almost all use CDNs, and the CDN layer has its own cachi
 CDNs distinguish different resources based on **cache keys**. The default cache key is `域名 + URI`. But for multilingual sites or A/B testing, custom cache keys may be needed:
 
 ```
-# 把 Accept-Language 加入缓存键，实现按语言缓存
+#Add Accept-Language to the cache key to enable per-language caching
 Cache-Key: ${host}${uri}${http_accept_language}
 ```
 
@@ -232,13 +232,13 @@ Note: The **Disable cache** checkbox only takes effect while DevTools is open. D
 ### 7.2 cURL Command-Line Debugging
 
 ```bash
-# 查看完整响应头
+# View full response headers
 curl -I https://example.com/style.css
 
-# 发送 If-None-Match 验证协商缓存
+# Send If-None-Match to verify conditional caching
 curl -I -H 'If-None-Match: "abc123"' https://example.com/style.css
 
-# 模拟浏览器缓存行为
+# Simulate browser caching behavior
 curl -H 'Cache-Control: max-age=0' https://example.com/style.css
 ```
 

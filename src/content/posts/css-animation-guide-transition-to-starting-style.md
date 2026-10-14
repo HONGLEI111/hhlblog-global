@@ -14,9 +14,9 @@ Almost everyone who has written front-end interactions has hit this wall: you wr
 The reason is straightforward: **elements with `display: none` are not in the render tree at all**. The element hasn't been rendered yet, so naturally there's no "from old state to new state" to speak of—the browser can't even compute a starting style. So for the past decade or so, the common approach has been to patch it with JS:
 
 ```js
-// 经典 hack：先删类，强制回流，再加类
+// Classic hack: remove the class first, force reflow, then add the class
 panel.classList.remove('is-open');
-void panel.offsetWidth; // 强制同步布局，逼迫浏览器「看到」初始状态
+void panel.offsetWidth; // Force a synchronous layout to make the browser "see" the initial state
 panel.classList.add('is-open');
 ```
 
@@ -88,7 +88,7 @@ Now back to the problem from the beginning. What `@starting-style` does can be s
   transition: opacity 300ms ease, transform 300ms ease;
 }
 
-/* 元素首次渲染（或从 display:none 恢复）时，从这里开始 */
+/* When the element first renders (or recovers from display:none), start here */
 @starting-style {
   .panel {
     opacity: 0;
@@ -150,7 +150,7 @@ Putting the four layers together gives you a complete popover driven by toggling
   color: #fff;
   font-size: .875rem;
 
-  /* 关闭态 */
+  /* Closed state */
   display: none;
   opacity: 0;
   transform: translateY(-16px) scale(.96);
@@ -167,7 +167,7 @@ Putting the four layers together gives you a complete popover driven by toggling
   transform: translateY(0) scale(1);
 }
 
-/* 首次渲染 / 从 none 恢复时的起点 */
+/* Starting point on first render / recovery from none */
 @starting-style {
   .toast.is-open {
     opacity: 0;
@@ -175,7 +175,7 @@ Putting the four layers together gives you a complete popover driven by toggling
   }
 }
 
-/* 无障碍：尊重系统的「减少动态效果」设置 */
+/* Accessibility: respect the system's "reduce motion" setting */
 @media (prefers-reduced-motion: reduce) {
   .toast {
     transition: display 0s, opacity 150ms linear;
@@ -200,7 +200,7 @@ For scenarios that still need to support older engines, it's recommended to use 
 }
 
 @supports not (transition-behavior: allow-discrete) {
-  /* 旧浏览器：只做透明度过渡，元素即时显示/隐藏 */
+  /* Legacy browsers: only do an opacity transition, elements show/hide instantly */
   .toast { transition: opacity 250ms ease; }
   .toast.is-open { display: block; }
 }

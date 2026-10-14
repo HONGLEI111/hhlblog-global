@@ -42,8 +42,8 @@ Python fans mock others for having to write a bunch of curly braces, while Pytho
 There is also a meme in programmer circles about "not being able to tell Halloween and Christmas apart," and its brilliance lies in the fact that it actually runs:
 
 ```python
-# 万圣节是 10 月 31 日，圣诞节是 12 月 25 日
-print(0o31 == 25)  # True！八进制的 31 恰好等于十进制的 25
+# Halloween is October 31, Christmas is December 25
+print(0o31 == 25)  # True! Octal 31 is exactly equal to decimal 25
 ```
 
 Octal `0o31` is decimal 25, so "Oct 31 == Dec 25"—Halloween (October 31) and Christmas (December 25) are the same number in programmers' eyes. This meme has been made into versions in various languages and has become an evergreen in the history of language roasting.

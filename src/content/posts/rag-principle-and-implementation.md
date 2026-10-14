@@ -87,17 +87,17 @@ import chromadb
 from chromadb.utils import embedding_functions
 
 # ============================================================
-# 1. 初始化
+# 1. Initialization
 # ============================================================
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-# 使用 OpenAI 的 Embedding 函数
+# Use OpenAI's Embedding function
 embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
     api_key=os.environ["OPENAI_API_KEY"],
     model_name="text-embedding-3-small"
 )
 
-# 创建或连接到 ChromaDB 集合
+# Create or connect to a ChromaDB collection
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(
     name="my_knowledge_base",
@@ -106,7 +106,7 @@ collection = chroma_client.get_or_create_collection(
 
 
 # ============================================================
-# 2. 文档分块函数
+# 2. Document chunking function
 # ============================================================
 def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> list[str]:
     """
@@ -126,12 +126,12 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> list[str
         end = start + chunk_size
         chunk = text[start:end]
         chunks.append(chunk)
-        start += chunk_size - overlap  # 下一块起点 = 当前起点 + chunk_size - overlap
+        start += chunk_size - overlap  # Next chunk start = current start + chunk_size - overlap
     return chunks
 
 
 # ============================================================
-# 3. 索引文档：将文档分块并存入向量数据库
+# 3. Index documents: chunk documents and store them in the vector database
 # ============================================================
 def index_documents(documents: list[dict[str, str]]) -> None:
     """
@@ -157,7 +157,7 @@ def index_documents(documents: list[dict[str, str]]) -> None:
 
 
 # ============================================================
-# 4. 检索：根据查询返回最相关的文本块
+# 4. Retrieval: return the most relevant text chunks based on the query
 # ============================================================
 def retrieve(query: str, top_k: int = 3) -> list[str]:
     """
@@ -174,12 +174,12 @@ def retrieve(query: str, top_k: int = 3) -> list[str]:
         query_texts=[query],
         n_results=top_k
     )
-    # results["documents"] 是一个嵌套列表: [[chunk1, chunk2, ...]]
+    # results["documents"] is a nested list: [[chunk1, chunk2, ...]]
     return results["documents"][0] if results["documents"] else []
 
 
 # ============================================================
-# 5. 增强生成：RAG 的完整问答流程
+# 5. Augmented generation: the complete RAG question-answering workflow
 # ============================================================
 SYSTEM_PROMPT = """你是一个知识助手。请严格根据以下参考资料回答用户问题。
 
@@ -203,26 +203,26 @@ def ask(query: str, top_k: int = 3) -> str:
     Returns:
         LLM 生成的回答
     """
-    # Step 1: 检索
+    # Step 1: Retrieve
     retrieved_chunks = retrieve(query, top_k=top_k)
     
     if not retrieved_chunks:
         return "未找到相关参考资料，无法回答该问题。"
     
-    # Step 2: 拼接上下文
+    # Step 2: Concatenate context
     context = "\n\n---\n\n".join(
         f"[来源 {i+1}]\n{chunk}"
         for i, chunk in enumerate(retrieved_chunks)
     )
     
-    # Step 3: 调用 LLM 生成回答
+    # Step 3: Call the LLM to generate an answer
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT.format(context=context)},
             {"role": "user", "content": query}
         ],
-        temperature=0.3,  # 低温度以减少幻觉
+        temperature=0.3,  # Low temperature to reduce hallucinations
         max_tokens=1024
     )
     
@@ -230,10 +230,10 @@ def ask(query: str, top_k: int = 3) -> str:
 
 
 # ============================================================
-# 6. 演示：索引一些文档并测试问答
+# 6. Demo: index some documents and test question answering
 # ============================================================
 if __name__ == "__main__":
-    # 准备示例文档
+    # Prepare sample documents
     documents = [
         {
             "id": "python_history",
@@ -274,15 +274,15 @@ RAG 的优势在于：知识可实时更新（无需重新训练模型）、回�
         }
     ]
     
-    # 索引文档
+    # Index documents
     index_documents(documents)
     
-    # 测试问答
+    # Test question answering
     test_questions = [
         "Python 是什么时候创建的？由谁创建的？",
         "RAG 技术能解决什么问题？",
         "有哪些常用的向量数据库？",
-        "今天天气怎么样？"  # 知识库中没有的内容
+        "今天天气怎么样？"  # Content not in the knowledge base
     ]
     
     for q in test_questions:

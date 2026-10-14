@@ -62,8 +62,8 @@ The good news is that the churn dimension does not require any commercial tool; 
 The script below depends only on Node.js and git, and it aggregates a repository's past year of history into a hotspot leaderboard.
 
 ```js
-// hotspots.mjs —— 找出「改得最频繁 × 最绕」的文件：偿还技术债的最优先候选
-// 用法: node hotspots.mjs [--since="1 year ago"] [--top=15]
+//hotspots.mjs — find the files that are "changed most often × most convoluted": the top candidates for paying down technical debt
+//Usage: node hotspots.mjs [--since="1 year ago"] [--top=15]
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
@@ -76,8 +76,8 @@ const opts = Object.fromEntries(
 const since = opts.since ?? '1 year ago';
 const topN = Number(opts.top ?? 15);
 
-// 生成物不是技术债：锁文件、构建产物、快照改动频繁，但毫无「设计」可言，
-// 不排除的话它们会霸榜，把真正的热点挤下去。
+//Generated artifacts are not technical debt: lock files, build outputs, and snapshots change frequently, but have no "design" to speak of.
+//If you don't exclude them, they'll dominate the list and push the real hotspots down.
 const IGNORED = [
   /(?:^|\/)(?:dist|build|vendor|node_modules|coverage|__snapshots__)\//,
   /(?:^|\/)(?:pnpm-lock\.yaml|package-lock\.json|yarn\.lock)$/,
@@ -85,8 +85,8 @@ const IGNORED = [
 ];
 const isIgnored = (p) => IGNORED.some((re) => re.test(p));
 
-// 1) 从 git 历史统计每个文件的 churn（提交次数 + 增删行数）
-// --numstat 输出 "新增\t删除\t路径"；--no-renames 避免重命名被算成两个文件
+//1) Count each file's churn from git history (number of commits + lines added/removed)
+//--numstat outputs "added\tdeleted\tpath"; --no-renames prevents renames from being counted as two files
 const log = execFileSync('git', ['log', `--since=${since}`, '--numstat', '--no-renames', '--format=%H'], {
   encoding: 'utf8',
   maxBuffer: 256 * 1024 * 1024,
@@ -103,7 +103,7 @@ for (const line of log.split('\n')) {
   if (!inCommit) continue;
   const [added, deleted, ...rest] = line.split('\t');
   const path = rest.join('\t');
-  if (added === '-' || !path || isIgnored(path)) continue; // 二进制或生成物
+  if (added === '-' || !path || isIgnored(path)) continue; //Binary or generated artifact
   const s = churn.get(path) ?? { commits: 0, added: 0, deleted: 0 };
   s.commits += 1;
   s.added += Number(added);
@@ -111,22 +111,22 @@ for (const line of log.split('\n')) {
   churn.set(path, s);
 }
 
-// 2) 估算当前文件的「分支密度」，作为圈复杂度的廉价代理。
-//    只数会分叉的关键字与逻辑运算符，够用，且不依赖任何分析工具。
+//2) Estimate the current file's "branch density" as a cheap proxy for cyclomatic complexity.
+//    Just count branching keywords and logical operators — good enough, and no analysis tooling required.
 const BRANCH = /\b(?:if|for|while|case|catch)\b|&&|\|\||\?(?![\w.?])/g;
 const complexity = (path) => {
   let src;
   try {
     src = readFileSync(path, 'utf8');
   } catch {
-    return 0; // 文件已删除或重命名，本轮跳过
+    return 0; //File has been deleted or renamed, skipping this round
   }
-  if (src.includes('\0')) return 0; // 二进制
-  const code = src.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, ''); // 粗略去掉注释
+  if (src.includes('\0')) return 0; //Binary
+  const code = src.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, ''); // roughly strip comments
   return (code.match(BRANCH) ?? []).length;
 };
 
-// 3) 热点分 = churn × 复杂度。绝对值没有意义，只看排序。
+//3) Hotspot score = churn × complexity. The absolute value is meaningless; only the ranking matters.
 const rows = [...churn.entries()]
   .map(([path, c]) => ({ path, ...c, complexity: complexity(path) }))
   .filter((r) => r.complexity > 0)
@@ -188,11 +188,11 @@ After adding filter rules, the results become usable:
 Hotspot scores only tell you "where to make changes," not whether making those changes is earning money or paying it back. This step can be supplemented with commit messages:
 
 ```bash
-# 过去六个月，这个文件被改了多少次？
+#Over the past six months, how many times was this file changed?
 git log --since="6 months ago" --oneline -- src/layouts/Layout.astro | wc -l
 # 25
 
-# 其中有多少次是「修」而不是「加」？(^fix 锚定到标题行首，避免正文误伤)
+#How many of those were "fixes" rather than "additions"? (^fix anchors to the start of the title line to avoid false matches in the body)
 git log --since="6 months ago" --oneline -i --grep='^fix' -- src/layouts/Layout.astro | wc -l
 # 10
 ```

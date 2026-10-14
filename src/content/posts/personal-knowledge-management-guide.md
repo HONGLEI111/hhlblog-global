@@ -27,9 +27,9 @@ You don't need to jump straight into the complex linking system of Zettelkasten,
 
 ```
 notes/
-├── 0-inbox/     # 收集箱：所有新东西先丢这里，不做整理
-├── 1-archive/   # 归档库：消化过的、按主题分类的永久笔记
-└── index.md     # 索引：跳转入口，按主题聚合
+├── 0-inbox/     # Inbox: dump everything new here first, don't organize it
+├── 1-archive/   # Archive: permanent notes that have been processed and categorized by topic
+└── index.md     # Index: entry point for navigation, aggregated by topic
 ```
 
 - **0-inbox**: The single entry point. When you see something good, toss it in within 30 seconds, along with one sentence about "why I think it's useful." The faster this step, the better — the lower the friction, the more likely you'll stick with it.
@@ -56,7 +56,7 @@ Below is a complete Bash script that implements the "collect → review → arch
 
 ```bash
 #!/usr/bin/env bash
-# 极简笔记工作流：new（收集）→ review（回顾）→ archive（归档）
+# Minimal note workflow: new (collect) → review (review) → archive (archive)
 set -euo pipefail
 shopt -s nullglob
 
@@ -78,26 +78,26 @@ tags: []
 status: inbox
 ---
 
-## 背景
+## Background
 为什么觉得这条信息有用？
 
-## 要点
+## Key points
 用自己的话复述核心内容。
 
-## 下一步
+## Next steps
 下次什么场景会用到它？
 EOF
   echo "已创建: $file"
 }
 
 review() {
-  # 列出最近 7 天创建或修改过的笔记，优先处理 inbox
+  # List notes created or modified in the last 7 days, prioritize the inbox
   find "$NOTES_DIR" -name '*.md' -mtime -7 -print | sort
 }
 
 archive() {
   mkdir -p "$ARCHIVE"
-  # 把 inbox 里已标记 status: done 的笔记移到归档库
+  # Move notes in the inbox marked status: done to the archive
   for f in "$INBOX"/*.md; do
     if grep -q 'status: done' "$f"; then
       mv "$f" "$ARCHIVE/"
@@ -112,9 +112,9 @@ archive() {
 There are only three commands to use:
 
 ```bash
-pkm new http-connection-limit    # 1. 收集：快速记一条
-pkm review                        # 2. 回顾：看看最近 7 天记了什么
-pkm archive                       # 3. 归档：把消化完的移走
+pkm new http-connection-limit    # 1. Collect: quickly jot down a note
+pkm review                        # 2. Review: see what was noted in the last 7 days
+pkm archive                       # 3. Archive: move the processed ones out
 ```
 
 This script is deliberately "crude": no database, no sync, no backlinks. But precisely because it's simple, you'll actually use it — and "sticking with it" is a hundred times more important than "powerful tools."

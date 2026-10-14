@@ -84,10 +84,10 @@ Their commonality deserves to be called out separately: **the code isn't "someti
 So the right approach isn't repeatedly trying to "reproduce," but turning uncertainty into observability:
 
 ```bash
-# Go：竞态检测器，专治「本地跑一万次都没事」
+# Go: race detector, the cure for "it ran fine ten thousand times locally"
 go test -race -count=10000 ./...
 
-# Node：把未捕获的 Promise 拒绝变成崩溃，而不是静默
+# Node: turn unhandled Promise rejections into crashes, not silence
 node --unhandled-rejections=strict app.js
 ```
 
@@ -115,7 +115,7 @@ What retries can genuinely cure is only one category of problem: **transient fai
 A production-worthy retry needs at least five conditions: a cap, exponential backoff, **jitter** (otherwise all clients retry at the same millisecond, creating a synchronized spike), retrying only retryable error codes (retrying `400`/`404` is meaningless), and a circuit breaker. Write operations must also carry an idempotency key.
 
 ```js
-// 退避 + 抖动 + 上限 + 熔断，一个都不能少
+// Backoff + jitter + cap + circuit breaker, none of them optional
 const base = 100, cap = 5000, maxAttempts = 5;
 
 async function retryable(fn, attempt = 1) {
@@ -124,7 +124,7 @@ async function retryable(fn, attempt = 1) {
   } catch (err) {
     if (attempt >= maxAttempts || !isTransient(err)) throw err;
     const exp = Math.min(cap, base * 2 ** (attempt - 1));
-    // full jitter：在 [0, exp] 里随机，避免重试风暴
+    // full jitter: randomize within [0, exp] to avoid retry storms
     await sleep(Math.random() * exp);
     return retryable(fn, attempt + 1);
   }

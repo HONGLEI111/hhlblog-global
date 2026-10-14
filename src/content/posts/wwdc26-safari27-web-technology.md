@@ -41,7 +41,7 @@ Grid Lanes introduces the new syntax `grid-template-columns` `lanes()`, allowing
   gap: 16px;
 }
 
-/* 配合 auto-fill 实现响应式 */
+/* Responsive with auto-fill */
 .masonry-responsive {
   display: grid;
   grid-template-columns: lanes(auto-fill, minmax(280px, 1fr));
@@ -67,19 +67,19 @@ The war between front-end developers and the `<select>` element has lasted for m
 **New pseudo-element system**
 
 ```css
-/* 启用新的可样式化 select */
+/* Enable the new stylable select */
 select {
   appearance: base-select;
 }
 
-/* 下拉触发器（替代浏览器默认箭头） */
+/* Dropdown trigger (replaces the browser's default arrow) */
 select::picker(select) {
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   backdrop-filter: blur(20px);
 }
 
-/* 选项列表 */
+/* Option list */
 select::picker(select) option {
   padding: 12px 16px;
   font-size: 15px;
@@ -88,13 +88,13 @@ select::picker(select) option {
   gap: 8px;
 }
 
-/* 选中标记 */
+/* Selected marker */
 select::checkmark {
   color: var(--accent-color);
   margin-left: auto;
 }
 
-/* 选中态 */
+/* Selected state */
 select::picker(select) option:checked {
   background: var(--accent-color-light);
 }
@@ -153,15 +153,15 @@ The `<model>` element exposes a complete JavaScript control interface:
 ```javascript
 const model = document.querySelector('model');
 
-// 播放内置动画
+// Play built-in animations
 model.playAnimation('idle');
 
-// 监听加载状态
+// Listen to loading state
 model.addEventListener('load', () => {
   console.log('模型已加载，三角形数量：', model.triangleCount);
 });
 
-// 编程式控制相机
+// Programmatically control the camera
 model.camera.orbit(0, 45, 2);  // theta, phi, radius
 ```
 
@@ -183,13 +183,13 @@ This is the most futuristic capability of this WWDC. Safari 27 supports **spatia
 The browser renders the page as a panel floating in the user's space, while also supporting **WebXR** standard spatial interaction:
 
 ```javascript
-// 检测沉浸式 Web 支持
+// Detect immersive web support
 if ('xr' in navigator) {
   const session = await navigator.xr.requestSession('immersive-vr', {
     requiredFeatures: ['hand-tracking'],
   });
 
-  // 使用 WebXR API 创建空间化的 UI 面板
+  // Use the WebXR API to create spatialized UI panels
   const layer = new XRWebGLLayer(session, gl);
   session.updateRenderState({ baseLayer: layer });
 }
@@ -221,10 +221,10 @@ Safari 27 greatly simplifies the development and distribution process for Safari
 **New packaging approach**
 
 ```bash
-# 无需 Xcode，直接用命令行工具打包
+# Package directly with command-line tools, no Xcode needed
 safari-web-extension build ./my-extension
 
-# 通过 App Store Connect API 提交
+# Submit via the App Store Connect API
 xcrun altool --upload-app \
   -f my-extension.zip \
   -t osx \

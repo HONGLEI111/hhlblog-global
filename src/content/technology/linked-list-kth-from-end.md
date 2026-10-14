@@ -64,20 +64,20 @@ ListNode* findKthFromEnd(ListNode* head, int k) {
     ListNode *fast = head;
     ListNode *slow = head;
 
-    // fast 先走 k 步
+    // fast moves k steps first
     for (int i = 0; i < k; i++) {
-        // k 超出链表长度
+        // k exceeds the linked list length
         if (!fast) return NULL;
         fast = fast->next;
     }
 
-    // slow 和 fast 同步前进
+    // slow and fast advance in sync
     while (fast) {
         slow = slow->next;
         fast = fast->next;
     }
 
-    // fast 到达 null 时，slow 指向倒数第 k 个节点
+    // when fast reaches null, slow points to the k-th node from the end
     return slow;
 }
 ```
@@ -97,20 +97,20 @@ public:
         ListNode *fast = head;
         ListNode *slow = head;
 
-        // fast 先走 k 步
+        // fast moves k steps first
         for (int i = 0; i < k; i++) {
-            // k 超出链表长度
+            // k exceeds the linked list length
             if (!fast) return nullptr;
             fast = fast->next;
         }
 
-        // slow 和 fast 同步前进
+        // slow and fast advance in sync
         while (fast) {
             slow = slow->next;
             fast = fast->next;
         }
 
-        // fast 到达 null 时，slow 指向倒数第 k 个节点
+        // when fast reaches null, slow points to the k-th node from the end
         return slow;
     }
 };
@@ -128,20 +128,20 @@ function findKthFromEnd(head, k) {
     let fast = head;
     let slow = head;
 
-    // fast 先走 k 步
+    // fast moves k steps first
     for (let i = 0; i < k; i++) {
-        // k 超出链表长度
+        // k exceeds the linked list length
         if (!fast) return null;
         fast = fast.next;
     }
 
-    // slow 和 fast 同步前进
+    // slow and fast advance in sync
     while (fast) {
         slow = slow.next;
         fast = fast.next;
     }
 
-    // fast 到达 null 时，slow 指向倒数第 k 个节点
+    // when fast reaches null, slow points to the k-th node from the end
     return slow;
 }
 ```

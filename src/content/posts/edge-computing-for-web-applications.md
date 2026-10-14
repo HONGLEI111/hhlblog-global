@@ -70,7 +70,7 @@ Two points are especially worth noting:
 Together, these two points explain exactly why this site's Worker is written the way it is when forwarding DeepSeek's streaming response:
 
 ```ts
-// 直接把上游的 ReadableStream 交给客户端，不读进内存、不缓冲
+//Hand the upstream ReadableStream directly to the client, without reading it into memory or buffering
 return new Response(response.body, {
   headers: {
     ...corsHeaders(origin),

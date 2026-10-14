@@ -146,7 +146,7 @@ import { XMarkdown } from '@ant-design/x-markdown';
 
 <XMarkdown
   content={streamingText}
-  streaming={{ tail: '▋' }} // 流式光标指示器
+  streaming={{ tail: '▋' }} //Streaming cursor indicator
 />
 ```
 
@@ -199,9 +199,9 @@ v2.2.0 supports **reconnection** and **custom stream delimiters**:
 XRequest({
   baseURL: 'https://api.example.com',
   model: 'custom-model',
-  streamSeparator: '\n',      // 流分隔符
-  partSeparator: 'data: ',    // 部分分隔符
-  kvSeparator: ': ',          // 键值分隔符
+  streamSeparator: '\n',      //Stream delimiter
+  partSeparator: 'data: ',    //Part delimiter
+  kvSeparator: ': ',          //Key-value delimiter
 });
 ```
 
@@ -212,7 +212,7 @@ import { useXChat } from '@ant-design/x-sdk';
 
 const { messages, onRequest } = useXChat({
   request,
-  queueRequest: true, // v2.3.0 新增：支持请求队列
+  queueRequest: true, //New in v2.3.0: request queue support
 });
 ```
 
@@ -226,7 +226,7 @@ The `@ant-design/x-card` released in v2.5.0 is the most eye-catching new member 
 import { XCard } from '@ant-design/x-card';
 
 <XCard
-  // AI 返回的 A2UI JSON 描述
+  //A2UI JSON description returned by AI
   a2ui={agentResponse}
   dataModel={userData}
 />
@@ -240,13 +240,13 @@ The core value of A2UI lies in this: **AI doesn't just return text — it return
 ### 8.1 Installation
 
 ```bash
-# 核心组件库
+#Core component library
 npm install @ant-design/x
 
-# 流式 Markdown（可选）
+#Streaming Markdown (optional)
 npm install @ant-design/x-markdown
 
-# AI SDK（可选）
+#AI SDK (optional)
 npm install @ant-design/x-sdk
 ```
 

@@ -250,14 +250,14 @@ This is the **most critical** step in remediation. You must assume that all cred
 #### SSH Key Reset Example
 
 ```bash
-# 备份旧密钥
+# Back up the old key
 mv ~/.ssh/id_rsa ~/.ssh/id_rsa.old
 mv ~/.ssh/id_rsa.pub ~/.ssh/id_rsa.pub.old
 
-# 生成新密钥
+# Generate a new key
 ssh-keygen -t ed25519 -C "your_email@example.com"
 
-# 将新公钥部署到服务器
+# Deploy the new public key to the server
 ssh-copy-id user@server
 ```
 
@@ -278,10 +278,10 @@ ns.feishu.it.com
 Review server login logs to check for abnormal SSH logins:
 
 ```bash
-# 查看最近的 SSH 登录记录
+# Check recent SSH login records
 last -a | head -20
 
-# 查看认证日志
+# Check authentication logs
 grep "Accepted" /var/log/auth.log | tail -20
 ```
 
@@ -331,7 +331,7 @@ grep "Accepted" /var/log/auth.log | tail -20
 If you are an Electron app developer, please note:
 
 ```javascript
-// ✅ 启用沙盒
+// ✅ Enable the sandbox
 const win = new BrowserWindow({
   webPreferences: {
     sandbox: true,
@@ -341,7 +341,7 @@ const win = new BrowserWindow({
   }
 });
 
-// ❌ 避免这样做
+// ❌ Avoid doing this
 const win = new BrowserWindow({
   webPreferences: {
     nodeIntegration: true,

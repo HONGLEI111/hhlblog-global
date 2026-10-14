@@ -62,8 +62,8 @@ React 组件类型
 ### 3.1 Server Components Best Practices
 
 ```tsx
-// app/posts/page.tsx (服务端组件)
-// 直接访问数据库，无需 API 层
+// app/posts/page.tsx (Server Component)
+// Access the database directly, no API layer needed
 async function PostsPage() {
   const posts = await db.posts.findMany({
     orderBy: { createdAt: 'desc' },
@@ -73,9 +73,9 @@ async function PostsPage() {
   return (
     <main>
       <h1>最新文章</h1>
-      {/* Server Components 直接传递数据给 Client Components */}
+      {/* Server Components pass data directly to Client Components */}
       <PostsList posts={posts} />
-      {/* 客户端交互组件 */}
+      {/* Client-side interactive component */}
       <CreatePostForm />
     </main>
   );
@@ -85,7 +85,7 @@ async function PostsPage() {
 ### 3.2 Client Components Interactivity
 
 ```tsx
-// app/components/CreatePostForm.tsx (客户端组件)
+// app/components/CreatePostForm.tsx (Client Component)
 'use client';
 
 import { useState } from 'react';
@@ -95,7 +95,7 @@ export function CreatePostForm() {
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Server Actions - 直接调用服务端函数
+    // Server Actions - call server functions directly
     await createPost({ title });
   };
   
@@ -121,7 +121,7 @@ export function CreatePostForm() {
 **Traditional approach**:
 
 ```tsx
-// 需要创建 API 路由
+// Need to create an API route
 // /api/contact.ts
 export async function POST(req: Request) {
   const body = await req.json();
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
   return Response.json({ success: true });
 }
 
-// 组件中调用
+// Call in the component
 const handleSubmit = async (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
@@ -150,7 +150,7 @@ export async function submitContactForm(formData: FormData) {
   const email = formData.get('email') as string;
   const message = formData.get('message') as string;
   
-  // 直接在服务端处理
+  // Handle directly on the server
   await sendEmail({ to: 'contact@example.com', email, message });
   await db.contact.create({ data: { email, message } });
   
@@ -229,9 +229,9 @@ function LikeButton({ postId, initialLikes }) {
   );
   
   const handleLike = async () => {
-    // 立即更新 UI
+    // Update the UI immediately
     setOptimisticLikes(prev => prev + 1);
-    // 后台发送请求
+    // Send the request in the background
     await likePost(postId);
   };
   
@@ -276,17 +276,17 @@ React Compiler is a **compiler-level optimization** that automatically eliminate
 ### 6.2 How to Use
 
 ```bash
-# Next.js 15.3+ 已默认集成
+# Next.js 15.3+ has it integrated by default
 npm install next@latest
 ```
 
 ```tsx
-// 无需任何配置，编译器自动优化
+// No configuration needed, the compiler optimizes automatically
 function UserList({ users }) {
-  // 不需要 useMemo
+  // No need for useMemo
   const sortedUsers = users.sort((a, b) => a.name.localeCompare(b.name));
   
-  // 不需要 useCallback
+  // No need for useCallback
   const handleClick = (user) => {
     console.log('Clicked:', user.name);
   };
@@ -347,14 +347,14 @@ RSC brings new security challenges:
 ```tsx
 'use server';
 
-// ✅ 好的做法：显式权限检查
+// ✅ Good practice: explicit permission check
 export async function deleteUser(userId: string) {
   const user = await getCurrentUser();
   if (!user.isAdmin) {
     throw new Error('Unauthorized');
   }
   
-  // 输入校验
+  // Input validation
   if (!userId || typeof userId !== 'string') {
     throw new Error('Invalid userId');
   }
@@ -363,7 +363,7 @@ export async function deleteUser(userId: string) {
   revalidatePath('/users');
 }
 
-// ❌ 危险的做法：无权限检查
+// ❌ Dangerous practice: no permission check
 export async function deleteUser(userId: string) {
   await db.user.delete({ where: { id: userId } });
 }
@@ -376,10 +376,10 @@ export async function deleteUser(userId: string) {
 ### 9.1 Upgrading from React 18
 
 ```bash
-# 升级 React
+# Upgrade React
 npm install react@latest react-dom@latest
 
-# 升级 Next.js（如使用）
+# Upgrade Next.js (if used)
 npm install next@latest
 ```
 

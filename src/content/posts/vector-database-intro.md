@@ -76,7 +76,7 @@ def simple_embed(text: str, dim: int = 128) -> np.ndarray:
     """
     vec = np.zeros(dim, dtype=np.float32)
     text = text.lower()
-    # 1-gram 和 2-gram
+    #1-gram and 2-gram
     tokens = [text[i:i + 1] for i in range(len(text))]
     tokens += [text[i:i + 2] for i in range(len(text) - 1)]
     for token in tokens:
@@ -85,7 +85,7 @@ def simple_embed(text: str, dim: int = 128) -> np.ndarray:
         sign = 1.0 if (h // dim) % 2 == 0 else -1.0
         vec[idx] += sign
     norm = np.linalg.norm(vec)
-    return vec / norm if norm > 0 else vec  # L2 归一化，之后点积即余弦相似度
+    return vec / norm if norm > 0 else vec  #L2 normalization, then the dot product is the cosine similarity
 
 
 class MiniVectorDB:
@@ -103,9 +103,9 @@ class MiniVectorDB:
     def search(self, query: str, top_k: int = 3) -> list[tuple]:
         """返回 (doc_id, 相似度分数, 文本) 列表，按相似度降序"""
         q = simple_embed(query, self.dim)
-        # 向量已归一化，点积即余弦相似度
+        #Vectors are already normalized, so the dot product is the cosine similarity
         scores = [float(np.dot(q, v)) for v in self.vectors]
-        order = np.argsort(scores)[::-1][:top_k]  # 降序取 top-k
+        order = np.argsort(scores)[::-1][:top_k]  #Sort descending and take top-k
         return [
             (self.docs[i]["id"], scores[i], self.docs[i]["text"])
             for i in order
@@ -161,14 +161,14 @@ pip install chromadb
 ```python
 import chromadb
 
-# 创建本地持久化客户端，数据落盘到 ./chroma_data
+#Create a local persistent client, with data written to disk at ./chroma_data
 client = chromadb.PersistentClient(path="./chroma_data")
 collection = client.get_or_create_collection(
     name="faq",
-    # 不传 embedding_function 时，使用默认的 all-MiniLM-L6-v2
+    #When embedding_function is not passed, the default all-MiniLM-L6-v2 is used
 )
 
-# 写入文档（ChromaDB 会自动调用 Embedding 函数转为向量）
+#Write documents (ChromaDB automatically calls the embedding function to convert them to vectors)
 collection.add(
     ids=["1", "2", "3", "4"],
     documents=[
@@ -179,7 +179,7 @@ collection.add(
     ],
 )
 
-# 语义检索：即使没有关键词重合，也能命中相关文档
+#Semantic search: relevant documents can be matched even with no keyword overlap
 results = collection.query(
     query_texts=["我想退款，怎么操作？"],
     n_results=2,

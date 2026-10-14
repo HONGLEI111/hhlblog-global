@@ -100,7 +100,7 @@ A new built-in development tool that allows debugging applications directly from
 Supports forwarding browser console output to the CLI terminal, making it convenient for AI analysis:
 
 ```bash
-# 终端中直接看到浏览器 console.log
+#See browser console.log directly in the terminal
 $ pnpm dev
 
 [vite] Browser console:
@@ -117,9 +117,9 @@ Vite 8 natively supports TypeScript with no additional configuration needed:
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"]  // ✅ Vite 8 原生支持
+      "@/*": ["./src/*"]  // ✅ Native support in Vite 8
     },
-    "emitDecoratorMetadata": true  // ✅ 无需外部插件
+    "emitDecoratorMetadata": true  // ✅ No external plugin needed
   }
 }
 ```
@@ -138,7 +138,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react()],  // 自动使用 Oxc 转换
+  plugins: [react()],  // Automatically uses Oxc transform
 });
 ```
 
@@ -147,7 +147,7 @@ export default defineConfig({
 `.wasm?init` imports can now run in SSR environments:
 
 ```typescript
-// 客户端和 SSR 都能正常工作
+// Works on both client and SSR
 import init from './module.wasm?init';
 
 const instance = await init();
@@ -164,13 +164,13 @@ A new [Vite Plugin official website](https://vitejs.dev/plugins) has been added,
 ### 5.1 Upgrade Steps
 
 ```bash
-# 1. 升级 Vite
+# 1. Upgrade Vite
 npm install vite@latest
 
-# 2. 升级 React 插件
+# 2. Upgrade the React plugin
 npm install @vitejs/plugin-react@latest
 
-# 3. 检查插件兼容性
+# 3. Check plugin compatibility
 npx vite --config vite.config.ts
 ```
 
@@ -192,15 +192,15 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [
-    react(),  // 或 vue()
+    react(),  // or vue()
   ],
   
-  // Vite 8 新配置
+  // New Vite 8 config
   future: {
-    v6devTransformer: true,  // 启用新转换器
+    v6devTransformer: true,  // Enable the new transformer
   },
   
-  // Rolldown 构建配置
+  // Rolldown build config
   build: {
     rollupOptions: {
       output: {

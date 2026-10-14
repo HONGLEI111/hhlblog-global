@@ -68,14 +68,14 @@ curl -X POST https://github.com/login/oauth/access_token \
 ```
 
 ```js
-// 用 Node 写出来的后端换令牌逻辑（示意）
+//Backend token exchange logic written in Node (illustrative)
 const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
   body: JSON.stringify({
     client_id: process.env.GITHUB_CLIENT_ID,
     client_secret: process.env.GITHUB_CLIENT_SECRET,
-    code, // 来自回调 URL 的一次性授权码
+    code, //One-time authorization code from the callback URL
     redirect_uri: 'https://your-app.com/callback',
   }),
 });
@@ -91,16 +91,16 @@ The `code` typically has a validity period of only tens of seconds to a few minu
 In mobile apps or pure frontend SPAs, there is no way to securely store the `client_secret`. PKCE (RFC 7636)'s solution is: the client generates its own random key (`code_verifier`), sends its hash (`code_challenge`) to the authorization server during authorization, and hands over the original value when exchanging for a token—only the client that initiated the authorization knows this value, and it's useless even if a man-in-the-middle intercepts the `code`.
 
 ```js
-// 生成 code_verifier 与 code_challenge
+//Generate code_verifier and code_challenge
 const verifier = crypto.randomBytes(32).toString('base64url');
 const challenge = crypto
   .createHash('sha256')
   .update(verifier)
   .digest('base64url');
 
-// 授权时带上 challenge
+//Include the challenge during authorization
 // ?client_id=...&code_challenge=${challenge}&code_challenge_method=S256
-// 换令牌时带上 verifier，授权服务器验证哈希一致才发令牌
+//Include the verifier during token exchange; the authorization server issues the token only if the hashes match
 ```
 
 Today, GitHub, Google, and Auth0 all require or strongly recommend PKCE. Even if your application is a traditional web backend, adding PKCE only has benefits.

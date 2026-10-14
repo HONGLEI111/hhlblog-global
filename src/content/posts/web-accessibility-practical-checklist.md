@@ -28,11 +28,11 @@ Browsers come with a wealth of built-in accessibility semantics: `<button>` is n
 As long as you don't abuse `<div>`, you get 80% of accessibility for free.
 
 ```html
-<!-- ❌ 反面教材：屏幕阅读器只看到一堆文本 -->
+<!-- ❌ Anti-pattern: screen readers only see a pile of text -->
 <div class="btn" onclick="submit()">提交</div>
 <div class="link" onclick="go()">查看详情</div>
 
-<!-- ✅ 正确写法：语义、焦点、键盘事件全部免费 -->
+<!-- ✅ Correct approach: semantics, focus, and keyboard events all come for free -->
 <button type="submit">提交</button>
 <a href="/detail">查看详情</a>
 ```
@@ -49,7 +49,7 @@ The same applies to page structure:
   </header>
   <main id="main">
     <h1>文章标题</h1>
-    <!-- 标题层级不要跳级：h1 → h2 → h3 -->
+    <!-- Don't skip heading levels: h1 → h2 → h3 -->
   </main>
   <footer>...</footer>
 </body>
@@ -71,7 +71,7 @@ function openDialog(dialog, trigger) {
   const first = focusables[0];
   const last = focusables[focusables.length - 1];
 
-  dialog.showModal(); // 原生 <dialog> 自带焦点陷阱与 Esc 关闭
+  dialog.showModal(); // Native <dialog> comes with focus trapping and Esc to close
   first?.focus();
 
   dialog.addEventListener('keydown', (e) => {
@@ -94,10 +94,10 @@ It's worth emphasizing: **the native `<dialog>` + `showModal()` already provides
 **2. Focus styles are killed by `outline: none`.** Globally removing focus outlines for the sake of "looking good" is equivalent to leaving keyboard users completely lost. The right approach is to keep it and make it prettier:
 
 ```css
-/* ❌ 不要这样 */
+/* ❌ Don't do this */
 *:focus { outline: none; }
 
-/* ✅ 用 :focus-visible 只给键盘用户显示，且保证对比度 */
+/* ✅ Use :focus-visible to show it only for keyboard users, and ensure contrast */
 :focus-visible {
   outline: 3px solid #2563eb;
   outline-offset: 2px;
@@ -113,7 +113,7 @@ The beauty of `:focus-visible` is that mouse clicks don't trigger the outline, b
 <div role="status" aria-live="polite" class="sr-only">
   已保存 3 项更改
 </div>
-<!-- 紧急错误用 aria-live="assertive"，它会打断当前播报，慎用 -->
+<!-- Use aria-live="assertive" for urgent errors; it interrupts the current announcement, so use with caution -->
 ```
 
 Pair it with a utility class that's visually hidden but readable by screen readers:
@@ -137,10 +137,10 @@ Pair it with a utility class that's visually hidden but readable by screen reade
 The first rule of ARIA is: **if you can express the semantics with native HTML elements, don't use ARIA.** The behavior of native elements (keyboard interaction, focus management, state synchronization) is implemented by the browser, whereas ARIA only "tells the screen reader what this is"—it doesn't handle behavior.
 
 ```html
-<!-- ❌ ARIA 滥用：有 role 但行为没实现，反而更糟 -->
+<!-- ❌ ARIA misuse: having a role but not implementing the behavior makes things worse -->
 <div role="checkbox" aria-checked="false">同意条款</div>
 
-<!-- ✅ 原生元素，行为与语义都是对的 -->
+<!-- ✅ Native elements: both behavior and semantics are correct -->
 <label>
   <input type="checkbox" name="terms" />
   同意条款
@@ -156,10 +156,10 @@ There are three scenarios where ARIA genuinely earns its keep:
 One high-frequency detail that's almost always overlooked is the "icon button":
 
 ```html
-<!-- 只有一个 SVG 图标，读屏用户听到的是「按钮」，不知道干什么 -->
+<!-- With only an SVG icon, screen reader users hear "button" and don't know what it does -->
 <button><svg aria-hidden="true">...</svg></button>
 
-<!-- ✅ 提供可读名称，同时让装饰性图标对 AT 隐藏 -->
+<!-- ✅ Provide an accessible name while hiding decorative icons from AT -->
 <button aria-label="关闭对话框">
   <svg aria-hidden="true" focusable="false">...</svg>
 </button>
@@ -172,10 +172,10 @@ One high-frequency detail that's almost always overlooked is the "icon button":
 **Don't convey information by color alone**—this is the core pain point for users with color vision deficiency:
 
 ```html
-<!-- ❌ 只靠红色表示错误 -->
+<!-- ❌ Indicating errors with red alone -->
 <input style="border-color: red" />
 
-<!-- ✅ 颜色 + 图标 + 文字，三重冗余 -->
+<!-- ✅ Color + icon + text, triple redundancy -->
 <input aria-invalid="true" aria-describedby="email-error" />
 <p id="email-error" class="error">
   <span aria-hidden="true">⚠</span> 邮箱格式不正确，请检查是否缺少 @

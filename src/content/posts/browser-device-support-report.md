@@ -36,7 +36,7 @@ This floor wasn't decided arbitrarily — it's determined jointly by the build c
 
 ```css
 @supports not (color: oklch(0.56 0.14 250)) {
-  :root { --primary: #5a55c9; /* 静态回退配色 */ }
+  :root { --primary: #5a55c9; /* static fallback color scheme */ }
 }
 ```
 

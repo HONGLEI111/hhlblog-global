@@ -65,7 +65,7 @@ typedef struct ListNode {
     struct ListNode *next;
 } ListNode;
 
-/* —— 自定义最小堆 —— */
+/* —— Custom Min-Heap —— */
 typedef struct {
     ListNode **data;
     int size;
@@ -119,7 +119,7 @@ ListNode* mergeKLists(ListNode** lists, int listsSize) {
     h.size = 0;
     h.capacity = listsSize;
 
-    // 将 K 个链表的头节点入堆
+    // Push the head nodes of the K linked lists into the heap
     for (int i = 0; i < listsSize; i++) {
         if (lists[i]) heapPush(&h, lists[i]);
     }
@@ -156,11 +156,11 @@ struct ListNode {
 class Solution {
 public:
     ListNode* mergeKLists(vector<ListNode*>& lists) {
-        // 自定义比较器：按节点值从小到大
+        // Custom comparator: by node value from smallest to largest
         auto cmp = [](ListNode *a, ListNode *b) { return a->val > b->val; };
         priority_queue<ListNode*, vector<ListNode*>, decltype(cmp)> pq(cmp);
 
-        // 将 K 个链表的头节点入堆
+        // Push the head nodes of the K linked lists into the heap
         for (auto head : lists) {
             if (head) pq.push(head);
         }
@@ -188,12 +188,12 @@ class ListNode {
     }
 }
 
-// 使用最小优先队列的简单实现（手动维护排序数组）
+// Simple implementation using a min-priority queue (manually maintaining a sorted array)
 function mergeKLists(lists) {
-    // 过滤空链表，收集所有头节点
+    // Filter out empty linked lists, collect all head nodes
     const heap = lists.filter(h => h !== null);
 
-    // 按值排序（简易最小堆替代）
+    // Sort by value (simple min-heap substitute)
     const sortHeap = () => heap.sort((a, b) => a.val - b.val);
 
     const dummy = new ListNode(0);
@@ -201,7 +201,7 @@ function mergeKLists(lists) {
 
     while (heap.length > 0) {
         sortHeap();
-        const minNode = heap.shift(); // 取出最小值
+        const minNode = heap.shift(); // Extract the minimum value
         tail.next = minNode;
         tail = tail.next;
         if (minNode.next) heap.push(minNode.next);
@@ -210,14 +210,14 @@ function mergeKLists(lists) {
     return dummy.next;
 }
 
-// 性能优化版本：分治法（见下方）
+// Performance-optimized version: divide and conquer (see below)
 ```
 :::
 ## Code Implementation (Divide and Conquer)
 
 :::code-tabs{default="cpp"}
 ```c title="C"
-// 合并两个有序链表（基础操作）
+// Merge two sorted linked lists (basic operation)
 ListNode* mergeTwo(ListNode* a, ListNode* b) {
     ListNode dummy;
     dummy.next = NULL;
@@ -231,10 +231,10 @@ ListNode* mergeTwo(ListNode* a, ListNode* b) {
     return dummy.next;
 }
 
-// 分治法：两两合并
+// Divide and conquer: merge in pairs
 ListNode* mergeKListsDivide(ListNode** lists, int listsSize) {
     if (listsSize == 0) return NULL;
-    // interval 表示当前每组合并的步长：1→2→4→8→...
+    // interval represents the current merge step size for each group: 1→2→4→8→...
     for (int interval = 1; interval < listsSize; interval *= 2) {
         for (int i = 0; i + interval < listsSize; i += interval * 2) {
             lists[i] = mergeTwo(lists[i], lists[i + interval]);
@@ -247,7 +247,7 @@ ListNode* mergeKListsDivide(ListNode** lists, int listsSize) {
 ```cpp title="C++"
 class Solution {
 public:
-    // 合并两个有序链表（基础操作）
+    // Merge two sorted linked lists (basic operation)
     ListNode* mergeTwo(ListNode* a, ListNode* b) {
         ListNode dummy(0);
         ListNode *tail = &dummy;
@@ -260,7 +260,7 @@ public:
         return dummy.next;
     }
 
-    // 分治法：两两合并
+    // Divide and conquer: merge in pairs
     ListNode* mergeKLists(vector<ListNode*>& lists) {
         int n = lists.size();
         if (n == 0) return nullptr;

@@ -140,15 +140,15 @@ Make it a habit: **after every verbal change, go back and add a line to the tick
 "Renaming a field" is a death sentence in the traditional approach because it must be done all at once—change the code, change the database, deploy simultaneously. Expand-contract (also called parallel change) breaks it into three steps, each of which can be deployed and rolled back independently:
 
 ```sql
--- 第 1 步 expand：只加，不改，不删。旧代码依然能跑
-ALTER TABLE users ADD COLUMN full_name VARCHAR(100);  -- MySQL 8.0.12+ 可为 INSTANT
+--Step 1 expand: only add, don't modify, don't delete. Old code still runs
+ALTER TABLE users ADD COLUMN full_name VARCHAR(100);  --MySQL 8.0.12+ can be INSTANT
 
--- 应用层进入双写期：写 name 的同时也写 full_name，读仍然读 name
+--The application layer enters a dual-write period: when writing name, also write full_name; reads still read name
 ```
 
 ```sql
--- 第 2 步 migrate：分批回填历史数据
--- 关键是 LIMIT + 循环，别让一条 UPDATE 锁住整张表
+--Step 2 migrate: backfill historical data in batches
+--The key is LIMIT + looping, don't let a single UPDATE lock the entire table
 UPDATE users SET full_name = name
 WHERE full_name IS NULL
 ORDER BY id
@@ -156,8 +156,8 @@ LIMIT 1000;
 ```
 
 ```sql
--- 第 3 步 contract：读切到 full_name，观察一到两个发布周期，确认没人在写旧列
--- 只有到这时才删
+--Step 3 contract: switch reads to full_name, observe for one to two release cycles, and confirm no one is writing to the old column
+--Only then delete
 ALTER TABLE users DROP COLUMN name;
 ```
 

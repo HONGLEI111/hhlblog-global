@@ -85,12 +85,12 @@ const socket = createQuicSocket({ endpoint: { port: 4433 } });
 socket.listen({
   key,
   cert,
-  alpn: 'h3', // HTTP/3 的 ALPN 标识
+  alpn: 'h3', //ALPN identifier for HTTP/3
 });
 
 socket.on('session', (session) => {
   session.on('stream', (stream) => {
-    // 处理 HTTP/3 请求流
+    //Handle HTTP/3 request streams
     stream.on('data', (chunk) => {
       console.log('收到请求:', chunk.toString());
     });
@@ -154,11 +154,11 @@ This is the most significant experience improvement in mobile scenarios—video 
 Since 2024, mainstream browsers (Chrome, Firefox, Safari) and web servers (Nginx, Caddy, Cloudflare) have all supported HTTP/3. You can use the following tools to verify whether a site supports it:
 
 ```bash
-# curl 需编译时开启 HTTP/3 支持
-# 使用 --http3 标志发起请求
+#curl must be built with HTTP/3 support
+#Use the --http3 flag to send requests
 curl -I --http3 https://cloudflare-quic.com
 
-# 输出示例：
+#Example output:
 # HTTP/3 200
 # content-type: text/html
 # server: cloudflare
@@ -177,10 +177,10 @@ Nginx has provided experimental support for HTTP/3 since 1.25.0. Below is a mini
 
 ```nginx
 server {
-    # QUIC 和 HTTP/3 监听
+    #QUIC and HTTP/3 listening
     listen 443 quic reuseport;
 
-    # 同时兼容 HTTP/2（通过 TCP）
+    #Also compatible with HTTP/2 (over TCP)
     listen 443 ssl;
 
     server_name example.com;
@@ -188,14 +188,14 @@ server {
     ssl_certificate     /etc/ssl/certs/example.com.pem;
     ssl_certificate_key /etc/ssl/private/example.com.key;
 
-    # 启用 HTTP/3
+    #Enable HTTP/3
     http3 on;
 
-    # 通过 Alt-Svc 头部告知客户端本服务支持 h3
+    #Inform clients via the Alt-Svc header that this service supports h3
     add_header Alt-Svc 'h3=":443"; ma=86400';
 
     location / {
-        # 常规配置
+        #General configuration
         root /var/www/html;
     }
 }

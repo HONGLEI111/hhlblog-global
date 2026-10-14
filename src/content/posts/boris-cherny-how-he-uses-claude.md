@@ -55,7 +55,7 @@ Loop is a cron-based scheduled agent orchestration mechanism. Boris has deployed
 - **Social listening**: scrapes Twitter feedback every 30 minutes and automatically clusters and organizes it
 
 ```bash
-# 每 30 分钟检查一次 CI 状态并修复失败的测试
+#Check CI status every 30 minutes and fix failing tests
 /loop 30m 检查最近的 CI 运行结果，如果存在 flaky test，自动修复并提 PR
 ```
 

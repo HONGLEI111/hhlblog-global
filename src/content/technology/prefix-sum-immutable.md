@@ -115,7 +115,7 @@ Prefix sum code is always three parts: **build table → query table → (C only
 #include <stdlib.h>
 
 typedef struct {
-    int *pre;   /* pre[i] = nums[0..i-1] 的和，长度 n + 1 */
+    int *pre;   /* pre[i] = sum of nums[0..i-1], length n + 1 */
     int n;
 } NumArray;
 
@@ -123,14 +123,14 @@ NumArray *numArrayCreate(int *nums, int numsSize) {
     NumArray *obj = (NumArray *)malloc(sizeof(NumArray));
     obj->n = numsSize;
     obj->pre = (int *)malloc((numsSize + 1) * sizeof(int));
-    obj->pre[0] = 0;                                  /* 多开的一位 */
+    obj->pre[0] = 0;                                  /* the extra slot */
     for (int i = 0; i < numsSize; i++)
-        obj->pre[i + 1] = obj->pre[i] + nums[i];      /* 前 i+1 个元素的和 */
+        obj->pre[i + 1] = obj->pre[i] + nums[i];      /* sum of the first i+1 elements */
     return obj;
 }
 
 int numArraySumRange(NumArray *obj, int left, int right) {
-    return obj->pre[right + 1] - obj->pre[left];      /* 一头一尾 */
+    return obj->pre[right + 1] - obj->pre[left];      /* one at each end */
 }
 
 void numArrayFree(NumArray *obj) {
@@ -144,29 +144,29 @@ void numArrayFree(NumArray *obj) {
 using namespace std;
 
 class NumArray {
-    vector<int> pre;   // pre[i] = nums[0..i-1] 的和，长度 n + 1
+    vector<int> pre;   // pre[i] = sum of nums[0..i-1], length n + 1
 public:
     NumArray(vector<int>& nums) : pre(nums.size() + 1, 0) {
         for (int i = 0; i < (int)nums.size(); i++)
-            pre[i + 1] = pre[i] + nums[i];             // 前 i+1 个元素的和
+            pre[i + 1] = pre[i] + nums[i];             // sum of the first i+1 elements
     }
     int sumRange(int left, int right) {
-        return pre[right + 1] - pre[left];             // 一头一尾
+        return pre[right + 1] - pre[left];             // one at each end
     }
 };
 ```
 
 ```js title="JavaScript"
 var NumArray = function (nums) {
-  // pre[i] = nums[0..i-1] 的和，长度 n + 1
+  // pre[i] = sum of nums[0..i-1], length n + 1
   this.pre = new Array(nums.length + 1).fill(0);
   for (let i = 0; i < nums.length; i++) {
-    this.pre[i + 1] = this.pre[i] + nums[i]; // 前 i+1 个元素的和
+    this.pre[i + 1] = this.pre[i] + nums[i]; // sum of the first i+1 elements
   }
 };
 
 NumArray.prototype.sumRange = function (left, right) {
-  return this.pre[right + 1] - this.pre[left]; // 一头一尾
+  return this.pre[right + 1] - this.pre[left]; // one at each end
 };
 ```
 :::
@@ -289,7 +289,7 @@ sum(r1, c1, r2, c2)
 #include <stdlib.h>
 
 typedef struct {
-    int **pre;         /* (m+1) x (n+1)，多开一圈 */
+    int **pre;         /* (m+1) x (n+1), one extra ring */
     int rows, cols;
 } NumMatrix;
 
@@ -300,7 +300,7 @@ NumMatrix *numMatrixCreate(int **matrix, int matrixSize, int *matrixColSize) {
     obj->cols = n;
     obj->pre = (int **)malloc((m + 1) * sizeof(int *));
     for (int i = 0; i <= m; i++)
-        obj->pre[i] = (int *)calloc(n + 1, sizeof(int));   /* 多开的一圈，初值 0 */
+        obj->pre[i] = (int *)calloc(n + 1, sizeof(int));   /* the extra ring, initialized to 0 */
 
     for (int i = 1; i <= m; i++)
         for (int j = 1; j <= n; j++)
@@ -310,10 +310,10 @@ NumMatrix *numMatrixCreate(int **matrix, int matrixSize, int *matrixColSize) {
 }
 
 int numMatrixSumRegion(NumMatrix *obj, int row1, int col1, int row2, int col2) {
-    return obj->pre[row2 + 1][col2 + 1]      /* 大矩形 */
-         - obj->pre[row1][col2 + 1]          /* 减上方 */
-         - obj->pre[row2 + 1][col1]          /* 减左方 */
-         + obj->pre[row1][col1];             /* 补左上 */
+    return obj->pre[row2 + 1][col2 + 1]      /* big rectangle */
+         - obj->pre[row1][col2 + 1]          /* subtract top */
+         - obj->pre[row2 + 1][col1]          /* subtract left */
+         + obj->pre[row1][col1];             /* add back top-left */
 }
 
 void numMatrixFree(NumMatrix *obj) {
@@ -329,7 +329,7 @@ void numMatrixFree(NumMatrix *obj) {
 using namespace std;
 
 class NumMatrix {
-    vector<vector<int>> pre;   // (m+1) x (n+1)，多开一圈
+    vector<vector<int>> pre;   // (m+1) x (n+1), one extra ring
 public:
     NumMatrix(vector<vector<int>>& matrix) {
         int m = matrix.size(), n = matrix[0].size();
@@ -340,10 +340,10 @@ public:
                           - pre[i - 1][j - 1] + matrix[i - 1][j - 1];
     }
     int sumRegion(int row1, int col1, int row2, int col2) {
-        return pre[row2 + 1][col2 + 1]   // 大矩形
-             - pre[row1][col2 + 1]       // 减上方
-             - pre[row2 + 1][col1]       // 减左方
-             + pre[row1][col1];          // 补左上
+        return pre[row2 + 1][col2 + 1]   // big rectangle
+             - pre[row1][col2 + 1]       // subtract top
+             - pre[row2 + 1][col1]       // subtract left
+             + pre[row1][col1];          // add back top-left
     }
 };
 ```
@@ -352,7 +352,7 @@ public:
 var NumMatrix = function (matrix) {
   const m = matrix.length;
   const n = matrix[0].length;
-  // pre 是 (m+1) x (n+1)，多开的一圈是 0
+  // pre is (m+1) x (n+1), the extra ring is 0
   this.pre = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
@@ -364,10 +364,10 @@ var NumMatrix = function (matrix) {
 
 NumMatrix.prototype.sumRegion = function (row1, col1, row2, col2) {
   return (
-    this.pre[row2 + 1][col2 + 1] - // 大矩形
-    this.pre[row1][col2 + 1] - // 减上方
-    this.pre[row2 + 1][col1] + // 减左方
-    this.pre[row1][col1] // 补左上
+    this.pre[row2 + 1][col2 + 1] - // big rectangle
+    this.pre[row1][col2 + 1] - // subtract top
+    this.pre[row2 + 1][col1] + // subtract left
+    this.pre[row1][col1] // add back top-left
   );
 };
 ```
@@ -464,9 +464,9 @@ Prefix sums are **accumulated quantities**, much larger in magnitude than the or
 - **Two dimensions amplify faster**: in the immutable matrix, each cell of `pre` is a rectangular sum, totaling the sum of `m·n` elements—**the overflow threshold is even lower than in one dimension**, so wide types are even more essential.
 
 ```cpp
-// ❌ 原数组是 int，但前缀和一定是 long long
+// ❌ the original array is int, but the prefix sum must be long long
 vector<int> pre(n + 1, 0);
-pre[i + 1] = pre[i] + nums[i];          // 10^9 量级累加几万次就溢出
+pre[i + 1] = pre[i] + nums[i];          // accumulating on the order of 10^9 over tens of thousands of times overflows
 
 // ✅
 vector<long long> pre(n + 1, 0);

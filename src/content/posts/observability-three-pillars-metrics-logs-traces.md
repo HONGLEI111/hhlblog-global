@@ -40,7 +40,7 @@ Metrics are cheap on the premise of **few dimensions**. They're cheap not becaus
 High-cardinality incidents in PostgreSQL almost always look like this:
 
 ```js
-// ❌ 灾难写法
+// ❌ Disaster写法
 const httpDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   labelNames: ['method', 'url', 'user_id', 'request_id'],
@@ -53,11 +53,11 @@ Do the math on how many time series this metric will produce: `method`(5) × `ur
 `user_id`, `request_id`, raw URLs, timestamps, IPs—these are all **unbounded values** and must be replaced with bounded, enumerable labels:
 
 ```js
-// ✅ 正确写法：路由模板而非原始 URL，只保留有界维度
+// ✅ Correct approach: route template instead of raw URL, keeping only bounded dimensions
 const httpDuration = new client.Histogram({
   name: 'http_server_request_duration_seconds',
   help: 'HTTP 请求耗时（秒）',
-  labelNames: ['method', 'route', 'status_code'], // route 形如 /users/:id
+  labelNames: ['method', 'route', 'status_code'], // route looks like /users/:id
   buckets: [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
 });
 ```
@@ -76,7 +76,7 @@ const tracer = trace.getTracer('order-service');
 
 async function createOrder(req) {
   return tracer.startActiveSpan('create_order', async (span) => {
-    // 这些属性决定了这条 trace 将来能不能被查出来
+    // These attributes determine whether this trace can be queried in the future
     span.setAttribute('order.item_count', req.items.length);
     span.setAttribute('user.tier', req.user.tier);
     span.setAttribute('payment.provider', req.paymentProvider);
@@ -86,7 +86,7 @@ async function createOrder(req) {
       span.setAttribute('order.id', order.id);
       return order;
     } catch (err) {
-      // 不记录异常，这条 trace 就只是一段静默的耗时
+      // If exceptions aren't recorded, this trace is just a silent span of elapsed time
       span.recordException(err);
       span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
       throw err;
@@ -127,7 +127,7 @@ function log(level, msg, fields = {}) {
     ts: new Date().toISOString(),
     level,
     msg,
-    // OpenTelemetry 的日志数据模型里，这两个字段就是用来做关联的
+    // In OpenTelemetry's log data model, these two fields are meant for correlation
     trace_id: ctx?.traceId,
     span_id: ctx?.spanId,
     ...fields,

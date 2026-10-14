@@ -117,10 +117,10 @@ Now that the theory is covered, let's verify it in practice. OpenSSL has support
 **1. Check whether the server supports TLS 1.3:**
 
 ```bash
-# 强制使用 TLS 1.3 连接
+# Force TLS 1.3 connections
 echo | openssl s_client -connect www.cloudflare.com:443 -tls1_3 2>&1 | grep -E "Protocol|Cipher"
 
-# 输出示例：
+# Example output:
 # Protocol  : TLSv1.3
 # Cipher    : TLS_AES_256_GCM_SHA384
 ```
@@ -145,7 +145,7 @@ Key observation: **What immediately follows ServerHello is not a plaintext Certi
 **3. Generate a self-signed certificate to test a local server:**
 
 ```bash
-# 生成私钥和自签名证书
+# Generate private key and self-signed certificate
 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
   -keyout server.key -out server.crt -days 365 -nodes \
   -subj "/CN=localhost"
@@ -162,7 +162,7 @@ import { readFileSync } from 'node:fs';
 const options = {
   key: readFileSync('./server.key'),
   cert: readFileSync('./server.crt'),
-  // 只允许 TLS 1.3
+  // Allow only TLS 1.3
   minVersion: 'TLSv1.3',
   maxVersion: 'TLSv1.3',
 };
@@ -190,7 +190,7 @@ Verify with a browser or curl:
 
 ```bash
 curl --tlsv1.3 -k https://localhost:8443
-# 输出: Hello TLS 1.3!
+# Output: Hello TLS 1.3!
 ```
 
 `--tlsv1.3` forces the client to use TLS 1.3, and `-k` skips self-signed certificate verification (for local testing only—never use this in production).

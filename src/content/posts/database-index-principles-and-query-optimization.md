@@ -57,7 +57,7 @@ CREATE TABLE orders (
   amount INTEGER NOT NULL, created_at TEXT NOT NULL, note TEXT)
 """)
 
-rnd = random.Random(42)      # 固定 seed，数据可复现
+rnd = random.Random(42)      #Fixed seed, data is reproducible
 cur.executemany("INSERT INTO orders(user_id,status,amount,created_at,note) VALUES (?,?,?,?,?)",
     [(rnd.randint(1, 50_000), rnd.choice(["paid", "pending", "refunded"]),
       rnd.randint(1, 100_000),
@@ -67,7 +67,7 @@ con.commit()
 
 cur.execute("CREATE INDEX idx_user_status_amount ON orders(user_id, status, amount)")
 con.commit()
-cur.execute("ANALYZE")       # 更新统计信息，否则代价模型可能在瞎猜
+cur.execute("ANALYZE")       #Update statistics, otherwise the cost model may be guessing blindly
 con.commit()
 ```
 
@@ -120,7 +120,7 @@ WHERE user_id = 1 AND status = 'paid'
 WHERE user_id = 1 AND status = 'paid' AND amount > 100
   -> SEARCH ... (user_id=? AND status=? AND amount>?)
 
-WHERE status = 'paid'                      -- 跳过最左列
+WHERE status = 'paid'                      --Skip the leftmost column
   -> SEARCH orders USING COVERING INDEX idx_status (status=?)   ← 走了另一条索引
 
 WHERE amount > 100
@@ -171,7 +171,7 @@ The other side of the coin is: a covering index usually means a wider index, tak
 ### 1. Wrapping a Function Around an Indexed Column
 
 ```text
-WHERE substr(created_at,1,4) = '2026'      -- created_at 上有索引
+WHERE substr(created_at,1,4) = '2026'      --There is an index on created_at
   -> SCAN orders USING COVERING INDEX idx_created
 ```
 
@@ -182,16 +182,16 @@ One solution is an **expression index** (also called a function index). After cr
 ```sql
 CREATE INDEX idx_year ON orders(substr(created_at,1,4));
 
--- 计划立刻变成：
+--The plan immediately becomes:
 -- SEARCH orders USING INDEX idx_year (<expr>=?)
 ```
 
 MySQL 8.0.13+ and PostgreSQL both support function indexes. But a better approach is usually to **rewrite the SQL**, so that the existing index can be hit without changing the schema:
 
 ```sql
--- 不要这样写
+--Don't write it this way
 WHERE substr(created_at,1,4) = '2026'
--- 改成显式范围
+--Change to an explicit range
 WHERE created_at >= '2026-01-01' AND created_at < '2027-01-01'
 ```
 
@@ -203,7 +203,7 @@ The root cause lies in collation and the semantics of LIKE: **SQLite defaults to
 
 ```sql
 PRAGMA case_sensitive_like = ON;
--- 之后：SEARCH o USING COVERING INDEX ix_c (created_at>? AND created_at<?)
+--Afterward: SEARCH o USING COVERING INDEX ix_c (created_at>? AND created_at<?)
 ```
 
 PostgreSQL has a similar constraint: `LIKE 'abc%'` can use a B-tree only when the index uses the C collation, or when `text_pattern_ops` is specified at index creation time. MySQL's behavior depends on the column's collation.
@@ -221,7 +221,7 @@ Any form of wrapping an indexed column in an expression destroys its ordering. A
 ### 4. Leading Wildcard
 
 ```text
-WHERE created_at LIKE '%06-12%'   -- 包含前导 %
+WHERE created_at LIKE '%06-12%'   --Contains a leading %
 ```
 
 A leading `%` means the starting point is unknown, and "ordering" cannot help at all. This kind of requirement should be handed to a full-text index or a search engine, rather than forcing a B-tree to do the job.
@@ -261,7 +261,7 @@ The solution is **keyset pagination**, replacing the offset with "the position o
 
 ```sql
 SELECT id, amount FROM orders
-WHERE user_id = 1 AND id > :last_id    -- 上一页最后一条的 id
+WHERE user_id = 1 AND id > :last_id    --The id of the last record on the previous page
 ORDER BY id
 LIMIT 20;
 ```
@@ -275,7 +275,7 @@ Selectivity = number of distinct values / total number of rows. A column with se
 Here I need to correct a popular claim. I tested it with `status`:
 
 ```text
-WHERE status = 'paid'     -- 只有 3 种取值，命中约 1/3 的行
+WHERE status = 'paid'     --Only 3 distinct values, matching about 1/3 of the rows
   -> SEARCH orders USING INDEX idx_status2 (status=?)
 ```
 

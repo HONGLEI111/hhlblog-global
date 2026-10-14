@@ -38,13 +38,13 @@ These incidents share one thing in common: **the command itself wasn't written w
 So veterans' "life-saving habits" tend to be quite simple:
 
 ```bash
-# 删除前先 pwd 确认自己在哪
+#Before deleting, run pwd first to confirm where you are
 pwd
 
-# 关键路径删除前，先 ls 看一眼要删的是不是这个
+#Before deleting a critical path, run ls first to check whether this is the one you want to delete
 ls -l /data/production
 
-# 用「演习」代替直接执行：先 echo 出来，确认无误再去掉 echo
+#Use a "dry run" instead of executing directly: echo it out first, and once confirmed, remove the echo
 echo rm -rf /data/production/old
 ```
 

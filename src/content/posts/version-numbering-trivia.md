@@ -42,7 +42,7 @@ Full circle: version numbers were first used for showing off, then treated as fi
 The most widely circulated explanation is that a prefix check caused the trouble. A large number of old programs identify 95/98 like this:
 
 ```c
-if (version.StartsWith("Windows 9")) { /* 95 或 98 */ }
+if (version.StartsWith("Windows 9")) { /* 95 or 98 */ }
 ```
 
 So once the new system is called "Windows 9," it would fall into this branch, be treated as a fifteen-year-old relic, and compatibility mode would go haywire on the spot. So Microsoft skipped 9 and went straight to Windows 10.

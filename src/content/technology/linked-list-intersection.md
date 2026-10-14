@@ -77,13 +77,13 @@ ListNode* getIntersectionNode(ListNode *headA, ListNode *headB) {
     ListNode *pA = headA;
     ListNode *pB = headB;
 
-    // 两个指针交替遍历
+    // Two pointers traverse alternately
     while (pA != pB) {
-        pA = pA ? pA->next : headB; // pA 走完A走B
-        pB = pB ? pB->next : headA; // pB 走完B走A
+        pA = pA ? pA->next : headB; // pA finishes A then goes to B
+        pB = pB ? pB->next : headA; // pB finishes B then goes to A
     }
 
-    // 相遇点：交点或 null
+    // Meeting point: intersection or null
     return pA;
 }
 ```
@@ -103,13 +103,13 @@ public:
         ListNode *pA = headA;
         ListNode *pB = headB;
 
-        // 两个指针交替遍历
+        // Two pointers traverse alternately
         while (pA != pB) {
-            pA = pA ? pA->next : headB; // pA 走完A走B
-            pB = pB ? pB->next : headA; // pB 走完B走A
+            pA = pA ? pA->next : headB; // pA finishes A then goes to B
+            pB = pB ? pB->next : headA; // pB finishes B then goes to A
         }
 
-        // 相遇点：交点或 nullptr
+        // Meeting point: intersection or nullptr
         return pA;
     }
 };
@@ -129,13 +129,13 @@ function getIntersectionNode(headA, headB) {
     let pA = headA;
     let pB = headB;
 
-    // 两个指针交替遍历
+    // Two pointers traverse alternately
     while (pA !== pB) {
-        pA = pA ? pA.next : headB; // pA 走完A走B
-        pB = pB ? pB.next : headA; // pB 走完B走A
+        pA = pA ? pA.next : headB; // pA finishes A then goes to B
+        pB = pB ? pB.next : headA; // pB finishes B then goes to A
     }
 
-    // 相遇点：交点或 null
+    // Meeting point: intersection or null
     return pA;
 }
 ```

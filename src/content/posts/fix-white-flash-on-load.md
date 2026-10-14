@@ -67,7 +67,7 @@ The entire flicker chain becomes clear:
 Insert a temporary `<style>` tag at the very beginning of `<head>` to **disable all transitions** before the first frame is painted, then remove it after the first frame is painted to restore normal theme-switching transitions:
 
 ```html
-<!-- Layout.astro <head> 最开头 -->
+<!--Layout.astro <head> very beginning -->
 <style id="prevent-flash">
   *, *::before, *::after {
     transition: none !important;

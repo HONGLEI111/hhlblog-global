@@ -17,9 +17,9 @@ The vast majority of projects use the Cache-Aside pattern, and the read path is 
 async function getUserCached(id) {
   const key = `user:${id}`;
   const hit = await redis.get(key);
-  if (hit !== null) return JSON.parse(hit); // 命中
+  if (hit !== null) return JSON.parse(hit); //Hit
 
-  const user = await db.findUser(id); // 回源
+  const user = await db.findUser(id); //Origin fetch
   if (user) await redis.set(key, JSON.stringify(user), { EX: 300 });
   return user;
 }
@@ -42,19 +42,19 @@ Note that "penetration" and "breakdown" differ by only one character, but the fo
 Malicious requests or dirty-data parameters (`id=-1`, `id=999999999`) will reliably bypass the cache. Null-value caching is the least troublesome solution:
 
 ```js
-const NULL_SENTINEL = "\u0000null"; // 用一个不可能出现在业务 JSON 里的哨兵值
+const NULL_SENTINEL = "\u0000null"; //Use a sentinel value that can never appear in business JSON
 
 async function getUserWithNullCache(id) {
   const key = `user:${id}`;
   const hit = await redis.get(key);
-  if (hit === NULL_SENTINEL) return null; // 已知不存在，直接短路
+  if (hit === NULL_SENTINEL) return null; //Known not to exist, short-circuit directly
   if (hit !== null) return JSON.parse(hit);
 
   const user = await db.findUser(id);
   if (user) {
     await redis.set(key, JSON.stringify(user), { EX: 300 });
   } else {
-    await redis.set(key, NULL_SENTINEL, { EX: 30 }); // 短 TTL
+    await redis.set(key, NULL_SENTINEL, { EX: 30 }); //Short TTL
   }
   return user;
 }
@@ -65,7 +65,7 @@ async function getUserWithNullCache(id) {
 The cost is: if an attacker uses a different random ID every time, the null-value cache will be flooded, turning into a memory attack instead. In that case you need a **Bloom filter** as a front-line interception. Since Redis 8, the Bloom filter has been a built-in data structure, and you no longer need to install Redis Stack or the RedisBloom module separately (the [RedisBloom v2.8.20 release notes](https://github.com/RedisBloom/RedisBloom/releases/tag/v2.8.20) state this explicitly):
 
 ```text
-BF.RESERVE user:exists 0.01 1000000   # 误判率 1%，容量 100 万
+BF.RESERVE user:exists 0.01 1000000   #1% false positive rate, 1 million capacity
 BF.ADD user:exists 1001
 (integer) 1
 BF.EXISTS user:exists 1001
@@ -105,17 +105,17 @@ async function getHotProduct(id, retries = 3) {
   if (hit !== null) return JSON.parse(hit);
 
   const token = crypto.randomUUID();
-  // SET key value NX EX：加锁与设置过期时间是一条原子命令
+  //SET key value NX EX: locking and setting expiration is a single atomic command
   const locked = await redis.set(`lock:product:${id}`, token, { NX: true, EX: 10 });
 
   if (!locked) {
-    if (retries <= 0) return null; // 降级，别把自己拖死
+    if (retries <= 0) return null; //Degrade, don't drag yourself down
     await new Promise((r) => setTimeout(r, 50));
     return getHotProduct(id, retries - 1);
   }
 
   try {
-    // 双检：等锁期间可能已经被别的请求回填了
+    //Double-check: it may have already been backfilled by another request while waiting for the lock
     const again = await redis.get(key);
     if (again !== null) return JSON.parse(again);
 
@@ -123,7 +123,7 @@ async function getHotProduct(id, retries = 3) {
     if (product) await redis.set(key, JSON.stringify(product), { EX: 600 });
     return product;
   } finally {
-    // 用 Lua 比对 token 再删：保证「判断持有者」和「删除」原子完成
+    //Use Lua to compare the token before deleting: ensures "checking the holder" and "deleting" complete atomically
     await redis.eval(UNLOCK, { keys: [`lock:product:${id}`], arguments: [token] });
   }
 }
@@ -149,7 +149,7 @@ function jitter(baseSeconds, ratio = 0.1) {
 }
 
 await redis.set(key, JSON.stringify(data), { EX: jitter(3600) });
-// 3600s ± 360s，把失效点摊平到 12 分钟窗口内
+//3600s ± 360s, spreading expiration points across a 12-minute window
 ```
 
 **Source two: Redis becomes entirely unavailable.** This kind of jitter can't save you; you can only rely on architecture and degradation: master-replica + Sentinel or Cluster sharding to ensure availability; the client must have circuit breaking for slow requests and failures; the outermost layer must have a local cache or fallback data. There is one item in Huawei Cloud DCS's business usage guidelines worth copying down—**do not set the client retry time too short (for example, below 200ms); too short a retry very easily triggers a retry storm, which instead hammers the business layer into an avalanche**. In other words, when Redis goes down, the most dangerous thing is not Redis itself, but your clients deciding to retry en masse.

@@ -45,13 +45,13 @@ Choose the wrong entry point, and everything after is wasted effort. There are t
 The three-piece command-line toolkit for locating:
 
 ```bash
-# 这个符号定义在哪？三种常见写法一次搜全
+# Where is this symbol defined? Three common patterns, all in one search
 rg -n "function parseQuery|const parseQuery|parseQuery =" src/
 
-# 谁在调用它？(是「反向」脉络的起点)
+# Who calls it? (This is the starting point of the "reverse" thread)
 rg -n "parseQuery\(" src/
 
-# 语言的隐式约定——这类「魔法」最容易看漏
+# The language's implicit conventions — this kind of "magic" is the easiest to miss
 rg -n "toJSON|Symbol\.toPrimitive|Symbol\.iterator" src/
 ```
 
@@ -107,8 +107,8 @@ After running, it generates a `CPU.*.cpuprofile` in the current directory, which
 The raw file is hard to read, so the script below restores it into a call tree. Full code:
 
 ```js
-// analyze-cpu-profile.mjs —— 把 node --cpu-prof 的产物还原成一棵真实运行过的调用树
-// 用法: node analyze-cpu-profile.mjs <*.cpuprofile> [函数名关键字]
+// analyze-cpu-profile.mjs — reconstructs the output of node --cpu-prof into a call tree that actually ran
+// Usage: node analyze-cpu-profile.mjs <*.cpuprofile> [function name keyword]
 import { readFileSync } from 'node:fs';
 
 const [file, keyword] = process.argv.slice(2);
@@ -120,7 +120,7 @@ if (!file) {
 const profile = JSON.parse(readFileSync(file, 'utf8'));
 const byId = new Map(profile.nodes.map((n) => [n.id, n]));
 
-// samples[i] 是第 i 次采样命中的节点 id，timeDeltas[i] 是这次采样的时长（微秒）
+// samples[i] is the node id hit by the i-th sample, timeDeltas[i] is the duration of that sample (in microseconds)
 const selfTime = new Map();
 for (let i = 0; i < profile.samples.length; i++) {
   const id = profile.samples[i];
@@ -128,14 +128,14 @@ for (let i = 0; i < profile.samples.length; i++) {
   selfTime.set(id, (selfTime.get(id) ?? 0) + dt);
 }
 
-// 建立「子 → 父」索引，后面要沿它回溯调用路径
+// Build a "child → parent" index; later we'll walk it backward to trace the call path
 const parentOf = new Map();
 for (const node of profile.nodes) {
   for (const childId of node.children ?? []) parentOf.set(childId, node.id);
 }
 
-// 自底向上累加，得到每个节点的总耗时（含全部子调用）。
-// 用显式栈而不是递归：真实项目的调用树可能深到把 JS 调用栈撑爆。
+// Accumulate bottom-up to get each node's total time (including all child calls).
+// Use an explicit stack instead of recursion: a real project's call tree can get deep enough to blow the JS call stack.
 const totalTime = new Map();
 const stack = [[profile.nodes[0].id, false]];
 while (stack.length) {
@@ -151,7 +151,7 @@ while (stack.length) {
 }
 
 const ms = (us) => (us / 1000).toFixed(1);
-// 只保留仓库内的相对路径，node_modules 和 node: 内部函数单独标注
+// Keep only relative paths inside the repo; annotate node_modules and node: internal functions separately
 const shortUrl = (url = '') => {
   if (url.startsWith('node:')) return url;
   const i = url.indexOf('/node_modules/');
@@ -159,7 +159,7 @@ const shortUrl = (url = '') => {
   return url.replace(/^file:\/\//, '').replace(`${process.cwd()}/`, '');
 };
 
-// 按「自身耗时」排序：总耗时高只说明它在调用链上游，自身耗时高才是真正吃 CPU 的地方
+// Sort by "self time": high total time only means it's upstream in the call chain; high self time is what's really eating CPU
 const top = [...selfTime.entries()]
   .map(([id, self]) => ({ node: byId.get(id), self }))
   .filter((x) => x.node)
@@ -173,7 +173,7 @@ for (const { node, self } of top) {
   console.log(`  ${ms(self).padStart(8)}ms  ${(node.hitCount ?? 0).toString().padStart(5)} 次  ${f.functionName || '(anonymous)'}  @ ${shortUrl(f.url)}:${f.lineNumber + 1}`);
 }
 
-// 想知道「这个函数是被谁调起来的」，就沿 parentOf 一路回溯到根
+// To find out "who called this function," walk back up through parentOf all the way to the root
 if (keyword) {
   const hits = [...totalTime.entries()]
     .map(([id, total]) => ({ frame: byId.get(id).callFrame, id, total }))
@@ -235,13 +235,13 @@ This approach treats third-party libraries in `node_modules` the same way: there
 Code only tells you what; git tells you why. When a piece of logic seems to make no sense, don't rush to change it—ask history first:
 
 ```bash
-# 这个符号是哪个提交引入的？（-S 搜的是「内容变化」，不是文件名）
+# Which commit introduced this symbol? (-S searches "content changes," not file names)
 git log -S "parseQuery" --oneline
 
-# 第 16 到 20 行经历过什么？逐次改动的 diff 和提交信息都会列出来
+# What happened to lines 16 through 20? The diff and commit message for each change will be listed
 git log -L 16,20:src/parse.js --oneline
 
-# 文件被重命名过也要一路跟到底
+# Even if the file was renamed, follow it all the way through
 git log --follow -p src/parse.js
 ```
 

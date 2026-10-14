@@ -45,7 +45,7 @@ const Button = styled.button`
   }
 `
 
-// 使用时
+//When in use
 <Button primary>提交</Button>
 ```
 

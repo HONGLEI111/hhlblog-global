@@ -51,14 +51,14 @@ typedef struct ListNode {
 } ListNode;
 
 ListNode* partition(ListNode* head, int x) {
-    // 创建两个 dummy 虚拟头节点
+    // Create two dummy virtual head nodes
     ListNode smallDummy, largeDummy;
     smallDummy.next = NULL;
     largeDummy.next = NULL;
     ListNode *small = &smallDummy;
     ListNode *large = &largeDummy;
 
-    // 遍历原链表，分离节点
+    // Traverse the original linked list and separate the nodes
     ListNode *curr = head;
     while (curr) {
         if (curr->val < x) {
@@ -71,9 +71,9 @@ ListNode* partition(ListNode* head, int x) {
         curr = curr->next;
     }
 
-    // 拼接两个链表
+    // Concatenate the two linked lists
     small->next = largeDummy.next;
-    // 断开大值链表末尾，防止环
+    // Disconnect the end of the larger-value linked list to prevent a cycle
     large->next = NULL;
 
     return smallDummy.next;
@@ -92,12 +92,12 @@ struct ListNode {
 class Solution {
 public:
     ListNode* partition(ListNode* head, int x) {
-        // 创建两个 dummy 虚拟头节点
+        // Create two dummy virtual head nodes
         ListNode smallDummy(0), largeDummy(0);
         ListNode *small = &smallDummy;
         ListNode *large = &largeDummy;
 
-        // 遍历原链表，分离节点
+        // Traverse the original linked list and separate the nodes
         ListNode *curr = head;
         while (curr) {
             if (curr->val < x) {
@@ -110,9 +110,9 @@ public:
             curr = curr->next;
         }
 
-        // 拼接两个链表
+        // Concatenate the two linked lists
         small->next = largeDummy.next;
-        // 断开大值链表末尾，防止环
+        // Disconnect the end of the larger-value linked list to prevent a cycle
         large->next = nullptr;
 
         return smallDummy.next;
@@ -129,13 +129,13 @@ class ListNode {
 }
 
 function partition(head, x) {
-    // 创建两个 dummy 虚拟头节点
+    // Create two dummy virtual head nodes
     const smallDummy = new ListNode(0);
     const largeDummy = new ListNode(0);
     let small = smallDummy;
     let large = largeDummy;
 
-    // 遍历原链表，分离节点
+    // Traverse the original linked list and separate the nodes
     let curr = head;
     while (curr) {
         if (curr.val < x) {
@@ -148,9 +148,9 @@ function partition(head, x) {
         curr = curr.next;
     }
 
-    // 拼接两个链表
+    // Concatenate the two linked lists
     small.next = largeDummy.next;
-    // 断开大值链表末尾，防止环
+    // Disconnect the end of the larger-value linked list to prevent a cycle
     large.next = null;
 
     return smallDummy.next;

@@ -28,7 +28,7 @@ The principle for choosing a project isn't "the bigger the better," but **"just 
 3. **Start with documentation and tests.** Documentation errors, typos, missing examples, uncovered test branches—all are low-risk first PRs.
 
 ```bash
-# 用 gh CLI 搜索带 "good first issue" 标签的 issue
+# Use the gh CLI to search for issues labeled "good first issue"
 gh search issues --label "good first issue" "language:typescript" --limit 20
 ```
 
@@ -39,18 +39,18 @@ After choosing a project, the first thing to do is **read `CONTRIBUTING.md`**. I
 The standard contribution workflow on GitHub is "fork first, then submit a PR." Never push directly to the main repository.
 
 ```bash
-# 1. 在 GitHub 网页上点 Fork，然后用 git clone 拉到自己本地
+# 1. Click Fork on the GitHub web page, then use git clone to pull it to your local machine
 git clone https://github.com/<你的用户名>/<项目名>.git
 cd <项目名>
 
-# 2. 把上游仓库加为 remote，方便后续同步
+# 2. Add the upstream repository as a remote to make later syncing easier
 git remote add upstream https://github.com/<原作者>/<项目名>.git
 
-# 3. 永远基于最新的 main 开分支
+# 3. Always branch off the latest main
 git fetch upstream
 git checkout -b fix/typo-in-readme upstream/main
 
-# 4. 定期同步上游的更新（避免你的分支和上游漂移）
+# 4. Regularly sync updates from upstream (to avoid your branch drifting from upstream)
 git fetch upstream
 git merge upstream/main
 ```
@@ -102,7 +102,7 @@ Code Review is the core of open source collaboration, and also where newcomers a
 How to handle review feedback:
 
 ```bash
-# 在同一条分支上继续修改，force-push 更新 PR
+# Keep making changes on the same branch and force-push to update the PR
 git add .
 git commit -m "fix: 根据 review 意见拆分函数"
 git push --force-with-lease

@@ -79,7 +79,7 @@ typedef struct ListNode {
     struct ListNode *next;
 } ListNode;
 
-/* 检测是否有环 */
+/* Check whether a cycle exists */
 bool hasCycle(ListNode *head) {
     ListNode *slow = head;
     ListNode *fast = head;
@@ -87,31 +87,31 @@ bool hasCycle(ListNode *head) {
     while (fast && fast->next) {
         slow = slow->next;
         fast = fast->next->next;
-        if (slow == fast) return true; // 快慢指针相遇，有环
+        if (slow == fast) return true; // Fast and slow pointers meet, so a cycle exists
     }
-    return false; // fast 到达末尾，无环
+    return false; // fast reaches the end, so there is no cycle
 }
 
-/* 寻找环的入口节点 */
+/* Find the entry node of the cycle */
 ListNode* detectCycle(ListNode *head) {
     ListNode *slow = head;
     ListNode *fast = head;
 
-    // 第一阶段：判断是否有环
+    // Phase 1: Determine whether a cycle exists
     while (fast && fast->next) {
         slow = slow->next;
         fast = fast->next->next;
         if (slow == fast) {
-            // 第二阶段：寻找环的入口
+            // Phase 2: Find the entry point of the cycle
             slow = head;
             while (slow != fast) {
                 slow = slow->next;
                 fast = fast->next;
             }
-            return slow; // 再次相遇点即为环入口
+            return slow; // The meeting point again is the cycle entry
         }
     }
-    return NULL; // 无环
+    return NULL; // No cycle
 }
 ```
 
@@ -124,7 +124,7 @@ struct ListNode {
 
 class Solution {
 public:
-    // 检测是否有环
+    // Check whether a cycle exists
     bool hasCycle(ListNode *head) {
         ListNode *slow = head;
         ListNode *fast = head;
@@ -137,17 +137,17 @@ public:
         return false;
     }
 
-    // 寻找环的入口节点
+    // Find the entry node of the cycle
     ListNode* detectCycle(ListNode *head) {
         ListNode *slow = head;
         ListNode *fast = head;
 
-        // 第一阶段：判断是否有环
+        // Phase 1: Determine whether a cycle exists
         while (fast && fast->next) {
             slow = slow->next;
             fast = fast->next->next;
             if (slow == fast) {
-                // 第二阶段：寻找环的入口
+                // Phase 2: Find the entry point of the cycle
                 slow = head;
                 while (slow != fast) {
                     slow = slow->next;
@@ -169,7 +169,7 @@ class ListNode {
     }
 }
 
-// 检测是否有环
+// Check whether a cycle exists
 function hasCycle(head) {
     let slow = head;
     let fast = head;
@@ -182,17 +182,17 @@ function hasCycle(head) {
     return false;
 }
 
-// 寻找环的入口节点
+// Find the entry node of the cycle
 function detectCycle(head) {
     let slow = head;
     let fast = head;
 
-    // 第一阶段：判断是否有环
+    // Phase 1: Determine whether a cycle exists
     while (fast && fast.next) {
         slow = slow.next;
         fast = fast.next.next;
         if (slow === fast) {
-            // 第二阶段：寻找环的入口
+            // Phase 2: Find the entry point of the cycle
             slow = head;
             while (slow !== fast) {
                 slow = slow.next;

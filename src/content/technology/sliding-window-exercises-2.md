@@ -101,9 +101,9 @@ Note the round for `i=3`: `1` appeared at index 0, and the distance condition wa
 #include <stdbool.h>
 #include <limits.h>
 
-/* 值 → 最近一次出现的下标。开放寻址 + 线性探测，同一个值只保留最新下标，
+/* value → index of its most recent occurrence. Open addressing + linear probing, keep only the latest index for each value,
    所以整张表只写不删，不需要墓碑。 */
-#define CAP (1u << 18)                       /* 2 的幂：& (CAP-1) 代替取模 */
+#define CAP (1u << 18)                       /* power of two: & (CAP-1) instead of modulo */
 #define EMPTY LLONG_MIN
 
 static long long key2[CAP];
@@ -129,11 +129,11 @@ bool containsNearbyDuplicate(int *nums, int numsSize, int k) {
         unsigned long long h = hash2(v) & (CAP - 1);
 
         while (key2[h] != EMPTY && key2[h] != v)
-            h = (h + 1) & (CAP - 1);         /* 线性探测找位置 */
+            h = (h + 1) & (CAP - 1);         /* linear probing to find a slot */
 
         if (key2[h] == v) {
-            if (i - pos2[h] <= k) return true;   /* 距离够近，命中 */
-            pos2[h] = i;                          /* 否则更新成最新下标 */
+            if (i - pos2[h] <= k) return true;   /* close enough, hit */
+            pos2[h] = i;                          /* otherwise update to the latest index */
         } else {
             key2[h] = v;
             pos2[h] = i;
@@ -151,12 +151,12 @@ using namespace std;
 class Solution {
 public:
     bool containsNearbyDuplicate(vector<int>& nums, int k) {
-        unordered_map<int, int> last;   // 值 → 最近一次出现的下标
+        unordered_map<int, int> last;   // value → index of its most recent occurrence
 
         for (int i = 0; i < (int)nums.size(); i++) {
             auto it = last.find(nums[i]);
             if (it != last.end() && i - it->second <= k) return true;
-            last[nums[i]] = i;          // 同一个值只留最新下标，天然完成「出窗」
+            last[nums[i]] = i;          // keep only the latest index per value, which naturally handles "leaving the window"
         }
         return false;
     }
@@ -165,12 +165,12 @@ public:
 
 ```js title="JavaScript"
 function containsNearbyDuplicate(nums, k) {
-  const last = new Map();          // 值 → 最近一次出现的下标
+  const last = new Map();          // value → index of its most recent occurrence
 
   for (let i = 0; i < nums.length; i++) {
     const j = last.get(nums[i]);
     if (j !== undefined && i - j <= k) return true;
-    last.set(nums[i], i);          // 同一个值只留最新下标，天然完成「出窗」
+    last.set(nums[i], i);          // keep only the latest index per value, which naturally handles "leaving the window"
   }
   return false;
 }
@@ -265,10 +265,10 @@ Let's verify Example 1 again: when `nums = [1,2,3,1], k = 3, t = 0` with bucket 
 #include <stdbool.h>
 #include <stdlib.h>
 
-/* 桶号 → 桶里那个元素的值。桶宽 w = t+1，同一个桶里任意两数之差 ≤ t，
+/* bucket number → the value of the element in that bucket. Bucket width w = t+1, any two numbers in the same bucket differ by ≤ t,
    所以每个桶最多只需要留一个元素（要是有两个，早就返回 true 了）。
    元素滑出窗口时要删掉它所在的桶，所以这里用墓碑标记删除。 */
-#define CAP3 (1u << 18)                      /* 窗口里最多 k+1 个桶，2^18 留足余量 */
+#define CAP3 (1u << 18)                      /* at most k+1 buckets in the window, 2^18 leaves plenty of margin */
 #define EMPTY3 (1LL << 62)
 #define TOMB3  (1LL << 61)
 
@@ -283,15 +283,15 @@ static unsigned long long hash3(long long x) {
     return h;
 }
 
-static long long floorDiv(long long a, long long b) {   /* b > 0 时向下取整 */
+static long long floorDiv(long long a, long long b) {   /* floor division when b > 0 */
     long long q = a / b;
-    if (a % b != 0 && a < 0) q--;                      /* C 的除法向零取整，负数要修正 */
+    if (a % b != 0 && a < 0) q--;                      /* C division truncates toward zero, negatives need correction */
     return q;
 }
 
 static long long get3(long long key) {
     unsigned long long h = hash3(key) & (CAP3 - 1);
-    while (key3[h] != EMPTY3) {                        /* 墓碑要继续往后找 */
+    while (key3[h] != EMPTY3) {                        /* tombstone, keep searching forward */
         if (key3[h] == key) return val3[h];
         h = (h + 1) & (CAP3 - 1);
     }
@@ -303,7 +303,7 @@ static void put3(long long key, long long val) {
     while (key3[h] != EMPTY3 && key3[h] != TOMB3 && key3[h] != key)
         h = (h + 1) & (CAP3 - 1);
     key3[h] = key;
-    val3[h] = val;                                     /* 墓碑位置可以复用 */
+    val3[h] = val;                                     /* tombstone slot can be reused */
 }
 
 static void del3(long long key) {
@@ -321,24 +321,24 @@ static void clear3(void) {
 bool containsNearbyAlmostDuplicate(int *nums, int numsSize, int k, int t) {
     if (t < 0 || k < 0) return false;
 
-    long long w = (long long)t + 1;      /* t 最大 2^31-1，先转 long long 再加一 */
+    long long w = (long long)t + 1;      /* t max is 2^31-1, cast to long long first then add one */
     clear3();
 
     for (int i = 0; i < numsSize; i++) {
         long long v = nums[i];
         long long id = floorDiv(v, w);
 
-        if (get3(id) != EMPTY3) return true;            /* 同一个桶，必然差 ≤ t */
+        if (get3(id) != EMPTY3) return true;            /* same bucket, difference is necessarily ≤ t */
 
-        long long a = get3(id - 1);                     /* 左邻桶 */
+        long long a = get3(id - 1);                     /* left neighbor bucket */
         if (a != EMPTY3 && llabs(v - a) <= t) return true;
 
-        long long b = get3(id + 1);                     /* 右邻桶 */
+        long long b = get3(id + 1);                     /* right neighbor bucket */
         if (b != EMPTY3 && llabs(v - b) <= t) return true;
 
         put3(id, v);
 
-        if (i - k >= 0)                                 /* 下标滑出窗口，删掉它的桶 */
+        if (i - k >= 0)                                 /* index slides out of the window, delete its bucket */
             del3(floorDiv((long long)nums[i - k], w));
     }
     return false;
@@ -355,10 +355,10 @@ public:
     bool containsNearbyAlmostDuplicate(vector<int>& nums, int k, int t) {
         if (t < 0) return false;
 
-        long long w = (long long)t + 1;     // 桶宽：同桶内任意两数之差 ≤ t
-        unordered_map<long long, long long> bucket;   // 桶号 → 桶里的那个数
+        long long w = (long long)t + 1;     // bucket width: any two numbers in the same bucket differ by ≤ t
+        unordered_map<long long, long long> bucket;   // bucket number → the number in that bucket
 
-        // C++ 的整数除法向零取整，负数要手工修正成「向下取整」
+        // C++ integer division truncates toward zero, negatives need manual correction to "floor"
         auto floorDiv = [](long long a, long long b) {
             long long q = a / b;
             if (a % b != 0 && a < 0) q--;
@@ -369,17 +369,17 @@ public:
             long long v = nums[i];
             long long id = floorDiv(v, w);
 
-            if (bucket.count(id)) return true;          // 同一个桶，必然差 ≤ t
+            if (bucket.count(id)) return true;          // same bucket, difference is necessarily ≤ t
 
-            auto lo = bucket.find(id - 1);              // 左邻桶
+            auto lo = bucket.find(id - 1);              // left neighbor bucket
             if (lo != bucket.end() && v - lo->second <= t) return true;
 
-            auto hi = bucket.find(id + 1);              // 右邻桶
+            auto hi = bucket.find(id + 1);              // right neighbor bucket
             if (hi != bucket.end() && hi->second - v <= t) return true;
 
             bucket[id] = v;
 
-            if (i - k >= 0)                             // 下标滑出窗口，删掉它的桶
+            if (i - k >= 0)                             // index slides out of the window, delete its bucket
                 bucket.erase(floorDiv(nums[i - k], w));
         }
         return false;
@@ -389,24 +389,24 @@ public:
 
 ```js title="JavaScript"
 function containsNearbyAlmostDuplicate(nums, k, t) {
-  const w = t + 1;                 // 桶宽：同桶内任意两数之差 ≤ t
-  const bucket = new Map();        // 桶号 → 桶里的那个下标（下标滑出窗口时要删）
-  const idOf = (v) => Math.floor(v / w);   // Math.floor 对负数也是向下取整
+  const w = t + 1;                 // bucket width: any two numbers in the same bucket differ by ≤ t
+  const bucket = new Map();        // bucket number → the index in that bucket (delete when the index slides out of the window)
+  const idOf = (v) => Math.floor(v / w);   // Math.floor also floors for negatives
 
   for (let i = 0; i < nums.length; i++) {
     const id = idOf(nums[i]);
 
-    if (bucket.has(id)) return true;                 // 同一个桶，必然差 ≤ t
+    if (bucket.has(id)) return true;                 // same bucket, difference is necessarily ≤ t
 
-    const lo = bucket.get(id - 1);                   // 左邻桶
+    const lo = bucket.get(id - 1);                   // left neighbor bucket
     if (lo !== undefined && nums[i] - nums[lo] <= t) return true;
 
-    const hi = bucket.get(id + 1);                   // 右邻桶
+    const hi = bucket.get(id + 1);                   // right neighbor bucket
     if (hi !== undefined && nums[hi] - nums[i] <= t) return true;
 
     bucket.set(id, i);
 
-    if (i - k >= 0) bucket.delete(idOf(nums[i - k]));   // 移出窗口
+    if (i - k >= 0) bucket.delete(idOf(nums[i - k]));   // move out of the window
   }
   return false;
 }
@@ -505,22 +505,22 @@ int minOperations(int *nums, int numsSize, int x) {
     for (int i = 0; i < numsSize; i++) total += nums[i];
     if (total < x) return -1;
 
-    /* 从两端删掉的元素之和 = x，等价于「中间留下的那一段，和 = total - x」；
+    /* sum of elements removed from both ends = x, equivalent to "the middle segment left behind has sum = total - x";
        操作数最少 = 中间这一段最长。 */
     long long target = total - x;
     long long sum = 0;
     int left = 0, right = 0, best = -1;
 
     while (right < numsSize) {
-        sum += nums[right];              /* ① 右边界入窗 */
+        sum += nums[right];              /* ① right boundary enters the window */
         right++;
 
-        while (sum > target) {           /* ③ 全是正数，超了就一定能靠收缩降下来 */
+        while (sum > target) {           /* ③ all positive, so if we exceed we can always shrink back down */
             sum -= nums[left];
             left++;
         }
         if (sum == target && right - left > best)
-            best = right - left;         /* ④ 收缩后记录：这一段越长，操作数越少 */
+            best = right - left;         /* ④ record after shrinking: the longer this segment, the fewer operations */
     }
     return best < 0 ? -1 : numsSize - best;
 }
@@ -537,22 +537,22 @@ public:
         for (int v : nums) total += v;
         if (total < x) return -1;
 
-        // 两端删掉的元素之和 = x，等价于「中间留下的那一段，和 = total - x」；
-        // 操作数最少 = 中间这一段最长
+        // sum of elements removed from both ends = x, equivalent to "the middle segment left behind has sum = total - x";
+        // minimum operations = longest middle segment
         long long target = total - x;
         long long sum = 0;
         int left = 0, right = 0, best = -1;
 
         while (right < (int)nums.size()) {
-            sum += nums[right];              // ① 右边界入窗
+            sum += nums[right];              // ① right boundary enters the window
             right++;
 
-            while (sum > target) {           // ③ 都是正数，超了就能靠收缩降下来
+            while (sum > target) {           // ③ all positive, so if we exceed we can shrink back down
                 sum -= nums[left];
                 left++;
             }
             if (sum == target && right - left > best)
-                best = right - left;         // ④ 收缩后记录：这一段越长，操作数越少
+                best = right - left;         // ④ record after shrinking: the longer this segment, the fewer operations
         }
         return best < 0 ? -1 : (int)nums.size() - best;
     }
@@ -565,22 +565,22 @@ function minOperations(nums, x) {
   for (const v of nums) total += v;
   if (total < x) return -1;
 
-  // 两端删掉的元素之和 = x，等价于「中间留下的那一段，和 = total - x」；
-  // 操作数最少 = 中间这一段最长
+  // sum of elements removed from both ends = x, equivalent to "the middle segment left behind has sum = total - x";
+  // minimum operations = longest middle segment
   const target = total - x;
   let sum = 0;
   let left = 0, right = 0, best = -1;
 
   while (right < nums.length) {
-    sum += nums[right];              // ① 右边界入窗
+    sum += nums[right];              // ① right boundary enters the window
     right++;
 
-    while (sum > target) {           // ③ 都是正数，超了就能靠收缩降下来
+    while (sum > target) {           // ③ all positive, so if we exceed we can shrink back down
       sum -= nums[left];
       left++;
     }
     if (sum === target && right - left > best)
-      best = right - left;           // ④ 收缩后记录：这一段越长，操作数越少
+      best = right - left;           // ④ record after shrinking: the longer this segment, the fewer operations
   }
   return best < 0 ? -1 : nums.length - best;
 }
@@ -670,26 +670,26 @@ int longestSubstring(char *s, int k) {
     int n = (int)strlen(s);
     int cnt[26], best = 0;
 
-    for (int types = 1; types <= 26; types++) {   /* 枚举窗口里有几种字符 */
+    for (int types = 1; types <= 26; types++) {   /* enumerate how many distinct characters are in the window */
         memset(cnt, 0, sizeof(cnt));
         int left = 0, right = 0;
-        int distinct = 0;      /* 窗口里有几种字符 */
-        int reached = 0;       /* 其中有多少种的出现次数已经 ≥ k */
+        int distinct = 0;      /* how many distinct characters are in the window */
+        int reached = 0;       /* how many of them have occurrence count already ≥ k */
 
         while (right < n) {
-            int c = s[right] - 'a';                /* ① 右边界入窗 */
+            int c = s[right] - 'a';                /* ① right boundary enters the window */
             if (cnt[c]++ == 0) distinct++;
             if (cnt[c] == k) reached++;
             right++;
 
-            while (distinct > types) {             /* ③ 种类超了就收缩 */
+            while (distinct > types) {             /* ③ too many distinct types, shrink */
                 int d = s[left] - 'a';
                 if (cnt[d]-- == k) reached--;
                 if (cnt[d] == 0) distinct--;
                 left++;
             }
             if (distinct == types && reached == types && right - left > best)
-                best = right - left;               /* ④ 窗口里每一种字符都 ≥ k 个 */
+                best = right - left;               /* ④ every character in the window appears ≥ k times */
         }
     }
     return best;
@@ -705,26 +705,26 @@ public:
     int longestSubstring(string s, int k) {
         int n = (int)s.size(), best = 0;
 
-        for (int types = 1; types <= 26; types++) {   // 枚举窗口里有几种字符
+        for (int types = 1; types <= 26; types++) {   // enumerate how many distinct characters are in the window
             int cnt[26] = {0};
             int left = 0, right = 0;
-            int distinct = 0;    // 窗口里有几种字符
-            int reached = 0;     // 其中有多少种的出现次数已经 ≥ k
+            int distinct = 0;    // how many distinct characters are in the window
+            int reached = 0;     // how many of them have occurrence count already ≥ k
 
             while (right < n) {
-                int c = s[right] - 'a';               // ① 右边界入窗
+                int c = s[right] - 'a';               // ① right boundary enters the window
                 if (cnt[c]++ == 0) distinct++;
                 if (cnt[c] == k) reached++;
                 right++;
 
-                while (distinct > types) {            // ③ 种类超了就收缩
+                while (distinct > types) {            // ③ too many distinct types, shrink
                     int d = s[left] - 'a';
                     if (cnt[d]-- == k) reached--;
                     if (cnt[d] == 0) distinct--;
                     left++;
                 }
                 if (distinct == types && reached == types && right - left > best)
-                    best = right - left;              // ④ 窗口里每一种字符都 ≥ k 个
+                    best = right - left;              // ④ every character in the window appears ≥ k times
             }
         }
         return best;
@@ -737,26 +737,26 @@ function longestSubstring(s, k) {
   let best = 0;
   const cnt = new Array(26).fill(0);
 
-  for (let types = 1; types <= 26; types++) {   // 枚举窗口里有几种字符
+  for (let types = 1; types <= 26; types++) {   // enumerate how many distinct characters are in the window
     cnt.fill(0);
     let left = 0, right = 0;
-    let distinct = 0;    // 窗口里有几种字符
-    let reached = 0;     // 其中有多少种的出现次数已经 ≥ k
+    let distinct = 0;    // how many distinct characters are in the window
+    let reached = 0;     // how many of them have occurrence count already ≥ k
 
     while (right < s.length) {
-      const c = s.charCodeAt(right) - 97;       // ① 右边界入窗
+      const c = s.charCodeAt(right) - 97;       // ① right boundary enters the window
       if (cnt[c]++ === 0) distinct++;
       if (cnt[c] === k) reached++;
       right++;
 
-      while (distinct > types) {                // ③ 种类超了就收缩
+      while (distinct > types) {                // ③ too many distinct types, shrink
         const d = s.charCodeAt(left) - 97;
         if (cnt[d]-- === k) reached--;
         if (cnt[d] === 0) distinct--;
         left++;
       }
       if (distinct === types && reached === types && right - left > best)
-        best = right - left;                    // ④ 窗口里每一种字符都 ≥ k 个
+        best = right - left;                    // ④ every character in the window appears ≥ k times
     }
   }
   return best;

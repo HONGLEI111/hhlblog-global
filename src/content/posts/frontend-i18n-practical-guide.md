@@ -91,7 +91,7 @@ new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY" }).format(12
 new Intl.NumberFormat("en-US", { style: "currency", currency: "CNY" }).format(1234567.891);
 // => "CN¥1,234,567.89"
 new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY" }).format(1234567.891);
-// => "￥1,234,568"        ← JPY 没有小数位，自动四舍五入
+// => "¥1,234,568"        ← JPY has no decimal places, automatically rounded
 ```
 
 A few details you must know:
@@ -153,19 +153,19 @@ America/Los_Angeles  2026年9月28日 07:30:00
 Almost every project has hand-written these three features, and `Intl` has ready-made versions of all of them:
 
 ```js
-// 相对时间
-new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" }).format(-1, "day");  // "昨天"
+// Relative time
+new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" }).format(-1, "day");  // "yesterday"
 new Intl.RelativeTimeFormat("en",    { numeric: "auto" }).format(-1, "day");  // "yesterday"
 new Intl.RelativeTimeFormat("ru",    { numeric: "auto" }).format(3, "hour");  // "через 3 часа"
 
-// 列表连接（注意中文用的是「、」和「和」，英文用逗号 + and，日语不加连接词）
+// List joining (note that Chinese uses "、" and "和", English uses commas + and, Japanese adds no conjunction)
 new Intl.ListFormat("zh-CN", { type: "conjunction" }).format(["A", "B", "C"]); // "A、B和C"
 new Intl.ListFormat("en",    { type: "conjunction" }).format(["A", "B", "C"]); // "A, B, and C"
-new Intl.ListFormat("ja",    { type: "conjunction" }).format(["A", "B", "C"]); // "A、B、C"
+new Intl.ListFormat("ja",    { type: "conjunction" }).format(["A", "B", "C"]); // "A, B, C"
 
-// 时长（Intl.DurationFormat 已在现代运行时落地）
+// Duration (Intl.DurationFormat has landed in modern runtimes)
 new Intl.DurationFormat("zh-CN", { style: "long" }).format({ hours: 2, minutes: 30, seconds: 5 });
-// "2小时30分钟5秒钟"
+// "2 hours 30 minutes 5 seconds"
 new Intl.DurationFormat("en-US", { style: "narrow" }).format({ hours: 2, minutes: 30, seconds: 5 });
 // "2h 30m 5s"
 ```
@@ -220,16 +220,16 @@ const CATALOG = {
 };
 
 function makeT(locale, { strict = true } = {}) {
-  const pr = new Intl.PluralRules(locale);   // 复数规则：由平台决定
-  const nf = new Intl.NumberFormat(locale);  // 数字格式：由平台决定
+  const pr = new Intl.PluralRules(locale);   // Plural rules: determined by the platform
+  const nf = new Intl.NumberFormat(locale);  // Number formatting: determined by the platform
   const table = CATALOG[locale] ?? {};
   return function t(key, params = {}) {
     const entry = table[key];
-    if (entry === undefined) {               // 缺失键：显式失败，不要静默回退
+    if (entry === undefined) {               // Missing key: fail explicitly, don't silently fall back
       if (strict) throw new Error(`[i18n] missing key "${key}" for locale "${locale}"`);
       return `⟦${key}⟧`;
     }
-    // 翻译：由消息目录提供；选哪种形式：由 PluralRules 决定
+    // Translation: provided by the message catalog; which form to pick: decided by PluralRules
     const template = typeof entry === "string"
       ? entry
       : (entry[pr.select(params.count)] ?? entry.other);
@@ -276,7 +276,7 @@ When `Array.prototype.sort()` is not passed a comparison function, it sorts by *
 
 ```js
 const cities = ["重庆", "北京", "上海", "西安", "长沙", "深圳"];
-cities.sort();                                                 // 码点序
+cities.sort();                                                 // Code point order
 cities.sort(new Intl.Collator("zh-CN", { collation: "pinyin" }).compare);
 cities.sort(new Intl.Collator("zh-CN", { collation: "stroke" }).compare);
 ```
@@ -296,11 +296,11 @@ The code point order result `上海 北京 深圳 西安 重庆 长沙` is meani
 ```js
 new Intl.Collator("en", { numeric: true }).compare;
 // ["file10.txt","file2.txt","file1.txt","File3.txt"].sort(...)
-// 默认排序   : File3.txt file1.txt file10.txt file2.txt
-// numeric    : file1.txt file2.txt File3.txt file10.txt    ← 数字按数值比较
+// Default sort   : File3.txt file1.txt file10.txt file2.txt
+// numeric    : file1.txt file2.txt File3.txt file10.txt    ← numbers compared by numeric value
 
 new Intl.Collator("en", { sensitivity: "base" }).compare;
-// "résumé" / "resume" / "RESUME" / "Résumé" 视为相等，可用于搜索高亮匹配
+// "résumé" / "resume" / "RESUME" / "Résumé" treated as equal, usable for search highlight matching
 ```
 
 `numeric: true` solves the classic problem of "file10 sorting before file2." `sensitivity: "base"` is useful in **search matching** scenarios—when a user types `resume`, it should match `résumé`.
@@ -311,7 +311,7 @@ For requirements like "limit to 100 characters," using `String.length` is wrong.
 
 ```js
 "👨‍👩‍👧‍👦🇨🇳👍🏽".length                                    // 19
-[... "👨‍👩‍👧‍👦🇨🇳👍🏽"].length                                // 11   ← 用 spread 也不对
+[... "👨‍👩‍👧‍👦🇨🇳👍🏽"].length                                // 11   ← using spread doesn't work either
 [... new Intl.Segmenter("zh-CN", { granularity: "grapheme" }).segment("👨‍👩‍👧‍👦🇨🇳👍🏽")].length  // 3
 ```
 
@@ -323,7 +323,7 @@ For requirements like "limit to 100 characters," using `String.length` is wrong.
 const seg = new Intl.Segmenter("zh-CN", { granularity: "word" });
 const words = [...seg.segment("Hello 世界！i18n 的 grapheme 里还有 emoji")]
   .filter(s => s.isWordLike).map(s => s.segment);
-// 8 个词：Hello / 世界 / i18n / 的 / grapheme / 里 / 还有 / emoji
+// 8 words: Hello / 世界 / i18n / 的 / grapheme / 里 / 还有 / emoji
 ```
 
 Compare with the naive `split(/\s+/)`:
@@ -341,8 +341,8 @@ Compare with the naive `split(/\s+/)`:
 A recurring multiple-choice question:
 
 ```js
-t("Save changes")     // ❌ 用源文案当 key
-t("common.actions.save")  // ✅ 用语义路径当 key
+t("Save changes")     // ❌ Using source copy as key
+t("common.actions.save")  // ✅ Using semantic paths as keys
 ```
 
 The problem with using source copy as keys is: **change the English copy once, and all keys across all languages become invalid**, and you can't get information like "which keys haven't been translated yet." The cost of semantic keys is that developers have to think one step further about naming, but what you get in return is enumerability, validatability, and measurability.
@@ -388,7 +388,7 @@ function negotiate(header, supported = SUPPORTED) {
   }).filter((x) => x.tag && x.q > 0).sort((a, b) => b.q - a.q);
 
   for (const { tag } of wanted) {
-    if (tag === "*") continue;               // 见坑 1
+    if (tag === "*") continue;               // See pitfall 1
     const canon = Intl.getCanonicalLocales(tag)[0];
     const exact = supported.find((s) => s.toLowerCase() === canon.toLowerCase());
     if (exact) return { tag, matched: exact, how: "exact" };
@@ -462,11 +462,11 @@ Three solutions, ordered by recommendation:
 **1. Fix the timezone on the server + explicitly pass locale (preferred)**
 
 ```js
-// 把「用户时区」作为显式数据传进来，而不是让两边各自猜
+// Pass "user timezone" in as explicit data, rather than letting both sides guess on their own
 const fmt = new Intl.DateTimeFormat(locale, {
   dateStyle: "medium",
   timeStyle: "short",
-  timeZone: userTimeZone,   // 来自用户设置 / cookie，两端一致
+  timeZone: userTimeZone,   // From user settings / cookie, consistent on both ends
 });
 ```
 
@@ -567,7 +567,7 @@ Pseudo-localization relies on human eyes; a more reliable approach is adding a s
 
 ```js
 const CJK = /[一-鿿]/;
-const TEXT_NODE = />\s*[^<>{}\s][^<>{}]*\s*</;   // 简化版：>文本<
+const TEXT_NODE = />\s*[^<>{}\s][^<>{}]*\s*</;   // simplified version: >text<
 
 const samples = [
   `  <button>保存</button>`,

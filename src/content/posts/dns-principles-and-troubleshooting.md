@@ -94,11 +94,11 @@ Another pitfall is **negative caching**: when resolution fails and returns NXDOM
 **Basic query:**
 
 ```bash
-# 查 A 记录
+# Query A record
 dig example.com A +short
 # 93.184.216.34
 
-# 完整输出，看 TTL 和响应来源
+# Full output, check TTL and response source
 dig example.com A
 ```
 
@@ -109,8 +109,8 @@ Pay attention to three key points in the output:
 example.com.    3600    IN    A    93.184.216.34
                  ↑ 剩余 TTL，每次查询递减说明命中了缓存
 
-;; SERVER: 8.8.8.8#53      ← 实际应答的解析器
-;; flags: qr rd ra;        ← ra 表示该服务器支持递归
+;; SERVER: 8.8.8.8#53      ← the resolver that actually answered
+;; flags: qr rd ra;        ← ra means the server supports recursion
 ```
 
 **Bypass the cache and ask the authoritative server directly:**
@@ -118,11 +118,11 @@ example.com.    3600    IN    A    93.184.216.34
 This is the decisive method for determining "is the record misconfigured, or has the cache not expired":
 
 ```bash
-# 1. 先找出权威服务器
+# 1. First find the authoritative server
 dig example.com NS +short
 # ns1.example.com.
 
-# 2. 直接向它查询，绕开所有递归缓存
+# 2. Query it directly, bypassing all recursive caches
 dig @ns1.example.com example.com A
 ```
 
@@ -171,7 +171,7 @@ const RESOLVERS = {
 async function diagnose(domain) {
   console.log(`\n=== 诊断 ${domain} ===\n`);
 
-  // 1. 查权威服务器
+  // 1. Query the authoritative server
   const base = new Resolver();
   base.setServers(['8.8.8.8']);
   let authNS = [];
@@ -182,7 +182,7 @@ async function diagnose(domain) {
     console.log(`NS 查询失败: ${err.code}`);
   }
 
-  // 2. 多解析器交叉对比，检测结果是否一致
+  // 2. Cross-compare across multiple resolvers to check for consistency
   const results = new Map();
   for (const [name, ip] of Object.entries(RESOLVERS)) {
     const r = new Resolver({ timeout: 3000, tries: 2 });
@@ -193,12 +193,12 @@ async function diagnose(domain) {
       results.set(name, addrs.map((a) => a.address).sort().join(','));
       console.log(`${name.padEnd(11)} ✓ ${line}`);
     } catch (err) {
-      // ENOTFOUND=NXDOMAIN, ESERVFAIL=服务端故障, ETIMEOUT=不可达
+      // ENOTFOUND=NXDOMAIN, ESERVFAIL=server failure, ETIMEOUT=unreachable
       console.log(`${name.padEnd(11)} ✗ ${err.code}`);
     }
   }
 
-  // 3. 判断是否存在解析不一致
+  // 3. Determine whether resolution inconsistencies exist
   const unique = new Set(results.values());
   if (unique.size > 1) {
     console.log('\n⚠️  各解析器返回结果不一致，可能是缓存未同步或分区解析');

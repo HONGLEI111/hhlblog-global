@@ -31,7 +31,7 @@ Using container queries involves two steps: first declare which element is the "
 
 ```css
 .sidebar {
-  /* inline-size：根据行内方向尺寸（横向书写模式即宽度）建立查询容器 */
+  /* inline-size: establish a query container based on the inline-size dimension (i.e. width in horizontal writing mode) */
   container-type: inline-size;
 }
 ```
@@ -75,7 +75,7 @@ The following example uses no media queries at all, yet lets the card "stack ver
 ```
 
 ```css
-/* 让卡片本身成为查询容器，这样它走到哪里都能自适应 */
+/* Make the card itself a query container, so it adapts wherever it goes */
 .card {
   container-type: inline-size;
   display: flex;
@@ -94,7 +94,7 @@ The following example uses no media queries at all, yet lets the card "stack ver
   border-radius: 8px;
 }
 
-/* 容器宽度 ≥ 480px 时，切换为横向布局 */
+/* When the container width is ≥ 480px, switch to a horizontal layout */
 @container (min-width: 480px) {
   .card {
     flex-direction: row;
@@ -124,7 +124,7 @@ When an element is wrapped by multiple containers simultaneously, `@container` b
   container-type: inline-size;
 }
 
-/* 只针对名为 aside 的容器查询 */
+/* Query only the container named aside */
 @container aside (max-width: 320px) {
   .toc { display: none; }
 }
@@ -160,7 +160,7 @@ A classic use is **letting font size scale with the container**, achieving "trul
 }
 
 .article h2 {
-  /* 标题字号约为容器宽度的 6%，随容器连续缩放 */
+  /* The heading font size is about 6% of the container width, scaling continuously with the container */
   font-size: clamp(1.25rem, 6cqi, 2.5rem);
 }
 ```
@@ -184,10 +184,10 @@ A classic use is **letting font size scale with the container**, achieving "trul
 Container queries are now **Baseline (widely available since March 2024)**, supported by all major browsers: Chrome 105+, Edge 105+, Safari 16+, Firefox 110+. For older browsers that still need accommodating, you can use `@supports` for feature detection and provide a fallback:
 
 ```css
-/* 回退：所有浏览器都读得到 */
+/* Fallback: readable by all browsers */
 .card { display: block; }
 
-/* 只有支持容器查询的浏览器才启用自适应 */
+/* Enable adaptive layout only in browsers that support container queries */
 @supports (container-type: inline-size) {
   .card {
     container-type: inline-size;

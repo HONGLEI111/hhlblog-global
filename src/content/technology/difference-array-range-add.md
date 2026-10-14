@@ -129,17 +129,17 @@ This is the cleanest kind of difference-array problem: **no initial values → n
 
 int *getModifiedArray(int length, int **updates, int updatesSize,
                       int *updatesColSize, int *returnSize) {
-    int *diff = (int *)calloc(length + 1, sizeof(int));   /* 多开一位接 end+1 */
+    int *diff = (int *)calloc(length + 1, sizeof(int));   /* allocate one extra slot to cover end+1 */
     for (int i = 0; i < updatesSize; i++) {
         int start = updates[i][0], end = updates[i][1], inc = updates[i][2];
-        diff[start]     += inc;         /* 区间左端抬起来 */
-        diff[end + 1]   -= inc;         /* 右端之后撤销 */
+        diff[start]     += inc;         /* raise the left endpoint of the range */
+        diff[end + 1]   -= inc;         /* undo after the right endpoint */
     }
 
     int *res = (int *)malloc(length * sizeof(int));
     int running = 0;
     for (int i = 0; i < length; i++) {
-        running    += diff[i];          /* 前缀和还原 */
+        running    += diff[i];          /* restore the prefix sum */
         res[i]      = running;
     }
     free(diff);
@@ -155,16 +155,16 @@ using namespace std;
 class Solution {
 public:
     vector<int> getModifiedArray(int length, vector<vector<int>>& updates) {
-        vector<int> diff(length + 1, 0);          // 多开一位接 end + 1
+        vector<int> diff(length + 1, 0);          // allocate one extra slot to cover end + 1
         for (auto& u : updates) {
-            diff[u[0]]     += u[2];               // 区间左端抬起来
-            diff[u[1] + 1] -= u[2];               // 右端之后撤销
+            diff[u[0]]     += u[2];               // raise the left endpoint of the range
+            diff[u[1] + 1] -= u[2];               // undo after the right endpoint
         }
 
         vector<int> res(length);
         int running = 0;
         for (int i = 0; i < length; i++)
-            res[i] = (running += diff[i]);        // 前缀和还原
+            res[i] = (running += diff[i]);        // restore the prefix sum
         return res;
     }
 };
@@ -172,16 +172,16 @@ public:
 
 ```js title="JavaScript"
 function getModifiedArray(length, updates) {
-  const diff = new Array(length + 1).fill(0); // 多开一位接 end + 1
+  const diff = new Array(length + 1).fill(0); // allocate one extra slot to cover end + 1
   for (const [start, end, inc] of updates) {
-    diff[start] += inc; // 区间左端抬起来
-    diff[end + 1] -= inc; // 右端之后撤销
+    diff[start] += inc; // raise the left endpoint of the range
+    diff[end + 1] -= inc; // undo after the right endpoint
   }
 
   const res = new Array(length).fill(0);
   let running = 0;
   for (let i = 0; i < length; i++) {
-    running += diff[i]; // 前缀和还原
+    running += diff[i]; // restore the prefix sum
     res[i] = running;
   }
   return res;
@@ -251,11 +251,11 @@ Note that `last = 5` of the last booking equals `n`, and the cancellation point 
 
 int *corpFlightBookings(int **bookings, int bookingsSize, int *bookingsColSize,
                         int n, int *returnSize) {
-    int *diff = (int *)calloc(n + 1, sizeof(int));   /* 多开一位接 last */
+    int *diff = (int *)calloc(n + 1, sizeof(int));   /* allocate one extra slot to cover last */
     for (int i = 0; i < bookingsSize; i++) {
         int first = bookings[i][0], last = bookings[i][1], seats = bookings[i][2];
         diff[first - 1] += seats;    /* 1-indexed → 0-indexed */
-        diff[last]      -= seats;    /* 闭区间右端 +1 后正好是 last，右开 */
+        diff[last]      -= seats;    /* after +1 on the closed-interval right endpoint, it lands exactly on last, right-open */
     }
 
     int *res = (int *)malloc(n * sizeof(int));
@@ -277,10 +277,10 @@ using namespace std;
 class Solution {
 public:
     vector<int> corpFlightBookings(vector<vector<int>>& bookings, int n) {
-        vector<int> diff(n + 1, 0);              // 多开一位接 last
+        vector<int> diff(n + 1, 0);              // allocate one extra slot to cover last
         for (auto& b : bookings) {
             diff[b[0] - 1] += b[2];              // 1-indexed → 0-indexed
-            diff[b[1]]     -= b[2];              // 闭区间右端 +1 后正好是 b[1]
+            diff[b[1]]     -= b[2];              // after +1 on the closed-interval right endpoint, it lands exactly on b[1]
         }
 
         vector<int> res(n);
@@ -294,10 +294,10 @@ public:
 
 ```js title="JavaScript"
 function corpFlightBookings(bookings, n) {
-  const diff = new Array(n + 1).fill(0); // 多开一位接 last
+  const diff = new Array(n + 1).fill(0); // allocate one extra slot to cover last
   for (const [first, last, seats] of bookings) {
     diff[first - 1] += seats; // 1-indexed → 0-indexed
-    diff[last] -= seats; // 闭区间右端 +1 后正好是 last
+    diff[last] -= seats; // after +1 on the closed-interval right endpoint, it lands exactly on last
   }
 
   const res = new Array(n).fill(0);
@@ -370,16 +370,16 @@ diff（站点 0..1000）：
 #include <stdbool.h>
 
 bool carPooling(int **trips, int tripsSize, int *tripsColSize, int capacity) {
-    int diff[1001] = {0};                /* 站点坐标 ≤ 1000，静态数组足够 */
+    int diff[1001] = {0};                /* station coordinates ≤ 1000, a static array is enough */
     for (int i = 0; i < tripsSize; i++) {
         int num = trips[i][0], from = trips[i][1], to = trips[i][2];
-        diff[from] += num;               /* from 站上车 */
-        diff[to]   -= num;               /* to 站下车：区间是右开的 [from, to) */
+        diff[from] += num;               /* board at station from */
+        diff[to]   -= num;               /* alight at station to: the range is right-open [from, to) */
     }
 
     int current = 0;
     for (int i = 0; i <= 1000; i++) {
-        current += diff[i];              /* 该站之后的在车人数 */
+        current += diff[i];              /* number of people on board after this station */
         if (current > capacity) return false;
     }
     return true;
@@ -393,10 +393,10 @@ using namespace std;
 class Solution {
 public:
     bool carPooling(vector<vector<int>>& trips, int capacity) {
-        vector<int> diff(1001, 0);       // 站点坐标 ≤ 1000
+        vector<int> diff(1001, 0);       // station coordinates ≤ 1000
         for (auto& t : trips) {
-            diff[t[1]] += t[0];          // from 站上车
-            diff[t[2]] -= t[0];          // to 站下车：区间 [from, to)
+            diff[t[1]] += t[0];          // board at station from
+            diff[t[2]] -= t[0];          // alight at station to: the range is [from, to)
         }
 
         int current = 0;
@@ -409,15 +409,15 @@ public:
 
 ```js title="JavaScript"
 function carPooling(trips, capacity) {
-  const diff = new Array(1001).fill(0); // 站点坐标 ≤ 1000
+  const diff = new Array(1001).fill(0); // station coordinates ≤ 1000
   for (const [num, from, to] of trips) {
-    diff[from] += num; // from 站上车
-    diff[to] -= num; // to 站下车：区间 [from, to)
+    diff[from] += num; // board at station from
+    diff[to] -= num; // alight at station to: the range is [from, to)
   }
 
   let current = 0;
   for (const change of diff) {
-    current += change; // 该站之后的在车人数
+    current += change; // number of people on board after this station
     if (current > capacity) return false;
   }
   return true;
@@ -497,7 +497,7 @@ A typical problem is **LeetCode 2536. Increment Submatrices by One** (add 1 to t
 
 ```cpp
 vector<vector<int>> rangeAddQueries(int n, vector<vector<int>>& queries) {
-    vector<vector<int>> diff(n + 1, vector<int>(n + 1, 0));   // 多开一圈
+    vector<vector<int>> diff(n + 1, vector<int>(n + 1, 0));   // allocate one extra ring
     for (auto& q : queries) {
         int r1 = q[0], c1 = q[1], r2 = q[2], c2 = q[3];
         diff[r1][c1]++;
@@ -506,12 +506,12 @@ vector<vector<int>> rangeAddQueries(int n, vector<vector<int>>& queries) {
         diff[r2 + 1][c2 + 1]++;
     }
     for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++) {                         // 就地二维前缀和
+        for (int j = 0; j < n; j++) {                         // in-place 2D prefix sum
             if (i) diff[i][j] += diff[i - 1][j];
             if (j) diff[i][j] += diff[i][j - 1];
             if (i && j) diff[i][j] -= diff[i - 1][j - 1];
         }
-    diff.resize(n);                                            // 丢掉那多开的一圈
+    diff.resize(n);                                            // discard that extra ring
     for (auto& row : diff) row.resize(n);
     return diff;
 }

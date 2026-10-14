@@ -45,7 +45,7 @@ There were also two functional findings:
 During the audit I found a strange phenomenon: nowhere in the project imported the theme style files, yet they were present in the build artifacts. After a long investigation, the culprit was a line of image-loading code:
 
 ```ts
-// 优化前：把整个 src 目录都变成了模块图的一部分
+// Before optimization: the entire src directory became part of the module graph
 const files = import.meta.glob("../../**", { import: "default" });
 ```
 
@@ -64,8 +64,8 @@ $effect(() => {
 
 async function search(keyword) {
   // ...
-  result = searchResults;          // 写入新数组
-  showPanel(result.length > 0);    // 又读取 result.length
+  result = searchResults;          // Write to a new array
+  showPanel(result.length > 0);    // Then read result.length
 }
 ```
 
@@ -78,7 +78,7 @@ Each search replaced `result` with a **new array reference**, and because the ef
 The first time I "optimized" PhotoSwipe, I changed the static import to a module-level dynamic import:
 
 ```ts
-let lightboxModule = import("photoswipe/lightbox"); // 看起来懒，其实立即发起请求
+let lightboxModule = import("photoswipe/lightbox"); // Looks lazy, but actually sends the request immediately
 ```
 
 The verification script caught it immediately: the homepage still requested PhotoSwipe. The reason is that **`import()` initiates the network request the moment it is called**, regardless of whether it is awaited. True lazy loading must put `import()` inside the callback for "when the user actually needs it"—the final solution was: load and initialize the lightbox only when an article image is clicked for the first time.

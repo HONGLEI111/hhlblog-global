@@ -214,32 +214,32 @@ Note a detail in the second step: in window `[3,11) = "BECODEBA"`, `B` appears t
 #include <string.h>
 
 char *minWindow(char *s, char *t) {
-    int need[128] = {0}, win[128] = {0};   /* need：目标计数；win：窗口计数 */
-    int needKinds = 0;                     /* 目标里有多少种字符 */
+    int need[128] = {0}, win[128] = {0};   /* need: target counts; win: window counts */
+    int needKinds = 0;                     /* how many distinct characters are in the target */
     for (int i = 0; t[i] != '\0'; i++) {
         if (need[(unsigned char)t[i]] == 0) needKinds++;
         need[(unsigned char)t[i]]++;
     }
 
     int left = 0, right = 0;
-    int valid = 0;                         /* 已有多少种字符的数量「达标」 */
+    int valid = 0;                         /* how many distinct characters have reached the required count */
     int start = 0, minLen = -1;
     int n = (int)strlen(s);
 
     while (right < n) {
-        char c = s[right];                 /* 1. 将要移入窗口的字符 */
-        right++;                           /* 2. 右移窗口 */
-        if (need[(unsigned char)c] > 0) {  /* 3. 更新窗口内数据 */
+        char c = s[right];                 /* 1. character about to enter the window */
+        right++;                           /* 2. expand the window to the right */
+        if (need[(unsigned char)c] > 0) {  /* 3. update the data inside the window */
             win[(unsigned char)c]++;
             if (win[(unsigned char)c] == need[(unsigned char)c]) valid++;
         }
 
-        while (valid == needKinds) {       /* 4. 窗口已覆盖 t，开始收缩 */
-            if (minLen == -1 || right - left < minLen) {   /* 先记录答案，再移出 */
+        while (valid == needKinds) {       /* 4. the window already covers t, start shrinking */
+            if (minLen == -1 || right - left < minLen) {   /* record the answer first, then remove */
                 start = left;
                 minLen = right - left;
             }
-            char d = s[left];              /* 5. 移出 left */
+            char d = s[left];              /* 5. remove left */
             left++;
             if (need[(unsigned char)d] > 0) {
                 if (win[(unsigned char)d] == need[(unsigned char)d]) valid--;
@@ -267,31 +267,31 @@ using namespace std;
 class Solution {
 public:
     string minWindow(string s, string t) {
-        int need[128] = {0}, win[128] = {0};   // need：目标计数；win：窗口计数
-        int needKinds = 0;                      // 目标里有多少种字符
+        int need[128] = {0}, win[128] = {0};   // need: target counts; win: window counts
+        int needKinds = 0;                      // how many distinct characters are in the target
         for (char c : t) {
             if (need[(unsigned char)c] == 0) ++needKinds;
             ++need[(unsigned char)c];
         }
 
         int left = 0, right = 0;
-        int valid = 0;                          // 已有多少种字符的数量「达标」
+        int valid = 0;                          // how many distinct characters have reached the required count
         int start = 0, minLen = -1;
 
         while (right < (int)s.size()) {
-            char c = s[right];                  // 1. 将要移入窗口的字符
-            ++right;                            // 2. 右移窗口
-            if (need[(unsigned char)c] > 0) {   // 3. 更新窗口内数据
+            char c = s[right];                  // 1. character about to enter the window
+            ++right;                            // 2. expand the window to the right
+            if (need[(unsigned char)c] > 0) {   // 3. update the data inside the window
                 ++win[(unsigned char)c];
                 if (win[(unsigned char)c] == need[(unsigned char)c]) ++valid;
             }
 
-            while (valid == needKinds) {        // 4. 窗口已覆盖 t，开始收缩
-                if (minLen == -1 || right - left < minLen) {   // 先记录答案
+            while (valid == needKinds) {        // 4. the window already covers t, start shrinking
+                if (minLen == -1 || right - left < minLen) {   // record the answer first
                     start = left;
                     minLen = right - left;
                 }
-                char d = s[left];               // 5. 移出 left
+                char d = s[left];               // 5. remove left
                 ++left;
                 if (need[(unsigned char)d] > 0) {
                     if (win[(unsigned char)d] == need[(unsigned char)d]) --valid;
@@ -306,30 +306,30 @@ public:
 
 ```js title="JavaScript"
 function minWindow(s, t) {
-  const need = new Map();                 // need：目标计数
+  const need = new Map();                 // need: target counts
   for (const c of t) need.set(c, (need.get(c) ?? 0) + 1);
 
-  const win = new Map();                  // win：窗口计数
+  const win = new Map();                  // win: window counts
   let left = 0;
   let right = 0;
-  let valid = 0;                          // 已有多少种字符的数量「达标」
+  let valid = 0;                          // how many distinct characters have reached the required count
   let start = 0;
   let minLen = Infinity;
 
   while (right < s.length) {
-    const c = s[right];                   // 1. 将要移入窗口的字符
-    right++;                              // 2. 右移窗口
-    if (need.has(c)) {                    // 3. 更新窗口内数据
+    const c = s[right];                   // 1. character about to enter the window
+    right++;                              // 2. expand the window to the right
+    if (need.has(c)) {                    // 3. update the data inside the window
       win.set(c, (win.get(c) ?? 0) + 1);
       if (win.get(c) === need.get(c)) valid++;
     }
 
-    while (valid === need.size) {         // 4. 窗口已覆盖 t，开始收缩
-      if (right - left < minLen) {        // 先记录答案，再移出
+    while (valid === need.size) {         // 4. the window already covers t, start shrinking
+      if (right - left < minLen) {        // record the answer first, then remove
         start = left;
         minLen = right - left;
       }
-      const d = s[left];                  // 5. 移出 left
+      const d = s[left];                  // 5. remove left
       left++;
       if (need.has(d)) {
         if (win.get(d) === need.get(d)) valid--;
@@ -426,7 +426,7 @@ int checkInclusion(char *s1, char *s2) {
             if (win[(unsigned char)c] == need[(unsigned char)c]) valid++;
         }
 
-        while (right - left >= len1) {     /* 窗口不能再长了 */
+        while (right - left >= len1) {     /* the window cannot grow any longer */
             if (valid == needKinds) return 1;
             char d = s2[left];
             left++;
@@ -464,7 +464,7 @@ public:
                 if (win[(unsigned char)c] == need[(unsigned char)c]) ++valid;
             }
 
-            while (right - left >= (int)s1.size()) {   // 窗口不能再长了
+            while (right - left >= (int)s1.size()) {   // the window cannot grow any longer
                 if (valid == needKinds) return true;
                 char d = s2[left];
                 ++left;
@@ -497,7 +497,7 @@ function checkInclusion(s1, s2) {
       if (win.get(c) === need.get(c)) valid++;
     }
 
-    while (right - left >= s1.length) {   // 窗口不能再长了
+    while (right - left >= s1.length) {   // the window cannot grow any longer
       if (valid === need.size) return true;
       const d = s2[left];
       left++;
@@ -600,7 +600,7 @@ int *findAnagrams(char *s, char *p, int *returnSize) {
     int left = 0, right = 0, valid = 0;
     int n = (int)strlen(s), lenP = (int)strlen(p);
 
-    int *res = (int *)malloc(sizeof(int) * (n + 1));   /* 最多 n 个答案 */
+    int *res = (int *)malloc(sizeof(int) * (n + 1));   /* at most n answers */
     *returnSize = 0;
 
     while (right < n) {
@@ -612,7 +612,7 @@ int *findAnagrams(char *s, char *p, int *returnSize) {
         }
 
         while (right - left >= lenP) {
-            if (valid == needKinds) res[(*returnSize)++] = left;   /* 收集起点 */
+            if (valid == needKinds) res[(*returnSize)++] = left;   /* collect the starting point */
             char d = s[left];
             left++;
             if (need[(unsigned char)d] > 0) {
@@ -781,22 +781,22 @@ The `c` in `while (win[c] > 1)` is always **the character just added**: within t
 #include <string.h>
 
 int lengthOfLongestSubstring(char *s) {
-    int win[128] = {0};                  /* 窗口内每个字符的出现次数 */
+    int win[128] = {0};                  /* occurrence count of each character in the window */
     int left = 0, right = 0, best = 0;
     int n = (int)strlen(s);
 
     while (right < n) {
         char c = s[right];
         right++;
-        win[(unsigned char)c]++;                 /* 3. 更新窗口内数据 */
+        win[(unsigned char)c]++;                 /* 3. update the data inside the window */
 
-        while (win[(unsigned char)c] > 1) {      /* 4. 违规：有重复，收缩 */
+        while (win[(unsigned char)c] > 1) {      /* 4. violation: there is a duplicate, shrink */
             char d = s[left];
             left++;
             win[(unsigned char)d]--;
         }
 
-        if (right - left > best) best = right - left;   /* 5. 收缩之后才更新答案 */
+        if (right - left > best) best = right - left;   /* 5. update the answer only after shrinking */
     }
     return best;
 }
@@ -809,21 +809,21 @@ using namespace std;
 class Solution {
 public:
     int lengthOfLongestSubstring(string s) {
-        int win[128] = {0};          // 窗口内每个字符的出现次数
+        int win[128] = {0};          // occurrence count of each character in the window
         int left = 0, right = 0, best = 0;
 
         while (right < (int)s.size()) {
             char c = s[right];
             ++right;
-            ++win[(unsigned char)c];              // 3. 更新窗口内数据
+            ++win[(unsigned char)c];              // 3. update the data inside the window
 
-            while (win[(unsigned char)c] > 1) {   // 4. 违规：有重复，收缩
+            while (win[(unsigned char)c] > 1) {   // 4. violation: there is a duplicate, shrink
                 char d = s[left];
                 ++left;
                 --win[(unsigned char)d];
             }
 
-            if (right - left > best) best = right - left;   // 5. 收缩之后才更新答案
+            if (right - left > best) best = right - left;   // 5. update the answer only after shrinking
         }
         return best;
     }
@@ -832,7 +832,7 @@ public:
 
 ```js title="JavaScript"
 function lengthOfLongestSubstring(s) {
-  const win = new Map();                  // 窗口内每个字符的出现次数
+  const win = new Map();                  // occurrence count of each character in the window
   let left = 0;
   let right = 0;
   let best = 0;
@@ -840,15 +840,15 @@ function lengthOfLongestSubstring(s) {
   while (right < s.length) {
     const c = s[right];
     right++;
-    win.set(c, (win.get(c) ?? 0) + 1);    // 3. 更新窗口内数据
+    win.set(c, (win.get(c) ?? 0) + 1);    // 3. update the data inside the window
 
-    while (win.get(c) > 1) {              // 4. 违规：有重复，收缩
+    while (win.get(c) > 1) {              // 4. violation: there is a duplicate, shrink
       const d = s[left];
       left++;
       win.set(d, win.get(d) - 1);
     }
 
-    best = Math.max(best, right - left);  // 5. 收缩之后才更新答案
+    best = Math.max(best, right - left);  // 5. update the answer only after shrinking
   }
   return best;
 }

@@ -124,21 +124,21 @@ A complete glassmorphism effect requires overlaying multiple layers of detail on
 
 ```css
 .glassmorphism-card {
-  /* 基础玻璃层 */
+  /* Base glass layer */
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
 
-  /* 边缘发光 — 模拟玻璃边缘的光线折射 */
+  /* Edge glow — simulates light refraction at the glass edge */
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 24px;
 
-  /* 内部光晕 — 模拟玻璃厚度感 */
+  /* Inner glow — simulates the sense of glass thickness */
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
-  /* 微妙的渐变叠加 — 模拟光源方向 */
+  /* Subtle gradient overlay — simulates the light source direction */
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.25) 0%,
@@ -159,16 +159,16 @@ visionOS's glass material is more complex, requiring multiple layers of overlay:
   -webkit-backdrop-filter: blur(48px) saturate(200%) brightness(1.1);
   border-radius: 28px;
 
-  /* 玻璃边缘折射光 */
+  /* Refracted light at the glass edge */
   border: 1px solid rgba(255, 255, 255, 0.35);
 
-  /* 环境光反射模拟 */
+  /* Ambient light reflection simulation */
   box-shadow:
     0 4px 30px rgba(0, 0, 0, 0.12),
     0 1px 3px rgba(255, 255, 255, 0.3),
     inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 
-  /* 模拟光源渐变 */
+  /* Simulated light source gradient */
   &::before {
     content: '';
     position: absolute;
@@ -195,7 +195,7 @@ The core performance bottleneck of glass effects lies in `backdrop-filter`:
 - **Mobile degradation**: Recommend providing a solid-color translucent fallback for low-performance devices
 
 ```css
-/* 性能降级策略 */
+/* Performance degradation strategy */
 @media (prefers-reduced-transparency: reduce) {
   .glass-panel {
     backdrop-filter: none;

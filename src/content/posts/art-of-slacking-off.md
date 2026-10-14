@@ -64,14 +64,14 @@ So the second kind is what's actually worth studying. The three moves below aren
 Don't go by feel — by feel, you'll overestimate coding time and underestimate waiting time. Add a stopwatch to your commands:
 
 ```bash
-# ~/.bashrc —— 用法: tt pnpm build
+# ~/.bashrc — usage: tt pnpm build
 tt() {
   /usr/bin/time -f "%e\t%C" -a -o "$HOME/.tt.log" "$@"
 }
 ```
 
 ```bash
-# 一周后：等待时间排行榜
+# One week later: waiting-time leaderboard
 sort -k1,1nr ~/.tt.log | head -20
 ```
 
@@ -83,10 +83,10 @@ Those five commands before you start work each day are "I'm ready" translated in
 
 ```bash
 #!/usr/bin/env bash
-# scripts/dev.sh —— 一条命令，一个前台进程，Ctrl-C 全部退出
+# scripts/dev.sh — one command, one foreground process, Ctrl-C exits everything
 set -euo pipefail
 
-# 装依赖和拉起数据库本来就不用排队，让它们同时开始
+# Installing dependencies and bringing up the database never needed to be serialized anyway, so start them at the same time
 pnpm install --frozen-lockfile &
 INSTALL=$!
 docker compose up -d db &
@@ -94,7 +94,7 @@ DB=$!
 
 wait "$INSTALL" "$DB"
 
-# 收尾：脚本退出时把数据库停掉，不留孤儿进程
+# Cleanup: stop the database when the script exits, leaving no orphan processes
 trap 'docker compose stop db >/dev/null 2>&1 || true' EXIT
 
 pnpm db:migrate
@@ -111,9 +111,9 @@ CI is the most typical "it has to run fast even when nobody's there" scenario. F
 - uses: actions/setup-node@v4
   with:
     node-version: 22
-    cache: pnpm        # key 由它自己算，命中/存档都不用手写
+    cache: pnpm        # The key is computed by it, so you don't have to write hits/archives by hand
 
-# 需要缓存依赖之外的东西（比如构建产物）时再显式用缓存：
+# When you need to cache things beyond dependencies (such as build artifacts), use the cache explicitly:
 - uses: actions/cache@v4
   with:
     path: .next/cache
@@ -127,7 +127,7 @@ An exact `key` hit is a cache hit; on a miss, it does prefix matching by `restor
 Then there's the **legitimate version** of the jiggler meme — also "letting the machine know you're alive," but the target is the machine, not a person:
 
 ```bash
-# Linux：跑长任务时阻止空闲休眠，任务结束自动解除
+# Linux: prevent idle sleep while running long tasks, and release it automatically when the task ends
 systemd-inhibit --what=idle --why="running tests" pnpm test
 
 # macOS
@@ -141,7 +141,7 @@ A mouse jiggler is to make *other people* think you're working; `systemd-inhibit
 Anything that's "I'll format it later" becomes "next quarter we'll format everything at once, three thousand files in one go." Move it to before commit:
 
 ```bash
-# .git/hooks/pre-commit（记得 chmod +x）
+# .git/hooks/pre-commit (remember to chmod +x)
 #!/usr/bin/env sh
 pnpm biome check --staged --write || exit 1
 git add -u

@@ -68,18 +68,18 @@ const imageData = fs.readFileSync("dashboard.png").toString("base64");
 const imageBlock = {
   type: "image" as const,
   source: { type: "base64" as const, media_type: "image/png" as const, data: imageData },
-  // 同一张图会被多轮引用时就加上这行，避免每轮重复按全价计费
+  // Add this line when the same image is referenced across multiple turns, to avoid paying full price for it again each turn
   cache_control: { type: "ephemeral" as const },
 };
 
-// ① 先算账再发请求：图片按 base64 字节数当文本估算，会严重高估
+// ① Do the math before sending the request: estimating images as text by base64 byte count will severely overestimate
 const count = await client.messages.countTokens({
   model: MODEL,
   messages: [{ role: "user", content: [imageBlock, { type: "text", text: "读取仪表盘" }] }],
 });
 console.log(`${count.input_tokens} tokens ≈ $${((count.input_tokens / 1e6) * 4).toFixed(4)}`);
 
-// ② 抽取：把「禁止编造」写进系统提示，比在用户提示里强调有效得多
+// ② Extraction: putting "do not fabricate" in the system prompt is far more effective than emphasizing it in the user prompt
 const response = await client.messages.create({
   model: MODEL,
   max_tokens: 16000,
@@ -117,7 +117,7 @@ const res = await client.messages.create({
         type: "document",
         source: { type: "base64", media_type: "application/pdf", data: pdfData },
         title: "2026 半年报",
-        citations: { enabled: true }, // 开启后返回可定位的引用
+        citations: { enabled: true }, // When enabled, returns locatable citations
       },
       { type: "text", text: "Q3 营收同比增速是多少？给出来源页码。" },
     ],

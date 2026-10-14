@@ -23,11 +23,11 @@ The directory structure looks roughly like this:
 
 ```text
 ~/.dotfiles
-├── bootstrap.sh          # 一键安装入口
+├── bootstrap.sh          #One-click install entry point
 ├── install/
-│   ├── brew.sh           # macOS: Homebrew 包
-│   ├── apt.sh            # Linux: apt 包
-│   └── links.sh          # 建符号链接
+│   ├── brew.sh           #macOS: Homebrew package
+│   ├── apt.sh            #Linux: apt package
+│   └── links.sh          #Create symlinks
 ├── shell/
 │   ├── .zshrc
 │   └── aliases.zsh
@@ -41,7 +41,7 @@ The directory structure looks roughly like this:
 For the symlinking step, I recommend **GNU Stow**. It automatically creates links based on directory structure, which is easier to maintain than hand-writing `ln -s`:
 
 ```bash
-# 把 shell/ 下的文件链接到 ~ 下，保持相对结构
+#Link files under shell/ into ~, preserving relative structure
 stow --target="$HOME" --verbose shell git
 ```
 
@@ -51,7 +51,7 @@ If you don't want to introduce an extra dependency, a shell snippet can get the 
 link() {
   local src="$1" dst="$2"
   mkdir -p "$(dirname "$dst")"
-  # -n 避免把已有软链接当成目录，-f 覆盖旧链接
+  #-n avoids treating existing symlinks as directories, -f overwrites old links
   ln -sfn "$src" "$dst"
 }
 
@@ -65,18 +65,18 @@ I no longer use Oh My Zsh—slow startup, black-box plugins. Now it's a minimal 
 
 ```bash
 # ~/.zshrc
-autoload -Uz compinit && compinit -C   # -C 跳过安全检查，启动快一倍
+autoload -Uz compinit && compinit -C   #-C skips safety checks, starts twice as fast
 setopt HIST_IGNORE_ALL_DUPS HIST_VERIFY SHARE_HISTORY
 setopt AUTO_CD CORRECT
 
-# 历史搜索与模糊查找
+#History search and fuzzy finding
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(mise activate zsh)"
 eval "$(direnv hook zsh)"
 
-bindkey '^f' fzf-file-widget   # Ctrl+F 模糊找文件
+bindkey '^f' fzf-file-widget   #Ctrl+F fuzzy file finder
 ```
 
 The advantage of Starship is that **the configuration is pure TOML**, cross-shell compatible, and it naturally displays the language version, Git branch, and elapsed time for the current directory:
@@ -86,7 +86,7 @@ The advantage of Starship is that **the configuration is pure TOML**, cross-shel
 add_newline = false
 
 [cmd_duration]
-min_time = 500          # 超过 500ms 才显示，减少噪音
+min_time = 500          #Only shows after 500ms to reduce noise
 show_milliseconds = true
 
 [git_status]
@@ -112,7 +112,7 @@ alias lg='lazygit'
 In the past I used nvm for Node, pyenv for Python, and rbenv for Ruby—three sets of logic, three sets of pitfalls. In 2026 the answer has basically converged on **mise** (formerly rtx), a single tool that manages all language runtimes with a unified configuration format:
 
 ```toml
-# ~/.config/mise/config.toml —— 全局默认
+#~/.config/mise/config.toml — global defaults
 [tools]
 node = "22"
 python = "3.13"
@@ -122,7 +122,7 @@ go = "1.24"
 Then put a `.mise.toml` in the project, and entering the directory switches automatically—**no need to manually `nvm use`**:
 
 ```toml
-# 项目根目录/.mise.toml
+#project root/.mise.toml
 [tools]
 node = "20.19.0"
 pnpm = "10"
@@ -139,9 +139,9 @@ run = "pnpm vitest run"
 ```
 
 ```bash
-mise install     # 安装 .mise.toml 里声明的所有版本
-mise ls          # 查看当前生效的版本
-mise run test    # 跑任务，替代 npm scripts 的层层转发
+mise install     #Install all versions declared in .mise.toml
+mise ls          #Show the currently active version
+mise run test    #Run tasks, replacing npm scripts' layer upon layer of forwarding
 ```
 
 There's a tangible benefit here: **version declarations go into Git**, everyone on the team uses the same Node version, and CI only needs to run `mise install` to reproduce the local environment. "It works on my machine" is cut down by more than half.
@@ -151,14 +151,14 @@ There's a tangible benefit here: **version declarations go into Git**, everyone 
 The biggest problem with `.env` files is that they're easy to accidentally commit. **direnv**'s approach is to automatically inject environment variables per directory, and by default it doesn't trust any new file—you must manually `direnv allow` once:
 
 ```bash
-# 项目根目录/.envrc
+#project root/.envrc
 export DATABASE_URL="postgres://localhost:5432/dev"
 export API_KEY="dev-only-key"
 
-# 复用 .env 但保持 git 忽略
+#Reuse .env but keep it git-ignored
 dotenv_if_exists .env
 
-# 复杂逻辑可以抽成脚本
+#Complex logic can be extracted into scripts
 PATH_add ./bin
 layout node
 ```
@@ -211,7 +211,7 @@ For VS Code I use a dual-track approach of **Settings Sync + in-repo `.vscode/`*
 ```
 
 ```json
-// .vscode/extensions.json —— 打开项目时提示安装
+//.vscode/extensions.json — prompt to install when opening the project
 {
   "recommendations": ["biomejs.biome", "vitest.explorer", "streetsidesoftware.code-spell-checker"]
 }
@@ -222,8 +222,8 @@ For Neovim, it's entirely Lua configuration, following the dotfiles repository:
 ```lua
 -- ~/.config/nvim/lua/options.lua
 vim.opt.number = true
-vim.opt.relativenumber = true      -- 相对行号，配合 5j / 3k 跳转
-vim.opt.undofile = true            -- 重启后仍能撤销
+vim.opt.relativenumber = true      --Relative line numbers, works with 5j / 3k jumps
+vim.opt.undofile = true            --Still undoable after restart
 vim.opt.swapfile = false
 vim.g.mapleader = " "
 ```
@@ -242,13 +242,13 @@ case "$(uname -s)" in
   Linux)  sudo apt-get install -y zsh git curl ripgrep fd-find jq tmux ;;
 esac
 
-# 链接配置文件
+#Link config files
 while IFS= read -r -d '' f; do
-  rel="${f#"$DOTFILES"/}"          # 去掉前缀，得到相对路径
-  link "$f" "$HOME/${rel#*/}"      # 剥掉第一层目录名再链接到 $HOME
+  rel="${f#"$DOTFILES"/}"          #Strip the prefix to get the relative path
+  link "$f" "$HOME/${rel#*/}"      #Strip the first directory level, then link into $HOME
 done < <(find "$DOTFILES/shell" "$DOTFILES/git" -type f -print0)
 
-# 安装运行时与全局工具
+#Install runtimes and global tools
 mise install
 curl -sS https://starship.rs/install.sh | sh -s -- --yes
 

@@ -40,7 +40,7 @@ JS 执行，生成 HTML 并插入页面
 ### 2.2 A Typical CSR Page
 
  ```html
-<!-- 服务器返回的 HTML -->
+<!-- HTML returned by the server -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -96,7 +96,7 @@ JS 「水合」（hydration），页面变为可交互
 import { renderToString } from 'react-dom/server';
 
 app.get('/article/:id', async (req, res) => {
-    const article = await db.getArticle(req.params.id);  // 查数据库
+    const article = await db.getArticle(req.params.id);  // Query the database
     const html = renderToString(<ArticlePage data={article} />);
 
     res.send(`
@@ -164,7 +164,7 @@ The HTML returned by SSR is **static** — buttons are visible, but clicking doe
 ### 4.2 How SSG Works
 
  ```javascript
-// 构建时运行，生成静态 HTML
+// Runs at build time, generates static HTML
 export async function getStaticPaths() {
     const posts = await getAllPosts();
     return posts.map(post => ({
@@ -225,16 +225,16 @@ Real projects rarely use only one rendering mode. Modern frameworks such as **Ne
 ### Next.js Rendering Strategies
 
  ```jsx
-// SSG：默认行为，构建时生成
+// SSG: default behavior, generated at build time
 export default function AboutPage() {
     return <div>关于我们</div>;
 }
 
-// SSR：每次请求时重新生成
+// SSR: regenerated on every request
 export const dynamic = 'force-dynamic';
 
-// ISR：增量静态再生 — SSG + 定时更新
-export const revalidate = 3600; // 每3600秒（1小时）重新生成一次
+// ISR: Incremental Static Regeneration — SSG + scheduled updates
+export const revalidate = 3600; // Regenerate every 3600 seconds (1 hour)
 ```
 
 ### Astro's Islands Architecture
@@ -243,7 +243,7 @@ Astro defaults to SSG but supports "interactive islands" within pages:
 
  ```astro
 ---
-// 这部分在构建时运行
+// This part runs at build time
 const posts = await getAllPosts();
 ---
 

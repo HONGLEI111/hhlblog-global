@@ -17,8 +17,8 @@ When you ask "how do I deduplicate," it will give you a function that doesn't ex
 import pandas as pd
 
 df = pd.read_csv("data.csv")
-df.verbose_dropna(inplace=True)   # 顺带把日志都打印了，体贴吧？
-# 现实：pandas 没有 verbose_dropna，AI 只是把两个词硬拼在了一起
+df.verbose_dropna(inplace=True)   #Also prints all the logs along the way — thoughtful, right?
+#Reality: pandas has no verbose_dropna; the AI just mashed two words together
 ```
 
 You push back, and it apologizes, then gives you another **equally nonexistent** new function. This "keep fighting despite repeated failures" persistence is just like an intern who just joined the company and is too embarrassed to admit they don't know how to do something.
@@ -30,7 +30,7 @@ If it's just a wrong function name, the compiler will immediately slap it down. 
 Sometimes AI will recommend a "particularly useful" third-party library, for example:
 
 ```bash
-npm install react-codeshift   # 实际并不存在的包
+npm install react-codeshift   #A package that doesn't actually exist
 ```
 
 Here's the problem: the fake package names AI recommends are often **stable and reproducible**—the same batch of models will repeatedly spit out the same name. So security researchers actually went and registered `react-codeshift` to run an experiment, and as a result it "wandered" into **237 GitHub repositories**, and was even autonomously downloaded and installed by quite a few AI coding agents. One study ran 576,000 code generation tests across 16 large models and found that commercial models had about a 5.2% probability and open-source models about a 21.7% probability of fabricating nonexistent package names, producing more than 200,000 fake names in total.
@@ -42,7 +42,7 @@ In other words: AI isn't "looking up" packages, it's **making up names for packa
 Don't let "trusting AI" become "trusting a supplier that doesn't exist." Spend two seconds verifying identity before installing:
 
 ```bash
-npm view react-codeshift   # 报 404 就说明这个包是 AI 编的
+npm view react-codeshift   #If it returns a 404, that means the package was made up by the AI
 pip index versions react-codeshift
 ```
 

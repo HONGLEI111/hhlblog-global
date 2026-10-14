@@ -97,18 +97,18 @@ Note two things: `left` will never exceed `right` (the window is always valid); 
 :::code-tabs{default="cpp"}
 ```c title="C"
 int minSubArrayLen(int target, int *nums, int numsSize) {
-    long long sum = 0;                 /* 窗口内元素之和，long long 防溢出 */
+    long long sum = 0;                 /* Sum of elements in the window, long long to prevent overflow */
     int left = 0, right = 0;
-    int best = numsSize + 1;           /* 比任何合法长度都大，表示「还没找到」 */
+    int best = numsSize + 1;           /* Larger than any valid length, means "not found yet" */
 
     while (right < numsSize) {
-        sum += nums[right];            /* ① 右边界元素入窗 */
-        right++;                       /*    窗口变成 [left, right) */
+        sum += nums[right];            /* ① Right boundary element enters the window */
+        right++;                       /*    Window becomes [left, right) */
 
-        while (sum >= target) {        /* ③ 和已经够了，开始收缩 */
-            if (right - left < best)   /* ④ 先记录答案，再把 left 移出去 */
+        while (sum >= target) {        /* ③ Sum is enough, start shrinking */
+            if (right - left < best)   /* ④ Record the answer first, then move left out */
                 best = right - left;
-            sum -= nums[left];         /* ⑤ 左边界元素出窗 */
+            sum -= nums[left];         /* ⑤ Left boundary element exits the window */
             left++;
         }
     }
@@ -125,16 +125,16 @@ public:
     int minSubArrayLen(int target, vector<int>& nums) {
         long long sum = 0;
         int left = 0, right = 0;
-        int best = (int)nums.size() + 1;      // 比任何合法长度都大
+        int best = (int)nums.size() + 1;      // Larger than any valid length
 
         while (right < (int)nums.size()) {
-            sum += nums[right];               // ① 右边界元素入窗
+            sum += nums[right];               // ① Right boundary element enters the window
             right++;
 
-            while (sum >= target) {           // ③ 和已经够了，开始收缩
-                if (right - left < best)      // ④ 先记录答案
+            while (sum >= target) {           // ③ Sum is enough, start shrinking
+                if (right - left < best)      // ④ Record the answer first
                     best = right - left;
-                sum -= nums[left];            // ⑤ 左边界元素出窗
+                sum -= nums[left];            // ⑤ Left boundary element exits the window
                 left++;
             }
         }
@@ -147,16 +147,16 @@ public:
 function minSubArrayLen(target, nums) {
   let sum = 0;
   let left = 0, right = 0;
-  let best = nums.length + 1;      // 比任何合法长度都大
+  let best = nums.length + 1;      // Larger than any valid length
 
   while (right < nums.length) {
-    sum += nums[right];            // ① 右边界元素入窗
+    sum += nums[right];            // ① Right boundary element enters the window
     right++;
 
-    while (sum >= target) {        // ③ 和已经够了，开始收缩
-      if (right - left < best)     // ④ 先记录答案
+    while (sum >= target) {        // ③ Sum is enough, start shrinking
+      if (right - left < best)     // ④ Record the answer first
         best = right - left;
-      sum -= nums[left];           // ⑤ 左边界元素出窗
+      sum -= nums[left];           // ⑤ Left boundary element exits the window
       left++;
     }
   }
@@ -243,18 +243,18 @@ Note the round with `prod = 100`: the problem requires **strictly less than** `k
 :::code-tabs{default="cpp"}
 ```c title="C"
 int numSubarrayProductLessThanK(int *nums, int numsSize, int k) {
-    long long prod = 1;                 /* 窗口内元素之积 */
+    long long prod = 1;                 /* Product of elements in the window */
     int left = 0, right = 0, count = 0;
 
     while (right < numsSize) {
-        prod *= nums[right];            /* ① 右边界元素入窗 */
+        prod *= nums[right];            /* ① Right boundary element enters the window */
         right++;
 
-        while (left < right && prod >= k) {   /* ③ 乘积超了就收缩；left < right 防空窗除零 */
-            prod /= nums[left];               /* ⑤ 左边界元素出窗 */
+        while (left < right && prod >= k) {   /* ③ Product exceeds limit, shrink; left < right to avoid empty window division by zero */
+            prod /= nums[left];               /* ⑤ Left boundary element exits the window */
             left++;
         }
-        count += right - left;          /* ④ 以 right-1 结尾、起点落在窗口里的子数组 */
+        count += right - left;          /* ④ Subarrays ending at right-1 with starting point inside the window */
     }
     return count;
 }
@@ -271,14 +271,14 @@ public:
         int left = 0, right = 0, count = 0;
 
         while (right < (int)nums.size()) {
-            prod *= nums[right];              // ① 右边界元素入窗
+            prod *= nums[right];              // ① Right boundary element enters the window
             right++;
 
-            while (left < right && prod >= k) {   // ③ 乘积超了就收缩
-                prod /= nums[left];               // ⑤ 左边界元素出窗
+            while (left < right && prod >= k) {   // ③ Product exceeds limit, shrink
+                prod /= nums[left];               // ⑤ Left boundary element exits the window
                 left++;
             }
-            count += right - left;            // ④ 以 right-1 结尾的合法子数组个数
+            count += right - left;            // ④ Number of valid subarrays ending at right-1
         }
         return count;
     }
@@ -291,14 +291,14 @@ function numSubarrayProductLessThanK(nums, k) {
   let left = 0, right = 0, count = 0;
 
   while (right < nums.length) {
-    prod *= nums[right];                    // ① 右边界元素入窗
+    prod *= nums[right];                    // ① Right boundary element enters the window
     right++;
 
-    while (left < right && prod >= k) {     // ③ 乘积超了就收缩
-      prod /= nums[left];                   // ⑤ 左边界元素出窗
+    while (left < right && prod >= k) {     // ③ Product exceeds limit, shrink
+      prod /= nums[left];                   // ⑤ Left boundary element exits the window
       left++;
     }
-    count += right - left;                  // ④ 以 right-1 结尾的合法子数组个数
+    count += right - left;                  // ④ Number of valid subarrays ending at right-1
   }
   return count;
 }
@@ -388,18 +388,18 @@ Look clearly at the relationship between ③ and ④: **a violating window can n
 ```c title="C"
 int longestOnes(int *nums, int numsSize, int k) {
     int left = 0, right = 0;
-    int zeros = 0;                      /* 窗口里有几个 0 */
+    int zeros = 0;                      /* How many 0s are in the window */
     int best = 0;
 
     while (right < numsSize) {
-        if (nums[right] == 0) zeros++;  /* ① 右边界入窗，顺带数 0 */
+        if (nums[right] == 0) zeros++;  /* ① Right boundary enters window, count 0s along the way */
         right++;
 
-        while (zeros > k) {             /* ③ 0 太多了，收缩到刚刚够用 */
+        while (zeros > k) {             /* ③ Too many 0s, shrink to just enough */
             if (nums[left] == 0) zeros--;
             left++;
         }
-        if (right - left > best)        /* ④ 收缩之后，窗口一定是合法的，这时才记录 */
+        if (right - left > best)        /* ④ After shrinking, the window is definitely valid, only then record */
             best = right - left;
     }
     return best;
@@ -414,18 +414,18 @@ class Solution {
 public:
     int longestOnes(vector<int>& nums, int k) {
         int left = 0, right = 0;
-        int zeros = 0;                      // 窗口里有几个 0
+        int zeros = 0;                      // How many 0s are in the window
         int best = 0;
 
         while (right < (int)nums.size()) {
-            if (nums[right] == 0) zeros++;  // ① 右边界入窗，顺带数 0
+            if (nums[right] == 0) zeros++;  // ① Right boundary enters window, count 0s along the way
             right++;
 
-            while (zeros > k) {             // ③ 0 太多了，收缩到刚刚够用
+            while (zeros > k) {             // ③ Too many 0s, shrink to just enough
                 if (nums[left] == 0) zeros--;
                 left++;
             }
-            if (right - left > best)        // ④ 收缩之后窗口必然合法，这时才记录
+            if (right - left > best)        // ④ After shrinking the window is necessarily valid, only then record
                 best = right - left;
         }
         return best;
@@ -436,18 +436,18 @@ public:
 ```js title="JavaScript"
 function longestOnes(nums, k) {
   let left = 0, right = 0;
-  let zeros = 0;                      // 窗口里有几个 0
+  let zeros = 0;                      // How many 0s are in the window
   let best = 0;
 
   while (right < nums.length) {
-    if (nums[right] === 0) zeros++;   // ① 右边界入窗，顺带数 0
+    if (nums[right] === 0) zeros++;   // ① Right boundary enters window, count 0s along the way
     right++;
 
-    while (zeros > k) {               // ③ 0 太多了，收缩到刚刚够用
+    while (zeros > k) {               // ③ Too many 0s, shrink to just enough
       if (nums[left] === 0) zeros--;
       left++;
     }
-    if (right - left > best)          // ④ 收缩之后窗口必然合法，这时才记录
+    if (right - left > best)          // ④ After shrinking the window is necessarily valid, only then record
       best = right - left;
   }
   return best;
@@ -520,13 +520,13 @@ s     A  A  B  A  B  B  A
 加入下标 3 的 A：[0,4)=AABA，cnt[A]=3，maxCnt=3
   4 - 3 = 1 ≤ 1 → 长度 4（把 B 改成 A）      best = 4
 加入下标 4 的 B：[0,5)=AABAB，cnt[B]=2，maxCnt 仍为 3
-  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[A]-- → cnt[A]=2，窗口 [1,5)=ABAB，长度 4
+  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[A]-- → cnt[A]=2, window [1,5)=ABAB, length 4
   4 - 3 = 1 ≤ 1 → 长度 4，不更新 best
 加入下标 5 的 B：[1,6)=ABABB，cnt[B]=3，maxCnt 仍为 3
-  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[A]-- → cnt[A]=1，窗口 [2,6)=BABB，长度 4
+  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[A]-- → cnt[A]=1, window [2,6)=BABB, length 4
   4 - 3 = 1 ≤ 1 → 长度 4，不更新 best
 加入下标 6 的 A：[2,7)=BABBA，cnt[A]=2，maxCnt 仍为 3
-  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[B]-- → cnt[B]=2，窗口 [3,7)=ABBA，长度 4
+  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[B]-- → cnt[B]=2, window [3,7)=ABBA, length 4
   4 - 3 = 1 ≤ 1 → 长度 4，不更新 best
 
 答案 4 ✔
@@ -544,20 +544,20 @@ int characterReplacement(char *s, int k) {
     int cnt[26] = {0};
     int n = (int)strlen(s);
     int left = 0, right = 0;
-    int maxCnt = 0;                 /* 历史上出现过的最大频次，只增不减 */
+    int maxCnt = 0;                 /* Maximum frequency ever seen in history, only increases, never decreases */
     int best = 0;
 
     while (right < n) {
         int c = s[right] - 'A';
-        cnt[c]++;                   /* ① 右边界入窗 */
+        cnt[c]++;                   /* ① Right boundary enters window */
         if (cnt[c] > maxCnt) maxCnt = cnt[c];
         right++;
 
-        if (right - left - maxCnt > k) {   /* ③ 需要替换的字符超过了 k */
-            cnt[s[left] - 'A']--;          /* ⑤ 左边界出窗 */
+        if (right - left - maxCnt > k) {   /* ③ Characters needing replacement exceed k */
+            cnt[s[left] - 'A']--;          /* ⑤ Left boundary exits window */
             left++;
         }
-        if (right - left > best) best = right - left;   /* ④ 收缩后记录 */
+        if (right - left > best) best = right - left;   /* ④ Record after shrinking */
     }
     return best;
 }
@@ -572,20 +572,20 @@ public:
     int characterReplacement(string s, int k) {
         int cnt[26] = {0};
         int left = 0, right = 0;
-        int maxCnt = 0;                 // 历史上出现过的最大频次，只增不减
+        int maxCnt = 0;                 // Maximum frequency ever seen in history, only increases, never decreases
         int best = 0;
 
         while (right < (int)s.size()) {
             int c = s[right] - 'A';
-            cnt[c]++;                   // ① 右边界入窗
+            cnt[c]++;                   // ① Right boundary enters window
             if (cnt[c] > maxCnt) maxCnt = cnt[c];
             right++;
 
-            if (right - left - maxCnt > k) {   // ③ 需要替换的字符超过了 k
-                cnt[s[left] - 'A']--;          // ⑤ 左边界出窗
+            if (right - left - maxCnt > k) {   // ③ Characters needing replacement exceed k
+                cnt[s[left] - 'A']--;          // ⑤ Left boundary exits window
                 left++;
             }
-            if (right - left > best) best = right - left;   // ④ 收缩后记录
+            if (right - left > best) best = right - left;   // ④ Record after shrinking
         }
         return best;
     }
@@ -596,20 +596,20 @@ public:
 function characterReplacement(s, k) {
   const cnt = new Array(26).fill(0);
   let left = 0, right = 0;
-  let maxCnt = 0;                 // 历史上出现过的最大频次，只增不减
+  let maxCnt = 0;                 // Maximum frequency ever seen in history, only increases, never decreases
   let best = 0;
 
   while (right < s.length) {
     const c = s.charCodeAt(right) - 65;
-    cnt[c]++;                     // ① 右边界入窗
+    cnt[c]++;                     // ① Right boundary enters window
     if (cnt[c] > maxCnt) maxCnt = cnt[c];
     right++;
 
-    if (right - left - maxCnt > k) {        // ③ 需要替换的字符超过了 k
-      cnt[s.charCodeAt(left) - 65]--;       // ⑤ 左边界出窗
+    if (right - left - maxCnt > k) {        // ③ Characters needing replacement exceed k
+      cnt[s.charCodeAt(left) - 65]--;       // ⑤ Left boundary exits window
       left++;
     }
-    if (right - left > best) best = right - left;   // ④ 收缩后记录
+    if (right - left > best) best = right - left;   // ④ Record after shrinking
   }
   return best;
 }

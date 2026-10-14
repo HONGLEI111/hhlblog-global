@@ -94,14 +94,14 @@ For Chinese-language sites, this step delivers the biggest gains. A complete Chi
 @font-face {
   font-family: 'NotoSansSC';
   src: url('/fonts/noto-sans-sc-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF; /* 拉丁字符 */
+  unicode-range: U+0000-00FF; /* Latin characters */
   font-display: swap;
 }
 
 @font-face {
   font-family: 'NotoSansSC';
   src: url('/fonts/noto-sans-sc-common.woff2') format('woff2');
-  unicode-range: U+4E00-9FFF; /* 常用汉字 */
+  unicode-range: U+4E00-9FFF; /* Common Chinese characters */
   font-display: swap;
 }
 ```
@@ -116,13 +116,13 @@ For Chinese-language sites, this step delivers the biggest gains. A complete Chi
 @font-face {
   font-family: 'InterVariable';
   src: url('/fonts/inter-var.woff2') format('woff2-variations');
-  font-weight: 100 900; /* 声明可变范围 */
+  font-weight: 100 900; /* Declare variable range */
   font-display: swap;
 }
 
 .text {
   font-family: 'InterVariable', sans-serif;
-  font-weight: 575; /* 任意字重，无需额外文件 */
+  font-weight: 575; /* Any weight, no extra files needed */
 }
 ```
 
@@ -135,15 +135,15 @@ If the CSS techniques above aren't enough, JavaScript's **CSS Font Loading API**
 ```js
 const fonts = document.fonts;
 
-// 检查某个字体是否已就绪
+// Check whether a font is ready
 async function ensureFont(family, source) {
   const face = new FontFace(family, source, { weight: '400' });
 
-  // 先注册，但字体文件会延迟到真正使用时才下载
+  // Register first, but the font file is downloaded only when actually used
   fonts.add(face);
 
   try {
-    await face.load(); // 显式触发加载
+    await face.load(); // Explicitly trigger loading
     document.body.classList.add('font-ready');
   } catch (e) {
     console.error('字体加载失败，回退到系统字体', e);

@@ -69,13 +69,13 @@ ListNode* middleNode(ListNode* head) {
     ListNode *slow = head;
     ListNode *fast = head;
 
-    // fast 每次走两步，slow 每次走一步
+    //fast moves two steps at a time, slow moves one step at a time
     while (fast && fast->next) {
         slow = slow->next;
         fast = fast->next->next;
     }
 
-    // fast 到末尾时，slow 恰好在中点
+    //When fast reaches the end, slow is exactly at the midpoint
     return slow;
 }
 ```
@@ -95,13 +95,13 @@ public:
         ListNode *slow = head;
         ListNode *fast = head;
 
-        // fast 每次走两步，slow 每次走一步
+        //fast moves two steps at a time, slow moves one step at a time
         while (fast && fast->next) {
             slow = slow->next;
             fast = fast->next->next;
         }
 
-        // fast 到末尾时，slow 恰好在中点
+        //When fast reaches the end, slow is exactly at the midpoint
         return slow;
     }
 };
@@ -119,13 +119,13 @@ function middleNode(head) {
     let slow = head;
     let fast = head;
 
-    // fast 每次走两步，slow 每次走一步
+    //fast moves two steps at a time, slow moves one step at a time
     while (fast && fast.next) {
         slow = slow.next;
         fast = fast.next.next;
     }
 
-    // fast 到末尾时，slow 恰好在中点
+    //When fast reaches the end, slow is exactly at the midpoint
     return slow;
 }
 ```

@@ -40,9 +40,9 @@ After starting, visit `http://localhost:3000`, and your first Next.js project is
 
 ```
 my-blog/
-├── app/                  # App Router 的核心目录
-│   ├── layout.tsx        # 根布局（所有页面共享）
-│   ├── page.tsx          # 首页 /
+├── app/                  #App Router's core directories
+│   ├── layout.tsx        #Root layout (shared by all pages)
+│   ├── page.tsx          #Home page /
 │   ├── about/
 │   │   └── page.tsx      # /about
 │   ├── blog/
@@ -52,9 +52,9 @@ my-blog/
 │   └── api/
 │       └── posts/
 │           └── route.ts  # /api/posts
-├── components/           # 公共组件
-├── lib/                  # 工具函数
-├── public/               # 静态资源
+├── components/           #Shared components
+├── lib/                  #Utility functions
+├── public/               #Static assets
 ├── package.json
 └── next.config.ts
 ```
@@ -122,12 +122,12 @@ Next.js 13+ introduced **React Server Components (RSC)**, which is the key to un
 ### 4.1 Server Components by Default
 
 ```tsx
-// ✅ 这是 Server Component（默认）
-// 可以直接访问数据库、文件系统
+//✅ This is a Server Component (default)
+//Can directly access the database and file system
 import { db } from '@/lib/db';
 
 export default async function PostList() {
-    const posts = await db.post.findMany(); // 直接查数据库！
+    const posts = await db.post.findMany(); //Query the database directly!
 
     return (
         <ul>
@@ -142,7 +142,7 @@ export default async function PostList() {
 ### 4.2 Use Client Components When Interactivity Is Needed
 
 ```tsx
-'use client'; // ← 加这一行，变为客户端组件
+'use client'; //← Add this line to make it a Client Component
 
 import { useState } from 'react';
 
@@ -178,10 +178,10 @@ export default function LikeButton() {
 
 ```tsx
 // app/posts/page.tsx
-// 无需 useEffect + useState，直接 async/await
+//No need for useEffect + useState, just async/await directly
 export default async function PostsPage() {
     const posts = await fetch('https://api.example.com/posts', {
-        next: { revalidate: 3600 }, // ISR：每小时重新验证
+        next: { revalidate: 3600 }, //ISR: revalidate every hour
     }).then(res => res.json());
 
     return (
@@ -202,14 +202,14 @@ export default async function PostsPage() {
 Next.js extends the native `fetch` API with cache control:
 
 ```tsx
-// 缓存，默认行为（类似 SSG）
+//Caching, default behavior (similar to SSG)
 fetch('/api/data');
 
-// 每次请求重新获取（类似 SSR）
+//Refetch on every request (similar to SSR)
 fetch('/api/data', { cache: 'no-store' });
 
-// 定时重新验证（ISR — 增量静态再生）
-fetch('/api/data', { next: { revalidate: 60 } }); // 60秒
+//Timed revalidation (ISR — Incremental Static Regeneration)
+fetch('/api/data', { next: { revalidate: 60 } }); //60 seconds
 ```
 
 ### 5.3 Using ORMs to Interact with the Database Directly
@@ -318,7 +318,7 @@ export async function createPost(formData: FormData) {
         data: { title, content },
     });
 
-    revalidatePath('/posts'); // 刷新缓存
+    revalidatePath('/posts'); //Refresh cache
 }
 ```
 
@@ -344,18 +344,18 @@ export default function NewPostPage() {
 Next.js supports choosing rendering strategies at the page level:
 
 ```tsx
-// 1. SSG（默认）— 构建时生成，永不改变
+//1. SSG (default) — generated at build time, never changes
 export default function AboutPage() {
     return <div>关于我们</div>;
 }
 
-// 2. ISR — 构建时生成，定时刷新
-export const revalidate = 3600; // 每3600秒重新生成
+//2. ISR — generated at build time, refreshed on a schedule
+export const revalidate = 3600; //Regenerate every 3600 seconds
 
-// 3. SSR — 每次请求都重新生成
+//3. SSR — regenerated on every request
 export const dynamic = 'force-dynamic';
 
-// 4. 动态 SSG — 为每条数据预生成页面
+//4. Dynamic SSG — pre-generate a page for each data entry
 export async function generateStaticParams() {
     const posts = await getPosts();
     return posts.map(post => ({ slug: post.slug }));
@@ -369,10 +369,10 @@ export async function generateStaticParams() {
 The most natural deployment platform for Next.js is **Vercel** (the creator of Next.js), but it can also be deployed to any environment that supports Node.js:
 
 ```bash
-# 生产构建
+#Production build
 npm run build
 
-# 启动生产服务器
+#Start the production server
 npm run start
 ```
 

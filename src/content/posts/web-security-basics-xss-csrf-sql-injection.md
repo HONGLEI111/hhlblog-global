@@ -22,7 +22,7 @@ The essence of XSS (Cross-Site Scripting) is: an attacker injects malicious scri
 The server echoes request parameters back to the page as-is, without escaping. A typical scenario is a search box:
 
 ```html
-<!-- 服务端模板，直接回显 q 参数 -->
+<!-- Server-side template, directly echoes the q parameter -->
 <div>搜索结果：<?php echo $_GET['q']; ?></div>
 ```
 
@@ -39,9 +39,9 @@ After the user clicks it, the script executes under the origin of `example.com`,
 The malicious script is persisted to the database, and afterward every user who visits that page falls victim. A typical scenario is a message board or comment section:
 
 ```js
-// 假设评论区直接把用户输入存入数据库，渲染时原样输出
+// Assume the comment section stores user input directly in the database and outputs it as-is when rendering
 function renderComment(comment) {
-  // 危险！comment.text 可能包含 <script> 标签
+  // Dangerous! comment.text may contain a <script> tag
   return `<div class="comment">${comment.text}</div>`;
 }
 ```
@@ -53,7 +53,7 @@ The attacker posts a "comment" whose content is `<script>document.location='http
 This type of vulnerability doesn't go through the server; it happens purely on the browser side—JavaScript writes untrusted data into `innerHTML`, `document.write`, or `eval`:
 
 ```js
-// 从 URL hash 读取并直接渲染，危险
+// Read from the URL hash and render directly, dangerous
 const user = location.hash.slice(1);
 document.getElementById('welcome').innerHTML = `欢迎，${user}`;
 ```
@@ -65,7 +65,7 @@ Visiting `https://example.com/#<img src=x onerror=alert(1)>` triggers the script
 The core of defending against XSS is **"escape by context"**, and trying to ensure that data never becomes executable code:
 
 ```js
-// 1. 输出到 HTML 文本时，转义关键字符
+// 1. When outputting to HTML text, escape key characters
 function escapeHtml(str) {
   return str
     .replace(/&/g, '&amp;')
@@ -75,10 +75,10 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-// 2. 现代框架（React/Vue）默认转义文本插值，但危险 API 依然存在
-//    不要这样做：
+// 2. Modern frameworks (React/Vue) escape text interpolation by default, but dangerous APIs still exist
+//    Don't do this:
 element.innerHTML = userInput;
-//    而是用 textContent，它只当作纯文本处理：
+//   Instead use textContent, which treats it as plain text only:
 element.textContent = userInput;
 ```
 
@@ -108,7 +108,7 @@ body: { to: 'attacker', amount: 10000 }
 As long as the user is logged in to `bank.com` (Cookie is valid), the attacker places an auto-submitting form on their own website:
 
 ```html
-<!-- 放在 evil.com 上的页面，用户一访问就自动提交 -->
+<!-- A page hosted on evil.com, automatically submits as soon as the user visits it -->
 <form action="https://bank.com/transfer" method="POST" style="display:none">
   <input name="to" value="attacker">
   <input name="amount" value="10000">
@@ -123,9 +123,9 @@ When the user visits `evil.com`, the browser includes the Cookie for `bank.com` 
 Modern defenses mainly rely on three lines, which can be used in combination:
 
 ```js
-// 1. CSRF Token：服务端生成随机 token，前端每次请求携带
-// 攻击者无法读取这个 token（同源策略），所以伪造不了请求
-// 服务端（伪代码）：
+// 1. CSRF Token: the server generates a random token, and the frontend carries it with every request
+// The attacker cannot read this token (same-origin policy), so they cannot forge the request
+// Server side (pseudocode):
 app.get('/form', (req, res) => {
   const token = crypto.randomBytes(32).toString('hex');
   req.session.csrfToken = token;
@@ -135,11 +135,11 @@ app.post('/transfer', (req, res) => {
   if (req.body.csrfToken !== req.session.csrfToken) {
     return res.status(403).send('Invalid CSRF token');
   }
-  // 校验通过才执行转账
+  // Only execute the transfer after validation passes
 });
 
-// 2. SameSite Cookie：限制 Cookie 只在同站请求时携带
-// Set-Cookie: sessionId=abc; SameSite=Lax  （或 Strict）
+// 2. SameSite Cookie: restricts cookies to being sent only on same-site requests
+// Set-Cookie: sessionId=abc; SameSite=Lax  (or Strict)
 ```
 
 `SameSite=Lax` allows "top-level navigation" to carry Cookies (such as clicking into a website from search results), but blocks cross-site POST forms and `fetch` from carrying them, with almost no impact on normal usage—making it the least effort-intensive line of defense. Combined with validating the `Origin`/`Referer` headers, it can basically cover the vast majority of CSRF scenarios.
@@ -153,7 +153,7 @@ SQL Injection is the representative of injection-type vulnerabilities: an attack
 The following code concatenates the username directly into the query:
 
 ```js
-// 危险！直接拼接用户输入
+// Dangerous! Directly concatenating user input
 const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
 db.query(query);
 ```
@@ -181,7 +181,7 @@ The content after `--` is treated as a comment, `OR '1'='1'` is always true, so 
 There is an iron rule for defending against SQL injection: **never concatenate user input into SQL; always use parameterized queries (prepared statements)**.
 
 ```js
-// 正确：参数化查询，用户输入永远被当作「数据」而非「代码」
+// Correct: parameterized queries, user input is always treated as "data" rather than "code"
 const stmt = db.prepare(
   'SELECT * FROM users WHERE username = ? AND password = ?'
 );
@@ -191,7 +191,7 @@ stmt.run(username, password);
 The principle of parameterized queries is: the structure of the SQL statement is first parsed and compiled by the database, and parameters are merely "filled" into placeholders—no matter what is written in the parameters, it's impossible to change the syntactic structure of the SQL. For scenarios that cannot be parameterized (such as dynamically specifying column names or sort fields), use **whitelist** validation rather than escaping.
 
 ```js
-// 动态排序字段：只允许白名单内的列名
+// Dynamic sort field: only allow column names within the whitelist
 const ALLOWED_COLUMNS = ['id', 'created_at', 'score'];
 const orderBy = ALLOWED_COLUMNS.includes(req.query.sort)
   ? req.query.sort

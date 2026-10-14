@@ -60,14 +60,14 @@ The only core dependency you need is one package: `mcp`, the official Python SDK
 
 ```
 my-mcp-server/
-├── server.py          # MCP Server 主入口
+├── server.py          # MCP Server main entry point
 ├── tools/
 │   ├── __init__.py
-│   ├── weather.py     # 天气查询工具
-│   └── database.py    # 数据库查询工具
+│   ├── weather.py     # Weather query tool
+│   └── database.py    # Database query tool
 ├── resources/
 │   ├── __init__.py
-│   └── docs.py        # 文档资源
+│   └── docs.py        # Document resources
 └── pyproject.toml
 ```
 
@@ -83,7 +83,7 @@ import asyncio
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-# 创建 Server 实例
+# Create Server instance
 server = Server("my-first-mcp-server")
 
 @server.tool()
@@ -166,7 +166,7 @@ from mcp.types import Tool, TextContent
 
 server = Server("weather-mcp-server")
 
-# 模拟天气数据（实际项目中替换为真实 API 调用）
+# Simulated weather data (replace with real API calls in actual projects)
 WEATHER_DATA = {
     "北京": {"temp": 32, "humidity": 65, "condition": "晴"},
     "上海": {"temp": 35, "humidity": 70, "condition": "多云"},
@@ -318,10 +318,10 @@ The LLM may pass strange parameters when calling tools. Do proper boundary check
 @server.tool()
 async def query_database(sql: str) -> str:
     """在只读副本上执行 SQL 查询"""
-    # 安全检查：只允许 SELECT
+    # Security check: only allow SELECT
     if not sql.strip().upper().startswith("SELECT"):
         return "❌ 错误：仅允许 SELECT 查询"
-    # 安全检查：禁止危险关键字
+    # Security check: prohibit dangerous keywords
     dangerous = ["DROP", "DELETE", "INSERT", "UPDATE", "ALTER"]
     for keyword in dangerous:
         if keyword in sql.upper():
@@ -355,7 +355,7 @@ async def search_knowledge_base(query: str) -> str:
     """搜索公司内部知识库"""
     api_key = os.environ["KB_API_KEY"]
     base_url = os.environ.get("KB_BASE_URL", "https://kb.internal.example.com")
-    # ... 调用 API
+    # ... call API
 ```
 
 Inject environment variables in `.mcp.json` to avoid hardcoding:

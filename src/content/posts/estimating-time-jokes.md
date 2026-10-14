@@ -30,14 +30,14 @@ The first 90% of the code takes 90% of the time, and the remaining 10% of the co
 Someone summarized an "empirical formula" based on this:
 
 ```javascript
-// 程序员时间估算的朴素实现
+//Naive implementation of programmer time estimation
 function estimate(optimisticDays) {
-  // 霍夫斯塔德定律：事情总比预期更久，即便你已经考虑到了这一点
+  //Hofstadter's Law: It always takes longer than you expect, even when you take into account Hofstadter's Law
   const hofstadter = (n) => n * 2 + 1;
   return hofstadter(hofstadter(optimisticDays));
 }
 
-console.log(estimate(1)); // 7 —— 一个「一天」的活，层层套娃后变成一周
+console.log(estimate(1)); //7 — a 'one-day' task, after layers of nesting, becomes a week
 ```
 
 The output of `estimate(1)` is `((1 * 2 + 1) * 2 + 1) = 7` days. A "one-day" job, after doubling and doubling again, becomes a week — this is probably why senior programmers always "multiply by two and add one" when estimating: not because they're pessimistic, but because they've been burned enough times.

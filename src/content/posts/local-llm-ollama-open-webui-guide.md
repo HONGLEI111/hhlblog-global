@@ -18,7 +18,7 @@ One line on macOS and Linux:
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 
-# 验证
+# Validate
 ollama --version
 ```
 
@@ -45,14 +45,14 @@ The first run will pull down the model weights, so don't go straight for 70B. Es
 | 70B | ~40 GB | Dual-GPU or large-memory workstations |
 
 ```bash
-# 拉取并进入交互式 REPL
+# Pull and enter the interactive REPL
 ollama run llama3.1:8b
 
-# 常用管理命令
-ollama list          # 已下载的模型
-ollama ps            # 当前加载进显存/内存的模型
+# Common management commands
+ollama list          # Downloaded models
+ollama ps            # Models currently loaded into VRAM/memory
 ollama show llama3.1:8b
-ollama stop llama3.1:8b   # 手动卸载，释放显存
+ollama stop llama3.1:8b   # Manually unload to free VRAM
 ollama rm llama3.1:8b
 ```
 
@@ -71,12 +71,12 @@ Create a `Modelfile`:
 ```dockerfile
 FROM qwen2.5:7b
 
-# 采样参数
+# Sampling parameters
 PARAMETER temperature 0.3
 PARAMETER num_ctx 8192
 PARAMETER top_p 0.9
 
-# 系统提示词，决定模型的默认人格
+# System prompt, determines the model's default persona
 SYSTEM """你是一位严谨的代码审查助手。
 你会指出问题所在，并给出可直接替换的修改建议。
 不要赘述显而易见的正确代码。"""
@@ -104,7 +104,7 @@ Besides the native API (`/api/generate`, `/api/chat`), Ollama also exposes an Op
 from openai import OpenAI
 
 client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
-# api_key 是客户端库强制要求的必填项，但 Ollama 会忽略它的值
+# api_key is a required field enforced by the client library, but Ollama ignores its value
 
 resp = client.chat.completions.create(
     model="llama3.1:8b",
@@ -166,7 +166,7 @@ First install an embedding model, used to convert document chunks into vectors:
 
 ```bash
 ollama pull nomic-embed-text
-# 中文文档效果更好可以选择 bge-m3
+# For better Chinese documentation results, you can choose bge-m3
 ollama pull bge-m3
 ```
 

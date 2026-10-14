@@ -111,13 +111,13 @@ mat = [[3, 3, 1, 1],        i-j = [[ 0, -1, -2, -3],
 static int cmpInt(const void *a, const void *b) {
     int x = *(const int *)a;
     int y = *(const int *)b;
-    return (x > y) - (x < y);          /* 用减法可能溢出，这样写更稳 */
+    return (x > y) - (x < y);          /* Subtraction may overflow, so this is safer */
 }
 
-/* 排序从 (r, c) 出发、朝右下延伸的那条对角线 */
+/* Sort the diagonal starting at (r, c) and extending down-right */
 static void sortDiagonal(int **mat, int m, int n, int r, int c) {
     int len = 0;
-    while (r + len < m && c + len < n) len++;      /* 这条对角线的长度 */
+    while (r + len < m && c + len < n) len++;      /* Length of this diagonal */
 
     int *buf = (int *)malloc(sizeof(int) * len);
     for (int k = 0; k < len; k++) buf[k] = mat[r + k][c + k];
@@ -130,8 +130,8 @@ static void sortDiagonal(int **mat, int m, int n, int r, int c) {
 }
 
 void diagonalSort(int **mat, int m, int n) {
-    for (int i = 0; i < m; i++) sortDiagonal(mat, m, n, i, 0);  /* 第一列出发 */
-    for (int j = 1; j < n; j++) sortDiagonal(mat, m, n, 0, j);  /* 第一行出发 */
+    for (int i = 0; i < m; i++) sortDiagonal(mat, m, n, i, 0);  /* Starting from the first column */
+    for (int j = 1; j < n; j++) sortDiagonal(mat, m, n, 0, j);  /* Starting from the first row */
 }
 ```
 
@@ -146,14 +146,14 @@ public:
         int m = (int)mat.size();
         int n = (int)mat[0].size();
 
-        for (int i = 0; i < m; ++i) sortDiagonal(mat, i, 0);  // 第一列出发
-        for (int j = 1; j < n; ++j) sortDiagonal(mat, 0, j);  // 第一行出发（跳过 (0,0)）
+        for (int i = 0; i < m; ++i) sortDiagonal(mat, i, 0);  // Starting from the first column
+        for (int j = 1; j < n; ++j) sortDiagonal(mat, 0, j);  // Starting from the first row (skip (0,0))
 
         return mat;
     }
 
 private:
-    // 读出 (r, c) 这条对角线 -> 排序 -> 写回
+    // Read out the diagonal at (r, c) -> sort -> write back
     void sortDiagonal(vector<vector<int>>& mat, int r, int c) {
         int m = (int)mat.size();
         int n = (int)mat[0].size();
@@ -173,7 +173,7 @@ function diagonalSort(mat) {
   const m = mat.length;
   const n = mat[0].length;
 
-  // 读出 (r, c) 这条对角线 -> 排序 -> 写回
+  // Read out the diagonal at (r, c) -> sort -> write back
   const sortDiagonal = (r, c) => {
     const diag = [];
     for (let i = r, j = c; i < m && j < n; i++, j++) diag.push(mat[i][j]);
@@ -182,8 +182,8 @@ function diagonalSort(mat) {
     for (let i = r, j = c; i < m && j < n; i++, j++) mat[i][j] = diag[k++];
   };
 
-  for (let i = 0; i < m; i++) sortDiagonal(i, 0);   // 第一列出发
-  for (let j = 1; j < n; j++) sortDiagonal(0, j);   // 第一行出发（跳过 (0,0)）
+  for (let i = 0; i < m; i++) sortDiagonal(i, 0);   // Starting from the first column
+  for (let j = 1; j < n; j++) sortDiagonal(0, j);   // Starting from the first row (skip (0,0))
 
   return mat;
 }
@@ -211,14 +211,14 @@ Let `L = min(m, n)`:
 A diagonal itself is stored contiguously in the matrix (just diagonally), so you can directly perform insertion sort on the diagonal, reducing the buffer to O(1):
 
 ```cpp
-// 沿对角线做插入排序：把每个元素向前插到该对角线的已排序前缀中
+// Insertion sort along the diagonal: insert each element forward into the sorted prefix of that diagonal
 void sortDiagonalInPlace(vector<vector<int>>& mat, int r, int c) {
     int m = (int)mat.size(), n = (int)mat[0].size();
 
     for (int i = r + 1, j = c + 1; i < m && j < n; ++i, ++j) {
         int x = mat[i][j];
         int p = i - 1, q = j - 1;
-        while (p >= r && q >= c && mat[p][q] > x) {   // 比 x 大的都往后挪一格
+        while (p >= r && q >= c && mat[p][q] > x) {   // Shift everything greater than x back by one
             mat[p + 1][q + 1] = mat[p][q];
             --p;
             --q;
@@ -336,15 +336,15 @@ As long as you're willing to treat the 2D matrix as a 1D array at the index leve
 
 int **shiftGrid(int **grid, int m, int n, int k) {
     int total = m * n;
-    k %= total;                                    /* 迁移 total 次等于没动 */
+    k %= total;                                    /* Shifting total times is a no-op */
 
     int **res = (int **)malloc(sizeof(int *) * m);
     for (int i = 0; i < m; i++) res[i] = (int *)malloc(sizeof(int) * n);
 
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            int p = i * n + j;                     /* 展平后的下标 */
-            int q = (p + k) % total;               /* 迁移 k 次后的下标 */
+            int p = i * n + j;                     /* Flattened index */
+            int q = (p + k) % total;               /* Index after k shifts */
             res[q / n][q % n] = grid[i][j];
         }
     }
@@ -362,24 +362,24 @@ public:
         int m = (int)grid.size();
         int n = (int)grid[0].size();
         int total = m * n;
-        k %= total;                                // 迁移 total 次等于没动
+        k %= total;                                // Shifting total times is a no-op
 
         vector<vector<int>> res(m, vector<int>(n));
         for (int i = 0; i < m; ++i) {
             for (int j = 0; j < n; ++j) {
-                int q = (i * n + j + k) % total;   // 展平后向后移动 k 位
+                int q = (i * n + j + k) % total;   // Shift forward k positions after flattening
                 res[q / n][q % n] = grid[i][j];
             }
         }
         return res;
     }
 
-    // 思路二：三次反转，原地完成
+    // Approach 2: three reversals, done in place
     vector<vector<int>> shiftGridReverse(vector<vector<int>> grid, int k) {
         int m = (int)grid.size(), n = (int)grid[0].size(), total = m * n;
         k %= total;
 
-        // 把二维矩阵当成行优先的一维数组，翻转 [lo, hi]
+        // Treat the 2D matrix as a row-major 1D array, reverse [lo, hi]
         auto rev = [&](int lo, int hi) {
             while (lo < hi) {
                 swap(grid[lo / n][lo % n], grid[hi / n][hi % n]);
@@ -401,13 +401,13 @@ function shiftGrid(grid, k) {
   const m = grid.length;
   const n = grid[0].length;
   const total = m * n;
-  k %= total;                                  // 迁移 total 次等于没动
+  k %= total;                                  // Shifting total times is a no-op
 
   const res = Array.from({ length: m }, () => new Array(n));
 
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
-      const q = (i * n + j + k) % total;       // 展平后向后移动 k 位
+      const q = (i * n + j + k) % total;       // Shift forward k positions after flattening
       res[Math.floor(q / n)][q % n] = grid[i][j];
     }
   }
@@ -511,7 +511,7 @@ In-place transpose of a square matrix:
 ```c title="C"
 #include <stdlib.h>
 
-/* 非方阵：结果是一个新的 n×m 矩阵 */
+/* Non-square: the result is a new n×m matrix */
 int **transpose(int **mat, int m, int n) {
     int **res = (int **)malloc(sizeof(int *) * n);
     for (int j = 0; j < n; j++) res[j] = (int *)malloc(sizeof(int) * m);
@@ -523,7 +523,7 @@ int **transpose(int **mat, int m, int n) {
     return res;
 }
 
-/* 方阵可以原地转置：只处理上三角 (i < j)，对角线不动 */
+/* A square matrix can be transposed in place: only process the upper triangle (i < j), the diagonal stays put */
 void transposeInPlace(int **mat, int m) {
     for (int i = 0; i < m; i++)
         for (int j = i + 1; j < m; j++) {
@@ -552,7 +552,7 @@ public:
         return res;
     }
 
-    // 方阵可以原地转置：只处理上三角
+    // A square matrix can be transposed in place: only process the upper triangle
     void transposeInPlace(vector<vector<int>>& matrix) {
         int m = (int)matrix.size();
         for (int i = 0; i < m; ++i)
@@ -574,7 +574,7 @@ function transpose(matrix) {
   return res;
 }
 
-// 方阵可以原地转置：只处理上三角
+// A square matrix can be transposed in place: only process the upper triangle
 function transposeInPlace(matrix) {
   const m = matrix.length;
   for (let i = 0; i < m; i++)
@@ -660,12 +660,12 @@ Counter-example `["dog","racecar","car"]`: when `j=0`, `'a' != 'd'`, immediately
 #include <string.h>
 
 char *longestCommonPrefix(char **strs, int strsSize) {
-    int len = (int)strlen(strs[0]);        /* 公共前缀不可能比基准串更长 */
+    int len = (int)strlen(strs[0]);        /* The common prefix cannot be longer than the base string */
 
-    for (int j = 0; j < len; j++) {        /* j：沿基准串前进的列指针 */
+    for (int j = 0; j < len; j++) {        /* j: column pointer advancing along the base string */
         char c = strs[0][j];
-        for (int i = 1; i < strsSize; i++) {   /* i：横向比较其余字符串 */
-            /* 该字符串在此处已经结束（读到 '\0'），或字符不相等 */
+        for (int i = 1; i < strsSize; i++) {   /* i: comparing the remaining strings horizontally */
+            /* This string has already ended here (read '\0'), or the characters are not equal */
             if (strs[i][j] == '\0' || strs[i][j] != c) {
                 char *cut = (char *)malloc(j + 1);
                 memcpy(cut, strs[0], j);
@@ -689,12 +689,12 @@ using namespace std;
 class Solution {
 public:
     string longestCommonPrefix(vector<string>& strs) {
-        const string& base = strs[0];                   // 基准串
+        const string& base = strs[0];                   // Base string
 
-        for (int j = 0; j < (int)base.size(); ++j) {     // j：列指针
+        for (int j = 0; j < (int)base.size(); ++j) {     // j: column pointer
             char c = base[j];
-            for (int i = 1; i < (int)strs.size(); ++i) { // i：行指针
-                // 该字符串已经结束，或第 j 个字符不相等
+            for (int i = 1; i < (int)strs.size(); ++i) { // i: row pointer
+                // This string has already ended, or the j-th character is not equal
                 if (j >= (int)strs[i].size() || strs[i][j] != c) {
                     return base.substr(0, j);
                 }
@@ -707,12 +707,12 @@ public:
 
 ```js title="JavaScript"
 function longestCommonPrefix(strs) {
-  const base = strs[0];                    // 基准串
+  const base = strs[0];                    // Base string
 
-  for (let j = 0; j < base.length; j++) {         // j：列指针
+  for (let j = 0; j < base.length; j++) {         // j: column pointer
     const c = base[j];
-    for (let i = 1; i < strs.length; i++) {       // i：行指针
-      // 该字符串已经结束，或第 j 个字符不相等
+    for (let i = 1; i < strs.length; i++) {       // i: row pointer
+      // This string has already ended, or the j-th character is not equal
       if (j >= strs[i].length || strs[i][j] !== c) {
         return base.slice(0, j);
       }

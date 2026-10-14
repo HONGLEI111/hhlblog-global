@@ -63,7 +63,7 @@ async function chat(userMessage: string): Promise<string> {
       messages,
     });
 
-    // 模型想调工具了
+    //The model wants to call a tool
     if (response.stop_reason === "tool_use") {
       const toolResults = [];
       for (const block of response.content) {
@@ -76,13 +76,13 @@ async function chat(userMessage: string): Promise<string> {
           });
         }
       }
-      // 关键：把 assistant 的 tool_use 和对应的 tool_result 一起追加回去
+      //Key: append the assistant's tool_use together with the corresponding tool_result
       messages.push({ role: "assistant", content: response.content });
       messages.push({ role: "user", content: toolResults });
       continue;
     }
 
-    // 拿到最终文本回答
+    //Get the final text answer
     return response.content
       .map((b) => (b.type === "text" ? b.text : ""))
       .join("");
@@ -96,7 +96,7 @@ async function chat(userMessage: string): Promise<string> {
 async function executeTool(name: string, input: any) {
   if (name === "get_weather") {
     const { city, unit = "celsius" } = input;
-    const data = await fetchWeatherApi(city, unit); // 调用真实天气服务
+    const data = await fetchWeatherApi(city, unit); //Call the real weather service
     return data;
   }
   throw new Error(`未知工具: ${name}`);

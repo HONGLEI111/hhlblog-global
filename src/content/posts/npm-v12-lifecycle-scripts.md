@@ -84,10 +84,10 @@ The changes in npm v12 essentially roll out this proven security model across th
 npm 11.16.0 (released in June 2026) already includes **early warning mechanisms** for all v12 changes. After upgrading, run `npm install` and you'll see warnings about which scripts v12 will block, rather than being hard-blocked in July.
 
 ```bash
-# 升级到最新 npm 11
+# Upgrade to the latest npm 11
 npm install -g npm@11
 
-# 在项目中运行安装，观察警告
+# Run install in the project and observe the warnings
 npm install
 ```
 
@@ -96,15 +96,15 @@ npm install
 npm 11 provides a brand-new approval workflow:
 
 ```bash
-# 查看所有有待审批安装脚本的包
+# View all packages with install scripts pending approval
 npm approve-scripts --allow-scripts-pending
 
-# 批准你信任的包（写入 package.json）
+# Approve the packages you trust (written to package.json)
 npm approve-scripts esbuild
 npm approve-scripts sharp
 npm approve-scripts node-gyp
 
-# 拒绝不需要的包
+# Reject packages you don't need
 npm deny-scripts some-suspicious-package
 ```
 
@@ -136,10 +136,10 @@ The advantages of the allowlist are:
 If your project depends on Git repositories or remote URLs:
 
 ```bash
-# 在 .npmrc 或命令行中显式授权
-npm install --allow-git=all          # 允许所有 Git 依赖
-npm install --allow-git=foo/bar      # 只允许特定仓库
-npm install --allow-remote=all       # 允许所有远程 URL 依赖
+# Explicitly authorize in .npmrc or on the command line
+npm install --allow-git=all          # Allow all Git dependencies
+npm install --allow-git=foo/bar      # Allow only specific repositories
+npm install --allow-remote=all       # Allow all remote URL dependencies
 ```
 
 It's recommended to migrate Git/remote dependencies to officially published packages on the npm registry as soon as possible, fundamentally eliminating the risk.
@@ -153,10 +153,10 @@ It's recommended to migrate Git/remote dependencies to officially published pack
 If your Dockerfile has `npm install -g` global installs, you need to confirm whether these packages contain install scripts:
 
 ```dockerfile
-# npm v12 的 Docker 镜像（node:24+ 将内置 npm v12）
+# Docker image for npm v12 (node:24+ will bundle npm v12)
 FROM node:24
 
-# 需要显式审批全局包的脚本
+# Require explicit approval for global package scripts
 RUN npm approve-scripts -g esbuild
 RUN npm install -g esbuild
 ```
@@ -167,9 +167,9 @@ RUN npm install -g esbuild
 # .github/workflows/ci.yml
 - name: Install dependencies
   run: |
-    # package.json 中的 allowScripts 会被自动读取
+    # allowScripts in package.json will be read automatically
     npm install
-    # 如果需要额外授权（不推荐），使用：
+    # If additional authorization is needed (not recommended), use:
     # npm install --allow-scripts=all
 ```
 
@@ -180,7 +180,7 @@ The recommended approach is to **write `allowScripts` into `package.json` and co
 If a project temporarily cannot complete the migration, the old behavior can be restored through the following configuration:
 
 ```bash
-# 全局恢复旧行为（高风险，不推荐）
+# Globally restore the old behavior (high risk, not recommended)
 npm install --allow-scripts=all --allow-git=all --allow-remote=all
 ```
 

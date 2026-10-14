@@ -25,19 +25,19 @@ Three key events form its skeleton:
 
 ```js
 self.addEventListener('install', (event) => {
-  // 预缓存关键资源，通常在 install 阶段完成
-  event.waitUntil(/* 预缓存 app shell */);
+  //Precache key resources, usually done during the install phase
+  event.waitUntil(/*Precache the app shell */);
 });
 
 self.addEventListener('activate', (event) => {
-  // 清理旧版本缓存、接管页面
-  event.waitUntil(/* 删除旧 cache */);
-  self.clients.claim(); // 立即接管所有页面
+  //Clean up old version caches, take over pages
+  event.waitUntil(/*Delete old caches */);
+  self.clients.claim(); //Immediately take over all pages
 });
 
 self.addEventListener('fetch', (event) => {
-  // 核心：决定每个请求的响应策略
-  event.respondWith(/* 返回缓存或网络响应 */);
+  //Core: decide the response strategy for each request
+  event.respondWith(/*Return cache or network response */);
 });
 ```
 
@@ -114,15 +114,15 @@ const APP_SHELL = [
   '/images/logo.svg',
 ];
 
-// 1. 安装：预缓存 app shell，保证首次离线也能加载骨架
+//1. Install: precache the app shell to ensure the skeleton can load offline on first visit
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(`static-${VERSION}`).then((cache) => cache.addAll(APP_SHELL))
   );
-  self.skipWaiting(); // 新版本立即激活，不等待旧页面关闭
+  self.skipWaiting(); //The new version activates immediately without waiting for old pages to close
 });
 
-// 2. 激活：删除旧版本缓存，避免 storage 无限膨胀
+//2. Activate: delete old version caches to prevent storage from growing indefinitely
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -136,15 +136,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. 拦截请求：按 URL 模式路由到不同策略
+//3. Intercept requests: route to different strategies based on URL patterns
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 只处理同源 GET 请求（跨域、非 GET 交给浏览器默认行为）
+  //Only handle same-origin GET requests (cross-origin and non-GET are left to the browser's default behavior)
   if (request.method !== 'GET' || url.origin !== location.origin) return;
 
-  // 导航请求（HTML 页面）：离线时回退到缓存的首页
+  //Navigation requests (HTML pages): fall back to the cached homepage when offline
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() => caches.match('/'))
@@ -152,19 +152,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 静态资源：Cache-First
+  //Static assets: Cache-First
   if (url.pathname.startsWith('/static/') || url.pathname.startsWith('/scripts/')) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
-  // API 数据：Network-First，离线回退缓存
+  //API data: Network-First, fall back to cache when offline
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  // 其余资源：Stale-While-Revalidate
+  //Other resources: Stale-While-Revalidate
   event.respondWith(staleWhileRevalidate(request));
 });
 ```

@@ -133,7 +133,7 @@ Therefore the recommended approach is `sizes="auto, 100vw"`—put `auto` first, 
 
 ```html
 <picture>
-  <!-- 1. 窄屏艺术指导：方形裁切的 AVIF -->
+  <!-- 1. Narrow-screen art direction: square-cropped AVIF -->
   <source
     media="(max-width: 640px)"
     type="image/avif"
@@ -141,21 +141,21 @@ Therefore the recommended approach is `sizes="auto, 100vw"`—put `auto` first, 
             /img/hero-square-960.avif 960w"
     sizes="100vw">
 
-  <!-- 2. 宽屏 AVIF -->
+  <!-- 2. Wide-screen AVIF -->
   <source
     type="image/avif"
     srcset="/img/hero-wide-960.avif 960w,
             /img/hero-wide-1920.avif 1920w"
     sizes="100vw">
 
-  <!-- 3. 宽屏 WebP 回退 -->
+  <!-- 3. Wide-screen WebP fallback -->
   <source
     type="image/webp"
     srcset="/img/hero-wide-960.webp 960w,
             /img/hero-wide-1920.webp 1920w"
     sizes="100vw">
 
-  <!-- 4. 兜底：必填 -->
+  <!-- 4. Fallback: required -->
   <img
     src="/img/hero-wide-1920.jpg"
     width="1920" height="1080"
@@ -241,7 +241,7 @@ There's one easily missed companion CSS rule:
 ```css
 img {
   max-width: 100%;
-  height: auto;  /* 关键：否则 height 属性会胜出，图片被压扁 */
+  height: auto;  /* Key: otherwise the height attribute wins and the image gets squashed */
 }
 ```
 
@@ -253,8 +253,8 @@ For images with **unknown intrinsic dimensions** (user uploads, remote URLs), de
 .thumb {
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;      /* 按比例裁切，不拉伸 */
-  background: #f3f4f6;    /* 占位底色，避免白块闪烁 */
+  object-fit: cover;      /* Crop proportionally, don't stretch */
+  background: #f3f4f6;    /* Placeholder background color to avoid white-block flicker */
 }
 ```
 
@@ -271,7 +271,7 @@ import { mkdir } from 'node:fs/promises'
 
 const WIDTHS = [480, 960, 1440, 1920]
 
-// effort 越低编码越快、体积略大——构建时间敏感时优先调它
+// The lower the effort, the faster the encoding and the slightly larger the size — tune this first when build time is a concern
 const FORMATS = {
   avif: { quality: 50, effort: 4 },
   webp: { quality: 72 },
@@ -285,7 +285,7 @@ export async function buildVariants(input, outDir, basename) {
   const variants = {}
 
   for (const width of WIDTHS) {
-    // 不放大：原图比目标窄就跳过，否则只是徒增体积
+    // Don't upscale: skip if the original image is narrower than the target, otherwise it just adds size for nothing
     if (sourceWidth < width) continue
 
     for (const [ext, options] of Object.entries(FORMATS)) {

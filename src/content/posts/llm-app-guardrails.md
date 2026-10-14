@@ -37,14 +37,14 @@ Don't start by calling a large model. The vast majority of injection attempts wi
 const SUSPICIOUS = [
   /ignore (all )?(previous|above) instructions/i,
   /忽略(之前|以上|上述)的?(所有)?(指令|规则)/,
-  /\[?\s*system\s*\]?\s*[:：]/i,               // 伪装成系统消息
-  /(api[_-]?key|secret|token)\s*[:=]\s*\S+/i,  // 诱导泄露密钥
+  /\[?\s*system\s*\]?\s*[:：]/i,               // disguised as a system message
+  /(api[_-]?key|secret|token)\s*[:=]\s*\S+/i,  // tricking the model into leaking keys
 ];
 
 export function screenInput(text: string) {
   if (text.length > 8000) return { ok: false as const, reason: "too_long" };
 
-  // 归一化：NFKC 折叠全角/兼容字符，剥掉零宽字符，防止用不可见字符绕过正则
+  // Normalization: NFKC folds full-width/compatibility characters, strips zero-width characters, preventing bypass of the regex with invisible characters
   const normalized = text.normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "");
 
   for (const re of SUSPICIOUS) {
@@ -81,7 +81,7 @@ export async function classify(text: string) {
     messages: [{ role: "user", content: `<untrusted>\n${text}\n</untrusted>` }],
     output_config: { format: zodOutputFormat(Verdict) },
   });
-  return res.parsed_output!; // 解析失败时为 null，生产代码必须判空
+  return res.parsed_output!; // null when parsing fails; production code must check for null
 }
 ```
 
@@ -122,7 +122,7 @@ But Schema only governs "shape," not "business." Whether the amount truly does n
 ```typescript
 import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 
-// 每个请求构造一份绑定到当前会话的工具集：userId 来自服务端会话，绝不接受模型传入
+// Build one tool set per request bound to the current session: userId comes from the server-side session and is never accepted from the model
 function buildTools(userId: string) {
   const refundOrder = betaZodTool({
     name: "refund_order",

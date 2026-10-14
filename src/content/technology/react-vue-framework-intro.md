@@ -14,7 +14,7 @@ Many frontend beginners are confused: I've already learned HTML/CSS/JavaScript, 
 Let's first go back to the original way of writing pages with the "big three":
 
 ```javascript
-// 原生的方式：手动操作 DOM
+//Native approach: manually manipulating the DOM
 const list = document.getElementById('todo-list');
 const input = document.getElementById('todo-input');
 const button = document.getElementById('add-btn');

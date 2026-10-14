@@ -93,14 +93,14 @@ This one is most intuitive with a **closed interval on both ends `[left, right]`
 :::code-tabs{default="cpp"}
 ```c title="C"
 int search(const int *a, int n, int target) {
-    int left = 0, right = n - 1;              /* 闭区间 [left, right] */
-    while (left <= right) {                   /* 注意是 <=，不是 <           */
+    int left = 0, right = n - 1;              /* Closed interval [left, right] */
+    while (left <= right) {                   /* Note it's <=, not <           */
         int mid = left + (right - left) / 2;
-        if (a[mid] == target) return mid;     /* 命中，直接返回             */
-        if (a[mid] < target) left = mid + 1;  /* 答案在右半                 */
-        else                 right = mid - 1; /* 答案在左半                 */
+        if (a[mid] == target) return mid;     /* Hit, return directly             */
+        if (a[mid] < target) left = mid + 1;  /* Answer is in the right half                 */
+        else                 right = mid - 1; /* Answer is in the left half                 */
     }
-    return -1;                                /* 区间空了，没找到           */
+    return -1;                                /* Interval is empty, not found           */
 }
 ```
 
@@ -122,12 +122,12 @@ int search(const std::vector<int>& a, int target) {
 ```js title="JavaScript"
 function search(a, target) {
   let left = 0;
-  let right = a.length - 1;                    // 闭区间 [left, right]
-  while (left <= right) {                      // 注意是 <=，不是 <
+  let right = a.length - 1;                    // Closed interval [left, right]
+  while (left <= right) {                      // Note it's <=, not <
     const mid = left + Math.floor((right - left) / 2);
-    if (a[mid] === target) return mid;         // 命中，直接返回
-    if (a[mid] < target) left = mid + 1;       // 答案在右半
-    else right = mid - 1;                      // 答案在左半
+    if (a[mid] === target) return mid;         // Hit, return directly
+    if (a[mid] < target) left = mid + 1;       // Answer is in the right half
+    else right = mid - 1;                      // Answer is in the left half
   }
   return -1;
 }
@@ -147,8 +147,8 @@ Template A can also be written as `lowerBound` plus a single check—this is exa
 :::code-tabs{default="cpp"}
 ```c title="C"
 int search(const int *a, int n, int target) {
-    int i = lowerBound(a, n, target);         /* 第一个 >= target 的位置 */
-    return (i < n && a[i] == target) ? i : -1; /* 恰好相等才算找到         */
+    int i = lowerBound(a, n, target);         /* First position >= target */
+    return (i < n && a[i] == target) ? i : -1; /* Only an exact match counts as found         */
 }
 ```
 
@@ -161,7 +161,7 @@ int search(const std::vector<int>& a, int target) {
 
 ```js title="JavaScript"
 function search(a, target) {
-  const i = lowerBound(a, target);            // 第一个 >= target 的位置
+  const i = lowerBound(a, target);            // First position >= target
   return i < a.length && a[i] === target ? i : -1;
 }
 ```
@@ -185,15 +185,15 @@ index:  0  1  2  3  4
 
 :::code-tabs{default="cpp"}
 ```c title="C"
-/* 第一个 >= target 的位置，返回值范围 [0, n] */
+/* First position >= target, return value range [0, n] */
 int lowerBound(const int *a, int n, int target) {
-    int left = 0, right = n;                   /* 开区间 [left, right)     */
+    int left = 0, right = n;                   /* Open interval [left, right)     */
     while (left < right) {
         int mid = left + (right - left) / 2;
-        if (a[mid] >= target) right = mid;     /* mid 可能是答案，保留它   */
-        else                  left = mid + 1;  /* mid 太小，连自己一起排除 */
+        if (a[mid] >= target) right = mid;     /* mid may be the answer, keep it   */
+        else                  left = mid + 1;  /* mid is too small, exclude it along with itself */
     }
-    return left;                               /* 第一个 >= target 的下标  */
+    return left;                               /* Index of first >= target  */
 }
 ```
 
@@ -201,7 +201,7 @@ int lowerBound(const int *a, int n, int target) {
 #include <vector>
 
 int lowerBound(const std::vector<int>& a, int target) {
-    int left = 0, right = static_cast<int>(a.size());  /* 开区间 [left, right) */
+    int left = 0, right = static_cast<int>(a.size());  /* Open interval [left, right) */
     while (left < right) {
         int mid = left + (right - left) / 2;
         if (a[mid] >= target) right = mid;
@@ -214,13 +214,13 @@ int lowerBound(const std::vector<int>& a, int target) {
 ```js title="JavaScript"
 function lowerBound(a, target) {
   let left = 0;
-  let right = a.length;                        // 开区间 [left, right)
+  let right = a.length;                        // Open interval [left, right)
   while (left < right) {
     const mid = left + Math.floor((right - left) / 2);
-    if (a[mid] >= target) right = mid;         // mid 可能是答案，保留它
-    else left = mid + 1;                       // mid 太小，连自己一起排除
+    if (a[mid] >= target) right = mid;         // mid may be the answer, keep it
+    else left = mid + 1;                       // mid is too small, exclude it along with itself
   }
-  return left;                                 // 第一个 >= target 的下标
+  return left;                                 // Index of first >= target
 }
 ```
 :::
@@ -248,8 +248,8 @@ What is returned above is the position of the "first `>= target`," and when `tar
 :::code-tabs{default="cpp"}
 ```c title="C"
 int searchLeft(const int *a, int n, int target) {
-    int i = lowerBound(a, n, target);          /* 第一个 >= target         */
-    return (i < n && a[i] == target) ? i : -1; /* 存在才算数，否则 -1      */
+    int i = lowerBound(a, n, target);          /* First >= target         */
+    return (i < n && a[i] == target) ? i : -1; /* Only counts if it exists, otherwise -1      */
 }
 ```
 
@@ -262,7 +262,7 @@ int searchLeft(const std::vector<int>& a, int target) {
 
 ```js title="JavaScript"
 function searchLeft(a, target) {
-  const i = lowerBound(a, target);             // 第一个 >= target
+  const i = lowerBound(a, target);             // First >= target
   return i < a.length && a[i] === target ? i : -1;
 }
 ```
@@ -287,20 +287,20 @@ index:  0  1  2  3  4
 
 :::code-tabs{default="cpp"}
 ```c title="C"
-/* 第一个 > target 的位置，返回值范围 [0, n] */
+/* First position > target, return value range [0, n] */
 int upperBound(const int *a, int n, int target) {
     int left = 0, right = n;
     while (left < right) {
         int mid = left + (right - left) / 2;
-        if (a[mid] > target) right = mid;      /* 唯一改动：>= 变成 >       */
+        if (a[mid] > target) right = mid;      /* Only change: >= becomes >       */
         else                 left = mid + 1;
     }
-    return left;                               /* 第一个 > target 的下标    */
+    return left;                               /* Index of first > target    */
 }
 
 int searchRight(const int *a, int n, int target) {
-    int i = upperBound(a, n, target) - 1;      /* 最后一个 <= target        */
-    return (i >= 0 && a[i] == target) ? i : -1;/* 恰好相等才是右边界        */
+    int i = upperBound(a, n, target) - 1;      /* Last <= target        */
+    return (i >= 0 && a[i] == target) ? i : -1;/* Only an exact match is the right boundary        */
 }
 ```
 
@@ -311,14 +311,14 @@ int upperBound(const std::vector<int>& a, int target) {
     int left = 0, right = static_cast<int>(a.size());
     while (left < right) {
         int mid = left + (right - left) / 2;
-        if (a[mid] > target) right = mid;      // 唯一改动：>= 变成 >
+        if (a[mid] > target) right = mid;      // Only change: >= becomes >
         else                 left = mid + 1;
     }
     return left;
 }
 
 int searchRight(const std::vector<int>& a, int target) {
-    int i = upperBound(a, target) - 1;         // 最后一个 <= target
+    int i = upperBound(a, target) - 1;         // Last <= target
     return (i >= 0 && a[i] == target) ? i : -1;
 }
 ```
@@ -329,14 +329,14 @@ function upperBound(a, target) {
   let right = a.length;
   while (left < right) {
     const mid = left + Math.floor((right - left) / 2);
-    if (a[mid] > target) right = mid;          // 唯一改动：>= 变成 >
+    if (a[mid] > target) right = mid;          // Only change: >= becomes >
     else left = mid + 1;
   }
-  return left;                                 // 第一个 > target 的下标
+  return left;                                 // Index of first > target
 }
 
 function searchRight(a, target) {
-  const i = upperBound(a, target) - 1;         // 最后一个 <= target
+  const i = upperBound(a, target) - 1;         // Last <= target
   return i >= 0 && a[i] === target ? i : -1;
 }
 ```
@@ -408,8 +408,8 @@ The reason Template A retains the closed interval is simply that once it hits, i
 For left-closed right-open, you must write `n`. Writing `n - 1` will miss the slot "answer is after the end," causing the insertion position to never return `n`.
 
 ```c
-int left = 0, right = n;      /* 开区间，✓ */
-int left = 0, right = n - 1;  /* 开区间，✗ 末尾那格被漏掉了 */
+int left = 0, right = n;      /* Open interval, ✓ */
+int left = 0, right = n - 1;  /* Open interval, ✗ the last cell is missed */
 ```
 
 ### 2. `mid` Overflow
@@ -417,8 +417,8 @@ int left = 0, right = n - 1;  /* 开区间，✗ 末尾那格被漏掉了 */
 In C / C++ / Java / Go, when `left + right` exceeds `INT_MAX` (about 2.1 billion), `(left + right) / 2` will **first overflow into a negative number**, then dividing by 2 gives a negative index, and `a[mid]` goes out of bounds directly.
 
 ```c
-int mid = (left + right) / 2;            /* ✗ left + right 可能溢出   */
-int mid = left + (right - left) / 2;     /* ✓ 先减后加，永不溢出      */
+int mid = (left + right) / 2;            /* ✗ left + right may overflow   */
+int mid = left + (right - left) / 2;     /* ✓ Subtract first, then add, never overflows      */
 ```
 
 JavaScript uses double-precision floating point, so it won't overflow at the magnitude of array indices, but **keeping the same formulation** lets you compare code across all three languages at a glance, and avoids stepping into this pitfall when porting to another language later.
@@ -480,10 +480,10 @@ int *searchRange(int *nums, int numsSize, int target, int *returnSize) {
     int *res = (int *)malloc(2 * sizeof(int));
     *returnSize = 2;
 
-    int left  = lowerBound(nums, numsSize, target);       /* 第一个 >= target */
-    int right = upperBound(nums, numsSize, target) - 1;   /* 最后一个 <= target */
+    int left  = lowerBound(nums, numsSize, target);       /* First >= target */
+    int right = upperBound(nums, numsSize, target) - 1;   /* Last <= target */
 
-    if (left < numsSize && nums[left] == target) {        /* 确认 target 存在 */
+    if (left < numsSize && nums[left] == target) {        /* Confirm target exists */
         res[0] = left;
         res[1] = right;
     } else {
@@ -501,10 +501,10 @@ using namespace std;
 class Solution {
 public:
     vector<int> searchRange(vector<int>& nums, int target) {
-        int left  = lowerBound(nums, target);             // 第一个 >= target
-        int right = upperBound(nums, target) - 1;         // 最后一个 <= target
+        int left  = lowerBound(nums, target);             // First >= target
+        int right = upperBound(nums, target) - 1;         // Last <= target
 
-        if (left < (int)nums.size() && nums[left] == target)  // 确认 target 存在
+        if (left < (int)nums.size() && nums[left] == target)  // Confirm target exists
             return {left, right};
         return {-1, -1};
     }
@@ -513,8 +513,8 @@ public:
 
 ```js title="JavaScript"
 function searchRange(nums, target) {
-  const left = lowerBound(nums, target);          // 第一个 >= target
-  const right = upperBound(nums, target) - 1;     // 最后一个 <= target
+  const left = lowerBound(nums, target);          // First >= target
+  const right = upperBound(nums, target) - 1;     // Last <= target
 
   if (left < nums.length && nums[left] === target) return [left, right];
   return [-1, -1];

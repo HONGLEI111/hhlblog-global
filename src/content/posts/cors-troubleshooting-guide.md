@@ -92,16 +92,16 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors({
-  // 只放行明确的白名单，而不是无脑用 *
+  // Only allow explicit whitelist entries, not a blanket *
   origin: ['https://app.example.com', 'https://admin.example.com'],
-  credentials: true,                 // 允许带 Cookie
+  credentials: true,                 // Allow credentials
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['X-Total-Count'],
-  maxAge: 3600,                      // 预检结果缓存 1 小时
+  maxAge: 3600,                      // Cache preflight results for 1 hour
 }));
 
 app.get('/api/users', (req, res) => {
-  res.set('X-Total-Count', '42');    // 需要 expose 才能被前端读到
+  res.set('X-Total-Count', '42');    // Must be exposed for the frontend to read it
   res.json([{ id: 1, name: 'Alice' }]);
 });
 
@@ -120,7 +120,7 @@ const ALLOWED = new Set(['https://app.example.com']);
 const server = http.createServer((req, res) => {
   const origin = req.headers.origin;
 
-  // 1. 处理预检请求
+  // 1. Handle preflight requests
   if (req.method === 'OPTIONS') {
     const allowOrigin = ALLOWED.has(origin) ? origin : '';
     res.writeHead(204, {
@@ -135,7 +135,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 2. 普通请求：来源在白名单内才放行
+  // 2. Normal requests: only allow if the origin is in the whitelist
   if (origin && ALLOWED.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');

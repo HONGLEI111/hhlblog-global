@@ -64,50 +64,50 @@ Before choosing a language, take a look at the output size and the runtime it br
 To understand Wasm, the best approach is to **hand-craft a binary without any toolchain**. The script below relies only on Node.js: it assembles a valid 104-byte module byte by byte according to the spec, exporting `add`, `sum`, and a linear memory `mem`.
 
 ```js
-// gen.mjs —— 手写 Wasm 二进制，导出 add(a,b) / sum(ptr,len) / memory
-const leb = (n) => {                    // LEB128 无符号变长整数
+// gen.mjs — hand-written Wasm binary, exporting add(a,b) / sum(ptr,len) / memory
+const leb = (n) => {                    // LEB128 unsigned variable-length integer
   const out = [];
   do { let b = n & 0x7f; n >>>= 7; if (n !== 0) b |= 0x80; out.push(b); } while (n !== 0);
   return out;
 };
-const vec = (items) => [...leb(items.length), ...items.flat()];   // 向量 = 长度 + 元素
+const vec = (items) => [...leb(items.length), ...items.flat()];   // vector = length + elements
 const section = (id, payload) => [id, ...leb(payload.length), ...payload];
 const str = (s) => [...leb(s.length), ...[...s].map((c) => c.charCodeAt(0))];
 
 const I32 = 0x7f, FUNC = 0x60, END = 0x0b;
 
-// ① 类型段：一个 (i32,i32)->i32 的函数签名，add 和 sum 共用
+// ① Type section: one (i32,i32)->i32 function signature, shared by add and sum
 const types = section(1, vec([[FUNC, ...vec([[I32], [I32]]), ...vec([[I32]])]]));
-// ② 函数段：两个函数，都引用类型 0
+// ② Function section: two functions, both referencing type 0
 const funcs = section(3, vec([[...leb(0)], [...leb(0)]]));
-// ③ 内存段：初始 16 页（每页 64 KiB，够放 20 万个 i32）
+// ③ Memory section: initial 16 pages (64 KiB each, enough for 200,000 i32s)
 const mems = section(5, vec([[0x00, ...leb(16)]]));
-// ④ 导出段：add / sum / mem
+// ④ Export section: add / sum / mem
 const exports_ = section(7, vec([
-  [...str("add"), 0x00, ...leb(0)],   // 0x00 = 函数
+  [...str("add"), 0x00, ...leb(0)],   // 0x00 = function
   [...str("sum"), 0x00, ...leb(1)],
-  [...str("mem"), 0x02, ...leb(0)],   // 0x02 = 内存
+  [...str("mem"), 0x02, ...leb(0)],   // 0x02 = memory
 ]));
-// ⑤ 代码段
+// ⑤ Code section
 const bodyAdd = [
-  0x00,                    // 无局部变量
+  0x00,                    // no local variables
   0x20, 0x00,              // local.get 0
   0x20, 0x01,              // local.get 1
   0x6a,                    // i32.add
   END,
 ];
 const bodySum = [
-  0x01, 0x02, I32,         // 两个 i32 局部变量：$i=2, $acc=3
+  0x01, 0x02, I32,         // two i32 local variables: $i=2, $acc=3
   0x02, 0x40,              // block
   0x03, 0x40,              //   loop
   0x20, 0x02, 0x20, 0x01, 0x4e,  //   i32.ge_s(i, len)
-  0x0d, 0x01,              //   br_if 1  —— 跳出 block
+  0x0d, 0x01,              //   br_if 1  — break out of block
   0x20, 0x03,              //   acc
   0x20, 0x00, 0x20, 0x02, 0x41, 0x04, 0x6c, 0x6a,  // ptr + i*4
   0x28, 0x02, 0x00,        //   i32.load
   0x6a, 0x21, 0x03,        //   i32.add; local.set 3
   0x20, 0x02, 0x41, 0x01, 0x6a, 0x21, 0x02,        //   i = i + 1
-  0x0c, 0x00,              //   br 0 —— 回到 loop
+  0x0c, 0x00,              //   br 0 — back to loop
   END, END,                // end loop / end block
   0x20, 0x03,              // local.get 3
   END,

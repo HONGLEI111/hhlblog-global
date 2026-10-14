@@ -22,8 +22,8 @@ In IE6's Quirks Mode, a box with `width: 100px` and `padding: 10px` has a total 
   width: 100px;
   padding: 10px;
   border: 1px solid;
-  /* 标准模式：实际占 122px（content-box） */
-  /* IE 怪异模式：实际占 100px（border-box） */
+  /* Standard mode: actually occupies 122px (content-box) */
+  /* IE quirks mode: actually occupies 100px (border-box) */
 }
 ```
 
@@ -34,17 +34,17 @@ Back then, everyone cursed IE for being "non-standard." But over a decade later,
 IE's unique tricks can be listed off the top of my head:
 
 ```css
-/* 1. 透明度：全世界都用 opacity，只有 IE 用滤镜 */
+/* 1. Transparency: the whole world uses opacity, only IE uses filters */
 .box {
   opacity: 0.5;
-  filter: alpha(opacity=50); /* IE6/7 专供 */
+  filter: alpha(opacity=50); /* IE6/7 only */
 }
 ```
 
 Even more absurd than filters was **CSS expressions**—allowing you to write JavaScript inside stylesheets:
 
 ```css
-/* IE5~IE7：让元素宽度随窗口变化 */
+/* IE5~IE7: make element width change with the window */
 .sidebar {
   width: expression(document.body.clientWidth < 600 ? "600px" : "auto");
 }
@@ -55,7 +55,7 @@ This thing would **re-evaluate on every repaint**, causing performance to collap
 As for the origin of AJAX—`XMLHttpRequest`, the way to write it in IE was like this:
 
 ```javascript
-var xhr = new ActiveXObject("Microsoft.XMLHTTP"); // IE 专属
+var xhr = new ActiveXObject("Microsoft.XMLHTTP"); // IE-specific
 ```
 
 Yes, a network request object that actually had to be created through an ActiveX control.

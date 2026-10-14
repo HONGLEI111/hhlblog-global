@@ -176,33 +176,33 @@ typedef struct ListNode {
     struct ListNode *next;
 } ListNode;
 
-/* ============ 1. 反转整个链表 ============ */
+/* ============ 1. Reverse the entire linked list ============ */
 
-/* 迭代 */
+/* Iterative */
 ListNode* reverseList(ListNode* head) {
     ListNode* prev = NULL;
     ListNode* curr = head;
     while (curr) {
-        ListNode* next = curr->next; /* 先保存后继 */
-        curr->next = prev;           /* 反转当前指向 */
-        prev = curr;                 /* prev 前移 */
-        curr = next;                 /* curr 前移 */
+        ListNode* next = curr->next; /* save the successor first */
+        curr->next = prev;           /* reverse the current pointer */
+        prev = curr;                 /* advance prev */
+        curr = next;                 /* advance curr */
     }
     return prev;
 }
 
-/* 递归 */
+/* Recursive */
 ListNode* reverseListRecursive(ListNode* head) {
     if (head == NULL || head->next == NULL) return head;
     ListNode* last = reverseListRecursive(head->next);
-    head->next->next = head; /* 后继指向自己 */
-    head->next = NULL;       /* 断开原指向 */
+    head->next->next = head; /* successor points to itself */
+    head->next = NULL;       /* break the original pointer */
     return last;
 }
 
-/* ============ 2. 反转前 N 个节点 ============ */
+/* ============ 2. Reverse the first N nodes ============ */
 
-/* 迭代 */
+/* Iterative */
 ListNode* reverseN(ListNode* head, int n) {
     ListNode* prev = NULL;
     ListNode* curr = head;
@@ -212,32 +212,32 @@ ListNode* reverseN(ListNode* head, int n) {
         prev = curr;
         curr = next;
     }
-    head->next = curr; /* 原头节点接上剩余部分 */
+    head->next = curr; /* attach the original head to the remaining part */
     return prev;
 }
 
-/* 递归（借助后继指针 successor） */
+/* Recursive (using the successor pointer) */
 static ListNode* successor = NULL;
 
 ListNode* reverseNRecursive(ListNode* head, int n) {
     if (n == 1) {
-        successor = head->next; /* 记录第 n+1 个节点 */
+        successor = head->next; /* record the (n+1)-th node */
         return head;
     }
     ListNode* last = reverseNRecursive(head->next, n - 1);
     head->next->next = head;
-    head->next = successor; /* 反转后的尾节点接上后继 */
+    head->next = successor; /* attach the reversed tail to the successor */
     return last;
 }
 
-/* ============ 3. 反转链表的一部分（区间 [left, right]） ============ */
+/* ============ 3. Reverse part of the linked list (interval [left, right]) ============ */
 
-/* 迭代（头插法） */
+/* Iterative (head insertion) */
 ListNode* reverseBetween(ListNode* head, int left, int right) {
     ListNode dummy;
     dummy.next = head;
     ListNode* pre = &dummy;
-    for (int i = 1; i < left; i++) pre = pre->next; /* 定位到 left 前驱 */
+    for (int i = 1; i < left; i++) pre = pre->next; /* locate the predecessor of left */
 
     ListNode* curr = pre->next;
     for (int i = 0; i < right - left; i++) {
@@ -249,7 +249,7 @@ ListNode* reverseBetween(ListNode* head, int left, int right) {
     return dummy.next;
 }
 
-/* 递归（退化为反转前 right 个） */
+/* Recursive (reduces to reversing the first right nodes) */
 ListNode* reverseBetweenRecursive(ListNode* head, int left, int right) {
     if (left == 1) {
         return reverseNRecursive(head, right);
@@ -258,9 +258,9 @@ ListNode* reverseBetweenRecursive(ListNode* head, int left, int right) {
     return head;
 }
 
-/* ============ 4. K 个一组反转 ============ */
+/* ============ 4. Reverse in groups of K ============ */
 
-/* 迭代 */
+/* Iterative */
 ListNode* reverseKGroup(ListNode* head, int k) {
     ListNode dummy;
     dummy.next = head;
@@ -268,30 +268,30 @@ ListNode* reverseKGroup(ListNode* head, int k) {
     ListNode* end = &dummy;
 
     while (end->next) {
-        for (int i = 0; i < k && end; i++) end = end->next; /* 探路 */
-        if (!end) break; /* 不够 k 个，结束 */
+        for (int i = 0; i < k && end; i++) end = end->next; /* probe ahead */
+        if (!end) break; /* fewer than k, stop */
 
         ListNode* start = pre->next;
-        ListNode* next = end->next;      /* 记录下一组起点 */
-        end->next = NULL;                /* 截断本组 */
-        pre->next = reverseList(start);  /* 反转本组 */
-        start->next = next;              /* 接回后续 */
-        pre = start;                     /* pre 指向本组末尾 */
-        end = pre;                       /* 重置 end */
+        ListNode* next = end->next;      /* record the start of the next group */
+        end->next = NULL;                /* cut off this group */
+        pre->next = reverseList(start);  /* reverse this group */
+        start->next = next;              /* reconnect the rest */
+        pre = start;                     /* pre points to the end of this group */
+        end = pre;                       /* reset end */
     }
     return dummy.next;
 }
 
-/* 递归 */
+/* Recursive */
 ListNode* reverseKGroupRecursive(ListNode* head, int k) {
     ListNode* end = head;
     for (int i = 0; i < k; i++) {
-        if (!end) return head; /* 不够 k 个，保持原样 */
+        if (!end) return head; /* fewer than k, keep as is */
         end = end->next;
     }
 
-    ListNode* newHead = reverseN(head, k);               /* 反转前 k 个 */
-    head->next = reverseKGroupRecursive(end, k);         /* 递归处理剩余 */
+    ListNode* newHead = reverseN(head, k);               /* reverse the first k */
+    head->next = reverseKGroupRecursive(end, k);         /* recursively process the rest */
     return newHead;
 }
 ```
@@ -307,7 +307,7 @@ struct ListNode {
 
 class Solution {
 public:
-    /* ============ 1. 反转整个链表 ============ */
+    /* ============ 1. Reverse the entire linked list ============ */
 
     ListNode* reverseList(ListNode* head) {
         ListNode* prev = nullptr;
@@ -329,7 +329,7 @@ public:
         return last;
     }
 
-    /* ============ 2. 反转前 N 个节点 ============ */
+    /* ============ 2. Reverse the first N nodes ============ */
 
     ListNode* reverseN(ListNode* head, int n) {
         ListNode* prev = nullptr;
@@ -355,7 +355,7 @@ public:
         return last;
     }
 
-    /* ============ 3. 反转链表的一部分 ============ */
+    /* ============ 3. Reverse part of the linked list ============ */
 
     ListNode* reverseBetween(ListNode* head, int left, int right) {
         ListNode dummy(0, head);
@@ -380,7 +380,7 @@ public:
         return head;
     }
 
-    /* ============ 4. K 个一组反转 ============ */
+    /* ============ 4. Reverse in groups of K ============ */
 
     ListNode* reverseKGroup(ListNode* head, int k) {
         ListNode dummy(0, head);
@@ -414,7 +414,7 @@ public:
     }
 
 private:
-    ListNode* successor = nullptr; /* 递归「反转前 N 个」用到的后继指针 */
+    ListNode* successor = nullptr; /* successor pointer used by the recursive "reverse first N" */
 };
 ```
 
@@ -426,10 +426,10 @@ class ListNode {
     }
 }
 
-// 递归「反转前 N 个」用到的后继指针
+// successor pointer used by the recursive "reverse first N"
 let successor = null;
 
-/* ============ 1. 反转整个链表 ============ */
+/* ============ 1. Reverse the entire linked list ============ */
 
 function reverseList(head) {
     let prev = null;
@@ -451,7 +451,7 @@ function reverseListRecursive(head) {
     return last;
 }
 
-/* ============ 2. 反转前 N 个节点 ============ */
+/* ============ 2. Reverse the first N nodes ============ */
 
 function reverseN(head, n) {
     let prev = null;
@@ -477,7 +477,7 @@ function reverseNRecursive(head, n) {
     return last;
 }
 
-/* ============ 3. 反转链表的一部分 ============ */
+/* ============ 3. Reverse part of the linked list ============ */
 
 function reverseBetween(head, left, right) {
     const dummy = new ListNode(0, head);
@@ -502,7 +502,7 @@ function reverseBetweenRecursive(head, left, right) {
     return head;
 }
 
-/* ============ 4. K 个一组反转 ============ */
+/* ============ 4. Reverse in groups of K ============ */
 
 function reverseKGroup(head, k) {
     const dummy = new ListNode(0, head);

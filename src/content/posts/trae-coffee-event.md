@@ -47,8 +47,8 @@ Programmers and coffee are almost inseparable. The price of a cup of coffee (15-
 Trae comes with mainstream AI models like Doubao LLM, DeepSeek, and Claude built in, and users can freely switch between them for different scenarios. For example, use Doubao for business logic (large context window), and Claude for complex algorithm reasoning.
 
 ```python
-# Trae 的 AI 面板可以在编辑器中直接对话
-# 支持跨文件上下文感知
+#Trae's AI panel lets you chat directly in the editor
+#Supports cross-file context awareness
 
 def fibonacci(n: int) -> int:
     """Trae 可以帮你一键生成这个函数的文档和测试"""

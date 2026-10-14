@@ -86,29 +86,29 @@ The script below implements the two most important things in pairwise evaluation
 ```ts
 type Pair = { id: string; input: string; a: string; b: string };
 
-/** 判官接口：返回 "A" | "B" | "tie" */
+/** Judge interface: returns "A" | "B" | "tie" */
 type Judge = (input: string, first: string, second: string) => Promise<"FIRST" | "SECOND" | "TIE">;
 
-/** 把判官的「第几个」翻译成「哪个候选」，注意两次调用的参数顺序是反的 */
+/** Translate the judge's "which one" into "which candidate", note that the argument order is reversed between the two calls */
 const toWinner = (vote: "FIRST" | "SECOND" | "TIE", first: "A" | "B"): "A" | "B" | "tie" => {
   if (vote === "TIE") return "tie";
   if (vote === "FIRST") return first;
   return first === "A" ? "B" : "A";
 };
 
-/** 单次成对判定：交换位置各判一次，结论不一致即记为平局 */
+/** Single pairwise judgment: judge once for each swapped position; if the conclusions disagree, record it as a tie */
 export async function compareOnce(judge: Judge, p: Pair): Promise<"A" | "B" | "tie"> {
   const [fwd, rev] = await Promise.all([
-    judge(p.input, p.a, p.b), // A 在前 → FIRST 代表 A
-    judge(p.input, p.b, p.a), // B 在前 → FIRST 代表 B
+    judge(p.input, p.a, p.b), // A first → FIRST represents A
+    judge(p.input, p.b, p.a), // B first → FIRST represents B
   ]);
   const w1 = toWinner(fwd, "A");
   const w2 = toWinner(rev, "B");
-  // 换个顺序结论就翻转，说明判官靠的是位置而不是内容，这一条不可信
+  // Swap the order and the conclusion flips, which means the judge relies on position rather than content; this one is unreliable
   return w1 === w2 ? w1 : "tie";
 }
 
-/** Wilson 区间：小样本下比正态近似更稳，且不会越界到 [0,1] 之外 */
+/** Wilson interval: more stable than the normal approximation for small samples, and won't go out of bounds beyond [0,1] */
 export function wilson(successes: number, n: number, z = 1.96) {
   if (n === 0) return { lo: 0, hi: 0 };
   const p = successes / n;
@@ -118,7 +118,7 @@ export function wilson(successes: number, n: number, z = 1.96) {
   return { lo: Math.max(0, center - margin), hi: Math.min(1, center + margin) };
 }
 
-/** 跑完整个评测集，胜率 = 胜 / (胜 + 负)，平局剔除 */
+/** Run the entire evaluation set, win rate = wins / (wins + losses), ties excluded */
 export async function runEval(judge: Judge, pairs: Pair[]) {
   const tally = { A: 0, B: 0, tie: 0 };
   for (const p of pairs) tally[await compareOnce(judge, p)]++;
@@ -131,7 +131,7 @@ export async function runEval(judge: Judge, pairs: Pair[]) {
     tally,
     winRate,
     ci95: [ci.lo, ci.hi] as const,
-    // 区间完全落在 0.5 同侧才算显著；decided 为 0 时区间退化，不能算数
+    // The interval must fall entirely on the same side of 0.5 to be significant; when decided is 0 the interval degenerates and can't be counted
     significant: decided > 0 && (ci.lo > 0.5 || ci.hi < 0.5),
   };
 }
@@ -143,7 +143,7 @@ Usage and interpretation:
 const result = await runEval(myJudge, pairs);
 console.log(`A 胜率 ${(result.winRate * 100).toFixed(1)}%  ` +
   `95% CI [${(result.ci95[0] * 100).toFixed(1)}, ${(result.ci95[1] * 100).toFixed(1)}]`);
-// 区间完全在 0.5 以上，才敢说 A 真的更好；否则继续加样本。
+// Only when the interval lies entirely above 0.5 can we claim A is truly better; otherwise keep adding samples.
 ```
 
 Note the final `significant` criterion: **only when the entire confidence interval falls on the same side of 0.5 can you claim an improvement**. This is the one line of code that separates "I saw a 55% win rate" from "I proved A is better."

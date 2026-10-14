@@ -74,10 +74,10 @@ This section deserves its own discussion, because when `og:image` goes wrong, **
 ### 1. Using Relative Paths
 
 ```html
-<!-- 错：多数消费者直接丢掉这个标签 -->
+<!--Wrong: most consumers just drop this tag -->
 <meta property="og:image" content="/og/cover.jpg" />
 
-<!-- 对：必须是绝对 URL -->
+<!--Right: it must be an absolute URL -->
 <meta property="og:image" content="https://example.com/og/cover.jpg" />
 ```
 
@@ -104,7 +104,7 @@ Twitter Card tags look a lot like Open Graph, but there's one difference that's 
 ```html
 <meta property="og:title" content="文章标题" />
 
-<!-- 注意这里是 name，不是 property -->
+<!--Note this is name, not property -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="文章标题" />
 <meta name="twitter:description" content="一行摘要" />
@@ -150,14 +150,14 @@ The most error-prone part of a real project is **hand-copying the same piece of 
 The right approach is to have them derive from **the same data source**. Taking this site's Astro structure as an example, the article's frontmatter is the single source of truth:
 
 ```ts
-// src/components/SeoHead.astro 的核心逻辑
+//Core logic of src/components/SeoHead.astro
 const { title, description, published, tags, cover } = Astro.props
-const site = Astro.site!          // astro.config.mjs 里的 site
+const site = Astro.site!          //site in astro.config.mjs
 
-// 关键：用 new URL 而不是字符串拼接，保证拿到绝对 URL
+//Key: use new URL instead of string concatenation to guarantee an absolute URL
 const abs = (path: string) => new URL(path, site).href
 
-// 图片尺寸不硬编码，从构建期已知的元数据推导
+//Image dimensions are not hardcoded; they are derived from metadata known at build time
 const coverUrl = abs(cover.url)
 ```
 
@@ -196,7 +196,7 @@ const jsonLd = {
       image: [coverUrl],
       keywords: tags,
       author: { '@id': `${site}#author` },
-      datePublished: published,        // 已经是 ISO 8601
+      datePublished: published,        //Already ISO 8601
       dateModified: updated ?? published,
       mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
       inLanguage: 'zh-CN',
@@ -249,7 +249,7 @@ function parseMeta(head) {
   return tags
 }
 
-// 只解析头部字节：PNG 读 IHDR，JPEG 扫 SOF 段
+//Parse only the header bytes: read IHDR for PNG, scan SOF segments for JPEG
 async function measure(src) {
   const buf = Buffer.from(await (await fetch(src)).arrayBuffer())
   const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
@@ -272,18 +272,18 @@ const meta = parseMeta(html.slice(0, html.indexOf('</head>')))
 const fails = []
 const check = (ok, msg) => { if (!ok) fails.push(msg) }
 
-// 1. 四个必填属性
+//1. Four required attributes
 for (const key of ['og:title', 'og:type', 'og:image', 'og:url']) {
   check(meta.has(key), `缺少必填属性 ${key}`)
 }
 
-// 2. 图片和页面地址必须是绝对 URL
+//2. Image and page URLs must be absolute
 for (const key of ['og:image', 'og:url']) {
   const value = meta.get(key)
   if (value) check(/^https?:\/\//.test(value), `${key} 不是绝对 URL: ${value}`)
 }
 
-// 3. 声明的宽高必须等于图片真实的宽高
+//3. The declared width and height must match the image's actual width and height
 const src = meta.get('og:image')
 if (src && /^https?:/.test(src)) {
   const real = await measure(src)
@@ -294,7 +294,7 @@ if (src && /^https?:/.test(src)) {
   console.log(`og:image 实测 ${real.width}×${real.height}（声明 ${w ?? '—'}×${h ?? '—'}）`)
 }
 
-// 4. JSON-LD 必须能解析且字段齐全
+//4. The JSON-LD must be parseable and have all fields present
 const ld = html.match(
   /<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/i,
 )?.[1]

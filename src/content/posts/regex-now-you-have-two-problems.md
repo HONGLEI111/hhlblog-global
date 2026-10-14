@@ -34,7 +34,7 @@ Almost every front-end developer has fallen into this trap. You just want to use
 ```javascript
 const html = '<div>第一层 <div>嵌套内容</div></div>'
 const match = html.match(/<div>(.*)<\/div>/)
-console.log(match[1]) // "第一层 <div>嵌套内容"  —— 意料之外！
+console.log(match[1]) // "First layer <div> nested content" — unexpected!
 ```
 
 **Regular expressions are greedy by default.** Add `?` to switch to non-greedy mode? Still doesn't work — nested tags are a context-free grammar, and regex, being a finite state automaton, theoretically cannot handle them perfectly.
@@ -49,11 +49,11 @@ The original answer is thousands of words long, with a tone so impassioned it re
 ### "Validating date formats is simple"
 
 ```javascript
-// 你以为这样就够了
+// You thought that was enough
 const dateRegex = /\d{4}-\d{2}-\d{2}/
-dateRegex.test('2026-02-30') // true —— 2月30日？
-dateRegex.test('2026-13-01') // true —— 13月？
-dateRegex.test('0000-00-00') // true —— 混沌初开？
+dateRegex.test('2026-02-30') // true — February 30th?
+dateRegex.test('2026-13-01') // true — the 13th month?
+dateRegex.test('0000-00-00') // true — the dawn of chaos?
 ```
 
 Regex only checks format, not semantics. Want to fully validate date legitimacy with regex? Congratulations, you'll need to handle leap years, months with different lengths, and the historical quirk of October 1582 missing 10 days.

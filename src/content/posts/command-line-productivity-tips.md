@@ -19,7 +19,7 @@ You finish typing `apt install` and only then realize you forgot to add `sudo`? 
 
 ```bash
 apt install ripgrep
-sudo !!          # 等价于 sudo apt install ripgrep
+sudo !!          #Equivalent to sudo apt install ripgrep
 ```
 
 **2. `!$` — the last argument of the previous command**
@@ -28,7 +28,7 @@ sudo !!          # 等价于 sudo apt install ripgrep
 
 ```bash
 mkdir -p projects/blog/src/components
-cd !$            # 等价于 cd projects/blog/src/components
+cd !$            #Equivalent to cd projects/blog/src/components
 ```
 
 **3. `Ctrl+R` reverse search**
@@ -40,15 +40,15 @@ At the prompt, press `Ctrl+R` to match history commands in real time as you type
 ```bash
 cd /etc/nginx
 cd /var/www
-cd -             # 回到 /etc/nginx
+cd -             #Back to /etc/nginx
 ```
 
 When you need to switch frequently between two directories, use `pushd` / `popd` to maintain a directory stack:
 
 ```bash
-pushd /etc/nginx     # 压栈并切换
+pushd /etc/nginx     #Push and switch
 pushd /var/log
-popd                 # 弹回 /etc/nginx
+popd                 #Pop back to /etc/nginx
 ```
 
 ## 2. Locating: modern alternatives faster than find/grep
@@ -58,9 +58,9 @@ popd                 # 弹回 /etc/nginx
 A modern replacement for `grep -r`, skipping `.gitignore` and binary files by default, and extremely fast:
 
 ```bash
-rg "useState" src/              # 递归搜索
-rg -l "TODO" .                  # 只列文件名
-rg --type ts "fetch\("          # 限定文件类型
+rg "useState" src/              #Recursive search
+rg -l "TODO" .                  #List filenames only
+rg --type ts "fetch\("          #Limit by file type
 ```
 
 **6. `fd` — find files**
@@ -68,9 +68,9 @@ rg --type ts "fetch\("          # 限定文件类型
 Can't remember that whole `-name` `-type` syntax from `find`? `fd` works more intuitively:
 
 ```bash
-fd config.yaml          # 按名字找
-fd -e ts                # 找所有 .ts 文件
-fd '^App' src           # 正则匹配
+fd config.yaml          #Find by name
+fd -e ts                #Find all .ts files
+fd '^App' src           #Regex match
 ```
 
 **7. `fzf` — fuzzy finder**
@@ -78,7 +78,7 @@ fd '^App' src           # 正则匹配
 fzf is the kind of tool that, once installed, you can't go back from. Used alone, it can fuzzy-select files; paired with `Ctrl+T` (paste the selected file path) and `Ctrl+R` (fuzzy-search history commands), it becomes even more practical:
 
 ```bash
-# 在 fzf 选出的目录里 cd
+#cd into the directory selected in fzf
 cd "$(find . -type d | fzf)"
 ```
 
@@ -106,8 +106,8 @@ cat urls.txt | xargs -P 8 -I {} curl -O {}
 For logs or the output of `ps` and `docker ps`, you don't need to write a script to grab a column:
 
 ```bash
-ps aux | awk '{print $2, $11}'          # PID 和命令
-docker ps | awk 'NR>1 {print $1}'       # 跳过表头，取容器 ID
+ps aux | awk '{print $2, $11}'          #PID and command
+docker ps | awk 'NR>1 {print $1}'       #Skip the header, get the container ID
 ```
 
 **11. `sed -i` — batch replacement**
@@ -140,7 +140,7 @@ tldr ffmpeg
 Native diff is easy to misread in long files. `delta` greatly improves diff readability with syntax highlighting + side-by-side comparison:
 
 ```bash
-# 在 ~/.gitconfig 中配置
+#Configure in ~/.gitconfig
 [core]
     pager = delta
 ```
@@ -163,7 +163,7 @@ Don't want a task interrupted when you close the terminal? `nohup` is the most c
 
 ```bash
 ./long-running-job &
-disown          # 让它脱离当前 shell，关终端不受影响
+disown          #Detach it from the current shell so closing the terminal doesn't affect it
 ```
 
 **17. `watch` — repeated execution on a schedule**
@@ -186,15 +186,15 @@ When the disk is full, `du -sh *` is too slow to dig through layer by layer. `nc
 **20. `ss` + `lsof` — port and file troubleshooting**
 
 ```bash
-ss -tlnp                      # 谁在监听哪些端口
-lsof -i :8080                 # 谁占用了 8080
-lsof -p 1234                  # 某个进程打开了哪些文件
+ss -tlnp                      #Who is listening on which ports
+lsof -i :8080                 #Who is using port 8080
+lsof -p 1234                  #Which files a process has open
 ```
 
 ## A directly pasteable configuration snippet
 
 ```bash
-# ~/.zshrc 或 ~/.bashrc
+#~/.zshrc or ~/.bashrc
 alias cat=bat
 alias du=ncdu
 alias grep=rg
@@ -202,11 +202,11 @@ alias grep=rg
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-# 用 fzf 增强 Ctrl+R 历史搜索
+#Enhance Ctrl+R history search with fzf
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && \
   source /usr/share/doc/fzf/examples/key-bindings.zsh
 
-# 常用 git 简写
+#Common git aliases
 alias gco='git checkout'
 alias gst='git status'
 alias glog='git log --oneline --graph --decorate'

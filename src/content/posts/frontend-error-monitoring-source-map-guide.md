@@ -32,10 +32,10 @@ If any one link breaks, the whole chain might as well not exist. And each of the
 The oldest approach is to assign to `window.onerror`:
 
 ```js
-// 五个参数，是历史遗留的不对称设计
+// Five parameters — an asymmetric design left over from history
 window.onerror = (message, source, lineno, colno, error) => {
   report({ message, source, line: lineno, column: colno, stack: error?.stack });
-  return true; // ⚠️ 返回 true 会抑制浏览器默认的控制台输出
+  return true; // ⚠️ Returning true suppresses the browser's default console output
 };
 ```
 
@@ -43,7 +43,7 @@ window.onerror = (message, source, lineno, colno, error) => {
 
 ```js
 window.addEventListener('error', (event) => {
-  // 这里只拿到一个 ErrorEvent，字段是同名的 message / filename / lineno / colno / error
+  // Here we only get an ErrorEvent, with the fields message / filename / lineno / colno / error of the same names
 });
 ```
 
@@ -56,17 +56,17 @@ When `<img>`, `<script>`, or `<link>` fail to load, the browser likewise dispatc
 ```js
 window.addEventListener('error', (event) => {
   if (event instanceof ErrorEvent) {
-    // 运行时错误：有 stack、有文件名和行列号
+    // Runtime error: has a stack, a filename, and line/column numbers
     report({
       type: 'js', message: event.message, source: event.filename,
       line: event.lineno, column: event.colno, stack: event.error?.stack,
     });
   } else {
-    // 资源加载失败：只有 event.target，没有 stack
+    // Resource load failure: only event.target, no stack
     const el = event.target;
     report({ type: 'resource', tag: el?.tagName, url: el?.currentSrc || el?.src || el?.href });
   }
-}, true); // ← capture: true，两类错误通吃
+}, true); // ← capture: true, catches both kinds of errors
 ```
 
 The way to tell them apart is `instanceof ErrorEvent`, not "whether `event.error` exists" — the latter is `null` in cross-origin script scenarios, which would misclassify runtime errors as resource errors.
@@ -90,11 +90,11 @@ window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   report({
     type: 'promise',
-    // reason 不一定是 Error：可能 reject 的是字符串、普通对象，甚至 undefined
+    // reason isn't necessarily an Error: the rejection could be a string, a plain object, or even undefined
     message: reason instanceof Error ? reason.message : String(reason),
     stack: reason instanceof Error ? reason.stack : '',
   });
-  // event.preventDefault(); // 控制台不再打印这条 rejection，本地调试会被静默，慎用
+  // event.preventDefault(); // the console no longer prints this rejection, local debugging goes silent, use with caution
 });
 ```
 
@@ -127,7 +127,7 @@ How does the output get associated with the map? Two ways:
 
 ```
 SourceMap: /static/js/app.9f2c1a.js.map      ← HTTP 响应头
-//# sourceMappingURL=app.9f2c1a.js.map       ← 源码里的魔法注释
+//# sourceMappingURL=app.9f2c1a.js.map       ← the magic comment in the source
 ```
 
 The comment prefix is `//#` rather than the original `//@`, because `//@` collided with IE's conditional compilation directive (`//@cc_on`). The CSS equivalent is `/*# sourceMappingURL=... */`.
@@ -151,7 +151,7 @@ What production wants is `'hidden'`: the map is still produced, but the browser 
 // vite.config.js
 export default defineConfig({
   build: {
-    sourcemap: 'hidden', // 生成 map 但不写注释
+    sourcemap: 'hidden', // Generate the map but don't write the comment
   },
 });
 ```
@@ -173,7 +173,7 @@ import { TraceMap, originalPositionFor } from '@jridgewell/trace-mapping';
 
 const map = new TraceMap(JSON.parse(readFileSync('dist/app.9f2c1a.js.map', 'utf8')));
 
-// V8 堆栈的一行：at foo (app.js:1:48213) 或 at app.js:1:48213
+// A line of a V8 stack: at foo (app.js:1:48213) or at app.js:1:48213
 const FRAME = /^\s*at\s+(?:(.*?)\s+\()?([^\s()]+):(\d+):(\d+)\)?$/;
 
 export function restore(stack) {
@@ -182,13 +182,13 @@ export function restore(stack) {
     .map((line) => {
       const m = FRAME.exec(line);
       if (!m) return line;
-      const [, fn, , lineNo, colNo] = m; // 第三个字段是打包文件名，这里用不到
+      const [, fn, , lineNo, colNo] = m; // The third field is the bundle filename, not needed here
       const pos = originalPositionFor(map, {
         line: Number(lineNo),
-        column: Number(colNo) - 1, // ⚠️ 见下
+        column: Number(colNo) - 1, // ⚠️ see below
       });
-      if (!pos.source) return line; // 该位置没有映射（如运行时注入的代码），原样保留
-      // 优先用 names 里查出来的原名，压缩后的 fn 往往只是 r、n 这样的单字母
+      if (!pos.source) return line; // No mapping at that position (e.g. runtime-injected code), keep as-is
+      // Prefer the original name looked up in names; the minified fn is often just a single letter like r or n
       const name = pos.name || fn;
       return `    at ${name ? `${name} (` : ''}${pos.source}:${pos.line}:${pos.column + 1})`;
     })
@@ -220,7 +220,7 @@ For quick local debugging you can also just use Chrome DevTools: **Sources panel
 
 ```bash
 sentry-cli sourcemaps inject ./dist
-sentry-cli sourcemaps upload ./dist   # 然后部署 inject 后的 ./dist，并删掉其中的 .map
+sentry-cli sourcemaps upload ./dist   # Then deploy the injected ./dist, and delete the .map files in it
 ```
 
 After injection, the comment at the end of the minified file looks like this, in a fixed order:

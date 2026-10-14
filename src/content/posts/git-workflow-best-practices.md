@@ -150,11 +150,11 @@ git rebase main
 At this point Git will pause the rebase and enter a conflict resolution state:
 
 ```bash
-# 1. 手动编辑冲突文件，解决 <<<<<<< 与 >>>>>>> 标记
-# 2. 标记为已解决
+# 1. Manually edit the conflicted file and resolve the <<<<<<< and >>>>>>> markers
+# 2. Mark as resolved
 git add src/user.ts
 
-# 3. 继续 rebase（不是 commit！）
+# 3. Continue the rebase (not commit!)
 git rebase --continue
 ```
 
@@ -168,7 +168,7 @@ One practical debugging command, `git reflog`, is worth remembering—even if th
 
 ```bash
 git reflog
-# 找到 rebase 之前的 HEAD，例如 HEAD@{2}
+# Find the HEAD before the rebase, e.g. HEAD@{2}
 git reset --hard HEAD@{2}
 ```
 

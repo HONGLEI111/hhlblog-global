@@ -56,7 +56,7 @@ TypeScript 6.0 adds `es2025` as a compilation target and library option. The cor
 - **Set methods**: Set operations like `Set.prototype.union/intersection/difference/symmetricDifference`
 
 ```typescript
-// es2025 新增能力示例
+// es2025 new capabilities example
 const escaped = RegExp.escape("foo.bar");  // "foo\\.bar"
 
 const result = await Promise.try(() => mayThrow());
@@ -71,7 +71,7 @@ const union = nums.union(evens);  // Set {1, 2, 3, 4, 6}
 The `Temporal` API has reached Stage 4 and will become the standard date-time handling solution for JavaScript. TypeScript 6.0 provides full type support through the `esnext.temporal` lib:
 
 ```typescript
-// Temporal API — 现代 JavaScript 日期处理
+// Temporal API — modern JavaScript date handling
 const now = Temporal.Now.plainDateTimeISO();
 const meeting = now.add({ hours: 2, minutes: 30 });
 
@@ -89,14 +89,14 @@ TypeScript 6.0 adds two practical type methods to `Map`:
 ```typescript
 const cache = new Map<string, number[]>();
 
-// 传统写法
+// Traditional approach
 let items = cache.get("key");
 if (!items) {
   items = [];
   cache.set("key", items);
 }
 
-// 6.0 新写法
+// 6.0 new approach
 const items = cache.getOrInsertComputed("key", () => []);
 ```
 
@@ -115,7 +115,7 @@ TypeScript 6.0 officially supports Node.js-style in-package import paths under `
 ```
 
 ```typescript
-// 使用 # 前缀简洁导入
+// Concise imports with the # prefix
 import { formatDate } from "#utils/date";
 import { Button } from "#components/Button";
 ```
@@ -157,7 +157,7 @@ After upgrading, you must immediately check `tsconfig.json`:
 ```json
 {
   "compilerOptions": {
-    "types": ["node"]  // 必须显式声明
+    "types": ["node"]  // Must be declared explicitly
   }
 }
 ```
@@ -169,11 +169,11 @@ Otherwise, you'll encounter numerous missing identifier errors such as `Cannot f
 This change affects the output directory structure:
 
 ```bash
-# 旧行为（rootDir 自动推断为 src/）
-# 输出：dist/index.js
+# Old behavior (rootDir automatically inferred as src/)
+# Output: dist/index.js
 
-# 新行为（rootDir 默认为 .）
-# 输出：dist/src/index.js   ← 多了一层！
+# New behavior (rootDir defaults to .)
+# Output: dist/src/index.js   ← an extra level!
 ```
 
 When upgrading, it's recommended to explicitly set:
@@ -249,10 +249,10 @@ But note: **7.0 will no longer support these options at all**, and `ignoreDeprec
 The recommended process for upgrading an existing project to TypeScript 6.0:
 
 ```bash
-# 1. 升级 TypeScript
+# 1. Upgrade TypeScript
 npm install -D typescript@latest
 
-# 2. 检查 TypeScript 版本
+# 2. Check the TypeScript version
 npx tsc --version
 ```
 
@@ -263,10 +263,10 @@ After upgrading, most projects need **two configuration adjustments immediately*
 ```json
 {
   "compilerOptions": {
-    // 1. 显式声明类型来源（必须！）
+    // 1. Explicitly declare the type source (required!)
     "types": ["node"],
 
-    // 2. 显式设置 rootDir（否则输出结构错乱）
+    // 2. Explicitly set rootDir (otherwise the output structure breaks)
     "rootDir": "./src"
   }
 }
@@ -281,7 +281,7 @@ After upgrading, most projects need **two configuration adjustments immediately*
   ├── 显式设置 types、rootDir
   ├── 逐一消除弃用警告
   ├── 配置新的 module/target 默认值
-  ├── （可选）启用 --stableTypeOrdering 测试 7.0 兼容性
+  ├── （可选）启用 --stableTypeOrdering tests 7.0 compatibility
   └── 准备迎接 TypeScript 7.0 Go 编译器
 ```
 

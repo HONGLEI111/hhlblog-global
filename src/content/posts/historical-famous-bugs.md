@@ -15,7 +15,7 @@ In the 1960s and 1970s, storage and memory were extremely expensive. To save mon
 
 ```cobol
 01  CURRENT-DATE.
-    05  YY  PIC 99.   *> 只存了两位数的年份
+    05  YY  PIC 99.   *> Only two-digit years were stored
 ```
 
 As a result, when 1999 approached, the whole world panicked: when 1999 rolled over to 2000, the year would become `00`, age calculations would produce `00-70 = -70` years, loan interest would be calculated starting from 1900, and nuclear power plant monitoring systems might misjudge downtime...
@@ -29,10 +29,10 @@ But there was one bug fix that genuinely persists today: people born after 2000 
 In February 2017, an HTML parser at Cloudflare had an bizarre bug.
 
 ```cpp
-// 简化示意：解析器在遇到不平衡的 HTML 标签时
-// 会把后续内存中的敏感数据当作 HTML 内容输出
+// Simplified illustration: when the parser encounters unbalanced HTML tags
+// it will output subsequent sensitive data in memory as HTML content
 if (tag == "script" && !findClosingTag()) {
-    // 哦不，继续读内存直到找到 </script>
+    // Oh no, keep reading memory until </script> is found
     outputRawDataFromMemory(); // 🫠
 }
 ```
@@ -50,10 +50,10 @@ On August 1, 2012, Knight Capital deployed a new trading algorithm. But an old v
 Within 45 minutes after the market opened, this "rebellious" server frantically bought and sold at a rate of $4 million per minute, executing a cumulative 4 million trades and ultimately losing **$440 million**. A company founded 17 years earlier ceased to exist 45 minutes later because of a careless deployment script[3].
 
 ```python
-# 部署脚本（伪代码）
+# Deployment script (pseudocode)
 deploy_to_servers([s1, s2, s3, s4, s5, s6, s7])
-# 咦，s8 呢？
-# 算了，上周五赶着下班，周一再说吧（这段是虚构的）
+# Huh, where's s8?
+# Forget it, I was rushing to get off work last Friday, let's deal with it on Monday (this part is fictional)
 ```
 
 ## Conclusion

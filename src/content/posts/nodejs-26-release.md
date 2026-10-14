@@ -80,15 +80,15 @@ Temporal
 ### 3.3 Practical Usage Comparison
 
 ```js
-// ❌ 旧 Date API — 月份从 0 开始，修改是可变操作
-const oldDate = new Date(2026, 4, 6);  // 4 = 五月？
-oldDate.setDate(oldDate.getDate() + 30); // 修改了原对象
+// ❌ Old Date API — months start at 0, and modifications are mutable operations
+const oldDate = new Date(2026, 4, 6);  // 4 = May?
+oldDate.setDate(oldDate.getDate() + 30); // Modified the original object
 
-// ✅ 新 Temporal API — 语义清晰，不可变
+// ✅ New Temporal API — clear semantics, immutable
 const date = Temporal.PlainDate.from('2026-05-08');
-const nextMonth = date.add({ days: 30 });  // 返回新对象，date 不变
+const nextMonth = date.add({ days: 30 });  // Returns a new object, date stays unchanged
 
-// 时区感知
+// Time zone aware
 const meeting = Temporal.ZonedDateTime.from('2026-05-08T10:00[Asia/Shanghai]');
 const inNY = meeting.withTimeZone('America/New_York');
 console.log(inNY.toString()); // 2026-05-07T22:00:00-04:00[America/New_York]
@@ -109,16 +109,16 @@ Node.js 26 ships with **V8 14.6.202.33** (corresponding to Chromium 146), `NODE_
 V8 14.6 brings native support for the TC39 Upsert proposal:
 
 ```js
-// 传统写法：两次哈希查找
+// Traditional approach: two hash lookups
 if (!map.has(key)) {
   map.set(key, computeExpensiveValue());
 }
 const value = map.get(key);
 
-// 新写法：一次哈希查找
+// New approach: one hash lookup
 const value = map.getOrInsertComputed(key, () => computeExpensiveValue());
 
-// 或使用静态值
+// Or use a static value
 const value = map.getOrInsert(key, defaultValue);
 ```
 
@@ -127,7 +127,7 @@ const value = map.getOrInsert(key, defaultValue);
 ### 4.2 Iterator Helper Methods
 
 ```js
-// Iterator.concat() — 合并多个迭代器为单一序列
+// Iterator.concat() — merges multiple iterators into a single sequence
 const a = [1, 2, 3].values();
 const b = [4, 5, 6].values();
 const combined = Iterator.concat(a, b);
@@ -165,11 +165,11 @@ Node.js 26 upgrades the built-in HTTP client to **Undici 8.0.2**—this is the u
 If your project directly `import`s `undici`, after upgrading to Node.js 26 it is recommended to check:
 
 ```js
-// 如果使用了 Undici 的底层 API
+// If using Undici's low-level API
 import { Pool, Agent, Dispatcher } from 'undici';
 
-// 检查 Undici 8 的完整 changelog
-// 特别关注 Pool 配置项和 Dispatcher 扩展点
+// Check the full changelog for Undici 8
+// Pay special attention to Pool configuration options and Dispatcher extension points
 ```
 
 ---
@@ -188,8 +188,8 @@ import { Pool, Agent, Dispatcher } from 'undici';
 ### 6.2 New Runtime Deprecations
 
 ```js
-// module.register() — 进入运行时弃用
-// 将输出弃用警告：DEP0201
+// module.register() — enters runtime deprecation
+// Will output a deprecation warning: DEP0201
 ```
 
 | Deprecated Item | Deprecation Number |
@@ -225,7 +225,7 @@ Node.js 26 enables the Percentile extension for the built-in `node:sqlite` modul
 import { DatabaseSync } from 'node:sqlite';
 
 const db = new DatabaseSync(':memory:');
-// Percentile 扩展已默认启用
+// Percentile extension is enabled by default
 ```
 
 ### 8.2 Node.js 26.1.0: Experimental FFI
@@ -293,15 +293,15 @@ Alpha（6个月）     →  Current（6个月）    →  LTS（30个月）
 ### 10.1 Upgrading from Node.js 24/25
 
 ```bash
-# 使用 nvm
+# Use nvm
 nvm install 26
 nvm use 26
 
-# 或使用 fnm
+# Or use fnm
 fnm install 26
 fnm use 26
 
-# 验证版本
+# Verify the version
 node --version  # v26.0.0
 ```
 
@@ -313,7 +313,7 @@ Node.js 26 升级检查清单
 ├── ☐ 检查原生 C++ 插件是否兼容 NODE_MODULE_VERSION 147
 ├── ☐ 搜索 writeHeader() 替换为 writeHead()
 ├── ☐ 检查是否直接 import 'undici'（需查 Undici 8 changelog）
-├── ☐ 移除 --experimental-transform-types 标志
+├── ☐ 移除 --experimental-transform-types flag
 ├── ☐ 检查 crypto 旧 API 使用情况（DEP0182）
 ├── ☐ 验证 GCC 编译环境 ≥ 13.2（源码编译场景）
 ├── ☐ 将旧 Date 操作逐步迁移至 Temporal API

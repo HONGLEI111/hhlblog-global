@@ -71,12 +71,12 @@ Each of the three has its own role, and none can be missing. Once you understand
 Semantic HTML means using the right tags to describe the right content, rather than filling the screen with `<div>`:
 
 ```html
-<!-- ❌ 不推荐：全是 div -->
+<!-- ❌ Not recommended: all divs -->
 <div class="header">
   <div class="title">标题</div>
 </div>
 
-<!-- ✅ 推荐：使用语义标签 -->
+<!-- ✅ Recommended: use semantic tags -->
 <header>
   <h1>标题</h1>
 </header>
@@ -96,7 +96,7 @@ Semantic HTML means using the right tags to describe the right content, rather t
 **CSS** (Cascading Style Sheets) handles the visual presentation of a webpage: colors, fonts, spacing, layout, animations, and more.
 
 ```css
-/* 选择器 { 属性: 值; } */
+/* selector { property: value; } */
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f5f5f5;
@@ -123,16 +123,16 @@ h1 {
 #### Selectors
 
 ```css
-/* 元素选择器 */
+/* element selector */
 p { }
 
-/* 类选择器（最常用） */
+/* class selector (most commonly used) */
 .card { }
 
-/* ID 选择器 */
+/* ID selector */
 #header { }
 
-/* 组合选择器 */
+/* combinator selectors */
 .card:hover { }
 nav > a { }
 input[type="text"] { }
@@ -155,25 +155,25 @@ Every element is a rectangular box, and from the inside out it consists of:
     padding: 20px;
     border: 1px solid #ddd;
     margin: 16px;
-    /* 实际占用宽度 = 300 + 20×2 + 1×2 + 16×2 = 374px */
+    /* actual occupied width = 300 + 20×2 + 1×2 + 16×2 = 374px */
 }
 ```
 
 #### Layout: Flexbox and Grid
 
 ```css
-/* Flexbox：一维布局 */
+/* Flexbox: one-dimensional layout */
 .container {
     display: flex;
-    justify-content: space-between; /* 水平分布 */
-    align-items: center;            /* 垂直居中 */
-    gap: 16px;                      /* 间距 */
+    justify-content: space-between; /* horizontal distribution */
+    align-items: center;            /* vertical centering */
+    gap: 16px;                      /* spacing */
 }
 
-/* Grid：二维布局 */
+/* Grid: two-dimensional layout */
 .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 三列等宽 */
+    grid-template-columns: repeat(3, 1fr); /* three equal-width columns */
     gap: 24px;
 }
 ```
@@ -181,19 +181,19 @@ Every element is a rectangular box, and from the inside out it consists of:
 #### Responsive Design
 
 ```css
-/* 移动端优先 */
+/* mobile-first */
 .card {
     width: 100%;
 }
 
-/* 平板 */
+/* tablet */
 @media (min-width: 768px) {
     .card {
         width: 50%;
     }
 }
 
-/* 桌面 */
+/* desktop */
 @media (min-width: 1024px) {
     .card {
         width: 33.33%;
@@ -210,7 +210,7 @@ Every element is a rectangular box, and from the inside out it consists of:
 **JavaScript** (JS for short) is a **dynamic, weakly typed** scripting language that brings webpages to life. It runs in the browser and can manipulate HTML and CSS and respond to user interactions.
 
 ```javascript
-// 点击按钮，切换主题
+// Click the button to toggle the theme
 const button = document.querySelector('#theme-toggle');
 const body = document.body;
 
@@ -226,14 +226,14 @@ button.addEventListener('click', () => {
 #### Variables and Scope
 
 ```javascript
-// let：可变变量（块级作用域）
+// let: mutable variable (block scope)
 let count = 0;
 count += 1;
 
-// const：不可变常量（块级作用域）
+// const: immutable constant (block scope)
 const API_URL = 'https://api.example.com';
 
-// var：旧式写法，有作用域提升问题，不推荐
+// var: legacy syntax, has hoisting issues, not recommended
 var oldWay = '不要这样写';
 ```
 
@@ -253,20 +253,20 @@ var oldWay = '不要这样写';
 #### DOM Manipulation
 
 ```javascript
-// 查询元素
+// Query elements
 const el = document.querySelector('.card');
 const els = document.querySelectorAll('.card');
 
-// 修改内容
+// Modify content
 el.textContent = '新文本';
 el.innerHTML = '<strong>加粗文本</strong>';
 
-// 修改样式
+// Modify styles
 el.style.backgroundColor = '#f0f0f0';
 el.classList.add('active');
 el.classList.remove('hidden');
 
-// 创建和插入元素
+// Create and insert elements
 const newDiv = document.createElement('div');
 newDiv.textContent = '我是新元素';
 document.body.appendChild(newDiv);
@@ -281,7 +281,7 @@ fetch('https://api.example.com/data')
     .then(data => console.log(data))
     .catch(err => console.error(err));
 
-// Async / Await（更推荐的写法）
+// Async / Await (the more recommended approach)
 async function fetchData() {
     try {
         const res = await fetch('https://api.example.com/data');
@@ -316,14 +316,14 @@ A real front-end page is a collaborative work of HTML, CSS, and JavaScript:
 </head>
 <body>
     <h1>计数器</h1>
-    <!-- HTML：结构 -->
+    <!-- HTML: structure -->
     <div class="counter">
         <button class="minus" onclick="decrement()">-</button>
         <span id="count">0</span>
         <button class="plus" onclick="increment()">+</button>
     </div>
 
-    <!-- JavaScript：行为 -->
+    <!-- JavaScript: behavior -->
     <script>
         let count = 0;
         const countEl = document.getElementById('count');

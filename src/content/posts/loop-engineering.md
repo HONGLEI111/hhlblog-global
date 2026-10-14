@@ -74,10 +74,10 @@ When multiple Agents work in parallel, they can't share the same file system —
 Git's Worktree mechanism solves this problem:
 
 ```bash
-# 每个子任务在独立的 Worktree 中运行
+# Each subtask runs in an independent Worktree
 git worktree add ../fix-auth-bug main
 cd ../fix-auth-bug
-# Agent 在此环境中工作，互不干扰
+# The Agent works in this environment without interference
 ```
 
 The three major values of Worktrees:
@@ -93,14 +93,14 @@ Skills are Markdown files stored in the project that the Agent automatically loa
 
 ```
 .claude/
-├── SKILL.md          # 总体项目规范
+├── SKILL.md          # Overall project conventions
 ├── agents/
-│   ├── reviewer.md   # 代码审查 Agent 的行为定义
-│   └── fixer.md      # Bug 修复 Agent 的行为定义
+│   ├── reviewer.md   # Behavior definition of the code review Agent
+│   └── fixer.md      # Behavior definition of the bug fix Agent
 └── skills/
-    ├── coding-style.md   # 代码风格约定
-    ├── architecture.md   # 系统架构约定
-    └── pitfalls.md       # 踩过的坑
+    ├── coding-style.md   # Code style conventions
+    ├── architecture.md   # System architecture conventions
+    └── pitfalls.md       # Pitfalls encountered
 ```
 
 Every pitfall you've stepped into and every convention you've summarized settles into a Skill, becoming the "muscle memory" of all subsequent Agents. **The quality of Skills determines the quality of the Loop's output.**
@@ -125,10 +125,10 @@ Without Connectors, an Agent is just "talking to itself in a sandbox." With Conn
 This is the most easily underestimated yet most important design pattern in Loop Engineering: **Don't let the same Agent both write code and review code.**
 
 ```javascript
-// 错误设计：一个 Agent 自产自审
+// Incorrect design: one Agent produces and reviews its own work
 const result = await agent("修复这个 Bug，然后审查自己的修复");
 
-// 正确设计：Maker 和 Checker 分离
+// Correct design: separation of Maker and Checker
 const fix = await agent("修复这个 Bug", { role: "maker" });
 const review = await agent(`审查这个修复：${fix.diff}`, { role: "checker" });
 ```

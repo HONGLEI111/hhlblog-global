@@ -66,11 +66,11 @@ A recursive function can be written as a unified framework:
 function traverse(node: TreeNode | null): void {
   if (node === null) return;
 
-  // 前序位置
+  //Pre-order position
   traverse(node.left);
-  // 中序位置
+  //In-order position
   traverse(node.right);
-  // 后序位置
+  //Post-order position
 }
 ```
 

@@ -58,11 +58,11 @@ A minimal feature-flag implementation takes less code than writing a release ann
 ```ts
 type Flag = {
   key: string
-  enabled: boolean          // 总开关：出事了先关它，不用发版
-  rollout: number | string[] // 放量比例，或内测名单
+  enabled: boolean          // Master switch: flip it off first when something goes wrong, no release needed
+  rollout: number | string[] // Rollout percentage, or beta test list
 }
 
-// FNV-1a：同一个用户永远落在同一个桶里，不会刷新一次变一次
+// FNV-1a: the same user always lands in the same bucket, it won't change on every refresh
 function hash(s: string): number {
   let h = 2166136261
   for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)

@@ -42,7 +42,7 @@ claude --version
 Set the API Key as an environment variable:
 
 ```bash
-# macOS / Linux — 添加到 ~/.bashrc 或 ~/.zshrc
+# macOS / Linux — add to ~/.bashrc or ~/.zshrc
 export ANTHROPIC_API_KEY="sk-ant-xxx"
 
 # Windows PowerShell
@@ -80,13 +80,13 @@ You will see an interactive terminal interface where you can communicate with Cl
 ### 3.2 Common Commands
 
 ```bash
-# 初始化项目配置文件（生成 CLAUDE.md）
+# Initialize the project config file (generates CLAUDE.md)
 claude init
 
-# 查看当前配置
+# View the current configuration
 claude config
 
-# 更新到最新版本
+# Update to the latest version
 claude update
 ```
 
@@ -159,10 +159,10 @@ cat error.log | claude "分析这些日志，找出关键错误"
 ### 4.4 Session Management
 
 ```bash
-# 恢复上一次会话
+# Resume the previous session
 claude --continue
 
-# 以特定会话 ID 继续
+# Continue with a specific session ID
 claude --resume <session-id>
 ```
 
@@ -204,7 +204,7 @@ Claude Code consumes API tokens with every conversation. Suggestions for control
 ### 6.3 Domestic Mirror Acceleration
 
 ```bash
-# npm 安装时使用国内镜像
+# Use a domestic mirror when installing with npm
 npm install -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.com
 ```
 

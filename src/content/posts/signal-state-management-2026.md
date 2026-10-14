@@ -26,12 +26,12 @@ A Signal is essentially an **automatically dependency-tracking reactive value co
 Represented in the simplest pseudocode:
 
 ```js
-const count = signal(0)           // 创建信号
-const doubled = derived(() => count.value * 2)  // 派生值
-effect(() => console.log(doubled.value))         // 自动追踪依赖
+const count = signal(0)           // Create signal
+const doubled = derived(() => count.value * 2)  // Derived value
+effect(() => console.log(doubled.value))         // Automatically track dependencies
 
-count.value = 1  // 输出: 2
-count.value = 2  // 输出: 4
+count.value = 1  // Output: 2
+count.value = 2  // Output: 4
 ```
 
 The key difference from traditional approaches (such as React's `useState` + `useEffect`) is that **Signals don't require declaring dependency arrays**. The framework automatically tracks which Signals are read at runtime, thereby building a precise dependency graph and achieving **fine-grained updates**—only the DOM nodes that actually depend on the changed data re-render, rather than the entire component tree.
@@ -194,7 +194,7 @@ Problem: Every time `todos` changes, all components consuming `TodoContext` re-r
 ### Refactoring with Signal
 
 ```js
-// store.js（框架无关的 Signal store）
+// store.js (framework-agnostic Signal store)
 import { signal, computed } from '@preact/signals-core'
 
 const todos = signal([
@@ -227,19 +227,19 @@ In April 2024, several framework authors (including Ryan Carniato of Solid.js, R
 The proposal's core API design:
 
 ```js
-// 创建 Signal（通过 Signal.State 实例）
+// Create Signal (via Signal.State instance)
 const counter = new Signal.State(0)
 
-// 读取值
+// Read value
 console.log(counter.get())  // 0
 
-// 写入值
+// Write value
 counter.set(1)
 
-// 派生（通过 Signal.Computed）
+// Derive (via Signal.Computed)
 const doubled = new Signal.Computed(() => counter.get() * 2)
 
-// 监听变化
+// Watch for changes
 const watcher = new Signal.subtle.Watcher(() => {
   console.log('变化了')
 })

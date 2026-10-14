@@ -14,9 +14,9 @@ The original intent of code comments is simple: to explain what a piece of code 
 The core demand of this type of comment is—if something goes wrong, don't come looking for me.
 
 ```javascript
-// 这段代码是我凌晨三点写的，我当时不知道为什么这样写，
-// 但现在它能跑，所以我也不敢动它。
-// 如果你改了它导致任何问题，请不要在 git blame 里找到我。
+// I wrote this code at 3 AM, and I don't know why I wrote it this way,
+// but it works now, so I don't dare touch it.
+// If you change it and it causes any problems, please don't find me in git blame.
 const magicNumber = 42;
 ```
 
@@ -33,9 +33,9 @@ A more refined version: "_If you remove this line, the program will crash. Don't
 Self-deprecation is a traditional virtue among programmers. This type of comment often carries three parts resignation and seven parts sincerity.
 
 ```java
-// 以下代码使用了「暴力枚举法」
-// 时间复杂度 O(n³)，但 n 目前最大只有 3，所以理论上没问题
-// —— 当然，这只是我的借口
+// The following code uses "brute-force enumeration"
+// Time complexity O(n³), but n is currently at most 3, so it should be fine in theory
+// — of course, that's just my excuse
 for (int i = 0; i < list.size(); i++) {
   for (int j = 0; j < list.size(); j++) {
     for (int k = 0; k < list.size(); k++) {
@@ -48,10 +48,10 @@ for (int i = 0; i < list.size(); i++) {
 Another classic:
 
 ```rust
-// TODO: 重构这段代码
-// 但我已经对着它看了三个小时了，
-// 现在只想回家躺平。
-// —— 2024年3月15日
+// TODO: refactor this code
+// but I've been staring at it for three hours,
+// and now I just want to go home and lie down.
+// — March 15, 2024
 ```
 
 And the date corresponding to this TODO is often earlier than the project's first commit.
@@ -62,11 +62,11 @@ Sometimes, the truth is just that plain and unadorned.
 
 ```css
 /* 
- * 这个 z-index 的值之所以是 99999，
- * 是因为 modal 被 navbar 挡住了（z-index: 1000），
- * navbar 被 dropdown 挡住了（z-index: 5000），
- * dropdown 被 tooltip 挡住了（z-index: 10000），
- * 我不想重构整个 z-index 体系，所以……
+ * The reason this z-index value is 99999
+ * is because the modal was covered by the navbar (z-index: 1000),
+ * the navbar was covered by the dropdown (z-index: 5000),
+ * the dropdown was covered by the tooltip (z-index: 10000),
+ * I don't want to refactor the entire z-index system, so...
  */
 .modal { z-index: 99999; }
 ```
@@ -74,9 +74,9 @@ Sometimes, the truth is just that plain and unadorned.
 And this kind too:
 
 ```
-// 我承认这一段是从 Stack Overflow 复制的
-// 链接：https://stackoverflow.com/questions/xxxxx
-// 我现在看不懂，但能跑就行
+// I admit this section was copied from Stack Overflow
+// Link: https://stackoverflow.com/questions/xxxxx
+// I don't understand it now, but as long as it works
 ```
 
 So honest it's hard to blame them.
@@ -86,9 +86,9 @@ So honest it's hard to blame them.
 ```
 // ======================================================
 // WARNING: DO NOT MODIFY THE CODE BELOW
-// 如果你觉得你能优化它，相信我，你不能。
-// 我们试过了。三次。每次都以回滚告终。
-// 请尊重前人的血泪教训。
+// If you think you can optimize it, trust me, you can't.
+// We tried. Three times. Every time ended in a rollback.
+// Please respect the blood and tears of those who came before.
 // ======================================================
 ```
 

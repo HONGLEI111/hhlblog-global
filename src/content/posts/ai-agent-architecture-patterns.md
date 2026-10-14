@@ -22,10 +22,10 @@ The most naive Agent can be written like this:
 ```python
 def naive_agent(task: str) -> str:
     for _ in range(10):
-        response = llm(task)          # 问模型
-        action = parse_action(response) # 解析出动作
-        result = execute(action)        # 执行动作
-        task += f"\n结果: {result}"     # 把结果塞回去
+        response = llm(task)          #Ask the model
+        action = parse_action(response) #Parse out the action
+        result = execute(action)        #Execute the action
+        task += f"\n结果: {result}"     #Feed the result back in
     return task
 ```
 
@@ -54,7 +54,7 @@ Final Answer: ReAct 是一种……
 This protocol looks simple, but it solves the first two problems of the naive implementation: the format is fixed and parseable, and there's a clear `Final Answer` stop signal. Below is a minimal runnable implementation:
 
 ```python
-# react_agent.py —— 最小可运行的 ReAct 循环
+#react_agent.py — a minimal runnable ReAct loop
 import re
 
 def llm(prompt: str) -> str:
@@ -106,9 +106,9 @@ To address ReAct's "lack of global planning," Plan-and-Execute splits the task i
 The core code is as follows:
 
 ```python
-# plan_and_execute.py —— 先规划，再逐步执行
+#plan_and_execute.py — plan first, then execute step by step
 def plan_and_execute(task: str) -> str:
-    # 阶段一：规划
+    #Phase one: planning
     plan = llm(
         "请把下面的任务拆解为若干可执行的步骤，"
         "每一步以 '- [ ] 步骤描述' 列出：\n\n"
@@ -116,7 +116,7 @@ def plan_and_execute(task: str) -> str:
     )
     steps = re.findall(r"- \[ \]\s*(.+)", plan)
 
-    # 阶段二：逐条执行，每一步都能看到前面步骤的结果
+    #Phase two: execute one by one, each step can see the results of previous steps
     context = f"任务：{task}\n计划：\n{plan}\n\n"
     for i, step in enumerate(steps, 1):
         context += f"\n正在执行第 {i} 步：{step}\n执行结果："
@@ -133,11 +133,11 @@ But it has a soft spot too: **real-world tasks are often not linear**. If, while
 Both ReAct and Plan-and-Execute assume "the model can get it right in one shot." But in real scenarios, the first generated answer is often wrong. Reflexion introduces a closed loop of **external evaluator + verbal reflection**: execute → evaluate → reflect → retry with the reflection.
 
 ```python
-# reflexion.py —— 反思循环：执行 → 评估 → 反思 → 重试
+#reflexion.py — reflection loop: execute → evaluate → reflect → retry
 def reflexion(task: str, max_attempts: int = 3) -> str:
     reflection = ""
     for _ in range(max_attempts):
-        result = run_react(task)  # 复用前文的 ReAct 执行器
+        result = run_react(task)  #Reuse the ReAct executor from earlier
         feedback = llm(
             f"任务：{task}\n本次结果：{result}\n"
             f"历史反思：{reflection or '无'}\n"
@@ -145,7 +145,7 @@ def reflexion(task: str, max_attempts: int = 3) -> str:
         )
         if "达成" in feedback or "成功" in feedback:
             return result
-        reflection = feedback  # 把反思写入下一次尝试的上下文
+        reflection = feedback  #Write the reflection into the context of the next attempt
     return result
 ```
 

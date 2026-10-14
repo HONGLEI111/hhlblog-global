@@ -167,9 +167,9 @@ slow 重置到 0，fast 留在 4
 ```c title="C"
 #include <stdio.h>
 
-/* 解法一：值域二分 */
+/* Approach 1: Binary search on the value range */
 int findDuplicateBinarySearch(int *nums, int numsSize) {
-    int left = 1, right = numsSize - 1; /* 值域是 [1, n]，n = numsSize - 1 */
+    int left = 1, right = numsSize - 1; /* The value range is [1, n], n = numsSize - 1 */
 
     while (left < right) {
         int mid = left + (right - left) / 2;
@@ -178,26 +178,26 @@ int findDuplicateBinarySearch(int *nums, int numsSize) {
             if (nums[i] <= mid) cnt++;
         }
         if (cnt > mid) {
-            right = mid;    /* 重复数在 [left, mid] */
+            right = mid;    /* The duplicate is in [left, mid] */
         } else {
-            left = mid + 1; /* 重复数在 [mid+1, right] */
+            left = mid + 1; /* The duplicate is in [mid+1, right] */
         }
     }
     return left;
 }
 
-/* 解法二：快慢指针（Floyd 判圈） */
+/* Approach 2: Fast and slow pointers (Floyd's cycle detection) */
 int findDuplicateFloyd(int *nums, int numsSize) {
     (void)numsSize;
     int slow = 0, fast = 0;
 
-    /* 第一阶段：找到环内相遇点 */
+    /* Phase 1: Find the meeting point inside the cycle */
     do {
         slow = nums[slow];
         fast = nums[nums[fast]];
     } while (slow != fast);
 
-    /* 第二阶段：找到环入口（即重复数） */
+    /* Phase 2: Find the cycle entrance (i.e., the duplicate) */
     slow = 0;
     while (slow != fast) {
         slow = nums[slow];
@@ -213,7 +213,7 @@ using namespace std;
 
 class Solution {
 public:
-    /* 解法一：值域二分 */
+    /* Approach 1: Binary search on the value range */
     int findDuplicateBinarySearch(vector<int>& nums) {
         int n = nums.size() - 1;
         int left = 1, right = n;
@@ -225,25 +225,25 @@ public:
                 if (x <= mid) cnt++;
             }
             if (cnt > mid) {
-                right = mid;    // 重复数在 [left, mid]
+                right = mid;    // The duplicate is in [left, mid]
             } else {
-                left = mid + 1; // 重复数在 [mid+1, right]
+                left = mid + 1; // The duplicate is in [mid+1, right]
             }
         }
         return left;
     }
 
-    /* 解法二：快慢指针（Floyd 判圈） */
+    /* Approach 2: Fast and slow pointers (Floyd's cycle detection) */
     int findDuplicateFloyd(vector<int>& nums) {
         int slow = 0, fast = 0;
 
-        // 第一阶段：找到环内相遇点
+        // Phase 1: Find the meeting point inside the cycle
         do {
             slow = nums[slow];
             fast = nums[nums[fast]];
         } while (slow != fast);
 
-        // 第二阶段：找到环入口（即重复数）
+        // Phase 2: Find the cycle entrance (i.e., the duplicate)
         slow = 0;
         while (slow != fast) {
             slow = nums[slow];
@@ -255,7 +255,7 @@ public:
 ```
 
 ```js title="JavaScript"
-/* 解法一：值域二分 */
+/* Approach 1: Binary search on the value range */
 function findDuplicateBinarySearch(nums) {
     let left = 1;
     let right = nums.length - 1;
@@ -267,26 +267,26 @@ function findDuplicateBinarySearch(nums) {
             if (x <= mid) cnt++;
         }
         if (cnt > mid) {
-            right = mid;    // 重复数在 [left, mid]
+            right = mid;    // The duplicate is in [left, mid]
         } else {
-            left = mid + 1; // 重复数在 [mid+1, right]
+            left = mid + 1; // The duplicate is in [mid+1, right]
         }
     }
     return left;
 }
 
-/* 解法二：快慢指针（Floyd 判圈） */
+/* Approach 2: Fast and slow pointers (Floyd's cycle detection) */
 function findDuplicateFloyd(nums) {
     let slow = 0;
     let fast = 0;
 
-    // 第一阶段：找到环内相遇点
+    // Phase 1: Find the meeting point inside the cycle
     do {
         slow = nums[slow];
         fast = nums[nums[fast]];
     } while (slow !== fast);
 
-    // 第二阶段：找到环入口（即重复数）
+    // Phase 2: Find the cycle entrance (i.e., the duplicate)
     slow = 0;
     while (slow !== fast) {
         slow = nums[slow];

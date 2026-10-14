@@ -100,14 +100,14 @@ fast=9: nums[9]=4 != nums[3]=3  → slow=4, nums[4]=4
 int removeDuplicates(int *nums, int numsSize) {
     if (numsSize == 0) return 0;
 
-    int slow = 0;                        /* [0, slow] 是已去重的前缀 */
+    int slow = 0;                        /* [0, slow] is the deduplicated prefix */
     for (int fast = 1; fast < numsSize; fast++) {
-        if (nums[fast] != nums[slow]) {  /* 发现新值 */
+        if (nums[fast] != nums[slow]) {  /* new value found */
             slow++;
             nums[slow] = nums[fast];
         }
     }
-    return slow + 1;                     /* 长度 = 最后下标 + 1 */
+    return slow + 1;                     /* length = last index + 1 */
 }
 ```
 
@@ -120,9 +120,9 @@ public:
     int removeDuplicates(vector<int>& nums) {
         if (nums.empty()) return 0;
 
-        int slow = 0;                       // [0, slow] 是已去重的前缀
+        int slow = 0;                       // [0, slow] is the deduplicated prefix
         for (int fast = 1; fast < (int)nums.size(); ++fast) {
-            if (nums[fast] != nums[slow]) { // 发现新值
+            if (nums[fast] != nums[slow]) { // new value found
                 ++slow;
                 nums[slow] = nums[fast];
             }
@@ -136,9 +136,9 @@ public:
 function removeDuplicates(nums) {
   if (nums.length === 0) return 0;
 
-  let slow = 0;                        // [0, slow] 是已去重的前缀
+  let slow = 0;                        // [0, slow] is the deduplicated prefix
   for (let fast = 1; fast < nums.length; fast++) {
-    if (nums[fast] !== nums[slow]) {   // 发现新值
+    if (nums[fast] !== nums[slow]) {   // new value found
       slow++;
       nums[slow] = nums[fast];
     }
@@ -167,12 +167,12 @@ function removeDuplicates(nums) {
 Change "compare with the previous written value" to "compare with the previous k written values," and the template generalizes directly:
 
 ```cpp
-// 有序数组去重，每个元素最多保留 k 个（k = 1 就是本题，k = 2 是 LeetCode 80）
+// Deduplicate a sorted array, keeping at most k copies of each element (k = 1 is this problem, k = 2 is LeetCode 80)
 int removeDuplicatesAtMostK(vector<int>& nums, int k) {
     int slow = 0;
     for (int fast = 0; fast < (int)nums.size(); ++fast) {
-        // slow < k 时还不够 k 个元素，直接写入；
-        // 否则只有当 nums[fast] 与「k 个之前写入的值」不同时，才说明第 k+1 个重复出现了
+        // When slow < k there are fewer than k elements, so write directly;
+        // Otherwise, only when nums[fast] differs from "the value written k positions ago" does the (k+1)-th duplicate appear
         if (slow < k || nums[fast] != nums[slow - k]) nums[slow++] = nums[fast];
     }
     return slow;
@@ -244,7 +244,7 @@ int isPalindrome(char *s) {
     int j = (int)strlen(s) - 1;
 
     while (i < j) {
-        /* 跳过非字母数字字符，注意内层循环也要检查 i < j */
+        /* Skip non-alphanumeric characters; note the inner loop must also check i < j */
         while (i < j && !isalnum((unsigned char)s[i])) i++;
         while (i < j && !isalnum((unsigned char)s[j])) j--;
 
@@ -268,7 +268,7 @@ public:
         int j = (int)s.size() - 1;
 
         while (i < j) {
-            // 跳过非字母数字字符，注意内层循环也要检查 i < j
+            // Skip non-alphanumeric characters; note the inner loop must also check i < j
             while (i < j && !isalnum((unsigned char)s[i])) ++i;
             while (i < j && !isalnum((unsigned char)s[j])) --j;
 
@@ -289,7 +289,7 @@ function isPalindrome(s) {
   let j = s.length - 1;
 
   while (i < j) {
-    // 跳过非字母数字字符，注意内层循环也要检查 i < j
+    // Skip non-alphanumeric characters; note the inner loop must also check i < j
     while (i < j && !isAlnum(s[i])) i++;
     while (i < j && !isAlnum(s[j])) j--;
 
@@ -390,20 +390,20 @@ static void swapInt(int *a, int *b) {
 }
 
 void sortColors(int *nums, int numsSize) {
-    int p0 = 0;                   /* 下一个 0 要放的位置 */
-    int i = 0;                    /* 当前扫描位置 */
-    int p2 = numsSize - 1;        /* 下一个 2 要放的位置 */
+    int p0 = 0;                   /* position for the next 0 */
+    int i = 0;                    /* current scan position */
+    int p2 = numsSize - 1;        /* position for the next 2 */
 
     while (i <= p2) {
         if (nums[i] == 0) {
             swapInt(&nums[i], &nums[p0]);
             p0++;
-            i++;                  /* 换过来的一定是 0 或 1，可以跳过 */
+            i++;                  /* what was swapped in must be 0 or 1, so we can skip */
         } else if (nums[i] == 2) {
             swapInt(&nums[i], &nums[p2]);
-            p2--;                 /* 换过来的是未处理元素，i 不能前进 */
+            p2--;                 /* what was swapped in is an unprocessed element, i cannot advance */
         } else {
-            i++;                  /* 1 留在原地 */
+            i++;                  /* 1 stays in place */
         }
     }
 }
@@ -416,20 +416,20 @@ using namespace std;
 class Solution {
 public:
     void sortColors(vector<int>& nums) {
-        int p0 = 0;                          // 下一个 0 要放的位置
-        int i = 0;                           // 当前扫描位置
-        int p2 = (int)nums.size() - 1;       // 下一个 2 要放的位置
+        int p0 = 0;                          // position for the next 0
+        int i = 0;                           // current scan position
+        int p2 = (int)nums.size() - 1;       // position for the next 2
 
         while (i <= p2) {
             if (nums[i] == 0) {
                 swap(nums[i], nums[p0]);
                 ++p0;
-                ++i;                         // 换过来的一定是 0 或 1
+                ++i;                         // what was swapped in must be 0 or 1
             } else if (nums[i] == 2) {
                 swap(nums[i], nums[p2]);
-                --p2;                        // 换过来的是未处理元素，i 不能前进
+                --p2;                        // what was swapped in is an unprocessed element, i cannot advance
             } else {
-                ++i;                         // 1 留在原地
+                ++i;                         // 1 stays in place
             }
         }
     }
@@ -438,20 +438,20 @@ public:
 
 ```js title="JavaScript"
 function sortColors(nums) {
-  let p0 = 0;                  // 下一个 0 要放的位置
-  let i = 0;                   // 当前扫描位置
-  let p2 = nums.length - 1;    // 下一个 2 要放的位置
+  let p0 = 0;                  // position for the next 0
+  let i = 0;                   // current scan position
+  let p2 = nums.length - 1;    // position for the next 2
 
   while (i <= p2) {
     if (nums[i] === 0) {
       [nums[i], nums[p0]] = [nums[p0], nums[i]];
       p0++;
-      i++;                     // 换过来的一定是 0 或 1，可以跳过
+      i++;                     // what was swapped in must be 0 or 1, so we can skip
     } else if (nums[i] === 2) {
       [nums[i], nums[p2]] = [nums[p2], nums[i]];
-      p2--;                    // 换过来的是未处理元素，i 不能前进
+      p2--;                    // what was swapped in is an unprocessed element, i cannot advance
     } else {
-      i++;                     // 1 留在原地
+      i++;                     // 1 stays in place
     }
   }
 }
@@ -526,12 +526,12 @@ p2 < 0 → 结束，nums1 前 m+n 位就是答案 ✔
 :::code-tabs{default="cpp"}
 ```c title="C"
 void merge(int *nums1, int m, int *nums2, int n) {
-    int p1 = m - 1;               /* nums1 中待合并的最后一个元素 */
-    int p2 = n - 1;               /* nums2 中待合并的最后一个元素 */
-    int tail = m + n - 1;         /* 写入位置，从后往前 */
+    int p1 = m - 1;               /* last element to be merged in nums1 */
+    int p2 = n - 1;               /* last element to be merged in nums2 */
+    int tail = m + n - 1;         /* write position, from back to front */
 
     while (p2 >= 0) {
-        /* p1 可能已经是 -1，必须先判断 p1 >= 0（利用 && 短路） */
+        /* p1 may already be -1, so we must check p1 >= 0 first (using && short-circuit) */
         if (p1 >= 0 && nums1[p1] > nums2[p2]) {
             nums1[tail--] = nums1[p1--];
         } else {
@@ -548,12 +548,12 @@ using namespace std;
 class Solution {
 public:
     void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
-        int p1 = m - 1;                       // nums1 中待合并的最后一个元素
-        int p2 = n - 1;                       // nums2 中待合并的最后一个元素
-        int tail = m + n - 1;                 // 写入位置，从后往前
+        int p1 = m - 1;                       // last element to be merged in nums1
+        int p2 = n - 1;                       // last element to be merged in nums2
+        int tail = m + n - 1;                 // write position, from back to front
 
         while (p2 >= 0) {
-            // p1 可能已经是 -1，必须先判断 p1 >= 0（利用 && 短路）
+            // p1 may already be -1, so we must check p1 >= 0 first (using && short-circuit) */
             if (p1 >= 0 && nums1[p1] > nums2[p2]) {
                 nums1[tail--] = nums1[p1--];
             } else {
@@ -566,12 +566,12 @@ public:
 
 ```js title="JavaScript"
 function merge(nums1, m, nums2, n) {
-  let p1 = m - 1;              // nums1 中待合并的最后一个元素
-  let p2 = n - 1;              // nums2 中待合并的最后一个元素
-  let tail = m + n - 1;        // 写入位置，从后往前
+  let p1 = m - 1;              // last element to be merged in nums1
+  let p2 = n - 1;              // last element to be merged in nums2
+  let tail = m + n - 1;        // write position, from back to front
 
   while (p2 >= 0) {
-    // p1 可能已经是 -1，必须先判断 p1 >= 0（利用 && 短路）
+    // p1 may already be -1, so we must check p1 >= 0 first (using && short-circuit) */
     if (p1 >= 0 && nums1[p1] > nums2[p2]) {
       nums1[tail--] = nums1[p1--];
     } else {
@@ -656,7 +656,7 @@ int *sortedSquares(int *nums, int numsSize, int *returnSize) {
     int *res = (int *)malloc(sizeof(int) * numsSize);
     int i = 0;
     int j = numsSize - 1;
-    int k = numsSize - 1;         /* 从结果数组末尾往前填 */
+    int k = numsSize - 1;         /* fill from the end of the result array backwards */
 
     while (i <= j) {
         int left = nums[i] * nums[i];
@@ -688,7 +688,7 @@ public:
         int i = 0, j = n - 1;
 
         for (int k = n - 1; k >= 0; --k) {
-            // 对整数而言 |x| > |y| 等价于 x² > y²
+            // For integers, |x| > |y| is equivalent to x² > y²
             if (abs(nums[i]) > abs(nums[j])) {
                 res[k] = nums[i] * nums[i];
                 ++i;
@@ -710,7 +710,7 @@ function sortedSquares(nums) {
   let j = n - 1;
 
   for (let k = n - 1; k >= 0; k--) {
-    // 对整数而言 |x| > |y| 等价于 x² > y²
+    // For integers, |x| > |y| is equivalent to x² > y²
     if (Math.abs(nums[i]) > Math.abs(nums[j])) {
       res[k] = nums[i] * nums[i];
       i++;

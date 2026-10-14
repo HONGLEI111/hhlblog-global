@@ -80,11 +80,11 @@ This is the bottom line. I've seen far too many documentation examples like this
 import { createClient } from 'my-sdk';
 
 const client = createClient({
-  // ...其他配置
+  // ...other configuration
   retries: 3,
 });
 
-// 省略错误处理
+// error handling omitted
 await client.upload(file);
 ```
 
@@ -117,21 +117,21 @@ The principles are laid out, but relying on people's self-discipline won't hold 
 The script below extracts language-tagged code blocks from Markdown and hands them to the corresponding parser for syntax validation (here using Node's `vm` to check JS, and `python -m py_compile` to check Python):
 
 ```js
-// check-docs.js —— 提取 Markdown 代码块并做语法检查（需 Node 22+）
+// check-docs.js — extracts Markdown code blocks and performs syntax checks (requires Node 22+)
 import { readFile, glob } from 'node:fs/promises';
 import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 
-// 匹配 ```lang ... ``` 代码块
+// match ```lang ... ``` code blocks
 const FENCE = /^```(\w+)\n([\s\S]*?)^```$/gm;
 
 function checkJs(code) {
-  // vm.Script 只做解析，不执行，正好用来做语法校验
+  // vm.Script only parses, does not execute, which is exactly what's needed for syntax validation
   new vm.Script(code, { filename: 'doc-snippet.js' });
 }
 
 function checkPython(code) {
-  // 用 ast.parse 只解析不执行，退出码非 0 即为语法错误
+  // use ast.parse to only parse without executing; a non-zero exit code indicates a syntax error
   const r = spawnSync(
     'python3',
     ['-c', 'import ast,sys; ast.parse(sys.stdin.read())'],
@@ -151,7 +151,7 @@ for (const file of files) {
     try {
       if (lang === 'js' || lang === 'javascript') checkJs(code);
       else if (lang === 'python' || lang === 'py') checkPython(code);
-      else continue; // 其他语言暂不校验
+      else continue; // other languages are not validated for now
     } catch (err) {
       failed++;
       console.error(`✗ ${file}\n  ${err.message.split('\n')[0]}`);

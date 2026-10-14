@@ -60,7 +60,7 @@ app.get('/api/post-page/:id', async (req, res) => {
   const post = await db.posts.findById(req.params.id);
   if (!post) return res.status(404).json({ error: 'Not Found' });
 
-  // 并行取作者与评论，避免串行等待
+  // Fetch authors and comments in parallel to avoid serial waiting
   const [author, comments] = await Promise.all([
     db.users.findById(post.authorId),
     db.comments.findByPost(post.id, { limit: 3, sort: 'desc' }),
@@ -140,12 +140,12 @@ const resolvers = {
     post: (_, { id }) => db.posts.findById(id),
   },
   Post: {
-    author: (post) => db.users.findById(post.authorId),          // 每个 post 一次
+    author: (post) => db.users.findById(post.authorId),          // Once per post
     comments: (post, { limit, sort }) =>
-      db.comments.findByPost(post.id, { limit, sort }),          // 每个 post 一次
+      db.comments.findByPost(post.id, { limit, sort }),          // Once per post
   },
   Comment: {
-    author: (comment) => db.users.findById(comment.authorId),    // 每条评论一次 ← N+1
+    author: (comment) => db.users.findById(comment.authorId),    // Once per comment ← N+1
   },
 };
 ```
@@ -158,7 +158,7 @@ import DataLoader from 'dataloader';
 const userLoader = new DataLoader(async (ids) => {
   const rows = await db.users.findByIds(ids);
   const byId = new Map(rows.map((u) => [u.id, u]));
-  return ids.map((id) => byId.get(id) ?? null); // 顺序必须与入参一致
+  return ids.map((id) => byId.get(id) ?? null); // Order must match the input arguments
 });
 ```
 
@@ -196,7 +196,7 @@ export const appRouter = t.router({
       return {
         title: post.title,
         body: post.body,
-        authorName: author.name,        // 注意：直接返回扁平结构
+        authorName: author.name,        // Note: return a flat structure directly
         comments: comments.map((c) => ({ body: c.body })),
       };
     }),
@@ -217,8 +217,8 @@ const trpc = createTRPCProxyClient<AppRouter>({
 });
 
 const page = await trpc.postPage.query({ id: '42' });
-page.authorName;   // ✅ 自动补全，类型是 string
-page.author;       // ❌ 编译错误：Property 'author' does not exist
+page.authorName;   // ✅ Auto-completed, type is string
+page.author;       // ❌ Compile error: Property 'author' does not exist
 ```
 
 Rename `authorName` to `author`, and you only need to change one place on the server—all frontend call sites immediately fail at compile time. This is tRPC's biggest selling point: **refactoring cost drops from "runtime 500" to "compile-time red squiggly line"**.

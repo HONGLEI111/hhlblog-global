@@ -83,13 +83,13 @@ Managing these requires a toolchain. This article will walk you through the core
 ### 3.2 Install Commands
 
 ```bash
-# 安装为生产依赖（默认）
+# Install as a production dependency (default)
 npm install react
 
-# 安装为开发依赖
+# Install as a development dependency
 npm install -D vite typescript
 
-# 等价写法
+# Equivalent syntax
 npm install --save-dev vite
 ```
 
@@ -137,10 +137,10 @@ Version numbers in `package.json` usually have a symbol in front of them:
 | `>=19.0.0` | Greater than or equal to | `≥19.0.0` |
 
 ```bash
-# 具体例子
-^1.2.3  →  >=1.2.3 <2.0.0   # 推荐，允许新功能
-~1.2.3  →  >=1.2.3 <1.3.0   # 保守，只允许修复
-1.2.3   →  1.2.3 only       # 完全锁死
+# Concrete example
+^1.2.3  →  >=1.2.3 <2.0.0   # Recommended, allows new features
+~1.2.3  →  >=1.2.3 <1.3.0   # Conservative, only allows fixes
+1.2.3   →  1.2.3 only       # Fully locked down
 ```
 
 > **Recommendation**: For everyday development, use `^` (caret) to let the project automatically receive bug fixes and new features. Critical libraries can use exact versions.
@@ -209,7 +209,7 @@ This leads to the classic "**it works on my machine**" problem.
 Lock files record the **exact version of every layer of dependencies**, ensuring that dependencies installed by team members and CI/CD are completely identical.
 
 ```json
-// package-lock.json 片段
+// package-lock.json snippet
 "node_modules/react": {
     "version": "19.2.3",
     "resolved": "https://registry.npmjs.org/react/-/react-19.2.3.tgz",
@@ -283,9 +283,9 @@ The `scripts` field in `package.json` allows you to give short aliases to comple
 When using:
 
 ```bash
-npm run dev    # 相当于执行 vite --host 0.0.0.0 --port 3000
-npm run build  # 相当于执行 tsc && vite build
-npm run lint   # 相当于执行 eslint . --ext .ts,.tsx
+npm run dev    # Equivalent to running vite --host 0.0.0.0 --port 3000
+npm run build  # Equivalent to running tsc && vite build
+npm run lint   # Equivalent to running eslint . --ext .ts,.tsx
 ```
 
 ### 8.2 Special Scripts
@@ -293,10 +293,10 @@ npm run lint   # 相当于执行 eslint . --ext .ts,.tsx
 Some script names can omit `run` directly:
 
 ```bash
-npm start      # 等同于 npm run start
-npm test       # 等同于 npm run test
-npm stop       # 等同于 npm run stop
-npm restart    # 等同于 npm run restart
+npm start      # Equivalent to npm run start
+npm test       # Equivalent to npm run test
+npm stop       # Equivalent to npm run stop
+npm restart    # Equivalent to npm run restart
 ```
 
 ### 8.3 pre and post Hooks
@@ -306,9 +306,9 @@ npm has built-in **lifecycle hooks**:
 ```json
 {
     "scripts": {
-        "prebuild": "npm run clean",    // build 之前运行
-        "build": "vite build",           // 主命令
-        "postbuild": "npm run analyze"   // build 之后运行
+        "prebuild": "npm run clean",    // Runs before build
+        "build": "vite build",           // Main command
+        "postbuild": "npm run analyze"   // Runs after build
     }
 }
 ```

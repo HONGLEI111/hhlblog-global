@@ -61,7 +61,7 @@ This is **islands architecture**: pages are static HTML by default, and only the
 # npm
 npm create astro@latest my-site
 
-# pnpm（推荐）
+# pnpm (recommended)
 pnpm create astro@latest my-site
 ```
 
@@ -88,18 +88,18 @@ Visit `http://localhost:4321`, and your first Astro site is up and running.
 
  ```
 my-site/
-├── astro.config.mjs      # Astro 配置文件
+├── astro.config.mjs      # Astro config file
 ├── src/
-│   ├── pages/            # 路由页面（文件系统路由）
-│   │   ├── index.astro   # 首页 /
+│   ├── pages/            # Route pages (file-system routing)
+│   │   ├── index.astro   # Home page /
 │   │   ├── about.astro   # /about
 │   │   └── blog/
-│   │       └── [slug].astro  # 动态路由 /blog/xxx
-│   ├── components/       # 可复用组件
-│   ├── content/          # 内容集合（博客文章等）
-│   ├── layouts/          # 页面布局
-│   └── styles/           # 全局样式
-├── public/               # 静态资源（直接复制到构建产物）
+│   │       └── [slug].astro  # Dynamic route /blog/xxx
+│   ├── components/       # Reusable components
+│   ├── content/          # Content collections (blog posts, etc.)
+│   ├── layouts/          # Page layouts
+│   └── styles/           # Global styles
+├── public/               # Static assets (copied directly to build output)
 └── package.json
 ```
 
@@ -113,8 +113,8 @@ A `.astro` file consists of two parts: the **component script** (runs on the ser
 
  ```astro
 ---
-// 组件脚本（fence）：在服务端/构建时运行
-// 可以 import 其他组件、调用 API、查数据库
+// Component script (fence): runs on the server/at build time
+// Can import other components, call APIs, query databases
 const name = "Astro";
 const items = ["SSG", "岛屿架构", "多框架"];
 ---
@@ -150,7 +150,7 @@ const { title, subtitle } = Astro.props;
 </div>
 
 <style>
-    /* 组件级样式，默认 scoped */
+    /* Component-level styles, scoped by default */
     .card {
         padding: 1.5rem;
         border-radius: 12px;
@@ -207,7 +207,7 @@ For content-centric sites like blogs and documentation sites, Astro provides **c
 import { defineCollection, z } from 'astro:content';
 
 const blogCollection = defineCollection({
-    type: 'content', // 'content' 表示 Markdown/MDX
+    type: 'content', // 'content' means Markdown/MDX
     schema: z.object({
         title: z.string(),
         published: z.date(),
@@ -246,7 +246,7 @@ const posts = await getCollection('blog', ({ data }) => {
     return import.meta.env.PROD ? !data.draft : true;
 });
 
-// 按日期排序
+// Sort by date
 posts.sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 ---
 
@@ -269,13 +269,13 @@ Astro's most magical feature: **you can use React, Vue, and Svelte components on
 ### 6.1 Adding Integrations
 
 ```bash
-# 添加 React 支持
+# Add React support
 pnpm astro add react
 
-# 添加 Vue 支持
+# Add Vue support
 pnpm astro add vue
 
-# 添加 Svelte 支持
+# Add Svelte support
 pnpm astro add svelte
 ```
 
@@ -344,7 +344,7 @@ Or enable it globally in `astro.config.mjs`:
 
 ```javascript
 export default defineConfig({
-    output: 'server',  // 或 'hybrid'（混合模式）
+    output: 'server',  // or 'hybrid' (hybrid mode)
 });
 ```
 

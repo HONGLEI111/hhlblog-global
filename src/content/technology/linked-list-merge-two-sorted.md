@@ -49,12 +49,12 @@ typedef struct ListNode {
 } ListNode;
 
 ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
-    // 创建 dummy 虚拟头节点
+    // Create a dummy virtual head node
     ListNode dummy;
     dummy.next = NULL;
     ListNode* tail = &dummy;
 
-    // 双指针遍历两个链表
+    // Traverse both linked lists with two pointers
     while (list1 && list2) {
         if (list1->val <= list2->val) {
             tail->next = list1;
@@ -66,7 +66,7 @@ ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
         tail = tail->next;
     }
 
-    // 将剩余链表接在尾部
+    // Attach the remaining linked list to the tail
     tail->next = list1 ? list1 : list2;
 
     return dummy.next;
@@ -85,11 +85,11 @@ struct ListNode {
 class Solution {
 public:
     ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
-        // 创建 dummy 虚拟头节点
+        // Create a dummy virtual head node
         ListNode dummy(0);
         ListNode* tail = &dummy;
 
-        // 双指针遍历两个链表
+        // Traverse both linked lists with two pointers
         while (list1 && list2) {
             if (list1->val <= list2->val) {
                 tail->next = list1;
@@ -101,7 +101,7 @@ public:
             tail = tail->next;
         }
 
-        // 将剩余链表接在尾部
+        // Attach the remaining linked list to the tail
         tail->next = list1 ? list1 : list2;
 
         return dummy.next;
@@ -118,11 +118,11 @@ class ListNode {
 }
 
 function mergeTwoLists(list1, list2) {
-    // 创建 dummy 虚拟头节点
+    // Create a dummy virtual head node
     const dummy = new ListNode(0);
     let tail = dummy;
 
-    // 双指针遍历两个链表
+    // Traverse both linked lists with two pointers
     while (list1 && list2) {
         if (list1.val <= list2.val) {
             tail.next = list1;
@@ -134,7 +134,7 @@ function mergeTwoLists(list1, list2) {
         tail = tail.next;
     }
 
-    // 将剩余链表接在尾部
+    // Attach the remaining linked list to the tail
     tail.next = list1 ? list1 : list2;
 
     return dummy.next;

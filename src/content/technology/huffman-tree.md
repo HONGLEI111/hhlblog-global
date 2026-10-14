@@ -96,11 +96,11 @@ The resulting code table:
 2. for each (char, freq) in freqMap:
 3.     H.push( new HuffmanNode(char, freq) )
 4. while H.size() > 1:
-5.     left  ← H.pop()     // 最小频率节点
-6.     right ← H.pop()     // 次小频率节点
+5.     left  ← H.pop()     //Smallest frequency node
+6.     right ← H.pop()     //Second smallest frequency node
 7.     merged ← new HuffmanNode(null, left.freq + right.freq, left, right)
 8.     H.push(merged)
-9. return H.pop()          // 根节点
+9. return H.pop()          //Root node
 ```
 
 **Complexity Analysis**:
@@ -120,8 +120,8 @@ The resulting code table:
 
 ```typescript
 class HuffmanNode {
-  char: string | null;      // 非 null 表示叶子节点
-  freq: number;             // 节点权值（频率之和）
+  char: string | null;      //Non-null indicates a leaf node
+  freq: number;             //Node weight (sum of frequencies)
   left: HuffmanNode | null;
   right: HuffmanNode | null;
 
@@ -137,7 +137,7 @@ class HuffmanNode {
     this.right = right;
   }
 
-  /** 判断是否为叶子节点 */
+  /** Check whether it is a leaf node */
   isLeaf(): boolean {
     return this.char !== null;
   }
@@ -205,15 +205,15 @@ class MinHeap {
 function buildHuffmanTree(freqMap: Map<string, number>): HuffmanNode {
   const heap = new MinHeap();
 
-  // 将所有字符节点加入最小堆
+  //Add all character nodes to the min-heap
   for (const [char, freq] of freqMap) {
     heap.push(new HuffmanNode(char, freq));
   }
 
-  // 贪心合并，直到只剩一个根节点
+  //Greedily merge until only one root node remains
   while (heap.size() > 1) {
-    const left = heap.pop();   // 最小
-    const right = heap.pop();  // 次小
+    const left = heap.pop();   //Smallest
+    const right = heap.pop();  //Second smallest
     const merged = new HuffmanNode(
       null,
       left.freq + right.freq,
@@ -235,7 +235,7 @@ function generateCodes(root: HuffmanNode): Map<string, string> {
 
   function dfs(node: HuffmanNode, path: string): void {
     if (node.isLeaf()) {
-      // 单字符输入时，编码设为 "0"（否则 path 为空串）
+      //For single-character input, set the code to "0" (otherwise path is an empty string)
       codes.set(node.char!, path || '0');
       return;
     }
@@ -272,7 +272,7 @@ function decode(bits: string, root: HuffmanNode): string {
 
     if (node.isLeaf()) {
       result += node.char;
-      node = root; // 回到根节点，继续解码下一个字符
+      node = root; //Return to the root node and continue decoding the next character
     }
   }
 
@@ -287,10 +287,10 @@ function decode(bits: string, root: HuffmanNode): string {
 ### 6. Complete Running Example
 
 ```typescript
-// ===== 测试 =====
+//===== Test =====
 const text = "ABRACADABRA";
 
-// 1. 统计频率
+//1. Count frequencies
 const freqMap = new Map<string, number>();
 for (const ch of text) {
   freqMap.set(ch, (freqMap.get(ch) || 0) + 1);
@@ -298,28 +298,28 @@ for (const ch of text) {
 console.log('频率表:', freqMap);
 // Map { 'A' => 5, 'B' => 2, 'R' => 2, 'C' => 1, 'D' => 1 }
 
-// 2. 构建霍夫曼树
+//2. Build the Huffman tree
 const root = buildHuffmanTree(freqMap);
 
-// 3. 生成编码表
+//3. Generate the code table
 const codes = generateCodes(root);
 console.log('编码表:', codes);
 // Map { 'A' => '0', 'B' => '10', 'R' => '11', 'C' => '100', 'D' => '101' }
 
-// 4. 编码
+//4. Encode
 const encoded = encode(text, codes);
 console.log('编码结果:', encoded);
 console.log('编码长度:', encoded.length, 'bits');
-// 编码结果: 010110010011001011010
-// 编码长度: 21 bits
-// 原始 ASCII: 11 × 8 = 88 bits → 压缩至 23.9%
+//Encoded result: 010110010011001011010
+//Encoded length: 21 bits
+//Original ASCII: 11 × 8 = 88 bits → compressed to 23.9%
 
-// 5. 解码验证
+//5. Decode and verify
 const decoded = decode(encoded, root);
 console.log('解码结果:', decoded);
 console.log('验证通过:', decoded === text);
-// 解码结果: ABRACADABRA
-// 验证通过: true
+//Decoded result: ABRACADABRA
+//Verification passed: true
 ```
 
 ---

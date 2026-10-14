@@ -24,9 +24,9 @@ To understand why a new protocol is needed, first look at what it replaced.
 The output of traditional SSR is an HTML string. It's friendly to humans, unfriendly to machines:
 
 ```tsx
-// 服务端：渲染成一段 HTML 字符串
+// Server: render into an HTML string
 const html = renderToString(<App post={post} />)
-// => "<div class=\"post\"><h1>标题</h1><p>正文...</p></div>"
+// => "<div class=\"post\"><h1>Title</h1><p>Body...</p></div>"
 ```
 
 In this HTML, **component boundaries, props, and data types are all lost**. What the client gets is just a pile of DOM nodes. So to update any small part of the page, there are only two paths:
@@ -98,12 +98,12 @@ A few real fragments:
 ```jsonc
 // Date / BigInt / Map / Set / NaN
 {"date":"$D2026-09-21T10:30:00.000Z","bigint":"$n123","map":"$Q7","set":"$W8","nan":"$NaN"}
-// 对应的外置行
+// Corresponding external row
 7:[["a",1]]
 8:[1,2]
 
-// 字面量 $ 会被转义
-{"dollar":"$$100 dollars"}   // 客户端拿到 "$100 dollars"
+// Literal $ gets escaped
+{"dollar":"$$100 dollars"}   // Client receives "$100 dollars"
 
 // Symbol.for('my.symbol')
 {"sym":"$a"}   加上   a:"$Smy.symbol"
@@ -192,7 +192,7 @@ This also explains why it doesn't recurse infinitely: the second time it encount
 ```js
 class User {
   constructor(name) { this.name = name }
-  greet() { return 'hi' }     // 这个方法客户端拿不到，所以整个实例都过不去
+  greet() { return 'hi' }     // The client can't get this method, so the whole instance can't cross over
 }
 ```
 
@@ -201,10 +201,10 @@ In the real world this pitfall usually comes from ORMs: the vast majority of ORM
 The fix is to explicitly pick fields rather than throwing the whole entity over:
 
 ```tsx
-// ❌ 炸：user 是 ORM 实体实例
+// ❌ Boom: user is an ORM entity instance
 <Profile user={user} />
 
-// ✅ 显式构造纯对象
+// ✅ Explicitly construct a plain object
 <Profile user={{ id: user.id, name: user.name }} />
 ```
 
@@ -217,14 +217,14 @@ The payloads we've seen so far were sent all at once. Real streaming happens whe
 Look at an example with Suspense: a slow component (`await` a Promise that resolves after 1 second) wrapped in `<Suspense>`. The actual output order looks like this (irrelevant lines omitted):
 
 ```jsonc
-// ① 先发壳：chunk 0 立刻到达，慢组件的位置是一个 lazy 占位
+// ① Send the shell first: chunk 0 arrives immediately, the slow component's position is a lazy placeholder
 0:["$","div",null,{"children":[
      ["$","h1",null,{"children":"快速标题"}],
      ["$","$5",null,{"fallback":["$","p",null,{"children":"loading..."}],
-                     "children":"$L6"}]     // ← 坑位：指向 chunk 6
+                     "children":"$L6"}]     // ← Slot: points to chunk 6
    ]}]
 
-// ② …1 秒过去，服务端才把 chunk 6 补上
+// ② ...1 second passes, only then does the server fill in chunk 6
 6:["$","p",null,{"children":"服务端慢数据"}]
 ```
 
@@ -285,7 +285,7 @@ let raw = ''
 pass.on('data', (c) => (raw += c))
 pass.on('end', () => { console.log(raw); process.exit(0) })
 
-// 没有客户端组件时，webpack 模块表传空对象即可
+// When there are no client components, the webpack module table can just pass an empty object
 renderToPipeableStream(tree, {}).pipe(pass)
 ```
 

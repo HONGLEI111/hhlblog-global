@@ -64,16 +64,16 @@ The cruel thing about half-life is that it's exponential decay: you'll never enc
 Let's calculate with code:
 
 ```js
-// CDC/NIOSH 给的半衰期是 5–6 小时，这里取中值
+//CDC/NIOSH gives a half-life of 5–6 hours; here we take the midpoint
 const HALF_LIFE = 5.5;
 
-/** 喝下 mg 毫克咖啡因、过了 hours 小时后，体内还剩多少 */
+/** after drinking mg milligrams of caffeine and hours hours later, how much is left in the body */
 const caffeineLeft = (mg, hours) => mg * 0.5 ** (hours / HALF_LIFE);
 
-// 下午 3 点一杯 96mg 的咖啡，到晚上 11 点还剩多少？
+// One cup of 96mg coffee at 3 PM — how much is left by 11 PM?
 console.log(caffeineLeft(96, 8).toFixed(1)); // 35.0
 
-// 大概还是一罐 12oz 可乐的量（FDA 给的区间是 30–40mg）
+// About the same as a 12oz can of cola (the FDA range is 30–40mg)
 ```
 
 A cup of coffee at 3 PM still leaves nearly a can of cola's worth of caffeine in your body eight hours later. You think you're sleeping, but you're actually running a multithreaded background task with caffeine.
