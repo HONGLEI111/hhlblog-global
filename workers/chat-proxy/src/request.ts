@@ -58,10 +58,19 @@ const MAX_SNIPPET_TITLE = 200;
  * Hosts whose URLs may appear in the article context. Checked separately from
  * the CORS Origin header: the Origin says who is calling, these say what the
  * context is allowed to claim it is quoting.
+ *
+ * Keep this in step with the deployment's ALLOWED_ORIGINS var. An origin that
+ * passes CORS but is missing here does not error — `resolveContext` returns
+ * null, so the proxy answers WITHOUT the reader's article and nothing
+ * surfaces the loss.
+ *
+ * `nextjs.hehonglei.cn` is the Next.js rewrite's production origin (EdgeOne);
+ * `www.hehonglei.com` / `hehonglei.com` belong to the original Astro site.
  */
 export const ARTICLE_HOSTS: ReadonlySet<string> = new Set([
   "www.hehonglei.com",
   "hehonglei.com",
+  "nextjs.hehonglei.cn",
   "localhost:4321",
   "127.0.0.1:4321",
 ]);

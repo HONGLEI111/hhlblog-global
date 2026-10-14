@@ -27,6 +27,39 @@ describe("resolveContext", () => {
 		expect(context?.text).toHaveLength(longText.length);
 	});
 
+	/**
+	 * The Next.js rewrite is served from its own origin. Missing it here does
+	 * not error: the request passes CORS, resolveContext returns null, and the
+	 * proxy answers without the article — a silent loss of grounding. Pin it.
+	 */
+	it("accepts a same-site article from the Next.js rewrite", () => {
+		const context = resolveContext(
+			{
+				url: "https://nextjs.hehonglei.cn/posts/x/",
+				title: "Title",
+				text: longText,
+			},
+			ARTICLE_HOSTS,
+		);
+
+		expect(context).not.toBeNull();
+		expect(context?.url).toBe("https://nextjs.hehonglei.cn/posts/x/");
+	});
+
+	it("lists every origin the proxy is deployed for", () => {
+		// Keep in step with ALLOWED_ORIGINS: an origin allowed for CORS but
+		// absent here loses its context with no error anywhere.
+		for (const host of [
+			"www.hehonglei.com",
+			"hehonglei.com",
+			"nextjs.hehonglei.cn",
+			"localhost:4321",
+			"127.0.0.1:4321",
+		]) {
+			expect(ARTICLE_HOSTS.has(host), `missing host: ${host}`).toBe(true);
+		}
+	});
+
 	it("rejects another origin, even one that merely mentions the site", () => {
 		expect(
 			resolveContext(
