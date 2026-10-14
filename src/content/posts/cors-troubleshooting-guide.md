@@ -21,7 +21,7 @@ No 'Access-Control-Allow-Origin' header is present on the requested resource.
 
 这就是跨域问题。它出现的频率极高，却总被当作「后端没配好」一笔带过。这篇文章把 CORS 的机制从头拆开，再落到三种后端框架的配置和排查上，让你下次看到这行红字时不再靠「加个 `*`」碰运气。
 
-## 一、前置概念：同源策略
+## 1. 前置概念：同源策略
 
 浏览器有一个铁律——**同源策略（Same-Origin Policy）**。它规定：一个页面里的脚本，只能读取「同源」资源的响应。
 
@@ -40,7 +40,7 @@ No 'Access-Control-Allow-Origin' header is present on the requested resource.
 
 **CORS（Cross-Origin Resource Sharing，跨源资源共享）就是浏览器为「合法跨域」开的一扇门**：由服务器通过响应头明确声明「哪些来源可以访问我」。
 
-## 二、两种请求：简单请求 vs 预检请求
+## 2. 两种请求：简单请求 vs 预检请求
 
 CORS 把跨域请求分成两类，处理方式完全不同，这是理解一切报错的关键。
 
@@ -63,7 +63,7 @@ Access-Control-Request-Headers: content-type, authorization
 
 服务器必须对这个 `OPTIONS` 返回允许的方法和头，浏览器才会放行真正的请求。这就是为什么你在 Network 面板里常看到同一个接口出现两次请求、一次是 `OPTIONS`。
 
-## 三、关键响应头一览
+## 3. 关键响应头一览
 
 CORS 的配置本质上就是设置下面这几个响应头：
 
@@ -82,7 +82,7 @@ CORS 的配置本质上就是设置下面这几个响应头：
 
 2. **`Access-Control-Max-Age` 管的是「预检缓存」**。预检请求本身有开销，浏览器会缓存预检结果，最长缓存 `Access-Control-Max-Age` 指定的秒数（Chromium 实际上限约 2 小时）。这既是性能优化，也是「改了配置却不生效」的常见元凶。
 
-## 四、服务端实战配置
+## 4. 服务端实战配置
 
 ### 4.1 Express + cors 中间件
 
@@ -177,7 +177,7 @@ location /api/ {
 
 `add_header` 末尾的 `always` 很关键：没有它，Nginx 在 4xx/5xx 等非 200 响应上不会加这些头——而恰恰是「后端报错了」时，前端最需要这些头才能读到错误信息。
 
-## 五、带凭证（Cookie）的跨域
+## 5. 带凭证（Cookie）的跨域
 
 默认情况下，跨域请求**不会**携带 Cookie。如果接口依赖 Cookie 做会话，需要两端配合：
 
@@ -202,7 +202,7 @@ must not be the wildcard '*' when the request's credentials mode is 'include'.
 
 解决办法就是前面示例里的白名单回显写法：拿到 `Origin`，判断是否在白名单，是则原样回显。
 
-## 六、经典报错对照表
+## 6. 经典报错对照表
 
 | 控制台报错 | 原因 | 解决 |
 |-----------|------|------|
@@ -218,7 +218,7 @@ must not be the wildcard '*' when the request's credentials mode is 'include'.
 
 2. **简单请求是「发了但读不到」**。浏览器把请求发出去了，服务器也处理了，只是响应被浏览器拦下不交给 JS。所以简单请求的跨域问题，看 Network 面板里请求是成功的（200），但控制台报 CORS——别被「请求成功了呀」误导。
 
-## 七、两个进阶陷阱
+## 7. 两个进阶陷阱
 
 **陷阱一：`null` origin。**
 

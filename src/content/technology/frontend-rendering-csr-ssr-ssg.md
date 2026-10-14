@@ -1,33 +1,31 @@
 ---
-title: 前端渲染模式：CSR、SSR 和 SSG 的区别与选择
+title: 'Frontend Rendering Patterns: Differences and Choices Between CSR, SSR, and SSG'
 published: 2026-06-17
-description: '深入理解三种前端渲染模式：客户端渲染（CSR）、服务端渲染（SSR）和静态站点生成（SSG），以及如何根据场景选择合适方案。'
+description: A deep dive into the three frontend rendering patterns—Client-Side Rendering (CSR), Server-Side Rendering (SSR), and Static Site Generation (SSG)—and how to choose the right approach for your use case.
 image: ''
-tags: [CSR, SSR, SSG, 渲染模式, Next.js, 前端基础]
-category: '前端'
+tags: [CSR, SSR, SSG, Rendering Patterns, Next.js, Frontend Fundamentals]
+category: Frontend
 draft: false
-lang: ''
 ---
+## 1. Introduction
 
-## 1. 引言
+When you open a website, where does the HTML you see come from?
 
-打开一个网站，你看到的 HTML 是从哪里来的？
+This question seems simple, but the answer determines a website's **performance, SEO, and user experience**. The core question of frontend rendering modes is: **when and where is the HTML generated?**
 
-这个问题看起来简单，但答案却决定了网站的**性能、SEO、用户体验**。前端渲染模式的核心问题就是：**HTML 在什么时候、在哪里被生成？**
-
-| 渲染模式 | HTML 生成时机 | 生成位置 |
+| Rendering Mode | HTML Generation Timing | Generation Location |
 |---------|-------------|---------|
-| CSR | 浏览器加载 JS 后 | 客户端（浏览器） |
-| SSR | 每次请求时 | 服务器 |
-| SSG | 构建时 | 服务器（一次性） |
+| CSR | After the browser loads JS | Client side (browser) |
+| SSR | On every request | Server |
+| SSG | At build time | Server (one-time) |
 
 ---
 
-## 2. CSR：客户端渲染
+## 2. CSR: Client-Side Rendering
 
-### 2.1 工作流程
+### 2.1 Workflow
 
-```
+ ```
 浏览器请求 URL
   ￬
 服务器返回几乎空的 HTML（只有一个 <div id="root"></div>）
@@ -39,9 +37,9 @@ JS 执行，生成 HTML 并插入页面
 ✅ 页面可交互
 ```
 
-### 2.2 典型的 CSR 页面
+### 2.2 A Typical CSR Page
 
-```html
+ ```html
 <!-- 服务器返回的 HTML -->
 <!DOCTYPE html>
 <html>
@@ -55,30 +53,30 @@ JS 执行，生成 HTML 并插入页面
 </html>
 ```
 
-浏览器收到的是一个**空壳**，真正的页面内容由 `bundle.js` 在客户端动态生成。
+What the browser receives is an **empty shell**; the actual page content is dynamically generated on the client side by  `bundle.js`.
 
-### 2.3 优缺点
+### 2.3 Pros and Cons
 
-| 优势 | 劣势 |
+| Advantages | Disadvantages |
 |------|------|
-| 服务器压力小（只返回静态文件） | **首屏白屏时间较长**（等 JS 加载） |
-| 页面切换流畅（SPA，无刷新） | **SEO 差**（搜索引擎可能看不到内容） |
-| 开发简单，前后端分离彻底 | 低性能设备体验差 |
-| 适合 CDN 部署 | 首字节时间（TTFB）不等于可交互时间 |
+| Low server pressure (only returns static files) | **Longer first-screen blank time** (waiting for JS to load) |
+| Smooth page transitions (SPA, no refresh) | **Poor SEO** (search engines may not see the content) |
+| Simple development, clean frontend-backend separation | Poor experience on low-performance devices |
+| Suitable for CDN deployment | Time to First Byte (TTFB) does not equal time to interactivity |
 
-### 2.4 适用场景
+### 2.4 Use Cases
 
-- 后台管理系统、仪表盘
-- 需要大量交互的单页应用（SPA）
-- SEO 不敏感的页面
+- Admin management systems, dashboards
+- Single-page applications (SPAs) requiring heavy interactivity
+- Pages that are not SEO-sensitive
 
 ---
 
-## 3. SSR：服务端渲染
+## 3. SSR: Server-Side Rendering
 
-### 3.1 工作流程
+### 3.1 Workflow
 
-```
+ ```
 浏览器请求 URL
   ￬
 服务器执行 JS / 渲染组件
@@ -92,9 +90,9 @@ JS 「水合」（hydration），页面变为可交互
 ✅ 页面可交互
 ```
 
-### 3.2 一个简单的 SSR 例子（Node.js）
+### 3.2 A Simple SSR Example (Node.js)
 
-```javascript
+ ```javascript
 import { renderToString } from 'react-dom/server';
 
 app.get('/article/:id', async (req, res) => {
@@ -114,40 +112,40 @@ app.get('/article/:id', async (req, res) => {
 });
 ```
 
-用户收到的 HTML **已经包含了完整内容**，不需要等 JS 加载就能看到文字。
+The HTML the user receives **already contains the complete content**; they can see the text without waiting for JS to load.
 
-### 3.3 Hydration（水合）是什么？
+### 3.3 What Is Hydration?
 
-SSR 返回的 HTML 是**静态的** —— 按钮可以看，但点击没反应。浏览器需要加载 JS，将事件监听器「挂载」到已有的 DOM 上，这个过程叫 **Hydration**（水合）。
+The HTML returned by SSR is **static** — buttons are visible, but clicking does nothing. The browser needs to load JS and "attach" event listeners to the existing DOM. This process is called **Hydration**.
 
-```
+ ```
 服务端渲染的 HTML（干巴巴的页面）
   + JS 加载 + 事件绑定
   = 可交互的页面（「活」了）
 ```
 
-### 3.4 优缺点
+### 3.4 Pros and Cons
 
-| 优势 | 劣势 |
+| Advantages | Disadvantages |
 |------|------|
-| **首屏快** — 直接返回有内容的 HTML | 服务器压力大（每次请求都要渲染） |
-| **SEO 友好** — 搜索引擎能爬取完整内容 | TTFB 较慢（服务器渲染需要时间） |
-| 对低性能设备友好 | 部署复杂（需要 Node.js 服务器） |
-| 用户可以更快看到内容 | 首屏可见不代表可交互（Hydration 需时间） |
+| **Fast first screen** — directly returns HTML with content | High server pressure (must render on every request) |
+| **SEO-friendly** — search engines can crawl the complete content | Slower TTFB (server rendering takes time) |
+| Friendly to low-performance devices | Complex deployment (requires a Node.js server) |
+| Users can see content faster | First-screen visibility does not mean interactivity (Hydration takes time) |
 
-### 3.5 适用场景
+### 3.5 Use Cases
 
-- 内容型网站（博客、新闻、电商详情页）
-- SEO 敏感页面
-- 首页等需要快速展示的场景
+- Content-oriented websites (blogs, news, e-commerce detail pages)
+- SEO-sensitive pages
+- Scenarios requiring fast display, such as homepages
 
 ---
 
-## 4. SSG：静态站点生成
+## 4. SSG: Static Site Generation
 
-### 4.1 工作流程
+### 4.1 Workflow
 
-```
+ ```
 构建时：
   读取数据（Markdown / API / CMS）
     ￬
@@ -163,9 +161,9 @@ SSR 返回的 HTML 是**静态的** —— 按钮可以看，但点击没反应�
   ✅ 极速响应
 ```
 
-### 4.2 SSG 的工作模式
+### 4.2 How SSG Works
 
-```javascript
+ ```javascript
 // 构建时运行，生成静态 HTML
 export async function getStaticPaths() {
     const posts = await getAllPosts();
@@ -180,43 +178,43 @@ export async function getStaticProps({ params }) {
 }
 ```
 
-### 4.3 优缺点
+### 4.3 Pros and Cons
 
-| 优势 | 劣势 |
+| Advantages | Disadvantages |
 |------|------|
-| **速度极快** — 就是纯 HTML | **内容更新需重新构建** |
-| 可以部署到 CDN，几乎零服务器成本 | 页面数量多时构建时间长 |
-| SEO 最优 | 不适合实时数据（如用户个性化内容） |
-| 安全性最高（无服务端逻辑） | 动态路由的页面数量需提前确定 |
+| **Extremely fast** — it's just pure HTML | **Content updates require rebuilding** |
+| Can be deployed to a CDN, with nearly zero server cost | Long build times when there are many pages |
+| Best SEO | Not suitable for real-time data (such as personalized user content) |
+| Highest security (no server-side logic) | The number of dynamic route pages must be determined in advance |
 
-### 4.4 适用场景
+### 4.4 Use Cases
 
-- 技术博客、文档站
-- 企业官网、营销页面
-- Landing page
-- 内容不频繁变化的站点
+- Technical blogs, documentation sites
+- Corporate websites, marketing pages
+- Landing pages
+- Sites with infrequently changing content
 
 ---
 
-## 5. 三种模式对比
+## 5. Comparison of the Three Modes
 
-| 维度 | CSR | SSR | SSG |
+| Dimension | CSR | SSR | SSG |
 |------|-----|-----|-----|
-| 首屏速度 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| First-screen speed | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | SEO | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 服务器负载 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 交互体验 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 实时数据 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ |
-| 构建时间 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
-| 部署复杂度 | 简单 | 中等 | 简单 |
+| Server load | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Interactive experience | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| Real-time data | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ |
+| Build time | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| Deployment complexity | Simple | Medium | Simple |
 
 ---
 
-## 6. 现代框架的混合方案
+## 6. Hybrid Approaches in Modern Frameworks
 
-真实的项目很少只用一种渲染模式。**Next.js、Nuxt、Astro** 等现代框架支持混合使用：
+Real projects rarely use only one rendering mode. Modern frameworks such as **Next.js, Nuxt, and Astro** support mixed usage:
 
-```
+ ```
 同一个项目里：
   /about       → SSG（内容不变）
   /blog/[slug] → SSG（文章在构建时生成）
@@ -224,9 +222,9 @@ export async function getStaticProps({ params }) {
   /search?q=   → SSR（搜索结果因人而异）
 ```
 
-### Next.js 的渲染策略
+### Next.js Rendering Strategies
 
-```jsx
+ ```jsx
 // SSG：默认行为，构建时生成
 export default function AboutPage() {
     return <div>关于我们</div>;
@@ -239,11 +237,11 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // 每3600秒（1小时）重新生成一次
 ```
 
-### Astro 的岛屿架构
+### Astro's Islands Architecture
 
-Astro 默认 SSG，但支持页面中的「交互岛屿」：
+Astro defaults to SSG but supports "interactive islands" within pages:
 
-```astro
+ ```astro
 ---
 // 这部分在构建时运行
 const posts = await getAllPosts();
@@ -260,11 +258,11 @@ const posts = await getAllPosts();
 
 ---
 
-## 7. 如何选择渲染模式？
+## 7. How to Choose a Rendering Mode?
 
-一个简单的决策流程：
+A simple decision flow:
 
-```
+ ```
 内容会频繁变化吗？
   ├── 是 → 需要实时数据 + SEO？
   │        ├── 是 → SSR
@@ -274,27 +272,27 @@ const posts = await getAllPosts();
            └── 否 → CSR 或 SSG 都行
 ```
 
-或者从**页面类型**入手：
+Or start from the **page type**:
 
-| 页面类型 | 推荐模式 | 理由 |
+| Page Type | Recommended Mode | Reason |
 |---------|---------|------|
-| 博客文章 | SSG | 内容写后基本不改，构建完放着就行 |
-| 商品详情页 | SSG + ISR | 描述不变，价格/库存可定时刷新 |
-| 搜索结果页 | SSR | 每次查询结果不同 |
-| 用户仪表盘 | CSR | 登入后个性化内容，无需 SEO |
-| 首页 | SSG | 展示型内容，追求极致速度 |
-| 实时数据大屏 | CSR / SSR | 需要实时刷新 |
+| Blog posts | SSG | Content rarely changes after writing; just build and leave it |
+| Product detail pages | SSG + ISR | Descriptions stay the same; price/stock can be refreshed periodically |
+| Search results pages | SSR | Results differ for each query |
+| User dashboards | CSR | Personalized content after login, no SEO needed |
+| Homepage | SSG | Display-oriented content, pursuing ultimate speed |
+| Real-time data dashboards | CSR / SSR | Requires real-time refresh |
 
 ---
 
-## 8. 小结
+## 8. Summary
 
-三种渲染模式的本质区别只有一句话：
+The essential difference between the three rendering modes can be summed up in one sentence each:
 
-| 模式 | 核心问题 |
+| Mode | Core Question |
 |------|---------|
-| **CSR** | HTML 在浏览器里生成 → 服务器轻松，首屏慢 |
-| **SSR** | HTML 在服务器上生成（每次请求） → 首屏快，服务器累 |
-| **SSG** | HTML 在构建时生成 → 首屏最快，内容不动 |
+| **CSR** | HTML is generated in the browser → server is relaxed, first screen is slow |
+| **SSR** | HTML is generated on the server (on every request) → first screen is fast, server is burdened |
+| **SSG** | HTML is generated at build time → first screen is fastest, content stays put |
 
-没有哪种模式是「银弹」。现代前端框架的趋势是**混合使用**，让每个页面选择最适合它的渲染方式。理解这三种模式，是你从「写页面」走向「设计架构」的关键一步。
+No mode is a "silver bullet." The trend in modern frontend frameworks is **mixed usage**, letting each page choose the rendering approach that suits it best. Understanding these three modes is a key step in your journey from "writing pages" to "designing architecture."

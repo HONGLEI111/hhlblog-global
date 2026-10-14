@@ -1,41 +1,39 @@
 ---
-title: 递归：从上而下拆分问题的艺术
+title: 'Recursion: The Art of Breaking Down Problems from the Top'
 published: 2026-04-26
-description: '理解递归的三要素（终止条件、递推关系、返回值），掌握尾递归优化和记忆化搜索，用 TypeScript 实现经典递归算法。'
+description: Understand the three essential elements of recursion (base case, recurrence relation, return value), master tail recursion optimization and memoized search, and implement classic recursive algorithms in TypeScript.
 image: ''
-tags: [递归, TypeScript, 算法]
-category: '算法'
+tags: [Recursion, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Recursion** is a programming method in which a function calls itself directly or indirectly. It breaks a large problem into smaller problems of the same structure, stops splitting through a termination condition, and combines the results during the return process.
+
+> Prerequisites
+> - **Call stack**: each recursive call saves the current execution context
+> - **Divide and conquer**: recursion is often used to break a problem into subproblems of the same structure
+> - **Tree structure**: trees are naturally recursive by definition, and traversal is best expressed recursively
+
 ---
 
-## 概述
+## Problem Definition
 
-**递归（Recursion）** 是函数直接或间接调用自身的编程方法。它把大问题拆成结构相同的小问题，再通过终止条件停止拆分，并在返回过程中组合结果。
+When a problem can be described as "the current answer depends on a smaller instance of the same kind of problem," recursion can be considered.
 
-> 前置知识
-> - **调用栈**：每次递归调用都会保存当前执行上下文
-> - **分治思想**：递归常用于把问题拆成相同结构的子问题
-> - **树结构**：树的定义天然递归，遍历也最适合递归表达
-
----
-
-## 问题定义
-
-当问题可以被描述为“当前答案依赖更小规模的同类问题”时，可以考虑递归。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 当前问题规模或当前节点 |
-| 输出 | 当前规模下的结果 |
-| 终止条件 | 最小问题的直接答案 |
-| 递推关系 | 当前结果如何由子问题得到 |
+| Input | The current problem size or current node |
+| Output | The result at the current size |
+| Termination condition | The direct answer to the smallest problem |
+| Recurrence relation | How the current result is obtained from subproblems |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以阶乘 `factorial(4)` 为例：
+Take factorial `factorial(4)` as an example:
 
 ```mermaid
 graph TD
@@ -48,16 +46,16 @@ graph TD
     G --> H[返回 24]
 ```
 
-递归包含两个方向：
+Recursion involves two directions:
 
-1. **递进**：不断把问题拆小，直到命中终止条件。
-2. **回归**：子问题返回结果后，逐层合并成最终答案。
+1. **Descending**: continuously break the problem into smaller pieces until the termination condition is hit.
+2. **Returning**: after subproblems return their results, merge them layer by layer into the final answer.
 
-如果终止条件不可达，递归会无限调用，最终栈溢出。
+If the termination condition is unreachable, recursion will call indefinitely and eventually cause a stack overflow.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：RecursiveSolve(problem)
@@ -71,21 +69,21 @@ graph TD
 5. 返回答案
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 示例 | 时间复杂度 | 空间复杂度 | 说明 |
+| Example | Time complexity | Space complexity | Description |
 |------|------|------|------|
-| 阶乘 | O(n) | O(n) | 递归深度为 n |
-| 朴素斐波那契 | O(2^n) | O(n) | 大量重复计算 |
-| 记忆化斐波那契 | O(n) | O(n) | 缓存每个子问题 |
-| 二叉树深度 | O(n) | O(h) | h 为树高 |
-| 快速幂 | O(log n) | O(log n) | 每次规模减半 |
+| Factorial | O(n) | O(n) | Recursion depth is n |
+| Naive Fibonacci | O(2^n) | O(n) | Massive repeated computation |
+| Memoized Fibonacci | O(n) | O(n) | Cache each subproblem |
+| Binary tree depth | O(n) | O(h) | h is the tree height |
+| Fast exponentiation | O(log n) | O(log n) | Size halves each time |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 阶乘
+### 1. Factorial
 
 ```typescript
 function factorial(n: number): number {
@@ -94,7 +92,7 @@ function factorial(n: number): number {
 }
 ```
 
-### 2. 斐波那契与记忆化
+### 2. Fibonacci and Memoization
 
 ```typescript
 function fib(n: number): number {
@@ -112,7 +110,7 @@ function fibMemo(n: number, memo = new Map<number, number>()): number {
 }
 ```
 
-### 3. 汉诺塔
+### 3. Tower of Hanoi
 
 ```typescript
 function hanoi(n: number, from: string, to: string, via: string): void {
@@ -127,7 +125,7 @@ function hanoi(n: number, from: string, to: string, via: string): void {
 }
 ```
 
-### 4. 快速幂
+### 4. Fast Exponentiation
 
 ```typescript
 function myPow(x: number, n: number): number {
@@ -139,7 +137,7 @@ function myPow(x: number, n: number): number {
 }
 ```
 
-### 5. 二叉树最大深度
+### 5. Maximum Depth of a Binary Tree
 
 ```typescript
 interface TreeNode {
@@ -154,7 +152,7 @@ function maxDepth(root: TreeNode | null): number {
 }
 ```
 
-### 6. 递归转迭代
+### 6. Converting Recursion to Iteration
 
 ```typescript
 function sumRecursive(n: number): number {
@@ -173,39 +171,39 @@ function sumIterative(n: number): number {
 
 ---
 
-## 工程优化：记忆化与栈深度控制
+## Engineering Optimization: Memoization and Stack Depth Control
 
-| 问题 | 优化方式 | 说明 |
+| Problem | Optimization method | Description |
 |------|------|------|
-| 重复计算 | 记忆化搜索 | 用 Map 缓存子问题结果 |
-| 栈深度过大 | 改写为迭代 | 避免调用栈溢出 |
-| 尾部递归 | 累加器参数 | JavaScript 引擎不保证尾调用优化 |
-| 全局状态污染 | 参数传递 / 局部变量 | 递归函数更可复用 |
+| Repeated computation | Memoized search | Use a Map to cache subproblem results |
+| Excessive stack depth | Rewrite as iteration | Avoid call stack overflow |
+| Tail recursion | Accumulator parameter | JavaScript engines do not guarantee tail call optimization |
+| Global state pollution | Parameter passing / local variables | Recursive functions become more reusable |
 
-尾递归写法更接近迭代，但在 JavaScript/TypeScript 环境中不能依赖运行时自动优化调用栈。
+Tail-recursive code is closer to iteration, but in JavaScript/TypeScript environments you cannot rely on the runtime to automatically optimize the call stack.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 树和图的遍历
-- 分治算法：归并排序、快速排序、快速幂
-- 动态规划的记忆化搜索版本
-- 回溯与组合枚举
+- Traversal of trees and graphs
+- Divide-and-conquer algorithms: merge sort, quicksort, fast exponentiation
+- Memoized search versions of dynamic programming
+- Backtracking and combinatorial enumeration
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 栈溢出 | 深度过大时调用栈不可控 |
-| 重复计算 | 朴素递归可能指数级退化 |
-| 调试成本 | 多层调用时状态追踪较难 |
+| Stack overflow | The call stack becomes uncontrollable when depth is too large |
+| Repeated computation | Naive recursion may degrade exponentially |
+| Debugging cost | State tracking is harder with multiple call layers |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -215,9 +213,9 @@ graph LR
     D --> E[必要时缓存或改迭代]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 递归三要素是终止条件、递推关系和返回值。
-2. 递归适合树形、分治、回溯等天然分层的问题。
-3. 重叠子问题要加记忆化，避免指数级重复计算。
-4. 深度不可控时，优先改写为显式栈或迭代。
+1. The three essential elements of recursion are the termination condition, the recurrence relation, and the return value.
+2. Recursion is suitable for problems that are naturally hierarchical, such as tree-shaped, divide-and-conquer, and backtracking problems.
+3. Overlapping subproblems require memoization to avoid exponential repeated computation.
+4. When depth is uncontrollable, prefer rewriting to an explicit stack or iteration.

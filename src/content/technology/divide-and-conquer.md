@@ -1,41 +1,39 @@
 ---
-title: 分治算法：从归并排序到快速选择的 TypeScript 实现
+title: 'Divide and Conquer: TypeScript Implementations from Merge Sort to Quickselect'
 published: 2026-04-26
-description: '掌握分治算法的核心思想（分解、求解、合并），用 TypeScript 实现归并排序、快速排序、快速选择等问题。'
+description: Master the core ideas of divide and conquer—decompose, solve, and combine—by implementing merge sort, quicksort, quickselect, and more in TypeScript.
 image: ''
-tags: [分治算法, TypeScript, 算法]
-category: '算法'
+tags: [Divide and Conquer, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Divide and Conquer** breaks a large problem into several smaller problems of the same structure, solves them separately, and then merges the results. It is commonly used in sorting, searching, geometry problems, and recursion optimization.
+
+> Prerequisites
+> - **Recursion**: Divide and conquer usually expresses problem decomposition through recursion
+> - **Array intervals**: Use left and right boundaries to represent the current subproblem
+> - **Complexity recurrence**: Analyze total complexity using "number of levels × cost per level"
+
 ---
 
-## 概述
+## Problem Definition
 
-**分治算法（Divide and Conquer）** 将一个大问题拆成若干个结构相同的小问题，分别求解后再合并结果。它常见于排序、查找、几何问题和递归优化。
+When a problem can be broken into mutually independent subproblems of the same form, divide and conquer can be used.
 
-> 前置知识
-> - **递归**：分治通常通过递归表达问题拆分
-> - **数组区间**：用左右边界表示当前子问题
-> - **复杂度递推**：用“层数 × 每层成本”分析总复杂度
-
----
-
-## 问题定义
-
-当一个问题能拆成相互独立且形式相同的子问题时，可以使用分治。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 一个可切分的问题，如数组、区间、点集 |
-| 输出 | 原问题的解，如排序结果、目标元素、最小距离 |
-| 三个阶段 | 分解、求解、合并 |
-| 典型算法 | 归并排序、快速排序、二分搜索、快速选择 |
+| Input | A problem that can be split, such as an array, interval, or point set |
+| Output | The solution to the original problem, such as a sorted result, target element, or minimum distance |
+| Three stages | Divide, solve, merge |
+| Typical algorithms | Merge sort, quicksort, binary search, quickselect |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-归并排序是最典型的分治模型：
+Merge sort is the most typical divide-and-conquer model:
 
 ```mermaid
 graph TD
@@ -53,11 +51,11 @@ graph TD
     I --> J
 ```
 
-分治并不要求每一步都“合并”。快速排序通过分区让 pivot 就位，子数组排序完成后整体自然有序；二分搜索甚至只递归进入一侧。
+Divide and conquer does not require every step to "merge." Quicksort places the pivot in position through partitioning, and once the subarrays are sorted, the whole array is naturally ordered; binary search even recurses into only one side.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：DivideAndConquer(problem)
@@ -71,20 +69,20 @@ graph TD
 5. 返回合并结果
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 算法 | 分解方式 | 合并成本 | 时间复杂度 | 空间复杂度 |
+| Algorithm | Decomposition method | Merge cost | Time complexity | Space complexity |
 |------|------|------|------|------|
-| 归并排序 | 对半拆分 | O(n) | O(n log n) | O(n) |
-| 快速排序 | pivot 分区 | O(1) | 平均 O(n log n) | O(log n) |
-| 二分搜索 | 舍弃一半 | O(1) | O(log n) | O(1) |
-| 快速选择 | 只递归一侧 | O(1) | 平均 O(n) | O(log n) |
+| Merge sort | Split in half | O(n) | O(n log n) | O(n) |
+| Quicksort | Pivot partitioning | O(1) | Average O(n log n) | O(log n) |
+| Binary search | Discard half | O(1) | O(log n) | O(1) |
+| Quickselect | Recurse into only one side | O(1) | Average O(n) | O(log n) |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 通用分治框架
+### 1. General Divide-and-Conquer Framework
 
 ```typescript
 function divideAndConquer<T, R>(
@@ -105,7 +103,7 @@ function divideAndConquer<T, R>(
 }
 ```
 
-### 2. 归并排序
+### 2. Merge Sort
 
 ```typescript
 function mergeSort(nums: number[]): number[] {
@@ -132,7 +130,7 @@ function merge(left: number[], right: number[]): number[] {
 }
 ```
 
-### 3. 快速排序
+### 3. Quicksort
 
 ```typescript
 function quickSort(nums: number[], left = 0, right = nums.length - 1): void {
@@ -159,7 +157,7 @@ function partition(nums: number[], left: number, right: number): number {
 }
 ```
 
-### 4. 快速选择
+### 4. Quickselect
 
 ```typescript
 function findKthLargest(nums: number[], k: number): number {
@@ -178,7 +176,7 @@ function findKthLargest(nums: number[], k: number): number {
 }
 ```
 
-### 5. 最近点对问题
+### 5. Closest Pair of Points Problem
 
 ```typescript
 interface Point {
@@ -230,39 +228,38 @@ function closestPair(points: Point[]): number {
 
 ---
 
-## 工程优化：控制递归深度与额外空间
+## Engineering Optimization: Controlling Recursion Depth and Extra Space
 
-| 场景 | 优化方向 | 说明 |
+| Scenario | Optimization direction | Description |
 |------|------|------|
-| 快速排序退化 | 随机 pivot / 三数取中 | 避免有序数组退化为 O(n²) |
-| 归并排序空间 | 复用辅助数组 | 减少重复创建临时数组 |
-| 递归过深 | 小区间转插入排序 / 迭代 | 降低调用栈风险 |
-| 快速选择 | 只递归目标一侧 | 平均 O(n)，不需要完整排序 |
+| Quicksort degradation | Random pivot / median-of-three | Avoid degradation to O(n²) on sorted arrays |
+| Merge sort space | Reuse auxiliary arrays | Reduce repeated creation of temporary arrays |
+| Excessive recursion depth | Switch small intervals to insertion sort / iteration | Reduce call stack risk |
+| Quickselect | Recurse into only the target side | Average O(n), no need for full sorting |
 
-生产排序通常不会手写快速排序，更多是借分治思想解决“局部独立、合并可控”的问题。
+Production sorting usually does not hand-write quicksort; more often, the divide-and-conquer idea is borrowed to solve problems where "parts are independent and merging is controllable."
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 归并排序、快速排序、快速选择
-- 二分搜索、答案二分
-- 大规模数据分块处理
-- 最近点对、逆序对统计
+- Merge sort, quicksort, quickselect
+- Binary search, binary search on the answer
+- Chunked processing of large-scale data
+- Closest pair of points, inversion counting
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 子问题需可合并 | 无法合并结果时分治不成立 |
-| 递归开销 | 过深递归可能带来栈风险 |
-| 不一定最省空间 | 归并类算法通常需要额外数组 |
+| Subproblems must be mergeable | Divide and conquer does not hold when results cannot be merged |
+| Recursion overhead | Excessive recursion depth may bring stack risk |
+| Not necessarily the most space-efficient | Merge-type algorithms usually require extra arrays |
 
 ---
-
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -271,9 +268,9 @@ graph LR
     C --> D[得到原问题答案]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 分治 = 分解、求解、合并。
-2. 归并排序强调合并，快速排序强调分区。
-3. 每次规模减半通常带来 O(log n) 层递归。
-4. 快速选择利用“只关心一侧”把平均复杂度降到 O(n)。
+1. Divide and conquer = divide, solve, combine.
+2. Merge sort emphasizes merging, while quicksort emphasizes partitioning.
+3. Halving the size each time usually leads to O(log n) levels of recursion.
+4. Quickselect takes advantage of "only caring about one side" to reduce the average complexity to O(n).

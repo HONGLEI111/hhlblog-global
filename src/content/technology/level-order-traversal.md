@@ -1,32 +1,30 @@
 ---
-title: 层序遍历：BFS 在二叉树中的标准应用
+title: 'Level Order Traversal: The Standard Application of BFS in Binary Trees'
 published: 2026-04-26
-description: '掌握二叉树层序遍历的标准模板和变体（锯齿形、右视图、层平均值），用 TypeScript 实现全部题解。'
+description: Master the standard template for binary tree level order traversal and its variants (zigzag, right side view, level averages), with all solutions implemented in TypeScript.
 image: ''
-tags: [层序遍历, TypeScript, 算法]
-category: '算法'
+tags: [Level Order Traversal, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+Level-order traversal is BFS on a binary tree. It visits nodes layer by layer from top to bottom and from left to right, making it ideal for problems involving "each level."
+
+Unlike recursive DFS, level-order traversal uses a queue to maintain the nodes waiting to be visited. The first-in-first-out property of the queue maps exactly to the level order of the tree.
+
+Common variants include: per-level node lists, zigzag traversal, right side view, maximum value per level, and average value per level.
+
+> Prerequisites
+> - **Binary tree**: level-order traversal visits nodes by depth
+> - **Queue**: first-in-first-out guarantees same-level ordering
+> - **BFS**: level-order traversal is breadth-first search on a tree
+
 ---
 
-## 概述
+## Problem Definition
 
-层序遍历是二叉树上的 BFS。它按层从上到下、从左到右访问节点，非常适合处理“每一层”的问题。
-
-与递归 DFS 不同，层序遍历使用队列维护当前待访问节点。队列先进先出的特性，刚好对应树的层级顺序。
-
-常见变体包括：每层节点列表、锯齿形遍历、右视图、每层最大值、每层平均值。
-
-> 前置知识
-> - **二叉树**：层序遍历按深度访问节点
-> - **队列**：先进先出保证同层顺序
-> - **BFS**：层序遍历是树上的广度优先搜索
-
----
-
-## 问题定义
-
-给定二叉树：
+Given a binary tree:
 
 ```text
       3
@@ -36,7 +34,7 @@ lang: ''
       15   7
 ```
 
-层序遍历结果是：
+The level-order traversal result is:
 
 ```text
 [
@@ -46,58 +44,58 @@ lang: ''
 ]
 ```
 
-问题的关键是：如何知道当前层有多少个节点？
+The key question is: how do you know how many nodes are in the current level?
 
-答案是：在处理每一层之前，先记录队列当前长度。这个长度就是当前层节点数。
+The answer is: before processing each level, record the current length of the queue. That length is the number of nodes in the current level.
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-初始时，队列只有根节点：
+Initially, the queue contains only the root node:
 
 ```text
 queue: [3]
 ```
 
-处理第 1 层，弹出 `3`，把子节点加入队列：
+Process level 1, pop `3`, and enqueue its children:
 
 ```text
 result: [[3]]
 queue: [9, 20]
 ```
 
-处理第 2 层时，先记录 `levelSize = 2`，只处理这两个节点。它们产生的子节点属于下一层：
+When processing level 2, first record `levelSize = 2` and process only those two nodes. The children they produce belong to the next level:
 
 ```text
 result: [[3], [9, 20]]
 queue: [15, 7]
 ```
 
-队列天然保证了从上到下的顺序，而 `levelSize` 划定了每一层的边界。
+The queue naturally guarantees top-to-bottom order, while `levelSize` defines the boundary of each level.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
-标准层序遍历：
+Standard level-order traversal:
 
-1. 如果根节点为空，返回空数组；
-2. 将根节点入队；
-3. 当队列不为空时，记录当前队列长度；
-4. 循环处理当前层的所有节点；
-5. 弹出节点，记录值；
-6. 将它的非空左右子节点入队；
-7. 当前层处理完成后，把层结果加入答案。
+1. If the root node is null, return an empty array;
+2. Enqueue the root node;
+3. While the queue is not empty, record the current queue length;
+4. Loop through all nodes in the current level;
+5. Pop a node and record its value;
+6. Enqueue its non-null left and right children;
+7. After the current level is fully processed, add the level result to the answer.
 
-复杂度：
+Complexity:
 
-- 时间复杂度 O(n)，每个节点入队出队一次；
-- 空间复杂度 O(w)，`w` 是树的最大宽度。
+- Time complexity O(n), each node is enqueued and dequeued once;
+- Space complexity O(w), where `w` is the maximum width of the tree.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
 ```typescript
 class TreeNode<T> {
@@ -109,7 +107,7 @@ class TreeNode<T> {
 }
 ```
 
-### 1. 标准层序遍历
+### 1. Standard Level-Order Traversal
 
 ```typescript
 function levelOrder<T>(root: TreeNode<T> | null): T[][] {
@@ -138,7 +136,7 @@ function levelOrder<T>(root: TreeNode<T> | null): T[][] {
 }
 ```
 
-### 2. 右视图
+### 2. Right Side View
 
 ```typescript
 function rightSideView<T>(root: TreeNode<T> | null): T[] {
@@ -146,7 +144,7 @@ function rightSideView<T>(root: TreeNode<T> | null): T[] {
 }
 ```
 
-### 3. 锯齿形层序遍历
+### 3. Zigzag Level-Order Traversal
 
 ```typescript
 function zigzagLevelOrder<T>(root: TreeNode<T> | null): T[][] {
@@ -162,44 +160,44 @@ function zigzagLevelOrder<T>(root: TreeNode<T> | null): T[][] {
 
 ---
 
-## 工程优化：队列不要频繁 shift
+## Engineering Optimization: Don't Shift the Queue Frequently
 
-很多示例会这样写：
+Many examples write it like this:
 
 ```typescript
 const node = queue.shift();
 ```
 
-这在小数据下没问题，但 `shift` 会移动数组元素，频繁调用可能带来 O(n) 成本。更稳妥的方式是使用 `head` 指针：
+This is fine with small data, but `shift` moves array elements, and frequent calls may incur O(n) cost. A more robust approach is to use a `head` pointer:
 
 ```typescript
 const node = queue[head++];
 ```
 
-这种方式把队列出队变成 O(1)，特别适合节点数量较大的树或图。
+This turns dequeue into O(1), which is especially suitable for trees or graphs with a large number of nodes.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 二叉树层序遍历；
-- 求每层最大值、平均值、宽度；
-- 二叉树右视图和左视图；
-- 最短路径类 BFS；
-- 按层处理任务或依赖关系。
+- Binary tree level-order traversal;
+- Finding the maximum, average, or width of each level;
+- Binary tree right side view and left side view;
+- Shortest-path BFS;
+- Processing tasks or dependencies by level.
 
-### 局限性
+### Limitations
 
-- 队列空间取决于最大层宽，宽树会占用较多内存；
-- 层序遍历不适合需要自底向上汇总的问题；
-- 如果需要路径回溯，DFS 通常更自然；
-- 直接 `shift` 实现队列可能造成隐藏性能问题。
+- Queue space depends on the maximum level width, so wide trees use more memory;
+- Level-order traversal is not suitable for problems that require bottom-up aggregation;
+- If path backtracking is needed, DFS is usually more natural;
+- Directly implementing a queue with `shift` may cause hidden performance issues.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -208,8 +206,8 @@ graph LR
     C --> D[进入下一层]
 ```
 
-- 层序遍历是二叉树上的 BFS。
-- 队列保证访问顺序，`levelSize` 划分层边界。
-- 每个节点只入队出队一次，时间复杂度 O(n)。
-- 用头指针替代 `shift` 能避免数组搬移成本。
-- 层序遍历适合所有“按层统计或观察”的问题。
+- Level-order traversal is BFS on a binary tree.
+- The queue guarantees visit order, and `levelSize` defines level boundaries.
+- Each node is enqueued and dequeued only once, so the time complexity is O(n).
+- Replacing `shift` with a head pointer avoids the cost of array shifting.
+- Level-order traversal is suitable for all problems involving "per-level statistics or observation."

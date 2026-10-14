@@ -1,41 +1,38 @@
 ---
-title: 哈夫曼树
+title: Huffman Tree
 published: 2026-04-28
-description: '本文通过可视化图表详细解析霍夫曼编码的核心原理、构建过程及其在数据压缩中的应用。适合前端开发者理解底层压缩算法。'
+description: This article uses visual diagrams to explain the core principles of Huffman coding, its construction process, and its application in data compression. It is suitable for front-end developers looking to understand underlying compression algorithms.
 image: ''
-tags: [生成树]
-category: '算法'
+tags: [Spanning Tree]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Overview
 
+**Huffman Coding** is an optimal prefix code construction method. It builds variable-length codes based on character frequency—characters with high frequency get short code lengths, while those with low frequency get long code lengths, thereby achieving lossless data compression. The core idea is to **greedily merge the two subtrees with the smallest weights**, building the coding tree from the bottom up.
 
-## 概述
-
-**霍夫曼编码（Huffman Coding）** 是一种最优前缀码构造方法。它根据字符出现频率构建不等长编码——频率高的字符码长短，频率低的码长长，从而实现无损数据压缩。核心思想是**贪心地合并两棵最小权值的子树**，自底向上构建编码树。
-
-> 📚 **前置知识**
-> - **二叉树**：存储编码结构
-> - **最小堆 / 优先队列**：高效取出频率最小的节点
-> - **前缀码**：任一编码不是另一编码的前缀，保证解码唯一性
+> 📚 **Prerequisites**
+> - **Binary tree**: stores the coding structure
+> - **Min-heap / priority queue**: efficiently retrieves the node with the smallest frequency
+> - **Prefix code**: no code is a prefix of another, ensuring unique decodability
 
 ---
 
-## 问题定义
+## Problem Definition
 
-给定字符及其频率，构造一套二进制前缀码，使编码后总长度最小。
+Given characters and their frequencies, construct a set of binary prefix codes that minimizes the total encoded length.
 
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 字符频率表（如 `A:5, B:2, R:2, C:1, D:1`） |
-| 输出 | 每个字符的二进制编码，以及编码 / 解码算法 |
-| 应用 | 文件压缩（ZIP）、图像压缩（JPEG 熵编码步骤） |
+| Input | Character frequency table (e.g., `A:5, B:2, R:2, C:1, D:1`) |
+| Output | Binary code for each character, along with encoding/decoding algorithms |
+| Application | File compression (ZIP), image compression (JPEG entropy coding step) |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以字符串 `"ABRACADABRA"` 为例，首先统计字符频率：
+Using the string `"ABRACADABRA"` as an example, first count the character frequencies:
 
 ```mermaid
 xychart-beta horizontal
@@ -45,13 +42,13 @@ xychart-beta horizontal
     bar [5, 2, 2, 1, 1]
 ```
 
-### 霍夫曼树构建流程（贪心策略）
+### Huffman Tree Construction Process (Greedy Strategy)
 
-1. 每个字符构建为叶子节点，全部加入**最小堆**（按频率排序）。
-2. 每次取出频率最小的两个节点，合并为新节点（频率 = 两者之和），放回堆中。
-3. 重复直到堆中只剩一个节点，即为**根节点**。
+1. Build each character as a leaf node, and add all of them to a **min-heap** (sorted by frequency).
+2. Each time, take out the two nodes with the smallest frequencies, merge them into a new node (frequency = sum of the two), and put it back into the heap.
+3. Repeat until only one node remains in the heap, which is the **root node**.
 
-最终构建出的霍夫曼树：
+The final Huffman tree constructed:
 
 ```mermaid
 graph TD
@@ -65,30 +62,30 @@ graph TD
     Node4 --> R(["🟢 R:2"])
 ```
 
-> 🌿 绿色节点为**叶子节点**（存储实际字符），白色节点为内部合并节点。
+> 🌿 Green nodes are **leaf nodes** (storing actual characters), and white nodes are internal merge nodes.
 
-### 生成编码
+### Generating Codes
 
-从根节点出发，规定：
+Starting from the root node, define:
 
-- 走**左分支**记作 `0`
-- 走**右分支**记作 `1`
+- Going along the **left branch** as `0`
+- Going along the **right branch** as `1`
 
-得到编码表：
+The resulting code table:
 
-| 字符 | 路径 | 编码 | 码长 |
+| Character | Path | Code | Code Length |
 |------|------|------|------|
-| A | 左 | `0` | 1 bit |
-| B | 右→左 | `10` | 2 bits |
-| R | 右→右 | `11` | 2 bits |
-| C | 右→左→左 | `100` | 3 bits |
-| D | 右→左→右 | `101` | 3 bits |
+| A | Left | `0` | 1 bit |
+| B | Right→Left | `10` | 2 bits |
+| R | Right→Right | `11` | 2 bits |
+| C | Right→Left→Left | `100` | 3 bits |
+| D | Right→Left→Right | `101` | 3 bits |
 
-> 💡 高频字符 A 仅用 1 bit，低频字符 C/D 用 3 bits——这正是"按频率分配码长"的直观体现。
+> 💡 The high-frequency character A uses only 1 bit, while the low-frequency characters C/D use 3 bits—this is precisely the intuitive embodiment of "allocating code lengths by frequency."
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：BuildHuffmanTree(freqMap)
@@ -106,21 +103,20 @@ graph TD
 9. return H.pop()          // 根节点
 ```
 
-**复杂度分析**：
+**Complexity Analysis**:
 
-| 操作 | 时间复杂度 | 说明 |
+| Operation | Time Complexity | Description |
 |------|-----------|------|
-| 建堆 | O(n) | n 个字符节点一次性堆化 |
-| 合并循环 | O(n log n) | 每次 pop/push 为 O(log n)，共 n-1 次合并 |
-| 编码生成 | O(n) | 一次 DFS 遍历树 |
-| 编码 / 解码 | O(m) | m 为编码后比特串长度 |
-| 空间复杂度 | O(n) | 存储树和编码表 |
+| Build heap | O(n) | Heapify n character nodes at once |
+| Merge loop | O(n log n) | Each pop/push is O(log n), with n-1 merges in total |
+| Code generation | O(n) | One DFS traversal of the tree |
+| Encoding / Decoding | O(m) | m is the length of the encoded bit string |
+| Space complexity | O(n) | Stores the tree and code table |
 
 ---
+## TypeScript Implementation
 
-## TypeScript 实现
-
-### 1. 节点与类型定义
+### 1. Node and Type Definitions
 
 ```typescript
 class HuffmanNode {
@@ -148,7 +144,7 @@ class HuffmanNode {
 }
 ```
 
-### 2. 最小堆（优先队列）
+### 2. Min-Heap (Priority Queue)
 
 ```typescript
 class MinHeap {
@@ -203,7 +199,7 @@ class MinHeap {
 }
 ```
 
-### 3. 构建霍夫曼树
+### 3. Building the Huffman Tree
 
 ```typescript
 function buildHuffmanTree(freqMap: Map<string, number>): HuffmanNode {
@@ -231,7 +227,7 @@ function buildHuffmanTree(freqMap: Map<string, number>): HuffmanNode {
 }
 ```
 
-### 4. 生成编码表
+### 4. Generating the Code Table
 
 ```typescript
 function generateCodes(root: HuffmanNode): Map<string, string> {
@@ -252,7 +248,7 @@ function generateCodes(root: HuffmanNode): Map<string, string> {
 }
 ```
 
-### 5. 编码与解码
+### 5. Encoding and Decoding
 
 ```typescript
 function encode(text: string, codes: Map<string, string>): string {
@@ -288,7 +284,7 @@ function decode(bits: string, root: HuffmanNode): string {
 }
 ```
 
-### 6. 完整运行示例
+### 6. Complete Running Example
 
 ```typescript
 // ===== 测试 =====
@@ -328,38 +324,37 @@ console.log('验证通过:', decoded === text);
 
 ---
 
-## 工程优化：规范霍夫曼编码
+## Engineering Optimization: Canonical Huffman Coding
 
-在实际工程（如 ZIP、JPEG）中，通常使用 **规范霍夫曼编码（Canonical Huffman）** 来减少编码表的存储开销：
+In real-world engineering (such as ZIP and JPEG), **Canonical Huffman Coding** is typically used to reduce the storage overhead of the code table:
 
-- 只存储每个字符的**码长**，而非完整编码
-- 按码长和字典序重新分配编码值
-- 解码端可通过码长信息重建编码表
+- Only the **code length** of each character is stored, rather than the full code
+- Code values are reassigned based on code length and lexicographic order
+- The decoder can reconstruct the code table from the code length information
 
-规范版本可将编码表从 O(n × 码长) 压缩到 O(n)，是生产环境的标准做法。
+The canonical version can compress the code table from O(n × code length) to O(n), making it the standard practice in production environments.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### ✅ 典型应用
+### ✅ Typical Applications
 
-- **ZIP / GZIP**：DEFLATE 算法的熵编码阶段
-- **PNG**：图像无损压缩
-- **JPEG**：DCT 系数熵编码
-- **HTTP/2**：HPACK 头部压缩中的霍夫曼编码
+- **ZIP / GZIP**: The entropy coding stage of the DEFLATE algorithm
+- **PNG**: Lossless image compression
+- **JPEG**: Entropy coding of DCT coefficients
+- **HTTP/2**: Huffman coding in HPACK header compression
 
-### ⚠️ 局限性
+### ⚠️ Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 需预知频率 | 对动态数据流需自适应版本（Adaptive Huffman） |
-| 单字符编码 | 未利用字符间上下文相关性 |
-| 脆弱性 | 1 bit 错误可能导致后续全部解码错乱 |
+| Requires known frequencies | Adaptive Huffman is needed for dynamic data streams |
+| Single-character encoding | Does not exploit contextual correlation between characters |
+| Fragility | A 1-bit error can cause all subsequent decoding to fail |
 
 ---
-
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -370,14 +365,11 @@ graph LR
     E --> F[编码 / 解码]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. **贪心策略**：每次合并当前最小的两棵子树，自底向上构建最优树。
-2. **数据结构**：最小堆（O(log n) 插入 / 删除）+ 二叉树遍历。
-3. **最优性保证**：霍夫曼编码可在数学上证明为前缀码中最优的。
-4. **工程落地**：实际使用规范版本减少编码表存储。
+1. **Greedy strategy**: Merge the two currently smallest subtrees each time, building the optimal tree from the bottom up.
+2. **Data structures**: Min-heap (O(log n) insertion / deletion) + binary tree traversal.
+3. **Optimality guarantee**: Huffman coding can be mathematically proven to be optimal among prefix codes.
+4. **Engineering implementation**: In practice, a canonical version is used to reduce encoding table storage.
 
-> 掌握霍夫曼编码不仅理解了一类压缩算法的基石，也加深了对**贪心算法**和**树结构**的理解。建议结合 DEFLATE 源码或 PNG 规范进一步学习其工程实现。
-
-
-
+> Mastering Huffman coding not only gives you an understanding of the foundation of a class of compression algorithms, but also deepens your understanding of **greedy algorithms** and **tree structures**. It is recommended to further study its engineering implementation by combining the DEFLATE source code or the PNG specification.

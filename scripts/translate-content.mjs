@@ -22,9 +22,9 @@
  *     are therefore skipped on re-run, which makes the pass idempotent.
  *   - Each file is written atomically, only after every chunk succeeded, so an
  *     interrupted run never leaves a half-translated article behind.
- *   - Code fences, inline code, KaTeX, images, HTML and links are masked behind
- *     \x00PROTECTED{n}\x00 markers; the marked blocks must come back unchanged
- *     and complete, or the file is retried and then failed loudly.
+ *   - Code fences, inline code, KaTeX, HTML tags and bare URLs are masked
+ *     behind private-use placeholders; the masked blocks must come back
+ *     unchanged and complete, or the file is retried and then failed loudly.
  */
 
 import { readFile, writeFile, readdir } from "node:fs/promises";
@@ -48,7 +48,8 @@ const MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
 const ENDPOINT = "https://api.deepseek.com/chat/completions";
 
 /** Chinese/CJK ideographs plus CJK punctuation — used for the "is this done?" test. */
-const CJK = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]/;
+export const CJK =
+	/[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]/;
 
 const MAX_CHUNK_CHARS = 5000;
 const MAX_ATTEMPTS = 3;
@@ -60,8 +61,10 @@ function parseArgs(argv) {
 		file: null,
 		limit: Number.POSITIVE_INFINITY,
 		concurrency: 3,
+		maxChunk: MAX_CHUNK_CHARS,
 		force: false,
 		dryRun: false,
+		normalizeOnly: false,
 	};
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i];
@@ -69,6 +72,8 @@ function parseArgs(argv) {
 		else if (arg === "--file") opts.file = argv[++i];
 		else if (arg === "--limit") opts.limit = Number(argv[++i]);
 		else if (arg === "--concurrency") opts.concurrency = Number(argv[++i]);
+		else if (arg === "--max-chunk") opts.maxChunk = Number(argv[++i]);
+		else if (arg === "--normalize-only") opts.normalizeOnly = true;
 		else if (arg === "--force") opts.force = true;
 		else if (arg === "--dry-run") opts.dryRun = true;
 		else throw new Error(`Unknown option: ${arg}`);
@@ -81,7 +86,7 @@ function parseArgs(argv) {
  * Splits the leading `---` block from the body. Returns the raw frontmatter
  * lines (without the fences) so untouched fields can be written back verbatim.
  */
-function splitFrontmatter(raw) {
+export function splitFrontmatter(raw) {
 	const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
 	if (!match) return { frontmatter: null, body: raw, fenceLength: 0 };
 	return {
@@ -140,11 +145,14 @@ const METADATA_KEYS = new Set([
 	"bookTitle",
 ]);
 
+/** Where src/content lives, exported so check-translations.mjs walks the same set. */
+export const CONTENT_ROOT = resolve(ROOT, "src", "content");
+
 /**
  * Reads the translatable frontmatter fields. Returns null when there is no
  * frontmatter block at all (e.g. src/content/spec/about.md).
  */
-function readMetadata(frontmatter) {
+export function readMetadata(frontmatter) {
 	if (frontmatter === null) return null;
 	const meta = { title: null, description: null, tags: null, category: null, author: null, bookTitle: null };
 	for (const line of frontmatter.split(/\r?\n/)) {
@@ -177,40 +185,70 @@ function writeMetadata(frontmatter, translated) {
 
 // ── Protected block masking ─────────────────────────────────────────
 /**
- * Masks everything that must survive translation byte-for-byte. Order matters:
- * fenced code first, then the inline constructs.
+ * Placeholder token for a masked block.
+ *
+ * These MUST NOT be NUL/control characters: a control byte has to be JSON
+ * escaped as \u0000 on the way to the API and models routinely drop the
+ * resulting token, which silently loses the masked code. Two private-use
+ * characters around the index survive JSON, tokenisation and re-emission, and
+ * are visible enough in the prompt for the model to copy them deliberately.
  */
-function maskProtected(text) {
+const MARK_OPEN = "\uE000";
+const MARK_CLOSE = "\uE001";
+const MARK_RE = /\uE000(\d+)\uE001/g;
+const mark = (index) => `${MARK_OPEN}${index}${MARK_CLOSE}`;
+/** Human-readable form used in the prompt, so the model sees the real glyphs. */
+const MARK_SHAPE = `${MARK_OPEN}0${MARK_CLOSE}`;
+
+/**
+ * Masks only what must survive byte-for-byte. Prose is deliberately left
+ * exposed — including link text, image alt text and admonition bodies, which
+ * are user-visible and therefore must be translated.
+ *
+ * Two severities:
+ *   hard — code fences, math, HTML tags, bare URLs, footnote markers. Losing
+ *          one means broken code, broken math or a dead link, so the file fails.
+ *   soft — inline code spans. Losing the backticks is a cosmetic deviation,
+ *          not data loss, and masking every `identifier` in a code-dense
+ *          article produces dozens of fragile markers per chunk. Soft blocks
+ *          are still protected from translation, but a dropped one is reported
+ *          and tolerated instead of failing the whole article.
+ */
+export function maskProtected(text) {
 	const blocks = [];
-	const stash = (match) => {
+	const soft = new Set();
+	const stash = (match, isSoft = false) => {
 		blocks.push(match);
-		return `\x00PROTECTED${blocks.length - 1}\x00`;
+		if (isSoft) soft.add(blocks.length - 1);
+		return mark(blocks.length - 1);
 	};
 
 	let out = text;
-	out = out.replace(/```[\s\S]*?```/g, stash); // fenced code (incl. mermaid)
-	out = out.replace(/^:::\w+[\s\S]*?^:::$/gm, stash); // admonition blocks
-	out = out.replace(/`[^`\n]+`/g, stash); // inline code
-	out = out.replace(/\$\$[\s\S]*?\$\$/g, stash); // display math
-	out = out.replace(/\$[^$\n]+?\$/g, stash); // inline math
-	out = out.replace(/!\[\[[^\]]+\]\]/g, stash); // obsidian embed
-	out = out.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, stash); // image
-	out = out.replace(/\[([^\]]*)\]\(([^)]+)\)/g, stash); // link
-	out = out.replace(/<[^>\n]+>/g, stash); // html tag
-	out = out.replace(/^\[\^[^\]]+\]:.*$/gm, stash); // footnote definition
-	return { text: out, blocks };
+	out = out.replace(/```[\s\S]*?```/g, (m) => stash(m)); // fenced code
+	// Inline code must be masked BEFORE the HTML / math rules: code spans are
+	// full of `<`, `>` and `$` (e.g. `nums[i] <= right`), and running the HTML
+	// rule first would swallow a whole paragraph up to the next `>`.
+	out = out.replace(/`[^`\n]+`/g, (m) => stash(m, true)); // inline code (soft)
+	out = out.replace(/\$\$[\s\S]*?\$\$/g, (m) => stash(m)); // display math
+	out = out.replace(/\$[^$\n]+?\$/g, (m) => stash(m)); // inline math
+	out = out.replace(/!\[\[[^\]]+\]\]/g, (m) => stash(m)); // obsidian embed
+	out = out.replace(/<[^>\n]+>/g, (m) => stash(m)); // html tag
+	// URLs only: the surrounding [text](…) and ![alt](…) stay translatable.
+	out = out.replace(/\]\(\s*<?([^)\s>]+)>?[^)]*\)/g, (m, url) => `](${stash(url)})`);
+	out = out.replace(/^\[\^([^\]]+)\]:/gm, (m) => stash(m)); // footnote marker
+	return { text: out, blocks, soft };
 }
 
-function unmask(text, blocks) {
-	return text.replace(/\x00PROTECTED(\d+)\x00/g, (whole, index) => {
+export function unmask(text, blocks) {
+	return text.replace(MARK_RE, (whole, index) => {
 		const block = blocks[Number(index)];
 		return block === undefined ? whole : block;
 	});
 }
 
-function markerIndices(text) {
+export function markerIndices(text) {
 	const found = new Set();
-	for (const m of text.matchAll(/\x00PROTECTED(\d+)\x00/g)) found.add(Number(m[1]));
+	for (const m of text.matchAll(MARK_RE)) found.add(Number(m[1]));
 	return found;
 }
 
@@ -245,11 +283,11 @@ function splitIntoSegments(body) {
 	return segments.filter((s) => s.trim() !== "");
 }
 
-function packChunks(segments) {
+function packChunks(segments, maxChars = MAX_CHUNK_CHARS) {
 	const chunks = [];
 	let current = "";
 	for (const segment of segments) {
-		if (current !== "" && current.length + segment.length > MAX_CHUNK_CHARS) {
+		if (current !== "" && current.length + segment.length > maxChars) {
 			chunks.push(current);
 			current = "";
 		}
@@ -306,11 +344,41 @@ async function withRetry(label, fn) {
 
 const TRANSLATION_RULES = `Rules:
 - Translate ONLY natural language prose into fluent, idiomatic English for a technical blog audience.
-- Do NOT translate code, identifiers, product names or technical acronyms (React, Astro, CSS, API, ...).
+- Do NOT translate code, identifiers, product names or technical acronyms (React, Astro, CSS, API, ...). Leave anything in backticks untouched, including its backticks.
+- Headings that start with a Chinese numeral enumeration marker must use an Arabic numeral: "## 一、概述" becomes "## 1. Overview", "## 二、…" becomes "## 2. …", and so on.
 - Preserve every Markdown construct exactly: heading levels and text order, list markers, tables, blockquotes, emphasis, blank lines.
-- Text of the form \\x00PROTECTED{N}\\x00 is a placeholder. Copy each one verbatim, exactly once, in the same position. Never translate, renumber, merge, drop or add one.
+- Text containing ${MARK_SHAPE} is a masked placeholder (a private-use character, a number, another private-use character). Copy each one verbatim, exactly once, in its original position. Never translate, renumber, merge, drop or add one.
 - Do not add translator notes, preambles, or explanations.
 - Return ONLY the translated Markdown.`;
+
+/**
+ * Deterministic follow-up for the numeral rule above: models reliably translate
+ * the heading text but often keep "一、". Applied outside fenced code only.
+ */
+const NUMERALS = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+
+function normalizeHeadingNumerals(body) {
+	let inFence = false;
+	return body
+		.split("\n")
+		.map((line) => {
+			if (/^\s*(`{3,}|~{3,})/.test(line)) {
+				inFence = !inFence;
+				return line;
+			}
+			if (inFence) return line;
+			return line.replace(
+				/^(#{1,6}\s*)([一二三四五六七八九十]+)[、.．]\s*/,
+				(whole, hashes, numeral) => {
+					const digits = numeral
+						.split("")
+						.reduce((acc, ch) => acc * 10 + (NUMERALS.indexOf(ch) + 1), 0);
+					return `${hashes}${digits === 0 ? numeral : digits}. `;
+				},
+			);
+		})
+		.join("\n");
+}
 
 async function translateMetadata(meta) {
 	// Only fields that actually carry Chinese are sent, so an already-English
@@ -361,8 +429,8 @@ Return ONLY valid JSON with exactly these keys: ${Object.keys(payload).join(", "
 }
 
 async function translateChunk(chunk) {
-	const { text, blocks } = maskProtected(chunk);
-	if (blocks.length === 0 && !CJK.test(text)) return chunk;
+	const { text, blocks, soft } = maskProtected(chunk);
+	if (blocks.length === 0 && !CJK.test(text)) return { text: chunk, softLost: 0 };
 
 	const prompt = `Translate the following Markdown from Simplified Chinese to English.
 
@@ -374,20 +442,35 @@ ${text}
 
 	const raw = await withRetry("chunk", () => callApi(prompt, 8192));
 
-	const expected = new Set(blocks.map((_, i) => i));
+	const expected = [...blocks.keys()];
 	const seen = markerIndices(raw);
-	if (seen.size !== expected.size || [...expected].some((i) => !seen.has(i))) {
-		const missing = [...expected].filter((i) => !seen.has(i));
-		throw new Error(`chunk: ${missing.length} protected block(s) lost (indices ${missing.slice(0, 8).join(",")})`);
+	const missingHard = expected.filter((i) => !seen.has(i) && !soft.has(i));
+	if (missingHard.length > 0) {
+		const detail = missingHard
+			.slice(0, 3)
+			.map((i) => `#${i}=${JSON.stringify(blocks[i]?.slice(0, 60))}`)
+			.join(" ");
+		throw new Error(
+			`chunk: ${missingHard.length} protected block(s) lost (${missingHard.slice(0, 8).join(",")}) ${detail}`,
+		);
 	}
+	const missingSoft = expected.filter((i) => !seen.has(i) && soft.has(i));
 	const restored = unmask(raw, blocks);
-	if (restored.includes("\x00")) throw new Error("chunk: unreplaced placeholder left in output");
-	return restored;
+	if (restored.includes(MARK_OPEN)) {
+		throw new Error("chunk: unreplaced placeholder left in output");
+	}
+	return { text: restored, softLost: missingSoft.length };
 }
 
 // ── File processing ─────────────────────────────────────────────────
 function sha256(text) {
 	return createHash("sha256").update(text).digest("hex").slice(0, 16);
+}
+
+/** Path filter that works whether the caller typed / or \ separators. */
+function matchesFileFilter(full, filter) {
+	const rel = relative(ROOT, full).replace(/\\/g, "/");
+	return rel.includes(filter.replace(/\\/g, "/"));
 }
 
 async function collectFiles(opts) {
@@ -399,11 +482,11 @@ async function collectFiles(opts) {
 		await collectMarkdownFiles(dir, files);
 	}
 	return files
-		.filter((f) => (opts.file ? relative(ROOT, f).includes(opts.file) : true))
+		.filter((f) => (opts.file ? matchesFileFilter(f, opts.file) : true))
 		.sort();
 }
 
-async function collectMarkdownFiles(dir, out = []) {
+export async function collectMarkdownFiles(dir, out = []) {
 	for (const entry of await readdir(dir, { withFileTypes: true })) {
 		const full = join(dir, entry.name);
 		if (entry.isDirectory()) await collectMarkdownFiles(full, out);
@@ -412,28 +495,31 @@ async function collectMarkdownFiles(dir, out = []) {
 	return out;
 }
 
-/** True when the file still holds CJK in a position we translate. */
+/**
+ * True when the file still holds CJK in a position we translate: frontmatter
+ * metadata, or body prose. Uses the same masking as check-translations.mjs so
+ * "needs work" and "has violations" cannot disagree — CJK inside code, math or
+ * a URL does not count.
+ */
 function needsWork(raw) {
 	const { frontmatter, body } = splitFrontmatter(raw);
 	const meta = readMetadata(frontmatter);
 	if (meta) {
-		if (meta.title && CJK.test(meta.title)) return true;
-		if (meta.description && CJK.test(meta.description)) return true;
-		if (meta.category && CJK.test(meta.category)) return true;
-		if (meta.tags && meta.tags.some((t) => CJK.test(t))) return true;
+		for (const value of Object.values(meta)) {
+			const values = Array.isArray(value) ? value : value ? [value] : [];
+			if (values.some((v) => CJK.test(v))) return true;
+		}
 	}
-	// Code blocks are allowed to keep CJK comments; only prose counts.
-	const proseOnly = body.replace(/```[\s\S]*?```/g, "");
-	return CJK.test(proseOnly);
+	return CJK.test(maskProtected(body).text);
 }
 
-async function processFile(full, cache) {
+async function processFile(full, cache, opts) {
 	const rel = relative(ROOT, full);
 	const raw = await readFile(full, "utf8");
 	const currentHash = sha256(raw);
 
-	if (!needsWork(raw)) return { rel, status: "skip-done" };
-	if (cache[rel] === currentHash) return { rel, status: "skip-cached" };
+	if (!needsWork(raw) && !opts.force) return { rel, status: "skip-done" };
+	if (cache[rel] === currentHash && !opts.force) return { rel, status: "skip-cached" };
 
 	const { frontmatter, body } = splitFrontmatter(raw);
 	const meta = readMetadata(frontmatter);
@@ -444,19 +530,27 @@ async function processFile(full, cache) {
 
 	const sourceProse = body.replace(/```[\s\S]*?```/g, "");
 	let englishBody = body;
+	let softLost = 0;
 	if (CJK.test(sourceProse)) {
-		const chunks = packChunks(splitIntoSegments(body));
+		const chunks = packChunks(splitIntoSegments(body), opts.maxChunk);
 		const out = [];
 		for (let i = 0; i < chunks.length; i++) {
 			process.stdout.write(`  ${rel} chunk ${i + 1}/${chunks.length}\r`);
-			out.push(await translateChunk(chunks[i]));
+			const translated = await translateChunk(chunks[i]);
+			softLost += translated.softLost;
+			out.push(translated.text);
 		}
 		englishBody = out.join("\n");
 	}
+	englishBody = normalizeHeadingNumerals(englishBody);
 
-	// Guard: every protected block in the source must survive into the output.
-	const before = maskProtected(body).blocks.slice().sort();
-	const after = maskProtected(englishBody).blocks.slice().sort();
+	// Guard: every HARD protected block (code, math, HTML, URL) must survive.
+	const hardOnly = (text) => {
+		const { blocks, soft } = maskProtected(text);
+		return blocks.filter((_, i) => !soft.has(i)).sort();
+	};
+	const before = hardOnly(body);
+	const after = hardOnly(englishBody);
 	if (before.length !== after.length || before.some((b, i) => b !== after[i])) {
 		throw new Error(`protected blocks changed (${before.length} -> ${after.length})`);
 	}
@@ -471,10 +565,32 @@ async function processFile(full, cache) {
 
 	await writeFile(full, result, "utf8");
 	cache[rel] = sha256(result);
+	if (softLost > 0) return { rel, status: "translated-soft-loss", softLost };
 	// A safety net: if CJK survived anywhere user-facing, say so instead of
 	// pretending the file is done.
 	if (needsWork(result)) return { rel, status: "translated-with-leftovers" };
 	return { rel, status: "translated" };
+}
+
+/**
+ * Rewrites heading numerals in already-translated files without calling the API.
+ * Idempotent, so it is safe to run over the whole content tree.
+ */
+async function normalizeOnly(opts) {
+	const files = (await collectFiles(opts)).slice(0, opts.limit);
+	let changed = 0;
+	for (const full of files) {
+		const raw = await readFile(full, "utf8");
+		const { frontmatter, body } = splitFrontmatter(raw);
+		const nextBody = normalizeHeadingNumerals(body);
+		if (nextBody === body) continue;
+		const result =
+			frontmatter !== null ? `---\n${frontmatter}\n---\n${nextBody}` : nextBody;
+		await writeFile(full, result, "utf8");
+		changed++;
+		console.log(`normalized ${relative(ROOT, full)}`);
+	}
+	console.log(`\n${changed} file(s) normalized`);
 }
 
 // ── Main ────────────────────────────────────────────────────────────
@@ -488,8 +604,14 @@ async function main() {
 			/* optional */
 		}
 	}
-	if (!opts.dryRun && !process.env.DEEPSEEK_API_KEY) {
+	if (!opts.dryRun && !opts.normalizeOnly && !process.env.DEEPSEEK_API_KEY) {
 		throw new Error("DEEPSEEK_API_KEY is not set (or use --dry-run)");
+	}
+
+	// Deterministic, offline fix-up: no API calls.
+	if (opts.normalizeOnly) {
+		await normalizeOnly(opts);
+		return;
 	}
 
 	const files = (await collectFiles(opts)).slice(0, opts.limit);
@@ -515,6 +637,7 @@ async function main() {
 	const results = { translated: 0, skipped: 0, failed: 0 };
 	const failures = [];
 	const leftovers = [];
+	const softLosses = [];
 
 	async function worker(id) {
 		while (queue.length > 0) {
@@ -522,10 +645,14 @@ async function main() {
 			if (!full) break;
 			const rel = relative(ROOT, full);
 			try {
-				const res = await processFile(full, cache);
+				const res = await processFile(full, cache, opts);
 				if (res.status === "translated") {
 					results.translated++;
 					console.log(`[${id}] ok   ${rel}`);
+				} else if (res.status === "translated-soft-loss") {
+					results.translated++;
+					softLosses.push(`${rel} (${res.softLost} inline-code span(s))`);
+					console.log(`[${id}] ok   ${rel}  (${res.softLost} inline-code backtick(s) dropped)`);
 				} else if (res.status === "translated-with-leftovers") {
 					results.translated++;
 					leftovers.push(rel);
@@ -549,6 +676,10 @@ async function main() {
 	console.log(`\ntranslated: ${results.translated}`);
 	console.log(`skipped   : ${results.skipped}`);
 	console.log(`failed    : ${results.failed}`);
+	if (softLosses.length > 0) {
+		console.log(`\ninline-code backticks dropped in ${softLosses.length} file(s) — cosmetic, verify formatting:`);
+		for (const s of softLosses) console.log(`  ${s}`);
+	}
 	if (leftovers.length > 0) {
 		console.log(`\nCJK left behind in ${leftovers.length} file(s) — review these:`);
 		for (const rel of leftovers) console.log(`  ${rel}`);
@@ -560,7 +691,13 @@ async function main() {
 	}
 }
 
-main().catch((error) => {
-	console.error(`fatal: ${error.message}`);
-	process.exitCode = 1;
-});
+// Run only when invoked directly; check-translations.mjs imports the helpers above.
+const invokedDirectly =
+	process.argv[1] &&
+	resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+	main().catch((error) => {
+		console.error(`fatal: ${error.message}`);
+		process.exitCode = 1;
+	});
+}

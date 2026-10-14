@@ -1,17 +1,15 @@
 ---
-title: 寻找单链表的中点：快慢指针经典应用
+title: 'Finding the Middle of a Singly Linked List: The Classic Fast and Slow Pointer Technique'
 published: 2026-08-10
-description: '使用快慢指针技巧一次遍历找到单链表的中间节点。slow 每次走一步，fast 每次走两步，fast 到终点时 slow 恰在中点。附带 C / C++ / JavaScript 三语言实现。'
+description: Use the fast and slow pointer technique to find the middle node of a singly linked list in one pass. The slow pointer moves one step at a time while the fast pointer moves two; when fast reaches the end, slow is exactly at the midpoint. Includes implementations in C, C++, and JavaScript.
 image: ''
-tags: [链表, 快慢指针, 双指针, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Fast and Slow Pointers, Two Pointers, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
-
-给定一个单链表的头节点 `head`，返回链表的**中间节点**。如果有两个中间节点（链表长度为偶数），返回**第二个**中间节点。
+Given the head node `head` of a singly linked list, return the **middle node** of the linked list. If there are two middle nodes (the linked list length is even), return the **second** middle node.
 
 ```
 输入：head = 1→2→3→4→5
@@ -23,39 +21,39 @@ lang: ''
 解释：有两个中间节点（3 和 4），返回第二个即节点 4
 ```
 
-## 解题思路
+## Solution Approach
 
-### 快慢指针法
+### Fast and Slow Pointer Method
 
-想象两个人跑步，A 的速度是 B 的两倍。当 A 跑完全程时，B 恰好跑了一半的距离。
+Imagine two people running, where A's speed is twice that of B. When A finishes the entire course, B has run exactly half the distance.
 
-对应到链表：
-- `slow` 每次走**一步**
-- `fast` 每次走**两步**
-- 当 `fast` 到达链表末尾（`null`）或无法走两步时，`slow` 恰好在中间位置
+Mapped to a linked list:
+- `slow` moves **one step** at a time
+- `fast` moves **two steps** at a time
+- When `fast` reaches the end of the linked list (`null`) or cannot move two steps, `slow` is exactly at the middle position
 
-### 为什么正好在中间？
+### Why exactly in the middle?
 
-设链表长度为 n，slow 走了 s 步，fast 走了 2s 步。
-- 当 fast 到达末尾（第 n 个或之后），2s ≈ n，所以 s ≈ n/2
-- slow 恰好走了 n/2 步，位于中间位置
+Let the linked list length be n, slow has walked s steps, fast has walked 2s steps.
+- When fast reaches the end (the nth node or beyond), 2s ≈ n, so s ≈ n/2
+- slow has walked exactly n/2 steps, located at the middle position
 
-### 偶数长度的"第二个中间节点"
+### The "second middle node" for even lengths
 
-题目要求返回第二个中间节点。快慢指针天然满足这个要求：
-- n=6 时，slow 走到第 4 个节点（前 3 步），恰好是第二个中间节点 ✓
+The problem requires returning the second middle node. The fast and slow pointers naturally satisfy this requirement:
+- When n=6, slow reaches the 4th node (after 3 steps), which is exactly the second middle node ✓
 
-### 算法步骤
+### Algorithm Steps
 
-1. 初始化 `slow = fast = head`
-2. 循环条件：`while (fast && fast->next)`
-3. 每轮：slow 走一步，fast 走两步
-4. 循环结束，返回 slow
+1. Initialize `slow = fast = head`
+2. Loop condition: `while (fast && fast->next)`
+3. Each round: slow moves one step, fast moves two steps
+4. After the loop ends, return slow
 
-> **循环条件为什么是 `fast && fast->next`？**
-> 因为 fast 每次要走两步，需要确保当前节点和下一个节点都不为空。当快指针无法走两步时，慢指针已到达中点。
+> **Why is the loop condition `fast && fast->next`?**
+> Because fast needs to move two steps each time, we need to ensure that both the current node and the next node are not null. When the fast pointer cannot move two steps, the slow pointer has already reached the midpoint.
 
-## 代码实现
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -133,9 +131,9 @@ function middleNode(head) {
 ```
 :::
 
-## 图解过程
+## Illustrated Process
 
-### 奇数长度：n = 5
+### Odd length: n = 5
 
 ```
 初始：     slow            slow              slow
@@ -151,7 +149,7 @@ Step 3:    fast.next==null → 退出循环
            返回 slow=3（中点）✓
 ```
 
-### 偶数长度：n = 6
+### Even length: n = 6
 
 ```
 初始：     slow            slow              slow
@@ -167,16 +165,16 @@ Step 3:    slow=4, fast=null → 退出循环
            返回 slow=4（第二个中间节点）✓
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 只遍历一次链表 |
-| 空间复杂度 | **O(1)** — 只用了两个指针 |
+| Time Complexity | **O(n)** — Traverses the linked list only once |
+| Space Complexity | **O(1)** — Only two pointers are used |
 
-## 快慢指针模式总结
+## Fast and Slow Pointer Pattern Summary
 
-快慢指针是链表问题中最常用的技巧之一，核心模式：
+Fast and slow pointers are one of the most commonly used techniques in linked list problems. The core pattern:
 
 ```text
 while (fast && fast->next) {
@@ -186,17 +184,17 @@ while (fast && fast->next) {
 // 此时 slow 指向中点
 ```
 
-这个模式还用于解决：
-- **环检测**（Floyd 判圈算法）
-- **寻找环的起点**
-- **回文链表判断**（找到中点后反转后半部分）
+This pattern is also used to solve:
+- **Cycle detection** (Floyd's cycle-finding algorithm)
+- **Finding the start of a cycle**
+- **Palindrome linked list check** (find the midpoint, then reverse the second half)
 
-## 关键要点
+## Key Points
 
-1. **循环条件 `fast && fast->next`**：确保快指针每次都能走两步，不会空指针
-2. **偶数长度返回第二个中点**：这是快慢指针的自然结果，无需额外处理
-3. **一次遍历 O(n)**：比"先求长度再走 n/2 步"的两趟法更优
+1. **Loop condition `fast && fast->next`**: Ensures the fast pointer can move two steps each time without null pointer errors
+2. **Even length returns the second midpoint**: This is the natural result of fast and slow pointers, requiring no extra handling
+3. **Single traversal O(n)**: Better than the two-pass method of "first find the length, then walk n/2 steps"
 
-相关文章：
-- [寻找倒数第 K 个节点](/technology/linked-list-kth-from-end/) — "位置差"模式的双指针
-- [判断环并找环起点](/technology/linked-list-cycle/) — 快慢指针的另一经典应用
+Related articles:
+- [Finding the Kth node from the end](/technology/linked-list-kth-from-end/) — Two pointers with the "position difference" pattern
+- [Detecting a cycle and finding its start](/technology/linked-list-cycle/) — Another classic application of fast and slow pointers

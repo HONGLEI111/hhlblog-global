@@ -1,44 +1,42 @@
 ---
-title: 单链表反转：迭代与递归全解析（整个 / 前 N 个 / 区间 / K 个一组）
+title: 'Reversing a Singly Linked List: Iterative and Recursive Approaches Explained (Whole List / First N Nodes / Range / K-Group)'
 published: 2026-09-01
-description: '系统掌握单链表反转的迭代与递归两种解法，并用两种思路分别解决反转整个链表、反转前 N 个节点、区间反转、K 个一组反转四个经典问题，附 C / C++ / JavaScript 三语言实现。'
+description: 'Master both iterative and recursive solutions for reversing a singly linked list, and apply these two approaches to four classic problems: reversing the entire list, reversing the first N nodes, reversing a range, and reversing in groups of K. Includes implementations in C, C++, and JavaScript.'
 image: ''
-tags: [链表, 反转, 迭代, 递归, 双指针, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Reversal, Iteration, Recursion, Two Pointers, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Overview
 
-## 概述
+Reversing a singly linked list is the "foundation" of linked-list algorithm problems—almost all advanced linked-list operations (palindrome checking, reverse-in-groups-of-K, partial reversal) are built on top of it.
 
-反转单链表是链表类算法题的「地基」，几乎所有链表的进阶操作（回文判断、K 个一组反转、部分反转）都以它为基础。
-
-反转的本质只有一句话：**把每条 `next` 指针的方向反过来**。
+The essence of reversal is just one sentence: **reverse the direction of every `next` pointer**.
 
 ```text
 反转前：1 → 2 → 3 → 4 → null
 反转后：4 → 3 → 2 → 1 → null
 ```
 
-围绕「反转」这一核心，本文按难度递进讲四个经典问题：
+Centered on the core concept of "reversal," this article walks through four classic problems in increasing order of difficulty:
 
-| # | 问题 | 对应题目 | 难度 |
+| # | Problem | Corresponding Problem | Difficulty |
 |---|------|---------|------|
-| 1 | 反转整个链表 | LeetCode 206 | 简单 |
-| 2 | 反转前 N 个节点 | 206 的变体 | 中等 |
-| 3 | 反转链表的一部分（区间） | LeetCode 92 | 中等 |
-| 4 | K 个一组反转链表 | LeetCode 25 | 困难 |
+| 1 | Reverse the entire linked list | LeetCode 206 | Easy |
+| 2 | Reverse the first N nodes | Variant of 206 | Medium |
+| 3 | Reverse part of the linked list (a range) | LeetCode 92 | Medium |
+| 4 | Reverse the linked list in groups of K | LeetCode 25 | Hard |
 
-每个问题都给出**迭代**与**递归**两种解法。掌握后你会发现：后三个问题其实都是第一个问题的「套壳」。
+Each problem is presented with both an **iterative** and a **recursive** solution. Once you've mastered them, you'll realize: the latter three problems are really just "wrappers" around the first one.
 
-> 前置知识
-> - **链表节点**：只能沿 `next` 单向前进
-> - **指针重连**：反转的本质是修改引用
-> - **递归**：理解「后序遍历」式的处理顺序
+> Prerequisites
+> - **Linked list nodes**: can only move forward along `next`
+> - **Pointer reconnection**: the essence of reversal is modifying references
+> - **Recursion**: understanding the "post-order traversal" style of processing order
 
-## 链表节点定义
+## Linked List Node Definition
 
-本文所有代码共用下面的单链表节点结构：
+All code in this article shares the following singly linked list node structure:
 
 :::code-tabs
 ```c title="C"
@@ -68,11 +66,11 @@ class ListNode {
 ```
 :::
 
-## 核心思想：迭代 vs 递归
+## Core Idea: Iteration vs Recursion
 
-### 迭代：三指针
+### Iteration: Three Pointers
 
-迭代解法用三个指针 `prev`、`curr`、`next`，每一轮重复四步：
+The iterative solution uses three pointers `prev`, `curr`, `next`, repeating four steps each round:
 
 ```text
 初始：prev = null, curr = head
@@ -88,13 +86,13 @@ prev  curr
   4. curr = next        // curr 前移
 ```
 
-循环结束的条件是 `curr` 走到 `null`，此时 `prev` 正好指向反转后的新头节点。
+The loop ends when `curr` reaches `null`, at which point `prev` points exactly to the new head node after reversal.
 
-> 关键点：第 1 步「先保存 `next`」绝不能省，否则 `curr.next` 被改后，原本的后续链表就再也找不回来了。
+> Key point: Step 1, "save `next` first," must never be skipped; otherwise, once `curr.next` is modified, the original subsequent linked list can never be found again.
 
-### 递归：后序遍历
+### Recursion: Post-Order Traversal
 
-递归解法的精髓是「**先反转后面的，再处理当前的**」，本质上是链表的后序遍历：
+The essence of the recursive solution is "**reverse the rest first, then handle the current one**," which is essentially a post-order traversal of the linked list:
 
 ```text
 reverseList(1→2→3→4)
@@ -103,31 +101,31 @@ reverseList(1→2→3→4)
     最后断开「1」的旧指向：head.next = null
 ```
 
-核心只有两行：
+The core is just two lines:
 
 ```text
 head.next.next = head   // 让后继节点反向指向自己
 head.next = null        // 断开原来的正向指向
 ```
 
-递归的**基准情况**是 `head` 为空或 `head.next` 为空（只剩一个节点，无需反转），此时直接返回 `head`。
+The **base case** of the recursion is when `head` is null or `head.next` is null (only one node left, no reversal needed), in which case `head` is returned directly.
 
-## 四大经典问题
+## Four Classic Problems
 
-### 1. 反转整个链表（LeetCode 206）
+### 1. Reverse the Entire Linked List (LeetCode 206)
 
-**思路（迭代）**：三指针从头走到尾，见上文。
+**Approach (iterative)**: Three pointers walk from head to tail, as described above.
 
-**思路（递归）**：先反转 `head.next` 开始的子链，再让 `head.next` 指向 `head`，最后断开 `head.next`。
+**Approach (recursive)**: First reverse the sub-list starting from `head.next`, then make `head.next` point to `head`, and finally disconnect `head.next`.
 
 ```text
 输入：1 → 2 → 3 → 4 → 5 → null
 输出：5 → 4 → 3 → 2 → 1 → null
 ```
 
-### 2. 反转前 N 个节点
+### 2. Reverse the First N Nodes
 
-**思路（迭代）**：只反转前 `n` 个，反转结束后把**原头节点**（此时已是反转段的尾）接到剩余链上。
+**Approach (iterative)**: Reverse only the first `n` nodes; after reversal, connect the **original head node** (now the tail of the reversed segment) to the remaining list.
 
 ```text
 反转前：1 → 2 → 3 → 4 → 5 → null，n = 3
@@ -135,13 +133,13 @@ head.next = null        // 断开原来的正向指向
                           └─ 剩余部分原样保留
 ```
 
-**思路（递归）**：与「反转整个」几乎一样，唯一区别是反转结束后，尾节点要接到**第 `n+1` 个节点**上。为此引入一个后继指针 `successor`，在递归到 `n == 1` 时记录下「第 n 个节点的后继」，并在回溯时把尾节点的 `next` 指向它。
+**Approach (recursive)**: Almost identical to "reverse the entire list," with the only difference being that after reversal, the tail node must connect to the **`n+1`-th node**. To achieve this, a successor pointer `successor` is introduced, recording "the successor of the n-th node" when recursing to `n == 1`, and on backtracking, pointing the tail node's `next` to it.
 
-`successor` 正是「反转前 N 个」能过渡到「区间反转」的关键桥梁。
+`successor` is precisely the key bridge that allows "reverse the first N" to transition to "range reversal."
 
-### 3. 反转链表的一部分（区间 [left, right]，LeetCode 92）
+### 3. Reverse Part of the Linked List (Range [left, right], LeetCode 92)
 
-**思路（迭代）**：用**虚拟头节点 dummy** 定位到 `left` 的前驱 `pre`，然后对 `[left, right]` 这段做「头插法」反转——每次把 `curr.next` 摘下来插到 `pre` 后面，共执行 `right - left` 次。
+**Approach (iterative)**: Use a **dummy head node** to locate the predecessor `pre` of `left`, then perform "head-insertion" reversal on the segment `[left, right]`—each time detach `curr.next` and insert it after `pre`, for a total of `right - left` iterations.
 
 ```text
 输入：1 → 2 → 3 → 4 → 5，left = 2, right = 4
@@ -149,26 +147,25 @@ head.next = null        // 断开原来的正向指向
            └─ [2,3,4] 被反转 ─┘
 ```
 
-**思路（递归）**：递归地缩小问题规模。当 `left == 1` 时，区间反转就退化为「反转前 `right` 个」；否则不断移动头指针，把 `left` 和 `right` 同时减 1 向深处递归，回来时把当前头接回去。
+**Approach (recursive)**: Recursively reduce the problem size. When `left == 1`, range reversal degenerates to "reverse the first `right`"; otherwise, keep moving the head pointer forward, decrementing both `left` and `right` by 1 while recursing deeper, and reconnect the current head on the way back.
 
-### 4. K 个一组反转链表（LeetCode 25）
+### 4. Reverse the Linked List in Groups of K (LeetCode 25)
 
-**思路（迭代）**：用 `pre` 和 `end` 两个指针扫描，每次先把 `end` 前进 `k` 步「探路」：
+**Approach (iterative)**: Use two pointers `pre` and `end` to scan; each time, first advance `end` by `k` steps to "scout ahead":
 
-- 若剩余不足 `k` 个，直接结束；
-- 否则记录本组起点 `start` 和下一组起点 `next`，把本组**截断**后整体反转，再接回原链。
+- If fewer than `k` remain, stop immediately;
+- Otherwise, record the start of the current group `start` and the start of the next group `next`, **truncate** the current group, reverse it as a whole, and reconnect it to the original list.
 
-**思路（递归）**：先判断剩余是否够 `k` 个，不够则原样返回；够则反转前 `k` 个（复用「反转前 N 个」），再递归处理剩余部分并接回。
+**Approach (recursive)**: First check whether the remaining nodes number at least `k`; if not, return as-is; if so, reverse the first `k` (reusing "reverse the first N"), then recursively process the remainder and reconnect.
 
 ```text
 输入：1 → 2 → 3 → 4 → 5，k = 2
 输出：2 → 1 → 4 → 3 → 5
       └ 反转 ┘ └ 反转 ┘ └ 不足 k 个，原样 ┘
 ```
+## Code Implementation
 
-## 代码实现
-
-每种语言都包含四个问题 × 两种解法共 8 个函数，按注释分区。递归「反转前 N 个」用到的 `successor` 是模块级（文件级）变量。
+Each language contains four problems × two solutions, for a total of 8 functions, divided into sections by comments. The `successor` used by the recursive "reverse the first N" is a module-level (file-level) variable.
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -539,37 +536,36 @@ function reverseKGroupRecursive(head, k) {
 }
 ```
 :::
+## Complexity and Solution Comparison
 
-## 复杂度与解法对比
-
-| 问题 | 迭代时间 | 迭代空间 | 递归时间 | 递归空间 |
+| Problem | Iterative Time | Iterative Space | Recursive Time | Recursive Space |
 |------|---------|---------|---------|---------|
-| 反转整个链表 | O(n) | O(1) | O(n) | O(n)（递归栈） |
-| 反转前 N 个 | O(n) | O(1) | O(n) | O(n) |
-| 区间反转 | O(n) | O(1) | O(n) | O(n) |
-| K 个一组 | O(n) | O(1) | O(n) | O(n/k) |
+| Reverse the entire linked list | O(n) | O(1) | O(n) | O(n) (recursion stack) |
+| Reverse the first N | O(n) | O(1) | O(n) | O(n) |
+| Reverse a range | O(n) | O(1) | O(n) | O(n) |
+| Reverse in groups of K | O(n) | O(1) | O(n) | O(n/k) |
 
-**迭代 vs 递归**：
+**Iteration vs Recursion**:
 
-- **迭代**：空间 O(1)，无栈溢出风险，工程首选。
-- **递归**：代码更简洁、语义更直观，但每次调用都占用栈空间，n 很大时可能**栈溢出**；其价值更多在于「思路迁移」——`reverseN` + `successor` 的写法能干净地推出区间反转和 K 组反转。
+- **Iteration**: O(1) space, no stack overflow risk, the preferred choice in engineering.
+- **Recursion**: The code is more concise and the semantics more intuitive, but each call occupies stack space, and when n is very large it may cause a **stack overflow**; its value lies more in "transferring the approach" — the `reverseN` + `successor` style can cleanly derive range reversal and K-group reversal.
 
-## 关键要点
+## Key Points
 
-1. **反转前先保存 `next`**：这是迭代解法的命门，忘记保存就会断链。
-2. **`head.next.next = head` 是递归的灵魂**：一句「让后继指向自己」完成了反向重连。
-3. **`successor` 是「前 N 个」到「区间」的桥梁**：记录「第 n+1 个节点」，让反转段能正确接回剩余部分。
-4. **区间反转 = 定位前驱 + 头插法**：dummy 节点统一了 `left = 1` 的边界情况。
-5. **K 组反转先「探路」**：判断剩余是否够 `k` 个，不够则原样保留，这是它与「整个反转」的唯一区别。
+1. **Save `next` before reversing**: This is the crux of the iterative solution; forgetting to save it will break the chain.
+2. **`head.next.next = head` is the soul of recursion**: The single statement "make the successor point to itself" accomplishes the reverse reconnection.
+3. **`successor` is the bridge from "the first N" to "a range"**: Recording "the (n+1)th node" allows the reversed segment to correctly reconnect to the remaining part.
+4. **Range reversal = locate the predecessor + head insertion**: The dummy node unifies the boundary cases of `left = 1`.
+5. **K-group reversal "scouts ahead" first**: Determine whether the remaining nodes are enough for `k`; if not, keep them as is — this is the only difference from "reversing the whole thing".
 
-## 扩展思考
+## Extended Thoughts
 
-- **回文链表**（LeetCode 234）：先快慢指针找中点，再反转后半段，最后双指针比较——正是「反转」+「双指针」的组合拳。
-- **递归栈风险**：链表长度到 `10^5` 时，递归深度可能超出默认栈上限，此时应改用迭代。
-- 反转整个链表还有一种「**尾插法**」写法（每轮把 `curr` 插到 dummy 之后），与区间反转的头插法一脉相承，可以自行尝试。
+- **Palindrome linked list** (LeetCode 234): First use fast and slow pointers to find the midpoint, then reverse the second half, and finally compare with two pointers — exactly the combination of "reversal" + "two pointers".
+- **Recursion stack risk**: When the linked list length reaches `10^5`, the recursion depth may exceed the default stack limit, and iteration should be used instead.
+- Reversing the entire linked list also has a "**tail insertion**" style (inserting `curr` after dummy each round), which is in the same vein as the head insertion of range reversal, and you can try it yourself.
 
-## 相关文章
+## Related Articles
 
-- [链表：从节点到 LRU 缓存](/technology/linked-list/) — 链表基础与反转入门
-- [单链表七大算法](/technology/singly-linked-list-seven-algorithms/) — 链表算法总览
-- [链表双指针](/technology/linked-list-two-pointers/) — 快慢指针（回文链表会用到的找中点）
+- [Linked List: From Nodes to LRU Cache](/technology/linked-list/) — Linked list basics and an introduction to reversal
+- [Seven Major Singly Linked List Algorithms](/technology/singly-linked-list-seven-algorithms/) — An overview of linked list algorithms
+- [Linked List Two Pointers](/technology/linked-list-two-pointers/) — Fast and slow pointers (finding the midpoint, which will be used for the palindrome linked list)

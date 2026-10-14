@@ -1,32 +1,30 @@
 ---
-title: 二分查找框架：一套模板搞定元素搜索与左右边界
+title: 'Binary Search Framework: One Template for Element Search and Left/Right Boundaries'
 published: 2026-10-13
-description: '把「搜索一个元素」「搜索左边界」「搜索右边界」收敛到同一个左闭右开骨架 [left, right) 上：三处填空（判断条件、收缩方向、返回值）怎么填，lowerBound 和 upperBound 只差一个比较符号，右边界为什么是 upperBound - 1，以及 mid 溢出、死循环、返回值越界三张排查清单。附 C / C++ / JavaScript 三语言实现。'
+description: 'Unify "search for an element," "search for the left boundary," and "search for the right boundary" into a single half-open interval skeleton [left, right): how to fill in the three blanks (condition, shrink direction, return value), why lowerBound and upperBound differ by just one comparison operator, why the right boundary is upperBound - 1, and three troubleshooting checklists for mid overflow, infinite loops, and out-of-bounds return values. Includes implementations in C, C++, and JavaScript.'
 image: ''
-tags: [二分查找, 模板, 力扣, 数组, C, C++, JavaScript]
-category: '算法'
+tags: [Binary Search, Template, LeetCode, Array, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Why Start with a Template
 
-## 为什么先要一套模板
+[Binary Search: From Beginner to Boundary-Handling Mastery](/technology/binary-search/) covered the **principles**: monotonicity, loop invariants, and why binary search is correct. This article tackles a different problem — **when you actually sit down in front of the screen, what should the first line be?**
 
-[二分搜索：从入门到边界处理精通](/technology/binary-search/) 那篇讲的是**原理**：单调性、区间不变量、二分为什么正确。这篇要解决的是另一个问题——**真正坐到屏幕前，第一行该写什么**。
+The code skeleton for binary search is really just one structure. Among the three variants — searching for an element, searching for the left boundary, and searching for the right boundary — the differences are so small that they come down to just **one comparison operator** and **one return line**. But it's precisely this tiny difference that causes the most trouble: whether the interval is closed or open, whether the initial value of `right` is `n` or `n - 1`, whether to return `left` or `left - 1` — get any one of these backwards, and your code either loops forever or silently returns an index that looks reasonable but is off by one.
 
-二分的代码骨架其实只有一套，搜元素、搜左边界、搜右边界三种写法之间，差别小到只有**一个比较符号**和**一行返回值**。但恰恰是这点差别最要命：区间写成闭的还是开的、`right` 初值取 `n` 还是 `n - 1`、返回 `left` 还是 `left - 1`，任意一处记反，代码要么死循环，要么悄悄返回一个看起来合理、其实错一位的下标。
+This article first converges all three search variants into a single skeleton, then explains one by one why each of the three "fill-in-the-blank" spots is filled the way it is, and finally provides a troubleshooting checklist. The goal is concrete: **from now on, whenever you encounter any binary search problem, first recite the skeleton from memory, then just modify the three blanks.**
 
-这篇先把三种搜索收敛到同一个骨架，再逐个解释三处「填空处」为什么这么填，最后给出排查清单。目标很具体：**以后遇到任何二分题，先默写骨架，再改三处填空就行。**
-
-> **关于代码**
+> **About the Code**
 >
-> 三种模板都给出 C / C++ / JavaScript 三语言实现，逻辑完全等价，可切换标签查看。
-> 三个模板统一采用**左闭右开区间 `[left, right)`**——只有「搜索一个元素」因为要提前返回，保留更直观的左闭右闭写法，文末会解释为什么不强求统一。
+> All three templates are provided in C / C++ / JavaScript implementations. The logic is completely equivalent; switch tabs to view.
+> All three templates uniformly adopt the **left-closed, right-open interval `[left, right)`** — only "search for an element" retains the more intuitive left-closed, right-closed form because it needs to return early. The reason for not forcing uniformity is explained at the end of the article.
 
 ---
 
-## 模板总览：一个骨架，三处填空
+## Template Overview: One Skeleton, Three Blanks
 
-先看骨架。它解决的问题是：**在 `[left, right)` 上找到「第一个满足条件」的位置**。
+Let's look at the skeleton first. The problem it solves is: **find the position of the "first element that satisfies a condition" on `[left, right)`**.
 
 ```text
 /* 二分查找通用骨架：左闭右开区间 [left, right) */
@@ -40,36 +38,36 @@ while (left < right):                /* 区间里还有元素，就继续二分 
 return left                          /* ④ 返回 left，取值落在 [0, n] */
 ```
 
-整个循环里只有三处需要动脑：
+Inside the entire loop, only three spots require thought:
 
-| 填空处 | 含义 | 变化范围 |
+| Blank | Meaning | Range of Variation |
 |--------|------|---------|
-| ③ **判断条件** `check(a[mid])` | 「mid 这一格是什么」 | 全篇只用到 `>=` 和 `>` 两个符号 |
-| 收缩方向 | 真走 `right = mid`、假走 `left = mid + 1` | **三种搜索完全一致，不用改** |
-| ④ **返回值** | `left` 本身，或 `left ± 1` 再校验 | 三种搜索各不相同 |
+| ③ **Condition** `check(a[mid])` | "What is the value at mid?" | Only `>=` and `>` are used throughout |
+| Shrink direction | True goes `right = mid`, false goes `left = mid + 1` | **Identical across all three searches — no need to change** |
+| ④ **Return value** | `left` itself, or `left ± 1` with verification | Differs across all three searches |
 
-注意第二行是固定的：**只要判断条件写对，真假两个分支的动作永远一样**。这是这套骨架最省心的地方——不需要每次重新推导「该不该 `±1`」，因为规则只有一条：
+Note that the second row is fixed: **as long as the condition is written correctly, the actions for the true and false branches are always the same**. This is the most reassuring aspect of this skeleton — you never need to re-derive "should I `±1` or not," because there's only one rule:
 
-> **`check(mid)` 为真 → `right = mid`（mid 可能是答案，留在区间里）；为假 → `left = mid + 1`（mid 肯定不是答案，连自己一起排除）。**
+> **`check(mid)` is true → `right = mid` (mid could be the answer, keep it in the interval); false → `left = mid + 1` (mid definitely isn't the answer, exclude it along with itself).**
 
-因为 `mid` 永远满足 `left ≤ mid < right`，所以两个分支分别让右端严格变小、左端严格变大，区间每轮严格收缩，**天然不会死循环**。
+Since `mid` always satisfies `left ≤ mid < right`, the two branches respectively make the right end strictly smaller and the left end strictly larger. The interval strictly shrinks every iteration, so **it naturally never loops forever**.
 
 ---
 
-## 统一视角：三种搜索其实是同一个问题
+## Unified Perspective: The Three Searches Are Actually the Same Problem
 
-把「搜索一个元素 / 左边界 / 右边界」拆开看，它们要的其实是同一类东西——**第一个满足某个条件的下标**，只是条件不同：
+If you break apart "search for an element / left boundary / right boundary," what they all want is actually the same kind of thing — **the first index that satisfies some condition** — just with different conditions:
 
-| 你要的 | 等价于「找第一个满足…的位置」 | `check(a[mid])` |
+| What You Want | Equivalent to "Find the first position satisfying…" | `check(a[mid])` |
 |--------|------------------------------|-----------------|
-| 左边界 | `>= target` 的位置 | `a[mid] >= target` |
-| 右边界 | `> target` 的位置，再减一 | `a[mid] > target` |
-| 插入位置 | `>= target` 的位置（和左边界同一个） | `a[mid] >= target` |
-| 某个元素 | 先找 `>= target` 的位置，再看是不是恰好相等 | `a[mid] >= target` + 一次校验 |
+| Left boundary | Position of `>= target` | `a[mid] >= target` |
+| Right boundary | Position of `> target`, then minus one | `a[mid] > target` |
+| Insertion position | Position of `>= target` (same as left boundary) | `a[mid] >= target` |
+| A specific element | First find position of `>= target`, then check if it's exactly equal | `a[mid] >= target` + one verification |
 
-也就是说，**`>=` 版（下称 `lowerBound`）和 `>` 版（下称 `upperBound`）这两个函数，就能覆盖全部情况**——它们之间只差一个比较符号。真正的差别在返回值：左边界直接返回，右边界要减一，搜元素还要多做一次「是否真的相等」的校验。
+In other words, **the `>=` version (hereafter `lowerBound`) and the `>` version (hereafter `upperBound`) — these two functions cover all cases** — they differ by only one comparison operator. The real difference lies in the return value: the left boundary returns directly, the right boundary needs to subtract one, and searching for an element requires an extra check of "is it actually equal."
 
-先记住这两条换算，后面三个模板都是在它们上面套了一层壳：
+Remember these two conversions first. The three templates that follow are all just a wrapper layered on top of them:
 
 ```text
 搜索左边界(第一个 == target) = lowerBound(target)          + 校验 a[i] == target
@@ -78,10 +76,9 @@ return left                          /* ④ 返回 left，取值落在 [0, n] */
 ```
 
 ---
+## Template A: Searching for an Element
 
-## 模板 A：搜索一个元素
-
-最熟悉的场景：数组里找一个精确值，找到返回下标，否则返回 `-1`。
+The most familiar scenario: find an exact value in an array, return its index if found, otherwise return `-1`.
 
 ```mermaid
 graph LR
@@ -91,7 +88,7 @@ graph LR
     D --> E["区间 [4,4] mid=4 值 9 命中"]
 ```
 
-这一种用**左闭右闭 `[left, right]`** 最直观：命中就立刻 `return mid`，循环结束时说明没找到。
+This one is most intuitive with a **closed interval on both ends `[left, right]`**: return `return mid` immediately on a hit, and if the loop ends, it means nothing was found.
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -137,15 +134,15 @@ function search(a, target) {
 ```
 :::
 
-### 关键点
+### Key Points
 
-- **`right` 初值是 `n - 1`，循环条件是 `<=`。** 闭区间的「空」是 `left > right`，所以能继续二分的条件是 `left <= right`。
-- **`mid` 一定不会是答案时才敢 `±1`。** 这里 `a[mid]` 已经比较过、确认不等，所以两个分支都跳过 `mid` 本身。
-- **碰到重复元素时，它返回的可能是任意一个。** 想在 `[2,2,2]` 里定位到具体哪一个，就得用后面的左/右边界模板。
+- **The initial value of `right` is `n - 1`, and the loop condition is `<=`.** The "empty" state of a closed interval is `left > right`, so the condition for continuing to binary search is `left <= right`.
+- **Only when `mid` definitely cannot be the answer do we dare to `±1`.** Here `a[mid]` has already been compared and confirmed unequal, so both branches skip `mid` itself.
+- **When duplicate elements are present, it may return any one of them.** If you want to pinpoint a specific one in `[2,2,2]`, you'll need the left/right boundary templates that follow.
 
-### 用统一骨架重写它
+### Rewriting It with the Unified Skeleton
 
-模板 A 也能写成 `lowerBound` 加一次校验——这正是把它接回统一视角的关键：
+Template A can also be written as `lowerBound` plus a single check—this is exactly the key to connecting it back to the unified perspective:
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -170,15 +167,14 @@ function search(a, target) {
 ```
 :::
 
-这样写比左闭右闭版长一点，但好处是**全篇只剩一个骨架**：以后不再需要在脑子里维护两种循环条件。
+This version is a bit longer than the closed-interval one, but the advantage is that **there's only one skeleton left in the entire piece**: you no longer need to maintain two kinds of loop conditions in your head.
 
 ---
+## Template B: Search for the Left Boundary (`lowerBound`)
 
-## 模板 B：搜索左边界（`lowerBound`）
+Scenario: the array contains duplicate elements, and you want the index of the **first** `== target`; or you simply want the insertion position—the position of the first `>= target`.
 
-场景：数组里有重复元素，要的是 **第一个** `== target` 的下标；或者干脆是要插入位置——第一个 `>= target` 的位置。
-
-以 `nums = [1, 2, 2, 2, 3]`、`target = 2` 为例，要的是下标 `1`：
+Taking `nums = [1, 2, 2, 2, 3]` and `target = 2` as an example, what we want is index `1`:
 
 ```text
 nums:   1  2  2  2  3
@@ -229,7 +225,7 @@ function lowerBound(a, target) {
 ```
 :::
 
-分步追踪一遍，可以看到区间是怎么缩到答案上的：
+Tracing through it step by step, you can see how the interval shrinks down to the answer:
 
 ```mermaid
 graph LR
@@ -238,16 +234,16 @@ graph LR
     C --> D["[1,1) 区间空 返回 left = 1"]
 ```
 
-### 关键点
+### Key Points
 
-- **`right` 初值是 `n`（不是 `n - 1`）。** 开区间里 `right` 表示「一定不是答案的第一个位置」，初始 `n` 的含义是「答案可能落在数组末尾之后」，插入位置才可能返回 `n`。
-- **`right = mid` 而不是 `mid - 1`。** 因为 `a[mid] >= target` 时 `mid` 本身就可能是答案（比如它就是第一个等于 `target` 的位置），排除掉就会漏解。
-- **`right = mid` 会不会死循环？** 不会。`mid < right` 恒成立，所以 `right = mid` 让右端严格变小；另一支 `left = mid + 1` 让左端严格变大。这正是骨架安全的原因。
-- **`lowerBound` 返回值可能等于 `n`。** 当数组里所有元素都小于 `target` 时就是这种情况，取值前必须判 `i < n`。
+- **The initial value of `right` is `n` (not `n - 1`).** In a half-open interval, `right` means "definitely not the first position of the answer," and the meaning of the initial `n` is "the answer may fall after the end of the array"—only then can the insertion position possibly return `n`.
+- **`right = mid` rather than `mid - 1`.** Because when `a[mid] >= target`, `mid` itself may be the answer (for example, it is the first position equal to `target`), and excluding it would miss the solution.
+- **Will `right = mid` cause an infinite loop?** No. `mid < right` always holds, so `right = mid` makes the right end strictly smaller; the other branch `left = mid + 1` makes the left end strictly larger. This is exactly why the skeleton is safe.
+- **The return value of `lowerBound` may equal `n`.** This happens when all elements in the array are less than `target`, so you must check `i < n` before using the value.
 
-### 校验一步，就是「搜索左边界」
+### One Verification Step, and It Becomes "Search for the Left Boundary"
 
-上面返回的是「第一个 `>= target`」的位置，它在 `target` 不存在时会指向一个比 `target` 大的元素。要得到严格的「第一个 `== target`」，补一句相等校验即可：
+What is returned above is the position of the "first `>= target`," and when `target` does not exist, it points to an element greater than `target`. To get the strict "first `== target`," just add an equality check:
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -272,15 +268,14 @@ function searchLeft(a, target) {
 ```
 :::
 
-`i < n` 和 `a[i] == target` 两个判断缺一不可：前者防越界，后者把「插入位置」和「真的存在」区分开。
+Both checks `i < n` and `a[i] == target` are indispensable: the former prevents out-of-bounds access, and the latter distinguishes "insertion position" from "actually exists."
 
 ---
+## Template C: Searching for the Right Boundary (`upperBound`)
 
-## 模板 C：搜索右边界（`upperBound`）
+Scenario: you want the index of the **last** `== target`. Same array, same `target = 2`, but this time you want index `3`.
 
-场景：要的是**最后一个** `== target` 的下标。同一个数组、同一个 `target = 2`，这次要的是下标 `3`。
-
-最稳的做法不是「从右往左二分」，而是**照抄模板 B、把 `>=` 换成 `>`**，得到「第一个 `> target`」的位置，再减一：
+The most reliable approach isn't "binary search from right to left," but rather **copy Template B and change `>=` to `>`**, obtaining the position of the "first `> target`," then subtracting one:
 
 ```text
 nums:   1  2  2  2  3
@@ -347,117 +342,116 @@ function searchRight(a, target) {
 ```
 :::
 
-### 关键点
+### Key Points
 
-- **和 `lowerBound` 只差一个符号。** `lowerBound` 判 `>=`、`upperBound` 判 `>`，其余（`right = mid` / `left = mid + 1` / 返回 `left`）逐字相同。写代码时可以先把 `lowerBound` 抄下来，再改那一个符号。
-- **为什么要减一。** `upperBound` 找到的是**第一个大于 `target` 的位置**，它左边一格才是「最后一个小于等于 `target`」的位置——也就是 `target` 的右边界。当 `target` 不存在时，这个位置指向的元素是别的值，所以要靠 `a[i] == target` 校验掉。
-- **`upperBound(target) - 1` 可能等于 `-1`。** 当数组里所有元素都大于 `target` 时，`upperBound` 返回 `0`。取 `a[i]` 前必须先判 `i >= 0`。
-- **别用 `lowerBound(target + 1) - 1` 代替。** 效果一样，但当 `target` 恰好是 `INT_MAX` 时 `target + 1` 会溢出成负数。用 `upperBound`（判 `> target`）从根上避免这个坑。
+- **Differs from `lowerBound` by only one symbol.** `lowerBound` checks `>=`, `upperBound` checks `>`; everything else (`right = mid` / `left = mid + 1` / returning `left`) is identical word for word. When writing code, you can first copy down `lowerBound`, then change that one symbol.
+- **Why subtract one.** `upperBound` finds the **first position greater than `target`**; the cell to its left is the "last position less than or equal to `target`"—that is, the right boundary of `target`. When `target` doesn't exist, the element at this position is some other value, so it must be filtered out via the `a[i] == target` check.
+- **`upperBound(target) - 1` may equal `-1`.** When all elements in the array are greater than `target`, `upperBound` returns `0`. Before taking `a[i]`, you must first check `i >= 0`.
+- **Don't substitute `lowerBound(target + 1) - 1`.** The effect is the same, but when `target` happens to be `INT_MAX`, `target + 1` overflows to a negative number. Using `upperBound` (checking `> target`) avoids this pitfall at its root.
 
 ---
 
-## 三个模板对照表
+## Comparison Table of the Three Templates
 
-三种搜索并排看，差别一目了然：
+Looking at the three searches side by side, the differences are immediately clear:
 
-| | 模板 A 搜元素 | 模板 B 左边界 | 模板 C 右边界 |
+| | Template A: Search for Element | Template B: Left Boundary | Template C: Right Boundary |
 |--|--------------|--------------|--------------|
-| 区间 | 闭 `[left, right]` | 开 `[left, right)` | 开 `[left, right)` |
-| `right` 初值 | `n - 1` | `n` | `n` |
-| 循环条件 | `left <= right` | `left < right` | `left < right` |
-| 判断条件 | `a[mid] == target` | `a[mid] >= target` | `a[mid] > target` |
-| 真分支 | `return mid` | `right = mid` | `right = mid` |
-| 假分支 | 按大小 `mid ± 1` | `left = mid + 1` | `left = mid + 1` |
-| 返回值 | `mid` 或 `-1` | `left` 再校验 | `left - 1` 再校验 |
-| 返回值范围 | `[-1, n-1]` | `[0, n]` | `[-1, n-1]` |
+| Interval | Closed `[left, right]` | Open `[left, right)` | Open `[left, right)` |
+| Initial value of `right` | `n - 1` | `n` | `n` |
+| Loop condition | `left <= right` | `left < right` | `left < right` |
+| Check condition | `a[mid] == target` | `a[mid] >= target` | `a[mid] > target` |
+| True branch | `return mid` | `right = mid` | `right = mid` |
+| False branch | By comparison `mid ± 1` | `left = mid + 1` | `left = mid + 1` |
+| Return value | `mid` or `-1` | `left` then verify | `left - 1` then verify |
+| Return value range | `[-1, n-1]` | `[0, n]` | `[-1, n-1]` |
 
-一句话概括三张表：**`>=` 和 `>` 换来换去，`right = mid` 从不改变，返回值的 `-1` 和校验是最后补的。**
+To summarize all three tables in one sentence: **`>=` and `>` are swapped back and forth, `right = mid` never changes, and the return value's `-1` and verification are patched in at the end.**
 
-再看一眼 `[2,2,2,2]` 里 `target = 2` 三者的表现——这也是判断该用哪个模板的最快方法：
+Take another look at how `target = 2` performs in `[2,2,2,2]`—this is also the fastest way to decide which template to use:
 
-| 场景 | 用哪个 | 结果 |
+| Scenario | Which to use | Result |
 |------|--------|------|
-| 只要知道「在不在」 | A | 任意一个 `2` 的下标 |
-| 要「第一个 `2`」/ 插入位置 | B | `0` |
-| 要「最后一个 `2`」 | C | `3` |
-| 要 `target` 出现的整个区间 | B + C | `[0, 3]` |
+| Just need to know "is it there or not" | A | The index of any `2` |
+| Want "the first `2`" / insertion position | B | `0` |
+| Want "the last `2`" | C | `3` |
+| Want the entire range where `target` appears | B + C | `[0, 3]` |
 
 ---
 
-## 附：区间为什么推荐左闭右开
+## Appendix: Why Left-Closed Right-Open Is Recommended for Intervals
 
-二分最容易错的地方不在算法，而在**区间的定义**。先把区间定死，后面 `right` 初值、循环条件、返回值就都能机械地推出来。两种写法对照如下：
+The easiest place to make mistakes in binary search isn't the algorithm—it's the **definition of the interval**. Once you pin down the interval, the initial value of `right`, the loop condition, and the return value can all be mechanically derived. The two approaches are compared below:
 
-| | 左闭右闭 `[left, right]` | 左闭右开 `[left, right)` |
+| | Left-closed right-closed `[left, right]` | Left-closed right-open `[left, right)` |
 |--|--------------------------|--------------------------|
-| `right` 初值 | `n - 1` | `n` |
-| 循环继续的条件 | `left <= right` | `left < right` |
-| 「区间为空」的样子 | `left > right` | `left == right` |
-| 区间长度 | `right - left + 1` | `right - left` |
-| 循环结束时 | `left == right + 1` | `left == right` |
-| 适合 | 搜索一个元素（找到即返回） | 搜索边界 / 插入位置 |
+| Initial value of `right` | `n - 1` | `n` |
+| Condition for loop to continue | `left <= right` | `left < right` |
+| What "empty interval" looks like | `left > right` | `left == right` |
+| Interval length | `right - left + 1` | `right - left` |
+| When the loop ends | `left == right + 1` | `left == right` |
+| Suited for | Searching for one element (return upon finding) | Searching for boundaries / insertion position |
 
-**推荐左闭右开，原因有三条：**
+**Left-closed right-open is recommended for three reasons:**
 
-1. **区间长度就是 `right - left`，不用 `+1`。** 少一个 `+1`，就少一个最容易记反的地方。
-2. **空区间的判断就写在循环条件里。** `left == right` 表示区间为空，`while (left < right)` 的停止条件天然对齐，不需要额外想「什么时候算找完了」。
-3. **「答案可能不存在」有地方放。** `right` 初值取 `n`，表示「答案可能落在数组末尾之后一格」，插入位置返回 `n` 时不会越界；闭区间写法里没有这个位置，处理「插到末尾」还要特判。
+1. **The interval length is just `right - left`, no `+1` needed.** One less `+1` means one less place to get backwards.
+2. **The empty-interval check is built into the loop condition.** `left == right` means the interval is empty, and `while (left < right)`'s stopping condition naturally aligns—no need to separately think about "when is the search considered done."
+3. **"The answer may not exist" has somewhere to go.** The initial value of `right` is `n`, meaning "the answer may fall one cell past the end of the array"; returning `n` as the insertion position won't go out of bounds. The closed-interval approach has no such position, and handling "insert at the end" requires a special case.
 
-模板 A 之所以保留闭区间，只是因为它一旦命中就 `return`，用不上「第一个满足条件的位置」这个统一语义，闭区间读起来更直白。**如果你的项目里想只留一套写法，把模板 A 换成它的 `lowerBound` + 校验版即可。**
+The reason Template A retains the closed interval is simply that once it hits, it `return`, so it doesn't need the unified semantics of "the first position satisfying the condition"—the closed interval reads more straightforwardly. **If you want to keep only one style in your project, just replace Template A with its `lowerBound` + verification version.**
 
 ---
+## Troubleshooting Checklist: If You Get Binary Search Wrong, It's Almost Always One of These Four
 
-## 排查清单：二分写错，基本逃不出这四种
+### 1. `right` Initial Value Set Wrong
 
-### 1. `right` 初值取错
-
-左闭右开必须写 `n`，写成 `n - 1` 会漏掉「答案在末尾之后」这一格，导致插入位置永远返回不到 `n`。
+For left-closed right-open, you must write `n`. Writing `n - 1` will miss the slot "answer is after the end," causing the insertion position to never return `n`.
 
 ```c
 int left = 0, right = n;      /* 开区间，✓ */
 int left = 0, right = n - 1;  /* 开区间，✗ 末尾那格被漏掉了 */
 ```
 
-### 2. `mid` 溢出
+### 2. `mid` Overflow
 
-`(left + right) / 2` 在 C / C++ / Java / Go 里，当 `left + right` 超过 `INT_MAX`（约 21 亿）时会**先溢出成负数**，再除以 2 得到一个负下标，`a[mid]` 直接越界。
+In C / C++ / Java / Go, when `left + right` exceeds `INT_MAX` (about 2.1 billion), `(left + right) / 2` will **first overflow into a negative number**, then dividing by 2 gives a negative index, and `a[mid]` goes out of bounds directly.
 
 ```c
 int mid = (left + right) / 2;            /* ✗ left + right 可能溢出   */
 int mid = left + (right - left) / 2;     /* ✓ 先减后加，永不溢出      */
 ```
 
-JavaScript 用双精度浮点数，在数组下标的量级上不会溢出，但**保持同一个写法**能让三种语言的代码一眼对照，也避免以后搬去别的语言时踩这个坑。
+JavaScript uses double-precision floating point, so it won't overflow at the magnitude of array indices, but **keeping the same formulation** lets you compare code across all three languages at a glance, and avoids stepping into this pitfall when porting to another language later.
 
-### 3. 死循环
+### 3. Infinite Loop
 
-`while (left < right)` 的循环体里**绝不能出现 `left = mid`**。原因是 `mid` 取下中位数时 `mid < right` 恒成立，但当 `right == left + 1` 时 `mid == left`，此时 `left = mid` 等于没动，区间不收缩，死循环。
+`left = mid` must **never appear** in the loop body of `while (left < right)`. The reason is that when `mid` takes the lower median, `mid < right` always holds, but when `right == left + 1`, `mid == left`, at which point `left = mid` equals no movement, the interval doesn't shrink, and you get an infinite loop.
 
-骨架用 `left = mid + 1` 正是为了避开它。反过来，如果你确实需要「保留 `mid` 作为新的左端」，那 `mid` 就必须改成**上中位数** `left + (right - left + 1) / 2`，否则一样会卡住。
+Using `left = mid + 1` in the skeleton is precisely to avoid this. Conversely, if you really need to "keep `mid` as the new left endpoint," then `mid` must be changed to the **upper median** `left + (right - left + 1) / 2`, otherwise it will get stuck just the same.
 
-> 记一条就够了：**`while (left < right)` 配 `left = mid + 1`，永远安全。**
+> Just remember one thing: **`while (left < right)` paired with `left = mid + 1` is always safe.**
 
-### 4. 返回值越界
+### 4. Return Value Out of Bounds
 
-`lowerBound` 和 `upperBound` 的返回值范围都是 `[0, n]`，**都可能等于 `n`**；`upperBound(target) - 1` 则可能等于 `-1`。凡是要拿这个下标去取 `a[i]`，前面必须先挡一道：
+The return value ranges of `lowerBound` and `upperBound` are both `[0, n]`, and **both can equal `n`**; `upperBound(target) - 1` can equal `-1`. Whenever you want to use this index to access `a[i]`, you must first guard against it:
 
-| 返回值 | 可能越界的取值 | 取用前要判 |
+| Return Value | Value That May Go Out of Bounds | Check Before Use |
 |--------|---------------|-----------|
-| `lowerBound` | `n`（全部小于 target） | `i < n` |
-| `upperBound` | `n`（全部小于等于 target） | `i < n` |
-| `upperBound - 1` | `-1`（全部大于 target） | `i >= 0` |
+| `lowerBound` | `n` (all less than target) | `i < n` |
+| `upperBound` | `n` (all less than or equal to target) | `i < n` |
+| `upperBound - 1` | `-1` (all greater than target) | `i >= 0` |
 
 ---
 
-## 模板扩展：查找元素的第一个和最后一个位置（LeetCode 34）
+## Template Extension: Find First and Last Position of Element (LeetCode 34)
 
-把模板 B 和模板 C 拼起来，就是这道经典题——一次性拿到 `target` 的整个区间。
+Combining Template B and Template C gives you this classic problem—obtaining the entire range of `target` in one pass.
 
-### 题目描述
+### Problem Description
 
-给定一个按照升序排列的整数数组 `nums`，和一个目标值 `target`。找出 `target` 在数组中的**开始位置和结束位置**。如果数组中不存在 `target`，返回 `[-1, -1]`。
+Given an integer array `nums` sorted in ascending order, and a target value `target`. Find the **starting position and ending position** of `target` in the array. If `target` does not exist in the array, return `[-1, -1]`.
 
-**示例：**
+**Example:**
 
 ```text
 输入：nums = [5,7,7,8,8,10], target = 8
@@ -470,13 +464,13 @@ JavaScript 用双精度浮点数，在数组下标的量级上不会溢出，但
 输出：[-1,-1]
 ```
 
-**约束：** `0 <= nums.length <= 10^5`，`-10^9 <= nums[i] <= 10^9`。要求 O(log n) 的时间复杂度。
+**Constraints:** `0 <= nums.length <= 10^5`, `-10^9 <= nums[i] <= 10^9`. O(log n) time complexity is required.
 
-### 思路：左边界和右边界各二分一次
+### Approach: Binary Search Once for Left Boundary and Once for Right Boundary
 
-- `start = lowerBound(target)`：第一个 `>= target` 的位置。
-- `end = upperBound(target) - 1`：最后一个 `<= target` 的位置。
-- 两者都存在的前提是 `start < n` 且 `nums[start] == target`——满足时 `end` 必然 `>= start`，直接一起返回；不满足就返回 `[-1, -1]`。
+- `start = lowerBound(target)`: the position of the first `>= target`.
+- `end = upperBound(target) - 1`: the position of the last `<= target`.
+- The precondition for both to exist is `start < n` and `nums[start] == target`—when satisfied, `end` necessarily `>= start`, so return them together directly; otherwise return `[-1, -1]`.
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -528,25 +522,25 @@ function searchRange(nums, target) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(log n)** — 两次独立的二分，`2 × O(log n)` 仍是 O(log n) |
-| 空间复杂度 | **O(1)** — 只用两个指针；C 版返回的数组是题目要求的结果，不计入额外空间 |
+| Time Complexity | **O(log n)** — two independent binary searches, `2 × O(log n)` is still O(log n) |
+| Space Complexity | **O(1)** — only two pointers used; the array returned by the C version is the result required by the problem and doesn't count as extra space |
 
-### 易错点
+### Common Pitfalls
 
-1. **一次二分拿不到两个边界。** 常见错误是「找到 `target` 后往两边线性扩张」，最坏情况下（数组全是 `target`）退化成 O(n)，超时。必须老老实实二分两次。
-2. **`upperBound(target) - 1` 而不是 `upperBound(target)`。** 忘记减一是最典型的错——返回的 `end` 会指向那个「第一个大于 `target`」的元素，位置偏右一格。
-3. **空数组。** `numsSize == 0` 时 `lowerBound` 返回 `0`，`0 < 0` 为假，直接走 `[-1, -1]` 分支，不用特判；但 C 版 `malloc` 分配两个 `int` 不能省，因为调用方会按 `*returnSize == 2` 读取。
-4. **校验条件别写反。** 判断存在性是 `left < numsSize && nums[left] == target`，两个条件都要有：只写前半句会把「插入位置」误判成命中，只写后半句在 `left == numsSize` 时越界。
+1. **One binary search can't get both boundaries.** A common mistake is "after finding `target`, linearly expand to both sides"—in the worst case (array is all `target`), this degrades to O(n) and times out. You must honestly do two binary searches.
+2. **`upperBound(target) - 1` instead of `upperBound(target)`.** Forgetting to subtract one is the most typical error—the returned `end` will point to the element that is "the first one greater than `target`," off by one position to the right.
+3. **Empty array.** When `numsSize == 0`, `lowerBound` returns `0`, `0 < 0` is false, and it goes directly to the `[-1, -1]` branch without special handling; but in the C version, allocating two `int` for `malloc` cannot be skipped, because the caller will read according to `*returnSize == 2`.
+4. **Don't reverse the validation conditions.** To check existence, it's `left < numsSize && nums[left] == target`—both conditions are needed: writing only the first half will misjudge the "insertion position" as a hit, and writing only the second half will go out of bounds when `left == numsSize`.
 
 ---
 
-## 相关文章
+## Related Articles
 
-- [二分搜索：从入门到边界处理精通](/technology/binary-search/) — 原理、单调性、区间不变量与更多变体
-- [滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) — 同属「一套模板收敛一类题」的思路
-- [寻找重复数：二分查找与快慢指针](/technology/find-duplicate-number/) — 在值域而非下标上二分的经典例子
-- [数组双指针：从 O(n²) 到 O(n) 的优化利器](/technology/two-pointers-array/) — 另一个把暴力解降维成线性扫描的框架
+- [Binary Search: From Beginner to Boundary Handling Mastery](/technology/binary-search/) — principles, monotonicity, interval invariants, and more variants
+- [Sliding Window Core Code Template: Three Problems to Master All Substring and Subarray Problems](/technology/sliding-window-template/) — same philosophy of "one template converges a class of problems"
+- [Find the Duplicate Number: Binary Search and Fast-Slow Pointers](/technology/find-duplicate-number/) — a classic example of binary searching on the value range rather than indices
+- [Array Two Pointers: The Optimization Tool from O(n²) to O(n)](/technology/two-pointers-array/) — another framework that reduces brute force to a linear scan

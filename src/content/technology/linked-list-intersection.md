@@ -1,17 +1,15 @@
 ---
-title: 判断两个单链表是否相交并找出交点：双指针交替遍历法
+title: 'Detecting Intersection of Two Singly Linked Lists and Finding the Intersection Node: Two-Pointer Alternating Traversal'
 published: 2026-08-10
-description: '判断两条单链表是否相交，若相交则找出交点。使用双指针交替遍历法：pA 走到末尾后跳到 pB 的头，pB 走到末尾后跳到 pA 的头，两指针最终相遇于交点或同归于 null。附带 C / C++ / JavaScript 三语言实现。'
+description: Determine whether two singly linked lists intersect, and if so, find the intersection node. The two-pointer alternating traversal method works by having pA jump to the head of pB after reaching the end, and pB jump to the head of pA after reaching the end, so the two pointers eventually meet at the intersection node or both become null. Includes implementations in C, C++, and JavaScript.
 image: ''
-tags: [链表, 双指针, 相交, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Two Pointers, Intersection, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
-
-给定两个单链表的头节点 `headA` 和 `headB`，判断它们是否**相交**（即某个节点被两个链表共享）。如果相交，返回**交点**；否则返回 `null`。
+Given the head nodes `headA` and `headB` of two singly linked lists, determine whether they **intersect** (i.e., some node is shared by both linked lists). If they intersect, return the **intersection node**; otherwise, return `null`.
 
 ```
 输入：headA = 4→1→8→4→5
@@ -21,47 +19,47 @@ lang: ''
 输出：节点 8
 ```
 
-两条链表在节点 8 处交汇，之后共享 4→5 部分。
+The two linked lists meet at node 8, after which they share the 4→5 portion.
 
-## 解题思路
+## Solution Approach
 
-### 暴力法的问题
+### Problems with the brute-force approach
 
-- **哈希表法**：遍历链表 A，将所有节点存入哈希表；再遍历链表 B，检查每个节点是否在哈希表中。空间 O(n)。
-- **双指针交替遍历法**：空间 O(1)，一次遍历完成。
+- **Hash table approach**: Traverse linked list A and store all nodes in a hash table; then traverse linked list B and check whether each node is in the hash table. Space O(n).
+- **Two-pointer alternating traversal approach**: Space O(1), completed in a single traversal.
 
-### 双指针交替遍历法
+### Two-pointer alternating traversal approach
 
-关键观察：如果两条链表有交点，那么**交点之后的节点完全相同**。两链表长度可能不同，但**从各自头节点走到交点再走到末尾的总路径长度是固定的**。
+Key observation: If the two linked lists have an intersection, then **the nodes after the intersection are exactly the same**. The two lists may have different lengths, but **the total path length from each respective head node to the intersection and then to the end is fixed**.
 
-#### 核心思想
+#### Core idea
 
-让两个指针分别从 A 和 B 出发：
-- 指针 `pA`：从 A 的头出发，走到末尾后跳到 B 的头继续走
-- 指针 `pB`：从 B 的头出发，走到末尾后跳到 A 的头继续走
+Let two pointers start from A and B respectively:
+- Pointer `pA`: starts from the head of A, and after reaching the end, jumps to the head of B and continues
+- Pointer `pB`: starts from the head of B, and after reaching the end, jumps to the head of A and continues
 
-如果存在交点，两个指针走过的总长度相等（都是 `lenA + lenB`），它们会在交点相遇。如果不存在交点，两个指针最终同时到达 `null`。
+If an intersection exists, the total distance traveled by both pointers is equal (both are `lenA + lenB`), and they will meet at the intersection. If no intersection exists, both pointers will eventually reach `null` at the same time.
 
-#### 数学证明
+#### Mathematical proof
 
-设链表 A 的长度为 `lenA = a + c`（a 为 A 独有部分，c 为共享部分），链表 B 的长度为 `lenB = b + c`。
+Let the length of linked list A be `lenA = a + c` (a is the part unique to A, c is the shared part), and the length of linked list B be `lenB = b + c`.
 
-| 指针 | 第一段 | 第二段 | 总距离 | 到达交点 |
+| Pointer | First segment | Second segment | Total distance | Reaches intersection |
 |------|--------|--------|--------|----------|
-| pA | a | c + b | a + c + b | 是 |
-| pB | b | c + a | b + c + a | 是 |
+| pA | a | c + b | a + c + b | Yes |
+| pB | b | c + a | b + c + a | Yes |
 
-两个指针走过的总距离都是 `a + b + c`，所以会**同时**到达交点（或同时到达 null）。
+The total distance traveled by both pointers is `a + b + c`, so they will reach the intersection **at the same time** (or reach null at the same time).
 
-### 算法步骤
+### Algorithm steps
 
 1. `pA = headA`, `pB = headB`
-2. 循环条件：`while (pA != pB)`
-3. `pA` 走一步；若 `pA == null`，跳到 `headB`
-4. `pB` 走一步；若 `pB == null`，跳到 `headA`
-5. 循环结束，返回 `pA`（交点或 null）
+2. Loop condition: `while (pA != pB)`
+3. `pA` moves one step; if `pA == null`, jump to `headB`
+4. `pB` moves one step; if `pB == null`, jump to `headA`
+5. When the loop ends, return `pA` (the intersection or null)
 
-## 代码实现
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -143,9 +141,9 @@ function getIntersectionNode(headA, headB) {
 ```
 :::
 
-## 图解过程
+## Illustrated Process
 
-### 有交点的情况
+### Case with an intersection
 
 ```
 链表A：  a1 → a2
@@ -162,7 +160,7 @@ pB 路径：b1 → b2 → b3 → c1 → c2 → c3 → a1 → a2 → ★c1
 ★ 处两指针相遇，c1 就是交点 ✓
 ```
 
-### 无交点的情况
+### Case without an intersection
 
 ```
 链表A：  1 → 2 → 3
@@ -176,25 +174,25 @@ pB 路径：4 → 5 → 1 → 2 → 3 → null
 ★ 两指针同时到达 null ✓
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(m + n)** — 两指针各走 m + n 步 |
-| 空间复杂度 | **O(1)** — 只用了两个指针 |
+| Time complexity | **O(m + n)** — each pointer walks m + n steps |
+| Space complexity | **O(1)** — only two pointers are used |
 
-## 关键要点
+## Key Points
 
-1. **"走你走过的路"**：pA 走完自己走 B，pB 走完自己走 A——这个设计让两指针消除长度差，同时到达交点
-2. **同时到达 null**：如果没有交点，两个指针也会在遍历相同总长度后同时到达 null，循环自然结束
-3. **不能中途跳过 null**：有些写法是 "走到 null 就跳"，这没问题，因为无环链表最后都是 null
-4. **与环检测的区别**：本题假设链表无环。如果可能有环，需要先判环
+1. **"Walk the path you walked"**: pA finishes its own list and then walks B, while pB finishes its own list and then walks A—this design lets the two pointers eliminate the length difference and reach the intersection at the same time
+2. **Reach null at the same time**: If there is no intersection, the two pointers will also reach null at the same time after traversing the same total length, and the loop ends naturally
+3. **Cannot skip null midway**: Some implementations say "jump when reaching null," which is fine, because acyclic linked lists all end in null
+4. **Difference from cycle detection**: This problem assumes the linked lists are acyclic. If cycles are possible, cycle detection must be done first
 
-## 扩展思考
+## Extended Thinking
 
-- 如果链表可能含有环，如何判断相交？—— 需要分情况讨论：都无环、一个有环一个无环、都有环
-- 是否存在更直观的解法？—— 可以先算出两链表长度差，让较长链表的指针先走"差"步，然后同步走
+- If the linked lists may contain cycles, how do we determine intersection? — This requires case-by-case discussion: both acyclic, one cyclic and one acyclic, both cyclic
+- Is there a more intuitive solution? — You can first compute the length difference between the two linked lists, let the pointer of the longer list walk the "difference" steps first, and then walk in sync
 
-相关文章：
-- [判断环并找环起点](/technology/linked-list-cycle/) — 另一个"相遇"逻辑
-- [寻找倒数第 K 个节点](/technology/linked-list-kth-from-end/) — "消除长度差"的类似思想
+Related articles:
+- [Detect a cycle and find its starting point](/technology/linked-list-cycle/) — another "meeting" logic
+- [Find the Kth node from the end](/technology/linked-list-kth-from-end/) — a similar idea of "eliminating the length difference"

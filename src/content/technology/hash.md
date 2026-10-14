@@ -1,108 +1,106 @@
 ---
-title: 哈希表：从 Set 到 HashMap 的 TypeScript 实战
+title: 'Hash Tables: TypeScript in Practice from Set to HashMap'
 published: 2026-04-26
-description: '理解哈希表的原理、JavaScript/TypeScript 中的 Map/Set 使用技巧，以及哈希在前端高频场景（去重、缓存、计数器）中的应用。'
+description: Understand how hash tables work, tips for using Map and Set in JavaScript/TypeScript, and how hashing applies to common frontend scenarios like deduplication, caching, and counters.
 image: ''
-tags: [哈希, TypeScript, 数据结构]
-category: '算法'
+tags: [Hashing, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A hash table is a data structure that quickly locates values by key. It maps keys to array positions through a hash function, achieving O(1) lookup, insertion, and deletion on average.
+
+In JavaScript / TypeScript, the commonly used hash structures are `Map`, `Set`, and plain objects. They are widely used for deduplication, counting, caching, index building, and algorithmic problems like two sum.
+
+The core idea of a hash table is: trade space for time.
+
+> Prerequisites
+> - **Hash function**: maps a key to a bucket position
+> - **Array / bucket**: the underlying storage is usually an array holding elements
+> - **Collision handling**: different keys may land in the same bucket
+
 ---
 
-## 概述
+## Problem Definition
 
-哈希表是一种通过键快速定位值的数据结构。它把键经过哈希函数映射到数组位置，从而在平均情况下实现 O(1) 的查找、插入和删除。
+If we frequently need to answer "has this value appeared before" or "what data does this key correspond to," linear scanning will be slow.
 
-在 JavaScript / TypeScript 中，常用的哈希结构是 `Map`、`Set` 和普通对象。它们广泛用于去重、计数、缓存、索引构建和两数之和这类算法问题。
-
-哈希表的核心思想是：用空间换时间。
-
-> 前置知识
-> - **哈希函数**：把 key 映射到桶位置
-> - **数组 / 桶**：底层通常用数组承载元素
-> - **冲突处理**：不同 key 可能落到同一个桶
-
----
-
-## 问题定义
-
-如果我们要频繁回答“某个值是否出现过”或“某个键对应什么数据”，线性扫描会很慢。
-
-例如在数组中查找：
+For example, searching in an array:
 
 ```text
 [12, 7, 9, 20, 31]
 ```
 
-每次都可能扫完整个数组，复杂度是 O(n)。哈希表希望把这个问题变成：
+Each time it may scan the entire array, with complexity O(n). A hash table aims to turn this problem into:
 
 ```text
 key -> hash -> bucket -> value
 ```
 
-常见需求包括：
+Common needs include:
 
-| 需求 | 推荐结构 |
+| Need | Recommended structure |
 | --- | --- |
-| 判断元素是否存在 | `Set` |
-| 统计出现次数 | `Map<T, number>` |
-| 建立 ID 到对象的索引 | `Map<string, Item>` |
-| 字符串键的简单记录 | `Record<string, T>` |
+| Determine whether an element exists | `Set` |
+| Count occurrences | `Map<T, number>` |
+| Build an index from ID to object | `Map<string, Item>` |
+| Simple records with string keys | `Record<string, T>` |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-哈希表的逻辑流程可以拆成三步：
+The logical flow of a hash table can be broken into three steps:
 
 ```text
 key -> hash(key) -> index -> bucket
 ```
 
-假设容量为 8，某个键的哈希值是 18：
+Suppose the capacity is 8, and the hash value of a certain key is 18:
 
 ```text
 index = 18 % 8 = 2
 ```
 
-于是它被放入下标 2 的桶中。
+So it is placed into the bucket at index 2.
 
-### 哈希冲突
+### Hash Collisions
 
-不同键可能映射到同一个位置：
+Different keys may map to the same position:
 
 ```text
 hash("a") % 8 = 2
 hash("b") % 8 = 2
 ```
 
-这叫哈希冲突。常见解决方式有：
+This is called a hash collision. Common solutions include:
 
-- 链地址法：每个桶里放一个链表或数组；
-- 开放寻址：冲突后继续寻找下一个空位；
-- 扩容再散列：负载因子过高时扩大容量。
+- Separate chaining: each bucket holds a linked list or array;
+- Open addressing: after a collision, continue searching for the next empty slot;
+- Resize and rehash: expand capacity when the load factor gets too high.
 
-在日常 TypeScript 开发中，我们不需要自己处理这些细节，但理解它能帮助判断哈希表的性能边界。
+In everyday TypeScript development, we do not need to handle these details ourselves, but understanding them helps judge the performance boundaries of hash tables.
 
 ---
 
-## 基本操作与复杂度
+## Basic Operations and Complexity
 
-| 操作 | 平均复杂度 | 最坏复杂度 | 说明 |
+| Operation | Average complexity | Worst-case complexity | Description |
 | --- | --- | --- | --- |
-| `set` | O(1) | O(n) | 冲突严重时退化 |
-| `get` | O(1) | O(n) | 依赖哈希分布 |
-| `has` | O(1) | O(n) | 集合判断常用 |
-| `delete` | O(1) | O(n) | 删除键值关系 |
-| 遍历 | O(n) | O(n) | 访问所有键值对 |
+| `set` | O(1) | O(n) | Degrades when collisions are severe |
+| `get` | O(1) | O(n) | Depends on hash distribution |
+| `has` | O(1) | O(n) | Commonly used for set membership |
+| `delete` | O(1) | O(n) | Removes a key-value relationship |
+| Traversal | O(n) | O(n) | Visits all key-value pairs |
 
-实际工程里，内置 `Map` / `Set` 已经处理了扩容和冲突，优先使用它们，而不是手写哈希表。
+In real engineering, the built-in `Map` / `Set` already handle resizing and collisions. Prefer using them rather than writing a hash table by hand.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 计数器
+### 1. Counter
 
 ```typescript
 function countBy<T>(items: T[]): Map<T, number> {
@@ -118,7 +116,7 @@ function countBy<T>(items: T[]): Map<T, number> {
 console.log(countBy(['a', 'b', 'a']));
 ```
 
-### 2. 两数之和
+### 2. Two Sum
 
 ```typescript
 function twoSum(nums: number[], target: number): [number, number] | null {
@@ -138,9 +136,9 @@ function twoSum(nums: number[], target: number): [number, number] | null {
 }
 ```
 
-这个实现把“向前查找另一个数”的 O(n) 扫描变成了 O(1) 查询。
+This implementation turns the O(n) scan of "looking forward for another number" into an O(1) query.
 
-### 3. 分组
+### 3. Grouping
 
 ```typescript
 function groupBy<T, K>(items: T[], getKey: (item: T) => K): Map<K, T[]> {
@@ -161,48 +159,48 @@ function groupBy<T, K>(items: T[], getKey: (item: T) => K): Map<K, T[]> {
 }
 ```
 
-哈希表很适合把列表重新组织成“键到集合”的索引。
+Hash tables are very suitable for reorganizing a list into an index of "key to collection."
 
 ---
 
-## 工程优化：Map、Set 与 Object
+## Engineering Optimization: Map, Set, and Object
 
-| 结构 | 适用场景 | 注意点 |
+| Structure | Suitable scenarios | Notes |
 | --- | --- | --- |
-| `Map` | 任意类型键、频繁增删 | 语义最清晰 |
-| `Set` | 去重、存在性判断 | 只关心值是否出现 |
-| `Record<string, T>` | 固定字符串键对象 | 原型和键转换要注意 |
-| `WeakMap` | 对象元数据、避免内存泄漏 | 键必须是对象，不能遍历 |
+| `Map` | Keys of any type, frequent additions and deletions | Clearest semantics |
+| `Set` | Deduplication, existence checks | Only cares whether a value appears |
+| `Record<string, T>` | Objects with fixed string keys | Watch out for prototypes and key conversion |
+| `WeakMap` | Object metadata, avoiding memory leaks | Keys must be objects and cannot be traversed |
 
-通常建议：
+General recommendations:
 
-- 键不是固定字段时，用 `Map`；
-- 只判断是否存在时，用 `Set`；
-- 表示明确对象结构时，用普通对象或 `Record`。
-
----
-
-## 应用与局限
-
-### 典型应用
-
-- 数组去重；
-- 频次统计；
-- 缓存和 memoization；
-- 根据 ID 快速查找对象；
-- 图的邻接表；
-- 两数之和、最长连续序列、异位词分组。
-
-### 局限性
-
-- 哈希表不天然有序，虽然 JS `Map` 保留插入顺序，但不能当排序结构使用；
-- 需要额外空间；
-- 对象作为键时比较的是引用，不是内容；
-- 键设计不稳定会导致缓存命中率低。
+- When keys are not fixed fields, use `Map`;
+- When only checking existence, use `Set`;
+- When representing a clear object structure, use a plain object or `Record`.
 
 ---
 
-## 总结
+## Applications and Limitations
+
+### Typical Applications
+
+- Array deduplication;
+- Frequency counting;
+- Caching and memoization;
+- Quickly finding objects by ID;
+- Adjacency lists for graphs;
+- Two sum, longest consecutive sequence, grouping anagrams.
+
+### Limitations
+
+- Hash tables are not inherently ordered. Although JS `Map` preserves insertion order, it cannot be used as a sorted structure;
+- Requires extra space;
+- When objects are used as keys, comparison is by reference, not by content;
+- Unstable key design leads to low cache hit rates.
+
+---
+
+## Summary
 
 ```mermaid
 graph LR
@@ -212,8 +210,8 @@ graph LR
     C --> E[处理冲突]
 ```
 
-- 哈希表通过键到位置的映射提升查找效率。
-- `Map`、`Set` 是 TypeScript 中最常用的哈希结构。
-- 哈希适合存在性判断、计数、索引和缓存。
-- 它用额外空间换取平均 O(1) 的查询速度。
-- 选择键时要确保语义稳定，尤其是对象键和缓存场景。
+- Hash tables improve lookup efficiency through key-to-position mapping.
+- `Map` and `Set` are the most commonly used hash structures in TypeScript.
+- Hashing is suitable for existence checks, counting, indexing, and caching.
+- It trades extra space for average O(1) query speed.
+- When choosing keys, ensure stable semantics, especially for object keys and caching scenarios.

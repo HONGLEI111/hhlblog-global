@@ -1,41 +1,39 @@
 ---
-title: 图：邻接表、DFS、BFS 与拓扑排序的 TypeScript 实现
+title: 'Graphs: TypeScript Implementations of Adjacency Lists, DFS, BFS, and Topological Sort'
 published: 2026-04-26
-description: '构建图的邻接表表示，用 TypeScript 实现图的深度优先搜索、广度优先搜索、拓扑排序、课程表等问题。'
+description: Build an adjacency list representation of graphs and implement depth-first search, breadth-first search, topological sort, and course schedule problems in TypeScript.
 image: ''
-tags: [图, TypeScript, 数据结构]
-category: '算法'
+tags: [Graph, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A **graph** uses vertices and edges to describe relationships between objects. Compared with arrays, linked lists, and trees, graphs are better suited to expressing "many-to-many connections," such as social relationships, dependency relationships, map roads, and task scheduling.
+
+> Prerequisites
+> - **Hash table / array**: commonly used to store adjacency lists
+> - **DFS / BFS**: the foundational algorithms for graph traversal
+> - **In-degree**: used in topological sorting to determine whether a node can be processed
+
 ---
 
-## 概述
+## Problem Definition
 
-**图（Graph）** 用顶点和边描述对象之间的关系。相比数组、链表、树，图更适合表达“多对多连接”，例如社交关系、依赖关系、地图道路和任务调度。
+Given a set of vertices and a set of edges, choose an appropriate representation and complete traversal, connectivity determination, or dependency ordering.
 
-> 前置知识
-> - **哈希表 / 数组**：常用于存储邻接表
-> - **DFS / BFS**：图遍历的基础算法
-> - **入度**：拓扑排序中用于判断节点是否可处理
-
----
-
-## 问题定义
-
-给定顶点集合和边集合，选择合适的表示方式并完成遍历、连通性判断或依赖排序。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 顶点数量、边列表、方向和权重 |
-| 输出 | 邻接结构、遍历结果、拓扑序或连通分量数量 |
-| 常见表示 | 邻接表、邻接矩阵、边列表 |
-| 典型问题 | DFS/BFS、课程表、连通分量、最短路径 |
+| Input | Number of vertices, edge list, direction, and weights |
+| Output | Adjacency structure, traversal result, topological order, or number of connected components |
+| Common representations | Adjacency list, adjacency matrix, edge list |
+| Typical problems | DFS/BFS, course schedule, connected components, shortest path |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-有向图边列表 `[[0,1], [0,2], [1,3], [2,3]]` 可以表示为邻接表：
+The directed graph edge list `[[0,1], [0,2], [1,3], [2,3]]` can be represented as an adjacency list:
 
 ```mermaid
 graph LR
@@ -45,7 +43,7 @@ graph LR
     C --> D
 ```
 
-对应结构：
+The corresponding structure:
 
 ```text
 0 -> [1, 2]
@@ -54,13 +52,13 @@ graph LR
 3 -> []
 ```
 
-### 拓扑排序直觉
+### Intuition Behind Topological Sorting
 
-如果一条边 `u -> v` 表示“先完成 u，才能完成 v”，那么每次取出入度为 `0` 的节点，就能得到一条合法的依赖执行顺序。
+If an edge `u -> v` means "u must be completed before v can be completed," then repeatedly taking out nodes with in-degree `0` yields a valid dependency execution order.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：TopologicalSort(n, edges)
@@ -77,20 +75,20 @@ graph LR
 8. 如果结果长度为 n，返回结果；否则说明有环
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 操作 | 时间复杂度 | 空间复杂度 | 说明 |
+| Operation | Time complexity | Space complexity | Description |
 |------|------|------|------|
-| 构建邻接表 | O(V + E) | O(V + E) | 初始化节点并加入边 |
-| DFS / BFS | O(V + E) | O(V) | 每个点和边最多访问一次 |
-| 拓扑排序 | O(V + E) | O(V + E) | 邻接表和入度数组 |
-| 邻接矩阵查询边 | O(1) | O(V²) | 适合稠密图 |
+| Build adjacency list | O(V + E) | O(V + E) | Initialize nodes and add edges |
+| DFS / BFS | O(V + E) | O(V) | Each vertex and edge is visited at most once |
+| Topological sort | O(V + E) | O(V + E) | Adjacency list and in-degree array |
+| Query edge in adjacency matrix | O(1) | O(V²) | Suitable for dense graphs |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 邻接表构建
+### 1. Building an Adjacency List
 
 ```typescript
 type AdjList = Map<number, number[]>;
@@ -111,7 +109,7 @@ function buildGraph(n: number, edges: number[][], directed = true): AdjList {
 }
 ```
 
-### 2. DFS 遍历
+### 2. DFS Traversal
 
 ```typescript
 function dfs(graph: AdjList, start: number): number[] {
@@ -133,7 +131,7 @@ function dfs(graph: AdjList, start: number): number[] {
 }
 ```
 
-### 3. BFS 遍历
+### 3. BFS Traversal
 
 ```typescript
 function bfs(graph: AdjList, start: number): number[] {
@@ -157,7 +155,7 @@ function bfs(graph: AdjList, start: number): number[] {
 }
 ```
 
-### 4. 拓扑排序
+### 4. Topological Sort
 
 ```typescript
 function topologicalSort(numCourses: number, prerequisites: number[][]): number[] {
@@ -190,7 +188,7 @@ function topologicalSort(numCourses: number, prerequisites: number[][]): number[
 }
 ```
 
-### 5. 连通分量数量
+### 5. Number of Connected Components
 
 ```typescript
 function findCircleNum(isConnected: number[][]): number {
@@ -221,38 +219,38 @@ function findCircleNum(isConnected: number[][]): number {
 
 ---
 
-## 工程优化：邻接表还是邻接矩阵
+## Engineering Optimization: Adjacency List or Adjacency Matrix
 
-| 表示方式 | 优点 | 代价 | 适用场景 |
+| Representation | Advantages | Cost | Applicable scenarios |
 |------|------|------|------|
-| 邻接表 | 空间 O(V + E)，遍历邻居快 | 判断两点是否有边需遍历邻居 | 稀疏图、遍历类问题 |
-| 邻接矩阵 | 判断边 O(1) | 空间 O(V²) | 稠密图、节点数较小 |
-| 边列表 | 输入和排序方便 | 查邻居慢 | Kruskal、Bellman-Ford |
+| Adjacency list | Space O(V + E), fast neighbor traversal | Determining whether an edge exists between two points requires traversing neighbors | Sparse graphs, traversal-type problems |
+| Adjacency matrix | Edge lookup O(1) | Space O(V²) | Dense graphs, small number of nodes |
+| Edge list | Convenient input and sorting | Slow neighbor lookup | Kruskal, Bellman-Ford |
 
-JavaScript/TypeScript 中，如果节点编号连续，`number[][]` 通常比 `Map<number, number[]>` 更轻；如果节点是字符串或稀疏 ID，`Map` 更自然。
+In JavaScript/TypeScript, if node indices are contiguous, `number[][]` is usually lighter than `Map<number, number[]>`; if nodes are strings or sparse IDs, `Map` is more natural.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 依赖分析：课程表、任务编排、包管理
-- 社交网络、推荐系统、关系链搜索
-- 地图路径、网络路由、最短路径
-- 连通分量、环检测、拓扑排序
+- Dependency analysis: course schedules, task orchestration, package management
+- Social networks, recommendation systems, relationship chain search
+- Map paths, network routing, shortest paths
+- Connected components, cycle detection, topological sorting
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 建模成本高 | 需要先明确节点和边的含义 |
-| 大图内存压力 | 邻接结构可能非常大 |
-| 算法选择依赖图类型 | 有向/无向、有权/无权、是否有环都会影响解法 |
+| High modeling cost | The meaning of nodes and edges must first be clarified |
+| Memory pressure for large graphs | The adjacency structure may be very large |
+| Algorithm choice depends on graph type | Directed/undirected, weighted/unweighted, and whether cycles exist all affect the solution |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -263,9 +261,9 @@ graph LR
     B --> F[连通性/路径问题]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 图用于表达多对多关系，邻接表是最常用表示。
-2. DFS 适合连通性和深度探索，BFS 适合层序和无权最短路。
-3. 拓扑排序依赖入度为 0 的节点不断出队。
-4. 先判断图的类型，再选择合适的数据结构和算法。
+1. Graphs are used to express many-to-many relationships, and adjacency lists are the most commonly used representation.
+2. DFS is suitable for connectivity and deep exploration, while BFS is suitable for level order and unweighted shortest paths.
+3. Topological sorting relies on repeatedly dequeuing nodes with in-degree 0.
+4. First determine the graph type, then choose the appropriate data structure and algorithm.

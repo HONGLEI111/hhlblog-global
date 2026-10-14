@@ -1,61 +1,59 @@
 ---
-title: 合并 K 个有序链表：最小堆与分治法
+title: 'Merge K Sorted Lists: Min-Heap vs. Divide and Conquer'
 published: 2026-08-10
-description: '将 K 个升序链表合并为一个新的升序链表。介绍两种解法：最小堆（优先队列）和分治法两两合并，分析各自优劣。附带 C / C++ / JavaScript 三语言实现。'
+description: 'Merge K ascending linked lists into a single ascending linked list. Covers two approaches: a min-heap (priority queue) and divide-and-conquer pairwise merging, with an analysis of their trade-offs. Includes implementations in C, C++, and JavaScript.'
 image: ''
-tags: [链表, 堆, 分治, 合并, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Heap, Divide and Conquer, Merge, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
-
-给定一个链表数组，每个链表都已按**升序**排列。将所有链表合并为一个**升序**链表，并返回合并后的链表头。
+Given an array of linked lists, each linked list is already sorted in **ascending** order. Merge all the linked lists into one **ascending** linked list and return the head of the merged linked list.
 
 ```
 输入：lists = [1→4→5, 1→3→4, 2→6]
 输出：1→1→2→3→4→4→5→6
 ```
 
-## 解题思路
+## Solution Approach
 
-这道题是"合并两个有序链表"的扩展。当 K 变大时，如果我们每次都遍历 K 个链表的头节点来找最小值，时间复杂度会退化到 O(K·N)。我们需要更高效的方式。
+This problem is an extension of "Merge Two Sorted Lists." When K becomes large, if we traverse the head nodes of K linked lists each time to find the minimum value, the time complexity degrades to O(K·N). We need a more efficient approach.
 
-### 方法一：最小堆（优先队列）
+### Method 1: Min-Heap (Priority Queue)
 
-核心思想是维护一个大小为 K 的小根堆，每次从堆顶取出最小的节点，再将该节点的下一个节点入堆。
+The core idea is to maintain a min-heap of size K, each time extracting the smallest node from the top of the heap, then pushing the next node of that node into the heap.
 
-- 初始化：将 K 个链表的头节点放入最小堆
-- 每轮：弹出堆顶节点追加到结果链表，将该节点的 next 入堆
-- 直到堆为空
+- Initialization: Put the head nodes of K linked lists into the min-heap
+- Each round: Pop the top node from the heap and append it to the result list, then push that node's next into the heap
+- Until the heap is empty
 
-**时间复杂度**：O(N log K)，每次堆操作 O(log K)  
-**空间复杂度**：O(K)，堆中最多同时存放 K 个节点
+**Time complexity**: O(N log K), each heap operation is O(log K)  
+**Space complexity**: O(K), the heap holds at most K nodes at a time
 
-### 方法二：分治法两两合并
+### Method 2: Divide and Conquer — Pairwise Merge
 
-利用"合并两个有序链表"作为基本操作，将 K 个链表**两两配对**合并，层层归并。
+Using "Merge Two Sorted Lists" as the basic operation, merge K linked lists by **pairing them up**, merging level by level.
 
-- 第一轮：合并 (0,1), (2,3), (4,5), ... → K/2 个链表
-- 第二轮：合并上轮结果两两配对 → K/4 个链表
-- 直到只剩一个链表
+- First round: Merge (0,1), (2,3), (4,5), ... → K/2 linked lists
+- Second round: Merge the previous round's results pairwise → K/4 linked lists
+- Until only one linked list remains
 
-**时间复杂度**：O(N log K)，每轮合并 O(N)，共 log K 轮  
-**空间复杂度**：O(1)（递归栈 O(log K)）
+**Time complexity**: O(N log K), each round merges O(N), for a total of log K rounds  
+**Space complexity**: O(1) (recursion stack O(log K))
 
-### 两种方法对比
+### Comparison of the Two Methods
 
-| 维度 | 最小堆 | 分治法 |
+| Dimension | Min-Heap | Divide and Conquer |
 |------|--------|--------|
-| 时间复杂度 | O(N log K) | O(N log K) |
-| 空间复杂度 | O(K) | O(1) |
-| 实现难度 | 需要堆数据结构 | 递归直观 |
-| 适用场景 | K 很大但 N 不大 | K 很大且 N 也很大 |
+| Time complexity | O(N log K) | O(N log K) |
+| Space complexity | O(K) | O(1) |
+| Implementation difficulty | Requires heap data structure | Recursion is intuitive |
+| Applicable scenarios | K is large but N is not | Both K and N are large |
 
-下面给出两种方法的完整实现。
+The complete implementations of both methods are given below.
 
-## 代码实现（最小堆法）
+## Code Implementation (Min-Heap Method)
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -215,8 +213,7 @@ function mergeKLists(lists) {
 // 性能优化版本：分治法（见下方）
 ```
 :::
-
-## 代码实现（分治法）
+## Code Implementation (Divide and Conquer)
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -305,7 +302,7 @@ function mergeKLists(lists) {
 ```
 :::
 
-## 分治法图解
+## Divide and Conquer Illustration
 
 ```
 初始 K=6 个链表：
@@ -326,21 +323,21 @@ interval=4 (步长为4)：
 总共 log₂6 ≈ 3 轮合并
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 最小堆法 | 分治法 |
+| Dimension | Min-Heap Approach | Divide and Conquer |
 |------|---------|--------|
-| 时间复杂度 | O(N log K) | O(N log K) |
-| 空间复杂度 | O(K) | O(1) |
-| 实现难度 | 依赖语言提供的堆 | 递归/迭代，逻辑简单 |
+| Time Complexity | O(N log K) | O(N log K) |
+| Space Complexity | O(K) | O(1) |
+| Implementation Difficulty | Depends on the language's built-in heap | Recursive/iterative, simple logic |
 
-其中 N 为所有链表节点总数，K 为链表个数。
+Where N is the total number of nodes across all linked lists, and K is the number of linked lists.
 
-## 关键要点
+## Key Points
 
-1. **最小堆是"K 指针选最小"的优化**：避免每轮都遍历 K 个指针
-2. **分治法的 interval 迭代**：`interval *= 2` 的精妙循环，原地合并，空间 O(1)
-3. **与合并两个的区别**：K=2 时退化为经典双指针合并；K>2 时需要"多路归并"的框架
+1. **The min-heap is an optimization of "selecting the minimum among K pointers"**: it avoids traversing all K pointers in every round
+2. **The interval iteration of divide and conquer**: the ingenious loop of `interval *= 2`, merging in place, with O(1) space
+3. **Difference from merging two**: when K=2 it degenerates to the classic two-pointer merge; when K>2 a "multi-way merge" framework is needed
 
-相关文章：
-- [合并两个有序链表](/technology/linked-list-merge-two-sorted/) — 本题的基础操作
+Related articles:
+- [Merge Two Sorted Lists](/technology/linked-list-merge-two-sorted/) — the foundational operation for this problem

@@ -9,7 +9,7 @@ draft: false
 lang: ''
 ---
 
-## 一、线上报错只给你一行乱码
+## 1. 线上报错只给你一行乱码
 
 一个典型的生产告警长这样：
 
@@ -29,7 +29,7 @@ TypeError: Cannot read properties of undefined (reading 'id')
 
 任何一段断了，链路都等于不存在。而这三段各自都有非常经典的坑。
 
-## 二、捕获：window.onerror 的五个参数
+## 2. 捕获：window.onerror 的五个参数
 
 最古老的写法是给 `window.onerror` 赋值：
 
@@ -83,7 +83,7 @@ window.addEventListener('error', (event) => {
 
 CDN 那边要回 `Access-Control-Allow-Origin`。这一步不做，你收集到的跨域错误等于「确实出错了，但不知道是什么」。
 
-## 三、Promise 里的错误不在 onerror 里
+## 3. Promise 里的错误不在 onerror 里
 
 `Promise` 的 rejection 不经过 `onerror`，走的是 `unhandledrejection`：
 
@@ -106,7 +106,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 工程上的做法是写一个统一入口，把这几类来源（运行时错误、资源错误、rejection，通常再加上框架的错误边界和 `console.error` 劫持）都 normalize 成同一种 payload，再交给上报层做批量、采样，以及页面卸载时用 `sendBeacon` 兜底——普通 `fetch` 在 `unload` 阶段会被打断。
 
-## 四、还原：Source Map 里到底存了什么
+## 4. 还原：Source Map 里到底存了什么
 
 Source Map 本身是一个 JSON，v3 格式的字段不多：
 
@@ -134,7 +134,7 @@ SourceMap: /static/js/app.9f2c1a.js.map      ← HTTP 响应头
 
 注释前缀是 `//#` 而不是最初的 `//@`，因为 `//@` 和 IE 的条件编译指令（`//@cc_on`）撞了。CSS 里对应的是 `/*# sourceMappingURL=... */`。
 
-## 五、构建配置：生产环境该用 sourcemap: "hidden"
+## 5. 构建配置：生产环境该用 sourcemap: "hidden"
 
 `sourceMappingURL` 注释是把双刃剑：浏览器看到它就会去拉 map，DevTools 里能直接看源码——**但任何访客也能照做，你的源码就等于公开了**。
 
@@ -164,7 +164,7 @@ export default defineConfig({
 `build.sourcemap` 只管 JS。CSS 的 map 由 `css.sourcemap` 单独控制，别指望设一个就全都有了。
 :::
 
-## 六、把压缩堆栈还原成源码位置
+## 6. 把压缩堆栈还原成源码位置
 
 用 `@jridgewell/trace-mapping` 可以从 map 里反查原始坐标：
 
@@ -215,7 +215,7 @@ export function restore(stack) {
 本地临时排查也可以直接用 Chrome DevTools：**Sources 面板 → 右键压缩后的文件 → Add source map**，手动挂上 `.map`，效果一样，只是没法批量。
 :::
 
-## 七、让还原真正生效的两个细节
+## 7. 让还原真正生效的两个细节
 
 **上传要早于错误发生。** 监控平台不会回头重新处理旧事件，map 必须在错误上报之前就已经在那边了。
 
@@ -237,7 +237,7 @@ sentry-cli sourcemaps upload ./dist   # 然后部署 inject 后的 ./dist，并�
 部分 CDN 的自动压缩功能（例如 Cloudflare 的 Auto-Minify）会剥掉 JS 里的注释，`sourceMappingURL` 和 `debugId` 会一起消失，堆栈就再也还原不出来了。上线后 `curl` 一下产物尾部确认注释还在，比事后排查便宜得多。
 :::
 
-## 八、上线前检查清单
+## 8. 上线前检查清单
 
 - [ ] 同步错误走 `addEventListener('error', handler, true)`（捕获阶段），运行时错误与资源错误分别处理
 - [ ] `unhandledrejection` 有监听，且对 `reason` 不是 `Error` 的情况做了兜底

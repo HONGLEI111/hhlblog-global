@@ -1,42 +1,39 @@
 ---
-title: 数组双指针经典习题（二）：矩阵与字符串
+title: 'Classic Two-Pointer Array Problems (Part 2): Matrices and Strings'
 published: 2026-09-29
-description: '力扣「数组和双指针」入门计划后四题精讲：将矩阵按对角线排序、二维网格迁移、转置矩阵、最长公共前缀。围绕 i - j 标识对角线、展平加索引映射、三次反转、纵向扫描等技巧，附 C / C++ / JavaScript 三语言实现。'
+description: 'A detailed walkthrough of the last four problems in LeetCode''s "Array and Two Pointers" introductory plan: sorting a matrix diagonally, shifting a 2D grid, transposing a matrix, and finding the longest common prefix. Covers techniques such as identifying diagonals with i - j, flattening with index mapping, triple reversal, and vertical scanning, with implementations in C, C++, and JavaScript.'
 image: ''
-tags: [双指针, 二维数组, 矩阵, 字符串, 力扣, C, C++, JavaScript]
-category: '算法'
+tags: [Two Pointers, 2D Arrays, Matrix, String, LeetCode, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Introduction
 
-## 导读
+The five problems in [the previous post](/technology/two-pointers-exercises-1d/) all revolved around one-dimensional arrays and strings. This post moves the battlefield to two-dimensional matrices, plus one classic string problem.
 
-[上一篇](/technology/two-pointers-exercises-1d/) 的五道题都在一维数组和字符串上打转。这一篇把战场搬到二维矩阵，外加一道经典的字符串题。
+Look closely and you'll notice that the two pointers in matrix problems often **aren't two indices moving—it's one index moving along a "diagonal"**—folding the 2D coordinate `(i, j)` into some kind of 1D ordinal, and the two-pointer intuition immediately comes back. This is exactly the throughline of this post:
 
-细看会发现，矩阵题的双指针往往**不是两个下标在移动，而是一个下标在「对角线」上移动**——把二维坐标 `(i, j)` 折叠成一维的某种序号，双指针的直觉立刻回来了。这正是本篇的主线：
-
-| 题目 | 把二维折叠成一维的方式 | 指针/下标技巧 |
+| Problem | How 2D is folded into 1D | Pointer/index technique |
 |------|---------------------|--------------|
-| 将矩阵按对角线排序 | `i - j`（同一个值 = 同一条对角线） | 从每条对角线的起点出发，沿对角线走 |
-| 二维网格迁移 | `i * n + j`（行优先展平） | 展平后整体循环移动 k 位 |
-| 转置矩阵 | `res[j][i] = mat[i][j]`（行列互换） | 方阵可原地做，只走一半坐标 |
-| 最长公共前缀 | 字符串的第 `j` 个字符 | 列指针纵向扫、行指针横向比 |
+| Sort Matrix Diagonally | `i - j` (same value = same diagonal) | Start from each diagonal's starting point, walk along the diagonal |
+| 2D Grid Migration | `i * n + j` (row-major flattening) | After flattening, cyclically shift the whole thing by k positions |
+| Transpose Matrix | `res[j][i] = mat[i][j]` (swap rows and columns) | For a square matrix, do it in place, visiting only half the coordinates |
+| Longest Common Prefix | The `j`-th character of a string | Column pointer scans vertically, row pointer compares horizontally |
 
-> **关于代码**
-> 四道题同样给出 C / C++ / JavaScript 三语言实现。
-> C 版本为了聚焦核心逻辑，以「传入 `m`、`n` 的核心函数」形式给出，省略了力扣官方签名里的 `returnSize`、`returnColumnSizes` 等返回参数管理。
+> **About the code**
+> All four problems likewise come with implementations in C / C++ / JavaScript.
+> To focus on the core logic, the C versions are given as "core functions that take in `m`, `n`," omitting the management of return parameters like `returnSize`, `returnColumnSizes` in LeetCode's official signatures.
 
 ---
+## 1. Sort the Matrix Diagonally (LeetCode 1329)
 
-## 1. 将矩阵按对角线排序（LeetCode 1329）
+### Problem Description
 
-### 题目描述
+Given an `m × n` integer matrix `mat`, sort the elements on each **diagonal** in ascending order and return the sorted matrix.
 
-给你一个 `m × n` 的整数矩阵 `mat`，请你将同一条**对角线**上的元素按升序排序后，返回排好序的矩阵。
+The diagonal here refers to the line going **from top-left to bottom-right**, i.e., all cells whose coordinates satisfy `i - j` being the same constant.
 
-这里说的对角线是**从左上到右下**的斜线，即坐标满足 `i - j` 为同一个常数的所有格子。
-
-**示例：**
+**Example:**
 
 ```text
 输入：mat = [[3,3,1,1],
@@ -56,15 +53,15 @@ lang: ''
              [1,1,1,1]]
 ```
 
-**约束：** `m == mat.length`，`n == mat[i].length`，`1 <= m, n <= 100`，`1 <= mat[i][j] <= 100`。
+**Constraints:** `m == mat.length`, `n == mat[i].length`, `1 <= m, n <= 100`, `1 <= mat[i][j] <= 100`.
 
-### 思路：先找到每条对角线的「起点」
+### Approach: First Find the "Starting Point" of Each Diagonal
 
-关键观察只有一句话：
+The key observation is just one sentence:
 
-> 同一条左上→右下的对角线，所有格子的 `i - j` 相等；反过来，`i - j` 相同就意味着在同一条对角线上。
+> On the same top-left → bottom-right diagonal, all cells have equal `i - j`; conversely, equal `i - j` means they are on the same diagonal.
 
-对 `3 × 4` 的矩阵，`i - j` 的分布是这样的：
+For an `3 × 4` matrix, the distribution of `i - j` looks like this:
 
 ```text
         j=0  j=1  j=2  j=3
@@ -73,18 +70,18 @@ i=1      1    0   -1   -2
 i=2      2    1    0   -1
 ```
 
-要让每条对角线都被**恰好遍历一次**，不需要枚举 `i - j` 的每个取值，只要枚举每条对角线的**起点**：
+To traverse each diagonal **exactly once**, there is no need to enumerate every value of `i - j`; it suffices to enumerate the **starting point** of each diagonal:
 
-- 第一列的每个格子 `(i, 0)`（`i = 0..m-1`）都是一条对角线的起点；
-- 第一行除 `(0, 0)` 外的每个格子 `(0, j)`（`j = 1..n-1`）也是一条对角线的起点。
+- Every cell in the first column `(i, 0)` (`i = 0..m-1`) is the starting point of a diagonal;
+- Every cell in the first row except `(0, 0)`, i.e., `(0, j)` (`j = 1..n-1`), is also the starting point of a diagonal.
 
-一共 `m + n - 1` 条对角线。从起点出发，每次 `(i, j) → (i+1, j+1)`，直到越界，就正好走完这条线。
+There are `m + n - 1` diagonals in total. Starting from the starting point and moving `(i, j) → (i+1, j+1)` each time until going out of bounds, you will traverse exactly that line.
 
-于是算法非常直白：**读出这条对角线的所有数 → 排序 → 按原顺序写回**。
+So the algorithm is very straightforward: **read out all the numbers on this diagonal → sort → write them back in their original order**.
 
-### 过程图解
+### Process Illustration
 
-以示例 1 为例，标出各格子的 `i - j`：
+Taking Example 1 as an example, label the `i - j` of each cell:
 
 ```text
 mat = [[3, 3, 1, 1],        i-j = [[ 0, -1, -2, -3],
@@ -105,7 +102,7 @@ mat = [[3, 3, 1, 1],        i-j = [[ 0, -1, -2, -3],
  [1, 2, 3, 3]]  ✔
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -193,25 +190,25 @@ function diagonalSort(mat) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-设 `L = min(m, n)`：
+Let `L = min(m, n)`:
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(m·n·log L)** — 每条对角线排序 O(len · log len)，所有对角线长度之和是 m·n |
-| 空间复杂度 | **O(L)** — 一条对角线最长 L 个元素，用作排序缓冲 |
+| Time complexity | **O(m·n·log L)** — sorting each diagonal takes O(len · log len), and the sum of all diagonal lengths is m·n |
+| Space complexity | **O(L)** — a diagonal has at most L elements, used as the sorting buffer |
 
-### 易错点
+### Common Pitfalls
 
-1. **起点的选取。** 第一列要包含 `(0, 0)`，第一行不要包含 `(0, 0)`，否则主对角线会被排序两次（虽然排序两遍结果不变，但白跑一趟）。
-2. **`(i, j)` 的推进方向。** 本题的对角线是左上→右下，所以是 `i++, j++`；若写成 `i++, j--` 就变成反对角线了。
-3. **非方阵的对角线长度不一致。** `m ≠ n` 时长度从 1 到 `min(m, n)` 不等，缓冲区要按实际长度分配，不能固定成 `m` 或 `n`。
-4. **别忘了 `i - j` 可以为负。** 如果改用「按 `i - j` 分组」的写法，在 C 中不能直接拿负下标当数组索引。
+1. **Selection of starting points.** The first column must include `(0, 0)`, and the first row must not include `(0, 0)`; otherwise the main diagonal will be sorted twice (although sorting twice does not change the result, it is a wasted pass).
+2. **Direction of `(i, j)` advancement.** The diagonals in this problem go from top-left to bottom-right, so it is `i++, j++`; if written as `i++, j--`, it becomes an anti-diagonal.
+3. **Diagonal lengths are inconsistent for non-square matrices.** When `m ≠ n`, lengths range from 1 to `min(m, n)`, so the buffer must be allocated according to the actual length and cannot be fixed at `m` or `n`.
+4. **Don't forget that `i - j` can be negative.** If you switch to the approach of "grouping by `i - j`", in C you cannot directly use a negative index as an array subscript.
 
-### 扩展：不用额外缓冲的原地写法
+### Extension: In-Place Approach Without Extra Buffer
 
-同一条对角线本身就被连续存放在矩阵里（只是斜着），所以可以直接在对角线上做插入排序，把缓冲降到 O(1)：
+A diagonal itself is stored contiguously in the matrix (just diagonally), so you can directly perform insertion sort on the diagonal, reducing the buffer to O(1):
 
 ```cpp
 // 沿对角线做插入排序：把每个元素向前插到该对角线的已排序前缀中
@@ -231,23 +228,22 @@ void sortDiagonalInPlace(vector<vector<int>>& mat, int r, int c) {
 }
 ```
 
-最坏情况（整块矩阵同一条对角线很长且逆序）时间复杂度是 O(m·n·min(m, n))，但额外空间是 O(1)，且在近乎有序的输入上很快。
+The worst-case time complexity (when the whole matrix has a very long diagonal in reverse order) is O(m·n·min(m, n)), but the extra space is O(1), and it is very fast on nearly sorted input.
 
 ---
+## 2. 2D Grid Migration (LeetCode 1260)
 
-## 2. 二维网格迁移（LeetCode 1260）
+### Problem Description
 
-### 题目描述
+You are given a 2D grid `grid` with `m` rows and `n` columns, and an integer `k`. You need to migrate `grid` `k` times. Each "migration" operation:
 
-给你一个 `m` 行 `n` 列的二维网格 `grid` 和一个整数 `k`。你需要将 `grid` 迁移 `k` 次。每次「迁移」操作：
+- The element at `grid[i][j]` will move to `grid[i][j + 1]`;
+- The element at `grid[i][n - 1]` will move to `grid[i + 1][0]`;
+- The element at `grid[m - 1][n - 1]` will move to `grid[0][0]`.
 
-- `grid[i][j]` 的元素将会移动到 `grid[i][j + 1]`；
-- `grid[i][n - 1]` 的元素将会移动到 `grid[i + 1][0]`；
-- `grid[m - 1][n - 1]` 的元素将会移动到 `grid[0][0]`。
+Return the final 2D grid obtained after `k` migration operations.
 
-请你返回 `k` 次迁移操作后最终得到的二维网格。
-
-**示例：**
+**Example:**
 
 ```text
 输入：grid = [[1,2,3],
@@ -271,11 +267,11 @@ void sortDiagonalInPlace(vector<vector<int>>& mat, int r, int c) {
 输出：[[1,2,3],[4,5,6],[7,8,9]]   （9 次正好绕回原样）
 ```
 
-**约束：** `1 <= m, n <= 50`，`-1000 <= grid[i][j] <= 1000`，`0 <= k <= 100`。
+**Constraints:** `1 <= m, n <= 50`, `-1000 <= grid[i][j] <= 1000`, `0 <= k <= 100`.
 
-### 思路一：展平后整体循环移动
+### Approach 1: Flatten Then Cyclically Shift as a Whole
 
-矩阵的「蛇形绕回」规则听起来很绕，但把二维按下标 `p = i * n + j` **行优先展平**成一维数组后，一切都简单了：
+The "snake-like wrap-around" rule of the matrix sounds convoluted, but once you flatten the 2D grid into a 1D array using **row-major order** by index `p = i * n + j`, everything becomes simple:
 
 ```text
 grid = [[1,2,3],        展平 →  [1,2,3,4,5,6,7,8,9]
@@ -283,17 +279,17 @@ grid = [[1,2,3],        展平 →  [1,2,3,4,5,6,7,8,9]
         [7,8,9]]
 ```
 
-规则里的三条移动，在一维视角下其实是同一件事：**每个元素往后移动一位，最后一个绕回开头**。所以迁移 `k` 次 = 把展平数组整体**向右循环移动 k 位**。于是原位置 `p` 的元素，新位置就是：
+The three movement rules, from the 1D perspective, are actually the same thing: **each element moves one position forward, and the last one wraps back to the beginning**. So migrating `k` times = cyclically shifting the flattened array **right by k positions** as a whole. Thus, the element originally at position `p` will have its new position at:
 
 ```text
 q = (p + k) mod (m * n)
 ```
 
-再按 `q / n` 和 `q % n` 反算出行列下标写回即可。
+Then convert back to row and column indices using `q / n` and `q % n` and write them back.
 
-注意 `k` 可以先对 `m * n` 取模：迁移 `m * n` 次元素全部回到原位。
+Note that `k` can first be taken modulo `m * n`: after `m * n` migrations, all elements return to their original positions.
 
-### 过程图解
+### Process Illustration
 
 ```text
 grid = [[1,2,3],[4,5,6],[7,8,9]]   k = 1
@@ -313,15 +309,15 @@ grid = [[1,2,3],[4,5,6],[7,8,9]]   k = 1
  [6,7,8]]  ✔
 ```
 
-### 思路二：三次反转（原地，O(1) 额外空间）
+### Approach 2: Triple Reversal (In-Place, O(1) Extra Space)
 
-「向右循环移动 k 位」有一个经典的双指针解法：**三次反转**。设数组长度为 `total`：
+"Cyclically shifting right by k positions" has a classic two-pointer solution: **triple reversal**. Let the array length be `total`:
 
-1. 反转整个数组 `[0, total-1]`；
-2. 反转前 `k` 个 `[0, k-1]`；
-3. 反转剩下的 `[k, total-1]`。
+1. Reverse the entire array `[0, total-1]`;
+2. Reverse the first `k` elements `[0, k-1]`;
+3. Reverse the remaining `[k, total-1]`.
 
-每次反转都用左右指针向中间夹逼交换。用 `[1..9]、k = 3` 验算：
+Each reversal uses left and right pointers converging toward the middle and swapping. Verify with `[1..9]、k = 3`:
 
 ```text
 原始     1 2 3 4 5 6 7 8 9
@@ -330,9 +326,9 @@ grid = [[1,2,3],[4,5,6],[7,8,9]]   k = 1
 反转其余 7 8 9 1 2 3 4 5 6   ✔ 正好是右移 3 位
 ```
 
-只要肯把二维矩阵在下标层面当成一维数组（`p ↔ (p / n, p % n)`），这个算法就能原地套用，额外空间降到 O(1)。
+As long as you're willing to treat the 2D matrix as a 1D array at the index level (`p ↔ (p / n, p % n)`), this algorithm can be applied in-place, reducing extra space to O(1).
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -420,31 +416,30 @@ function shiftGrid(grid, k) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 解法 | 时间复杂度 | 空间复杂度 | 说明 |
+| Solution | Time Complexity | Space Complexity | Notes |
 |------|-----------|-----------|------|
-| 索引映射 | O(m·n) | O(m·n) | 每个元素算一次新位置，最直观 |
-| 三次反转 | O(m·n) | **O(1)** | 原地完成，代价是下标换算略绕 |
+| Index Mapping | O(m·n) | O(m·n) | Compute new position for each element, most intuitive |
+| Triple Reversal | O(m·n) | **O(1)** | Done in-place, at the cost of slightly trickier index conversion |
 
-### 易错点
+### Common Pitfalls
 
-1. **先取模再计算。** `k` 可能远大于 `m * n`（本题 `k <= 100` 而已，但通用写法要 `k %= total`）。反过来说，**忘了 `k = 0` 的情形**也是常见疏漏——此时 `rev(0, -1)` 这种空区间必须安全跳过（`while (lo < hi)` 天然满足）。
-2. **迁移方向别搞反。** 题目是每个元素**向右/向后**移动（`(p + k) % total`）；如果写成 `(p - k + total) % total` 就变成了向左迁移。
-3. **行优先展平。** 用的是 `p = i * n + j`（先横着边走完一行）；如果用列优先展平，绕回顺序就和题目描述不一致了。
-4. **`k` 与 `total` 的关系要想清楚再动手。** 示例 3 的 `k = 9`、`total = 9` 就是在提醒你取模。
+1. **Take modulo before computing.** `k` may be much larger than `m * n` (in this problem `k <= 100` is small, but a general solution needs `k %= total`). Conversely, **forgetting the case of `k = 0`** is also a common oversight—in that case, empty intervals like `rev(0, -1)` must be safely skipped (`while (lo < hi)` naturally satisfies this).
+2. **Don't get the migration direction wrong.** The problem states each element moves **right/forward** (`(p + k) % total`); if you write `(p - k + total) % total`, it becomes a leftward migration.
+3. **Row-major flattening.** Use `p = i * n + j` (traverse a full row horizontally first); if you use column-major flattening, the wrap-around order won't match the problem description.
+4. **Think clearly about the relationship between `k` and `total` before starting.** Examples 3's `k = 9` and `total = 9` are reminders about taking modulo.
 
 ---
+## 3. Transpose Matrix (LeetCode 867)
 
-## 3. 转置矩阵（LeetCode 867）
+### Problem Description
 
-### 题目描述
+Given a 2D integer array `matrix`, return the **transpose** of `matrix`.
 
-给你一个二维整数数组 `matrix`，返回 `matrix` 的**转置矩阵**。
+The transpose of a matrix is obtained by flipping the matrix over its main diagonal, swapping the row index and column index of the matrix.
 
-矩阵的转置是指将矩阵的主对角线翻转，交换矩阵的行索引与列索引。
-
-**示例：**
+**Example:**
 
 ```text
 输入：matrix = [[1,2,3],
@@ -461,21 +456,21 @@ function shiftGrid(grid, k) {
                 [3,6]]
 ```
 
-**约束：** `m == matrix.length`，`n == matrix[i].length`，`1 <= m, n <= 1000`，`1 <= m * n <= 10^5`，`-10^9 <= matrix[i][j] <= 10^9`。
+**Constraints:** `m == matrix.length`, `n == matrix[i].length`, `1 <= m, n <= 1000`, `1 <= m * n <= 10^5`, `-10^9 <= matrix[i][j] <= 10^9`.
 
-### 思路：一次坐标互换
+### Approach: Swap Coordinates Once
 
-转置的定义就是「交换行索引与列索引」，所以直接按映射搬：
+The definition of transpose is exactly "swap the row index and column index," so just map directly:
 
 ```text
 res[j][i] = matrix[i][j]
 ```
 
-原矩阵是 `m × n`，转置后是 `n × m`：原来的第 `i` 行变成第 `i` 列。
+The original matrix is `m × n`, and after transposing it becomes `n × m`: the original `i`-th row becomes the `i`-th column.
 
-**当且仅当矩阵是方阵时，可以原地转置**——因为此时输入输出的形状相同。原地做法的关键是把遍历范围**砍掉一半**：只处理上三角 `i < j`，把 `mat[i][j]` 与 `mat[j][i]` 交换；对角线上的 `i == j` 元素不用动。
+**In-place transposition is possible if and only if the matrix is square**—because in that case the input and output shapes are the same. The key to the in-place approach is to **cut the traversal range in half**: only process the upper triangle `i < j`, swapping `mat[i][j]` with `mat[j][i]`; the diagonal elements `i == j` don't need to move.
 
-为什么必须砍掉一半？下面这张表说明了问题：如果 `i`、`j` 都跑满整个矩阵，每个对称对会被交换**两次**，等于没换。
+Why must we cut it in half? The table below illustrates the problem: if both `i` and `j` run over the entire matrix, each symmetric pair gets swapped **twice**, which amounts to no swap at all.
 
 ```text
 只走上三角 (i < j)              i、j 都跑满
@@ -485,9 +480,9 @@ res[j][i] = matrix[i][j]
 访问次数：   3 对                 访问次数：9 个格子，实际交换 4 对（重复）
 ```
 
-### 过程图解
+### Process Walkthrough
 
-非方阵 `2 × 3 → 3 × 2`：
+Non-square `2 × 3 → 3 × 2`:
 
 ```text
 matrix          res[j][i] = matrix[i][j]
@@ -499,7 +494,7 @@ res = [[1, 4],
        [3, 6]]  ✔
 ```
 
-方阵原地转置：
+In-place transpose of a square matrix:
 
 ```text
 [1, 2, 3]                [1, 4, 7]
@@ -510,7 +505,7 @@ res = [[1, 4],
 对角线 (0,0)、(1,1)、(2,2) 不动 ✔
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -590,29 +585,28 @@ function transposeInPlace(matrix) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(m·n)** — 每个元素访问一次 |
-| 空间复杂度 | **O(m·n)** — 非方阵必须新开数组（输出形状就不同） |
-| 方阵原地版 | O(1) 额外空间，只需 m(m-1)/2 次交换 |
+| Time complexity | **O(m·n)** — each element is visited once |
+| Space complexity | **O(m·n)** — a non-square matrix requires a new array (the output shape is different) |
+| Square in-place version | O(1) extra space, only m(m-1)/2 swaps needed |
 
-### 易错点
+### Common Pitfalls
 
-1. **非方阵不能原地转置。** `2 × 3` 变成 `3 × 2`，形状变了，必须开新数组。只有方阵才有「原地」可言。
-2. **原地转置时 `j` 必须从 `i + 1` 开始。** 从 0 开始会让每个元素被换两次，最终结果和原矩阵一模一样——这是一个「看起来对、跑起来悄悄错」的经典 bug。
-3. **别把两个下标写反。** 结果矩阵是 `n × m`（行数是原来的列数），先开对形状再填。
+1. **A non-square matrix cannot be transposed in place.** `2 × 3` becomes `3 × 2`, the shape changes, so a new array must be allocated. Only a square matrix can be "in-place."
+2. **For in-place transposition, `j` must start from `i + 1`.** Starting from 0 causes each element to be swapped twice, and the final result ends up identical to the original matrix—this is a classic bug that "looks correct but silently fails at runtime."
+3. **Don't swap the two indices.** The result matrix is `n × m` (the number of rows is the original number of columns), so allocate the correct shape first before filling it in.
 
 ---
+## 4. Longest Common Prefix (LeetCode 14)
 
-## 4. 最长公共前缀（LeetCode 14）
+### Problem Description
 
-### 题目描述
+Write a function to find the longest common prefix among an array of strings. If there is no common prefix, return the empty string `""`.
 
-编写一个函数来查找字符串数组中的最长公共前缀。如果不存在公共前缀，返回空字符串 `""`。
-
-**示例：**
+**Example:**
 
 ```text
 输入：strs = ["flower","flow","flight"]
@@ -626,24 +620,24 @@ function transposeInPlace(matrix) {
 输出："a"
 ```
 
-**约束：** `1 <= strs.length <= 200`，`0 <= strs[i].length <= 200`，`strs[i]` 仅由小写英文字母组成。
+**Constraints:** `1 <= strs.length <= 200`, `0 <= strs[i].length <= 200`, `strs[i]` consist only of lowercase English letters.
 
-### 思路：纵向扫描，两根「指针」
+### Approach: Vertical Scanning, Two "Pointers"
 
-前几节的指针都是数字下标，这道题的指针一个是**列**、一个是**行**：
+The pointers in previous sections were all numeric indices, but the pointers in this problem are one **column** and one **row**:
 
-- **列指针 `j`**：沿基准字符串 `strs[0]` 从第 0 个字符向右推进；
-- **行指针 `i`**：对每个 `j`，横向扫过 `strs[1]`、`strs[2]`……逐一比较第 `j` 个字符。
+- **Column pointer `j`**: advances along the reference string `strs[0]` from character 0 to the right;
+- **Row pointer `i`**: for each `j`, scans horizontally across `strs[1]`, `strs[2]`, … comparing the `j`-th character one by one.
 
-规则是：
+The rules are:
 
-1. 公共前缀不可能比 `strs[0]` 更长，所以 `j` 只在 `strs[0]` 的范围内推进；
-2. 对当前 `j`，如果某个字符串的第 `j` 个字符与 `strs[0][j]` 不同，或者该字符串已经结束（长度不足 `j + 1`），说明公共前缀到此为止——答案就是 `strs[0]` 的前 `j` 个字符；
-3. 如果所有字符串都顺利走完 `strs[0]`，那么 `strs[0]` 本身就是公共前缀。
+1. The common prefix cannot be longer than `strs[0]`, so `j` only advances within the range of `strs[0]`;
+2. For the current `j`, if the `j`-th character of some string differs from `strs[0][j]`, or that string has already ended (length less than `j + 1`), then the common prefix ends here—the answer is the first `j` characters of `strs[0]`;
+3. If all strings successfully make it through `strs[0]`, then `strs[0]` itself is the common prefix.
 
-> 为什么「不同」和「结束」可以一起判断？因为在 C 语言里，访问字符串的第 `len` 个位置得到的正是终止符 `'\0'`，而 `strs[i][j] == '\0'` 显然不等于 `strs[0][j]`。C++ / JavaScript 则需要显式比较长度。
+> Why can "different" and "ended" be checked together? Because in C, accessing the `len`-th position of a string yields exactly the terminator `'\0'`, and `strs[i][j] == '\0'` is obviously not equal to `strs[0][j]`. C++ / JavaScript, however, require an explicit length comparison.
 
-### 过程图解
+### Process Illustration
 
 ```text
 strs = ["flower", "flow", "flight"]
@@ -656,9 +650,9 @@ j=2: strs[1][2]='o'='o'  strs[2][2]='i'!='o' → 冲突！
 返回 strs[0] 的前 2 个字符 = "fl" ✔
 ```
 
-反例 `["dog","racecar","car"]`：`j=0` 时 `'a' != 'd'`，立刻返回 `""` ✔
+Counter-example `["dog","racecar","car"]`: when `j=0`, `'a' != 'd'`, immediately return `""` ✔
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -729,27 +723,27 @@ function longestCommonPrefix(strs) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-设 `S` 为所有字符串的字符总数，`L` 为最短字符串的长度：
+Let `S` be the total number of characters across all strings, and `L` be the length of the shortest string:
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(S)** 最坏情况（所有串都比到最后一个字符）；更精确地上界是 O(n · L) |
-| 空间复杂度 | **O(1)** — 只用了两个下标（返回的字符串不计） |
+| Time Complexity | **O(S)** worst case (all strings compared up to the last character); a more precise upper bound is O(n · L) |
+| Space Complexity | **O(1)** — only two indices are used (the returned string is not counted) |
 
-### 易错点
+### Common Pitfalls
 
-1. **基准串要选对。** 选 `strs[0]` 最方便，因为答案一定是它的前缀。若随便选一个串做基准，长度上界就不好控。
-2. **空字符串的处理。** `strs` 里只要有 `""`，答案立刻是 `""`——上面代码里它会在 `j = 0` 那一轮被 `strs[i][j] == '\0'` 或长度判断拦住。
-3. **C 里的越界不再发生，是因为比较顺序。** 逐个 `j` 递增地比较时，「更短的串」一定先在自己的终止符处被拦住，所以不会跳过终止符读到缓冲区之外。这是这类纵向扫描能在 C 中安全实现的隐含前提。
-4. **`strs[i]` 全为空、或 `strs` 只有一个元素** 都是合法输入，前者返回 `""`，后者返回 `strs[0]` 本身。
+1. **Choose the right reference string.** Choosing `strs[0]` is most convenient, because the answer must be a prefix of it. If you arbitrarily pick a string as the reference, the length upper bound becomes hard to control.
+2. **Handling empty strings.** If there is any `""` in `strs`, the answer is immediately `""`—in the code above, it will be caught by `strs[i][j] == '\0'` or the length check during the `j = 0` round.
+3. **Out-of-bounds access no longer occurs in C because of the comparison order.** When comparing incrementally with `j` increasing one by one, the "shorter string" will always be stopped at its own terminator first, so it will not skip past the terminator and read beyond the buffer. This is the implicit precondition that allows this kind of vertical scanning to be safely implemented in C.
+4. **`strs[i]` all empty, or `strs` having only one element** are both valid inputs; the former returns `""`, the latter returns `strs[0]` itself.
 
-### 其他解法
+### Other Solutions
 
-**分治**：把字符串数组一分为二，分别求左右两半的公共前缀，再把这两个前缀求一次公共前缀。时间 O(S)，空间 O(m·L) 递归栈。适合展示分治模板，但本题没有性能优势。
+**Divide and conquer**: Split the string array in two, find the common prefix of the left and right halves respectively, then find the common prefix of these two prefixes. Time O(S), space O(m·L) for the recursion stack. Good for demonstrating the divide-and-conquer template, but offers no performance advantage for this problem.
 
-**排序后只比首尾**：把 `strs` 排序，公共前缀一定等于「字典序最小串」与「字典序最大串」的公共前缀。排序 O(n log n · L)，但两两比较的实现特别短：
+**Sort then compare only first and last**: Sort `strs`; the common prefix must equal the common prefix of the "lexicographically smallest string" and the "lexicographically largest string." Sorting is O(n log n · L), but the pairwise comparison implementation is especially short:
 
 ```cpp
 string longestCommonPrefixSorted(vector<string>& strs) {
@@ -762,29 +756,28 @@ string longestCommonPrefixSorted(vector<string>& strs) {
 }
 ```
 
-这个写法虽然不是双指针，但「只比首尾两个」的想法很值得记住。
+Although this approach is not two pointers, the idea of "comparing only the first and last" is well worth remembering.
 
 ---
 
-## 小结
+## Summary
 
-| 题目 | 二维 → 一维的桥梁 | 时间 | 空间 |
+| Problem | Bridge from 2D → 1D | Time | Space |
 |------|-----------------|------|------|
-| 将矩阵按对角线排序 | `i - j` 相同即同一条对角线 | O(m·n·log min(m,n)) | O(min(m,n)) |
-| 二维网格迁移 | `p = i * n + j` 行优先展平 | O(m·n) | O(m·n) / 三次反转 O(1) |
-| 转置矩阵 | `res[j][i] = mat[i][j]` | O(m·n) | O(m·n)，方阵可 O(1) |
-| 最长公共前缀 | 字符串的第 `j` 个字符看成「列」 | O(S) | O(1) |
+| Sort Matrix by Diagonals | Same `i - j` means same diagonal | O(m·n·log min(m,n)) | O(min(m,n)) |
+| 2D Grid Migration | `p = i * n + j` row-major flattening | O(m·n) | O(m·n) / three reversals O(1) |
+| Transpose Matrix | `res[j][i] = mat[i][j]` | O(m·n) | O(m·n), O(1) for square matrices |
+| Longest Common Prefix | The `j`-th character of a string viewed as a "column" | O(S) | O(1) |
 
-处理矩阵时反复出现的三个套路：
+Three recurring patterns when working with matrices:
 
-1. **找不变量来标识一组格子。** `i - j` 标识对角线、`i * n + j` 标识展平位置——先在二维坐标上找到一个「一维编号」，问题通常就变成了一维问题。
-2. **先问「形状变了吗」。** 输出形状和输入一致（方阵转置）才有原地的可能；形状变了（非方阵转置、对角线排序）就必须开新数组或接受额外的缓冲区。
-3. **原地操作只走一半。** 对称的操作（转置、成对比较）只处理一半坐标，否则会把结果再还原回去——转置题里 `j` 从 `i + 1` 开始就是这个道理。
+1. **Find an invariant to identify a group of cells.** `i - j` identifies diagonals, `i * n + j` identifies flattened positions—once you find a "1D number" on the 2D coordinates, the problem usually becomes a 1D problem.
+2. **First ask "has the shape changed."** Only when the output shape matches the input (square matrix transpose) is in-place possible; if the shape changes (non-square transpose, diagonal sorting), you must allocate a new array or accept an extra buffer.
+3. **In-place operations only go halfway.** Symmetric operations (transpose, pairwise comparison) only process half the coordinates, otherwise the result gets reverted—in the transpose problem, `j` starting from `i + 1` is exactly this principle.
+## Related Articles
 
-## 相关文章
-
-- [数组双指针经典习题（一）：一维数组与字符串](/technology/two-pointers-exercises-1d/) — 上一篇，快慢指针、左右指针与荷兰国旗
-- [滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) — 两个指针都只向右走时的特例，一套骨架覆盖四道真题
-- [二维数组：矩阵操作与 TypeScript 实战](/technology/two-d-array/) — 矩阵遍历、方向数组与二维前缀和
-- [数组双指针：从 O(n²) 到 O(n) 的优化利器](/technology/two-pointers-array/) — 四种指针模式的总体框架
-- [寻找重复数：二分查找与快慢指针](/technology/find-duplicate-number/) — 同属「数组 + 双指针」的进阶题
+- [Classic Array Two-Pointer Exercises (Part 1): One-Dimensional Arrays and Strings](/technology/two-pointers-exercises-1d/) — Previous article, fast and slow pointers, left and right pointers, and the Dutch national flag
+- [Sliding Window Core Code Template: Three Questions to Master All Substring and Subarray Problems](/technology/sliding-window-template/) — A special case where both pointers only move right, one skeleton covering four real problems
+- [Two-Dimensional Arrays: Matrix Operations and TypeScript in Practice](/technology/two-d-array/) — Matrix traversal, direction arrays, and 2D prefix sums
+- [Array Two-Pointers: The Optimization Tool from O(n²) to O(n)](/technology/two-pointers-array/) — The overall framework of four pointer patterns
+- [Finding the Duplicate Number: Binary Search and Fast-Slow Pointers](/technology/find-duplicate-number/) — An advanced problem also belonging to "array + two pointers"

@@ -1,41 +1,39 @@
 ---
-title: 前缀和：把区间求和从 O(n) 降到 O(1)
+title: 'Prefix Sums: Reducing Range Sum Queries from O(n) to O(1)'
 published: 2026-04-26
-description: '掌握前缀和的核心思想与变体（二维前缀和、差分数组、和为K的子数组），用 TypeScript 实现高频面试题。'
+description: Master the core idea and variants of prefix sums (2D prefix sums, difference arrays, subarrays with sum K), and implement high-frequency interview problems in TypeScript.
 image: ''
-tags: [前缀和, TypeScript, 算法]
-category: '算法'
+tags: [Prefix Sum, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Prefix Sum** is a preprocessing technique: first store the cumulative value from the beginning to the current position, then the sum of any contiguous interval can be obtained by subtracting the results of two queries.
+
+> Prerequisites
+> - **Array indexing**: The prefix array usually has one extra slot to reduce boundary-handling overhead
+> - **Interval representation**: Clearly distinguish the difference between `[l, r]` and `[l, r)`
+> - **Hash map**: Used to count prefix sum occurrences, solving "subarrays with sum K"
+
 ---
 
-## 概述
+## Problem Definition
 
-**前缀和（Prefix Sum）** 是一种预处理技巧：先把从开头到当前位置的累计值存下来，之后任意连续区间的和都可以通过两次查询相减得到。
+Given an array and multiple interval queries, quickly compute the sum or related cumulative value of any contiguous interval.
 
-> 前置知识
-> - **数组下标**：前缀数组通常多开一位，降低边界处理成本
-> - **区间表示**：明确 `[l, r]` 与 `[l, r)` 的差异
-> - **哈希表**：用于统计前缀和出现次数，解决“和为 K 的子数组”
-
----
-
-## 问题定义
-
-给定数组和多次区间查询，快速计算任意连续区间的和或相关累计值。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 原数组、区间端点、目标和 |
-| 输出 | 区间和、满足条件的子数组数量或派生累计值 |
-| 预处理 | `prefix[i + 1] = prefix[i] + nums[i]` |
-| 查询公式 | `sum(l, r) = prefix[r + 1] - prefix[l]` |
+| Input | Original array, interval endpoints, target sum |
+| Output | Interval sum, number of qualifying subarrays, or derived cumulative value |
+| Preprocessing | `prefix[i + 1] = prefix[i] + nums[i]` |
+| Query formula | `sum(l, r) = prefix[r + 1] - prefix[l]` |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以数组 `[1, 3, 5, 2, 4]` 为例：
+Using the array `[1, 3, 5, 2, 4]` as an example:
 
 ```text
 nums:    1   3   5   2   4
@@ -43,7 +41,7 @@ index:   0   1   2   3   4
 prefix: 0   1   4   9   11  15
 ```
 
-查询区间 `nums[1..3]`：
+Querying the interval `nums[1..3]`:
 
 ```text
 prefix[4] - prefix[1] = 11 - 1 = 10
@@ -59,11 +57,11 @@ graph LR
     D --> E
 ```
 
-多开一位 `prefix[0] = 0` 的好处是：从下标 `0` 开始的区间也能使用同一个公式。
+The advantage of having one extra slot `prefix[0] = 0` is that intervals starting from index `0` can also use the same formula.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：PrefixSum(nums)
@@ -76,20 +74,20 @@ graph LR
 4. 查询 [l, r] 时返回 prefix[r + 1] - prefix[l]
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 操作 | 时间复杂度 | 空间复杂度 | 说明 |
+| Operation | Time complexity | Space complexity | Description |
 |------|------|------|------|
-| 构建前缀和 | O(n) | O(n) | 一次线性扫描 |
-| 单次区间查询 | O(1) | O(1) | 两个前缀值相减 |
-| m 次区间查询 | O(n + m) | O(n) | 先预处理再查询 |
-| 子数组和为 K | O(n) | O(n) | 前缀和 + 哈希计数 |
+| Build prefix sum | O(n) | O(n) | One linear scan |
+| Single interval query | O(1) | O(1) | Subtract two prefix values |
+| m interval queries | O(n + m) | O(n) | Preprocess first, then query |
+| Subarray sum equals K | O(n) | O(n) | Prefix sum + hash counting |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 基础前缀和
+### 1. Basic Prefix Sum
 
 ```typescript
 function buildPrefixSum(nums: number[]): number[] {
@@ -107,7 +105,7 @@ function rangeSum(prefix: number[], left: number, right: number): number {
 }
 ```
 
-### 2. 区域和检索
+### 2. Range Sum Query
 
 ```typescript
 class NumArray {
@@ -123,7 +121,7 @@ class NumArray {
 }
 ```
 
-### 3. 和为 K 的子数组
+### 3. Subarrays with Sum K
 
 ```typescript
 function subarraySum(nums: number[], k: number): number {
@@ -143,7 +141,7 @@ function subarraySum(nums: number[], k: number): number {
 }
 ```
 
-### 4. 最大子数组和的前缀视角
+### 4. Maximum Subarray Sum from a Prefix Perspective
 
 ```typescript
 function maxSubArray(nums: number[]): number {
@@ -161,7 +159,7 @@ function maxSubArray(nums: number[]): number {
 }
 ```
 
-### 5. 前缀积变体
+### 5. Prefix Product Variant
 
 ```typescript
 function productExceptSelf(nums: number[]): number[] {
@@ -185,41 +183,41 @@ function productExceptSelf(nums: number[]): number[] {
 
 ---
 
-## 工程优化：统一区间语义
+## Engineering Optimization: Unifying Interval Semantics
 
-前缀和最常见的 bug 来自端点混乱。推荐统一使用“前缀数组多一位 + 查询闭区间 `[left, right]`”的写法。
+The most common bugs in prefix sums come from endpoint confusion. It is recommended to consistently use the pattern of "prefix array with one extra slot + querying the closed interval `[left, right]`".
 
-| 场景 | 推荐表达 | 原因 |
+| Scenario | Recommended expression | Reason |
 |------|------|------|
-| 一维区间和 | `prefix[right + 1] - prefix[left]` | 覆盖从 0 开始的区间 |
-| 子数组计数 | `prefix - k` | 把区间和转化为历史前缀查询 |
-| 二维前缀和 | 多加一行一列 | 避免上边界和左边界特判 |
-| 频繁更新 | 不适合普通前缀和 | 可改用树状数组或线段树 |
+| 1D interval sum | `prefix[right + 1] - prefix[left]` | Covers intervals starting from 0 |
+| Subarray counting | `prefix - k` | Converts interval sums into historical prefix queries |
+| 2D prefix sum | Add one extra row and column | Avoids special-casing the top and left boundaries |
+| Frequent updates | Not suitable for ordinary prefix sums | Consider a Fenwick tree or segment tree instead |
 
-如果数组会频繁修改，普通前缀和每次更新后都要重建，应该换成支持动态更新的数据结构。
+If the array is modified frequently, ordinary prefix sums require rebuilding after every update, so you should switch to a data structure that supports dynamic updates.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 多次静态区间求和
-- 子数组和为 K、连续区间计数
-- 二维矩阵区域求和
-- 前缀异或、前缀积、前缀最值等变体
+- Multiple static interval sum queries
+- Subarrays with sum K, contiguous interval counting
+- 2D matrix region sum
+- Variants such as prefix XOR, prefix product, prefix extrema, etc.
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 不适合频繁单点更新 | 更新一个值会影响后续所有前缀 |
-| 只适合可逆或可累计运算 | 区间和可相减，最大值不能直接相减 |
-| 需要额外空间 | 一般需要 O(n) 预处理数组 |
+| Not suitable for frequent point updates | Updating one value affects all subsequent prefixes |
+| Only suitable for invertible or accumulable operations | Interval sums can be subtracted, but maximum values cannot be directly subtracted |
+| Requires extra space | Generally requires an O(n) preprocessing array |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -230,9 +228,9 @@ graph LR
     D --> E
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 前缀和 = 预处理累计值 + O(1) 区间查询。
-2. 多开一位 `prefix[0] = 0` 可以统一边界公式。
-3. 前缀和 + 哈希表是“子数组和为 K”的核心模型。
-4. 静态查询用前缀和，动态更新要考虑树状数组或线段树。
+1. Prefix sum = preprocessing cumulative values + O(1) interval queries.
+2. Having one extra slot `prefix[0] = 0` unifies the boundary formula.
+3. Prefix sum + hash map is the core model for "subarrays with sum K".
+4. Use prefix sums for static queries; consider a Fenwick tree or segment tree for dynamic updates.

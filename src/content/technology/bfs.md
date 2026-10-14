@@ -1,43 +1,41 @@
 ---
-title: 广度优先搜索：BFS 的模板与 TypeScript 实战
+title: 'Breadth-First Search: BFS Templates and TypeScript in Practice'
 published: 2026-04-26
-description: '掌握 BFS 的队列模板、最短路径特性和复杂度分析，用 TypeScript 解决迷宫、单词接龙、开锁问题。'
+description: Master BFS with the queue template, shortest-path properties, and complexity analysis, then solve mazes, word ladders, and lock-opening problems in TypeScript.
 image: ''
-tags: [广度优先搜索, BFS, TypeScript, 算法]
-category: '算法'
+tags: [Breadth-First Search, BFS, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Breadth-First Search (BFS)** is a traversal algorithm that expands layer by layer. Starting from the source, it first visits nodes at distance 1, then nodes at distance 2, making it naturally suited for finding the minimum number of steps in an unweighted graph.
+
+> Prerequisites
+> - **Queue**: First in, first out, ensuring layer-by-layer processing
+> - **Graph / grid modeling**: Treating states as nodes and single-step transitions as edges
+> - **visited set**: Avoiding duplicate enqueues and infinite loops
+
 ---
 
-## 概述
+## Problem Definition
 
-**广度优先搜索（Breadth-First Search, BFS）** 是一种按层扩展的遍历算法。它从起点出发，先访问距离为 1 的节点，再访问距离为 2 的节点，因此天然适合求无权图中的最短步数。
+Given a starting point and state transition rules, search for the target state in order of increasing distance.
 
-> 前置知识
-> - **队列**：先进先出，保证按层处理
-> - **图 / 网格建模**：把状态看成节点，把一步转移看成边
-> - **visited 集合**：避免重复入队和死循环
-
----
-
-## 问题定义
-
-给定起点和状态转移规则，按距离从近到远搜索目标状态。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 起点、目标、邻居生成函数或图结构 |
-| 输出 | 到达目标的最少步数、层序结果或连通区域数量 |
-| 核心结构 | 队列 + visited 集合 |
-| 适用前提 | 每条边权重相同，或只关心最少转移次数 |
+| Input | Start point, target, neighbor generation function or graph structure |
+| Output | Minimum steps to reach the target, level-order result, or number of connected components |
+| Core structure | Queue + visited set |
+| Applicability | Every edge has equal weight, or only the minimum number of transitions matters |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-BFS 的扩展顺序像水波纹一样一层层向外扩散：
+BFS expands outward layer by layer like ripples in water:
 
-```mermaid
+ ```mermaid
 graph TD
     S[起点 step=0] --> A[第一层 step=1]
     S --> B[第一层 step=1]
@@ -46,18 +44,18 @@ graph TD
     B --> E[第二层 step=2]
 ```
 
-### 层序扩展
+### Level-Order Expansion
 
-1. 起点入队，并标记为已访问。
-2. 每轮只处理当前队列中的节点，这些节点属于同一层。
-3. 将未访问的邻居加入队列，作为下一层。
-4. 处理完一层后，步数 `step + 1`。
+1. Enqueue the starting point and mark it as visited.
+2. Each round processes only the nodes currently in the queue, which belong to the same layer.
+3. Add unvisited neighbors to the queue as the next layer.
+4. After processing one layer, increment the step count `step + 1`.
 
-只要第一次遇到目标，就可以返回当前步数，因为 BFS 保证这是最短路径。
+As soon as the target is encountered for the first time, the current step count can be returned, because BFS guarantees this is the shortest path.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：BFS(start, target)
@@ -78,20 +76,20 @@ graph TD
 12. return -1
 ```
 
-**复杂度分析**：
+**Complexity Analysis**:
 
-| 场景 | 时间复杂度 | 空间复杂度 | 说明 |
+| Scenario | Time Complexity | Space Complexity | Description |
 |------|------|------|------|
-| 图遍历 | O(V + E) | O(V) | 每个点和边最多处理一次 |
-| 网格 BFS | O(mn) | O(mn) | 每个格子最多入队一次 |
-| 状态搜索 | O(状态数 × 分支数) | O(状态数) | 如转盘锁、单词接龙 |
-| 双向 BFS | 约 O(b^(d/2)) | O(b^(d/2)) | 适合起点和终点都明确的搜索 |
+| Graph traversal | O(V + E) | O(V) | Each vertex and edge is processed at most once |
+| Grid BFS | O(mn) | O(mn) | Each cell is enqueued at most once |
+| State search | O(number of states × branching factor) | O(number of states) | Such as combination lock, word ladder |
+| Bidirectional BFS | Approximately O(b^(d/2)) | O(b^(d/2)) | Suitable when both start and end are known |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 通用 BFS 模板
+### 1. Generic BFS Template
 
 ```typescript
 function bfs<T>(start: T, isTarget: (node: T) => boolean, getNeighbors: (node: T) => T[]): number {
@@ -121,7 +119,7 @@ function bfs<T>(start: T, isTarget: (node: T) => boolean, getNeighbors: (node: T
 }
 ```
 
-### 2. 岛屿数量
+### 2. Number of Islands
 
 ```typescript
 function numIslands(grid: string[][]): number {
@@ -160,7 +158,7 @@ function numIslands(grid: string[][]): number {
 }
 ```
 
-### 3. 打开转盘锁
+### 3. Open the Lock
 
 ```typescript
 function openLock(deadends: string[], target: string): number {
@@ -204,7 +202,7 @@ function openLock(deadends: string[], target: string): number {
 }
 ```
 
-### 4. 双向 BFS
+### 4. Bidirectional BFS
 
 ```typescript
 function openLockBidirectional(deadends: string[], target: string): number {
@@ -250,40 +248,39 @@ function openLockBidirectional(deadends: string[], target: string): number {
 ```
 
 ---
+## Engineering Optimization: Queues and Access Timing
 
-## 工程优化：队列与访问时机
+JavaScript array `shift()` shifts subsequent elements; for large queue scenarios, use a `head` pointer to simulate dequeuing.
 
-JavaScript 数组的 `shift()` 会移动后续元素，大队列场景应使用 `head` 指针模拟出队。
-
-| 优化点 | 推荐做法 | 原因 |
+| Optimization Point | Recommended Practice | Reason |
 |------|------|------|
-| 出队 | `const cur = queue[head++]` | 避免 `shift()` 的 O(n) 移动 |
-| 标记访问 | 入队时标记 | 防止同一节点被重复加入队列 |
-| 分层计数 | 记录当前层 `size` | 准确维护最短步数 |
-| 双向搜索 | 从较小 frontier 扩展 | 降低指数级状态空间 |
+| Dequeue | `const cur = queue[head++]` | Avoid the O(n) shifting of `shift()` |
+| Marking visits | Mark when enqueuing | Prevent the same node from being enqueued repeatedly |
+| Level counting | Record the current level `size` | Accurately maintain the shortest step count |
+| Bidirectional search | Expand from the smaller frontier | Reduce the exponential state space |
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 无权图最短路径
-- 二叉树层序遍历
-- 网格扩散：岛屿、迷宫、腐烂橘子
-- 状态搜索：转盘锁、单词接龙
+- Shortest path in unweighted graphs
+- Level-order traversal of binary trees
+- Grid propagation: islands, mazes, rotting oranges
+- State search: combination lock, word ladder
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 内存占用高 | 队列可能保存整层节点 |
-| 不适合带权最短路 | 边权不同应使用 Dijkstra 等算法 |
-| 状态爆炸 | 分支因子大时需要剪枝或双向搜索 |
+| High memory usage | The queue may hold an entire level of nodes |
+| Not suitable for weighted shortest paths | When edge weights differ, algorithms such as Dijkstra should be used |
+| State explosion | When the branching factor is large, pruning or bidirectional search is needed |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -294,9 +291,9 @@ graph LR
     E --> B
 ```
 
-**核心要点**：
+**Key Points**:
 
-1. BFS = 队列 + visited + 按层扩展。
-2. 无权图第一次到达目标就是最短路径。
-3. 大队列使用 head 指针，不要频繁 `shift()`。
-4. 起点和终点都明确时，优先考虑双向 BFS。
+1. BFS = queue + visited + level-by-level expansion.
+2. In an unweighted graph, the first time the target is reached is the shortest path.
+3. For large queues, use a head pointer; do not frequently `shift()`.
+4. When both the start and end points are known, prioritize bidirectional BFS.

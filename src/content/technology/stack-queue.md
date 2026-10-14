@@ -1,46 +1,44 @@
 ---
-title: 栈与队列：从底层实现到单调栈的 TypeScript 指南
+title: 'Stacks and Queues: A TypeScript Guide from Low-Level Implementation to Monotonic Stacks'
 published: 2026-04-26
-description: '掌握栈和队列的原理、TypeScript 实现，以及单调栈、单调队列在 Next Greater Element 等问题中的妙用。'
+description: Master the principles of stacks and queues, their TypeScript implementations, and how monotonic stacks and monotonic queues solve problems like Next Greater Element.
 image: ''
-tags: [栈, 队列, TypeScript, 数据结构]
-category: '算法'
+tags: [Stack, Queue, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+Stacks and queues are both restricted linear structures. They do not emphasize "access at arbitrary positions"; instead, they emphasize "the order in which elements enter and leave."
+
+- Stack: last in, first out, like a stack of plates;
+- Queue: first in, first out, like waiting in line.
+
+These two structures may seem simple, but they are the foundation of recursion, expression parsing, BFS, task scheduling, monotonic stacks, and monotonic queues.
+
+> Prerequisites
+> - **LIFO / FIFO**: stacks are last in, first out; queues are first in, first out
+> - **Array implementation**: pay attention to the cost of `push/pop` and `shift/unshift`
+> - **Monotonic structures**: use a stack or queue to maintain an ordered candidate set
+
 ---
 
-## 概述
+## Problem Definition
 
-栈和队列都是受限的线性结构。它们不强调“任意位置访问”，而是强调“元素进入和离开的顺序”。
+Stacks and queues solve the problem of "order control."
 
-- 栈：后进先出，像一摞盘子；
-- 队列：先进先出，像排队办事。
-
-这两个结构看似简单，却是递归、表达式解析、BFS、任务调度、单调栈和单调队列的基础。
-
-> 前置知识
-> - **LIFO / FIFO**：栈后进先出，队列先进先出
-> - **数组实现**：注意 `push/pop` 与 `shift/unshift` 的成本
-> - **单调结构**：用栈或队列维护有序候选集
-
----
-
-## 问题定义
-
-栈和队列解决的是“顺序控制”问题。
-
-| 结构 | 入 | 出 | 顺序 |
+| Structure | Insert | Remove | Order |
 | --- | --- | --- | --- |
-| 栈 | `push` | `pop` | 后进先出 |
-| 队列 | `enqueue` | `dequeue` | 先进先出 |
+| Stack | `push` | `pop` | Last in, first out |
+| Queue | `enqueue` | `dequeue` | First in, first out |
 
-如果问题关心“最近加入的元素”，通常想到栈；如果问题关心“最早等待的元素”，通常想到队列。
+If a problem cares about "the most recently added element," you usually think of a stack; if a problem cares about "the earliest waiting element," you usually think of a queue.
 
 ---
 
-## 核心原理：分步图解
+## Core Principles: Step-by-Step Illustration
 
-### 栈
+### Stack
 
 ```text
 push 1 -> [1]
@@ -48,9 +46,9 @@ push 2 -> [1, 2]
 pop    -> [1]，返回 2
 ```
 
-栈只操作同一端，因此入栈和出栈都是 O(1)。
+A stack operates only on the same end, so both push and pop are O(1).
 
-### 队列
+### Queue
 
 ```text
 enqueue 1 -> [1]
@@ -58,11 +56,11 @@ enqueue 2 -> [1, 2]
 dequeue   -> [2]，返回 1
 ```
 
-队列从尾部进入、从头部离开。用 JavaScript 数组直接 `shift` 会移动元素，因此更好的实现是维护头指针。
+A queue enters from the tail and leaves from the head. Using a JavaScript array directly with `shift` will shift elements, so a better implementation is to maintain a head pointer.
 
-### 单调结构
+### Monotonic Structures
 
-单调栈和单调队列会在插入时删除不可能再成为答案的元素：
+Monotonic stacks and monotonic queues remove, during insertion, elements that can no longer become the answer:
 
 ```text
 保持从大到小：
@@ -71,26 +69,26 @@ dequeue   -> [2]，返回 1
 入队 2: [3, 2]  // 1 被移除
 ```
 
-这类结构把很多“向左/向右找第一个更大值”的问题优化到 O(n)。
+This kind of structure optimizes many problems of "find the first greater value to the left/right" to O(n).
 
 ---
 
-## 基本操作与复杂度
+## Basic Operations and Complexity
 
-| 结构 | 操作 | 时间复杂度 | 说明 |
+| Structure | Operation | Time Complexity | Description |
 | --- | --- | --- | --- |
-| 栈 | push / pop / peek | O(1) | 只操作尾部 |
-| 队列 | enqueue / dequeue / peek | O(1) | 使用头尾指针 |
-| 单调栈 | push / pop | 摊还 O(1) | 每个元素最多进出一次 |
-| 单调队列 | push / shift | 摊还 O(1) | 维护窗口最值 |
+| Stack | push / pop / peek | O(1) | Operates only on the tail |
+| Queue | enqueue / dequeue / peek | O(1) | Uses head and tail pointers |
+| Monotonic stack | push / pop | Amortized O(1) | Each element is pushed and popped at most once |
+| Monotonic queue | push / shift | Amortized O(1) | Maintains the window extremum |
 
-“摊还 O(1)”的意思是：单次操作可能弹出多个元素，但每个元素整个生命周期只会被弹出一次。
+"Amortized O(1)" means: a single operation may pop multiple elements, but each element is popped only once over its entire lifetime.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 栈
+### 1. Stack
 
 ```typescript
 class Stack<T> {
@@ -114,7 +112,7 @@ class Stack<T> {
 }
 ```
 
-### 2. 队列
+### 2. Queue
 
 ```typescript
 class Queue<T> {
@@ -145,9 +143,9 @@ class Queue<T> {
 }
 ```
 
-这个队列避免每次出队都 `shift`，只在头部废弃空间较多时做一次压缩。
+This queue avoids `shift` on every dequeue, and only performs a compaction when there is a lot of wasted space at the head.
 
-### 3. 单调栈：下一个更大元素
+### 3. Monotonic Stack: Next Greater Element
 
 ```typescript
 function nextGreater(nums: number[]): number[] {
@@ -167,49 +165,49 @@ function nextGreater(nums: number[]): number[] {
 }
 ```
 
-栈里存的是下标，而不是值，因为答案要写回原位置。
+The stack stores indices, not values, because the answer needs to be written back to the original position.
 
 ---
 
-## 工程优化：避免误用数组 API
+## Engineering Optimization: Avoid Misusing Array APIs
 
-在 JavaScript 中，数组尾部操作很快：
+In JavaScript, operations at the end of an array are fast:
 
 ```typescript
 arr.push(value);
 arr.pop();
 ```
 
-但头部操作会移动元素：
+But operations at the head will shift elements:
 
 ```typescript
 arr.shift();
 arr.unshift(value);
 ```
 
-如果队列规模较小，直接使用 `shift` 可以接受；如果队列在热路径上，应该使用头指针、环形数组或双端队列实现。
+If the queue size is small, using `shift` directly is acceptable; if the queue is on a hot path, you should use a head pointer, a circular array, or a deque implementation.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 栈：括号匹配、函数调用、撤销操作、DFS；
-- 队列：BFS、任务调度、消息缓冲；
-- 单调栈：下一个更大元素、柱状图最大矩形；
-- 单调队列：滑动窗口最大值。
+- Stack: bracket matching, function calls, undo operations, DFS;
+- Queue: BFS, task scheduling, message buffering;
+- Monotonic stack: next greater element, largest rectangle in a histogram;
+- Monotonic queue: sliding window maximum.
 
-### 局限性
+### Limitations
 
-- 栈和队列不支持中间元素高效访问；
-- 队列用普通数组实现时要避免频繁 `shift`；
-- 单调结构只适合能淘汰无效候选的问题；
-- 栈深度过大时，递归调用可能触发调用栈限制。
+- Stacks and queues do not support efficient access to middle elements;
+- When implementing a queue with a normal array, avoid frequent `shift`;
+- Monotonic structures are only suitable for problems where invalid candidates can be eliminated;
+- When the stack depth is too large, recursive calls may hit the call stack limit.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -217,7 +215,7 @@ graph LR
     B[队列 FIFO] --> D[BFS/缓冲区/单调队列]
 ```
 
-- 栈是后进先出，队列是先进先出。
-- 它们的价值在于控制处理顺序，而不是随机访问。
-- 队列实现应避免频繁头部删除导致 O(n) 搬移。
-- 单调栈和单调队列通过删除无效候选把问题优化到线性时间。
+- A stack is last in, first out; a queue is first in, first out.
+- Their value lies in controlling processing order, not random access.
+- Queue implementations should avoid O(n) shifting caused by frequent deletion at the head.
+- Monotonic stacks and monotonic queues optimize problems to linear time by deleting invalid candidates.

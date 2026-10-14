@@ -1,38 +1,36 @@
 ---
-title: 二叉搜索树：查找、插入、删除与验证的 TypeScript 实现
+title: 'Binary Search Tree: TypeScript Implementation of Search, Insert, Delete, and Validation'
 published: 2026-04-26
-description: '掌握 BST 的核心操作（增删查）与特性，理解 BST 的局限性和平衡树的概念，用 TypeScript 实现完整代码。'
+description: Master the core BST operations (insert, delete, search) and their properties, understand BST limitations and the concept of balanced trees, with complete TypeScript code.
 image: ''
-tags: [二叉搜索树, TypeScript, 数据结构]
-category: '算法'
+tags: [Binary Search Tree, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Overview
 
-## 概述
+A binary search tree (BST) is a data structure that adds a sorting constraint on top of a binary tree. It allows search, insertion, and deletion to proceed along the height of the tree rather than scanning every node.
 
-二叉搜索树（Binary Search Tree，BST）是在二叉树基础上增加排序约束的数据结构。它让查找、插入、删除可以沿着树高方向进行，而不是扫描所有节点。
-
-BST 的核心性质是：
+The core property of a BST is:
 
 ```text
 左子树所有值 < 当前节点值 < 右子树所有值
 ```
 
-如果树保持平衡，操作复杂度接近 O(log n)；如果退化成链表，复杂度会变成 O(n)。
+If the tree stays balanced, the complexity of operations is close to O(log n); if it degenerates into a linked list, the complexity becomes O(n).
 
-> 前置知识
-> - **二叉树**：每个节点最多有左右两个子节点
-> - **有序性**：左子树小于根，右子树大于根
-> - **递归遍历**：查找、插入和验证都依赖子树递归
+> Prerequisites
+> - **Binary tree**: each node has at most a left and a right child
+> - **Ordering**: the left subtree is smaller than the root, the right subtree is larger than the root
+> - **Recursive traversal**: search, insertion, and validation all rely on recursing into subtrees
 
 ---
 
-## 问题定义
+## Problem Definition
 
-BST 适合维护一组可比较的数据，并支持动态查找和更新。
+A BST is suitable for maintaining a set of comparable data and supporting dynamic search and updates.
 
-示例：
+Example:
 
 ```text
       8
@@ -42,7 +40,7 @@ BST 适合维护一组可比较的数据，并支持动态查找和更新。
   1   6    14
 ```
 
-查找 `6` 的路径：
+Path for searching `6`:
 
 ```text
 6 < 8  -> 去左边
@@ -50,22 +48,22 @@ BST 适合维护一组可比较的数据，并支持动态查找和更新。
 6 = 6  -> 找到
 ```
 
-BST 问题通常围绕四件事：
+BST problems usually revolve around four things:
 
-| 操作 | 核心判断 |
+| Operation | Core judgment |
 | --- | --- |
-| 查找 | 目标值与当前节点值比较 |
-| 插入 | 找到合适的空位置 |
-| 删除 | 删除后仍要保持 BST 性质 |
-| 验证 | 每个节点必须落在合法范围内 |
+| Search | Compare the target value with the current node's value |
+| Insert | Find a suitable empty position |
+| Delete | The BST property must still hold after deletion |
+| Validate | Every node must fall within a valid range |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-### 查找路径
+### Search Path
 
-每次比较都会排除一半方向的子树：
+Each comparison eliminates half of the subtrees in one direction:
 
 ```text
        8
@@ -73,54 +71,54 @@ BST 问题通常围绕四件事：
    < 8   > 8
 ```
 
-这就是 BST 比普通二叉树更适合查找的原因。
+This is why a BST is better suited for searching than an ordinary binary tree.
 
-### 中序遍历
+### In-Order Traversal
 
-BST 的中序遍历结果一定是升序：
+The in-order traversal of a BST is always in ascending order:
 
 ```text
 左 -> 根 -> 右
 1, 3, 6, 8, 10, 14
 ```
 
-这个性质常用于验证 BST、找第 K 小元素、把 BST 转成有序数组。
+This property is often used to validate a BST, find the K-th smallest element, or convert a BST into a sorted array.
 
-### 删除节点
+### Deleting a Node
 
-删除最复杂，因为要保持结构合法：
+Deletion is the most complex because the structure must remain valid:
 
-| 情况 | 处理方式 |
+| Case | Handling |
 | --- | --- |
-| 叶子节点 | 直接删除 |
-| 只有一个子节点 | 用子节点替代当前节点 |
-| 有两个子节点 | 用右子树最小节点或左子树最大节点替代 |
+| Leaf node | Delete it directly |
+| Only one child | Replace the current node with its child |
+| Two children | Replace it with the smallest node in the right subtree or the largest node in the left subtree |
 
-有两个子节点时，通常找“中序后继”：右子树中最小的节点。
+When there are two children, we usually find the "in-order successor": the smallest node in the right subtree.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
-插入一个值 `x`：
+Inserting a value `x`:
 
-1. 如果当前节点为空，创建新节点；
-2. 如果 `x < node.value`，插入左子树；
-3. 如果 `x > node.value`，插入右子树；
-4. 如果等于当前值，根据业务决定忽略、计数或放到某一侧；
-5. 返回当前节点，保持父节点连接。
+1. If the current node is empty, create a new node;
+2. If `x < node.value`, insert into the left subtree;
+3. If `x > node.value`, insert into the right subtree;
+4. If it equals the current value, decide based on business needs whether to ignore it, count it, or place it on one side;
+5. Return the current node to keep the parent connection.
 
-验证 BST 时，不能只比较当前节点和左右孩子。必须维护一个合法范围：
+When validating a BST, you cannot just compare the current node with its left and right children. You must maintain a valid range:
 
 ```text
 min < node.value < max
 ```
 
-进入左子树时，上界变成当前值；进入右子树时，下界变成当前值。
+When entering the left subtree, the upper bound becomes the current value; when entering the right subtree, the lower bound becomes the current value.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
 ```typescript
 class TreeNode {
@@ -132,7 +130,7 @@ class TreeNode {
 }
 ```
 
-### 1. 查找
+### 1. Search
 
 ```typescript
 function searchBST(root: TreeNode | null, target: number): TreeNode | null {
@@ -147,7 +145,7 @@ function searchBST(root: TreeNode | null, target: number): TreeNode | null {
 }
 ```
 
-### 2. 插入
+### 2. Insert
 
 ```typescript
 function insertIntoBST(root: TreeNode | null, value: number): TreeNode {
@@ -163,7 +161,7 @@ function insertIntoBST(root: TreeNode | null, value: number): TreeNode {
 }
 ```
 
-### 3. 验证
+### 3. Validate
 
 ```typescript
 function isValidBST(root: TreeNode | null): boolean {
@@ -180,9 +178,9 @@ function isValidBST(root: TreeNode | null): boolean {
 
 ---
 
-## 工程优化：平衡性决定性能
+## Engineering Optimization: Balance Determines Performance
 
-BST 的理想形态接近平衡：
+The ideal shape of a BST is close to balanced:
 
 ```text
       4
@@ -192,38 +190,38 @@ BST 的理想形态接近平衡：
  1   3 5   7
 ```
 
-此时高度是 O(log n)。但如果按升序插入：
+In this case the height is O(log n). But if you insert in ascending order:
 
 ```text
 1 -> 2 -> 3 -> 4 -> 5
 ```
 
-树会退化成链表，查找变成 O(n)。
+The tree degenerates into a linked list, and search becomes O(n).
 
-工程中如果需要稳定的有序集合能力，通常使用平衡树、跳表、B 树或数据库索引，而不是裸 BST。
-
----
-
-## 应用与局限
-
-### 典型应用
-
-- 有序集合和有序映射；
-- 查找第 K 小元素；
-- 区间查询；
-- 数据库和文件系统索引的基础思想；
-- 把有序数组构造成平衡树。
-
-### 局限性
-
-- 不平衡时性能会退化；
-- 删除逻辑比查找和插入复杂；
-- 重复值策略需要提前定义；
-- JavaScript 标准库没有内置平衡树结构。
+In engineering, if you need stable ordered-set capabilities, you usually use balanced trees, skip lists, B-trees, or database indexes rather than a bare BST.
 
 ---
 
-## 总结
+## Applications and Limitations
+
+### Typical Applications
+
+- Ordered sets and ordered maps;
+- Finding the K-th smallest element;
+- Range queries;
+- The foundational idea behind database and file system indexes;
+- Building a balanced tree from a sorted array.
+
+### Limitations
+
+- Performance degrades when unbalanced;
+- Deletion logic is more complex than search and insertion;
+- The duplicate-value strategy needs to be defined in advance;
+- The JavaScript standard library has no built-in balanced tree structure.
+
+---
+
+## Summary
 
 ```mermaid
 graph LR
@@ -233,8 +231,8 @@ graph LR
     D --> E[平衡性优化]
 ```
 
-- BST 在二叉树上增加了左小右大的排序约束。
-- 中序遍历 BST 会得到升序序列。
-- 查找、插入、删除的复杂度取决于树高。
-- 验证 BST 必须使用上下界，而不是只看直接子节点。
-- 工程中要关注平衡性，否则 BST 会退化成链表。
+- A BST adds the left-smaller-right-larger sorting constraint on top of a binary tree.
+- In-order traversal of a BST yields an ascending sequence.
+- The complexity of search, insertion, and deletion depends on the height of the tree.
+- Validating a BST requires using upper and lower bounds, not just looking at direct children.
+- In engineering, pay attention to balance, otherwise a BST will degenerate into a linked list.

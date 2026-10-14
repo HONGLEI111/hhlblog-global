@@ -1,51 +1,49 @@
 ---
-title: 堆：TopK 问题的终极武器
+title: 'Heaps: The Ultimate Weapon for TopK Problems'
 published: 2026-04-26
-description: '掌握大顶堆、小顶堆的原理与 TypeScript 实现，解决 TopK、合并 K 个有序链表、数据流中位数等高频问题。'
+description: Master the principles and TypeScript implementation of max-heaps and min-heaps to solve high-frequency problems like TopK, merging K sorted lists, and finding the median in a data stream.
 image: ''
-tags: [堆, TypeScript, 数据结构]
-category: '算法'
+tags: [Heap, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A heap is a complete binary tree that satisfies a specific ordering constraint, usually implemented with an array. It excels at the problem of dynamically maintaining the maximum or minimum value in a set of data.
+
+Common heaps fall into two categories:
+
+- Min-heap: each parent node is less than or equal to its children, and the top of the heap is the minimum value;
+- Max-heap: each parent node is greater than or equal to its children, and the top of the heap is the maximum value.
+
+Heaps are an important foundation for TopK, priority queues, task scheduling, merging sorted streams, and shortest path algorithms.
+
+> Prerequisites
+> - **Complete binary tree**: the structural basis of a heap
+> - **Array index relationships**: parent and child nodes can be computed from indices
+> - **Priority queue**: the most common engineering interface for a heap
+
 ---
 
-## 概述
+## Problem Definition
 
-堆是一种满足特定顺序约束的完全二叉树，通常用数组实现。它最擅长的问题是：动态维护一组数据中的最大值或最小值。
+If we need to repeatedly extract the current minimum or maximum element, a plain array has two obvious problems:
 
-常见堆分为两类：
-
-- 小顶堆：父节点小于等于子节点，堆顶是最小值；
-- 大顶堆：父节点大于等于子节点，堆顶是最大值。
-
-堆是 TopK、优先队列、任务调度、合并有序流和最短路径算法的重要基础。
-
-> 前置知识
-> - **完全二叉树**：堆的结构基础
-> - **数组下标关系**：父子节点可由下标计算
-> - **优先级队列**：堆最常见的工程接口
-
----
-
-## 问题定义
-
-如果我们需要反复取出当前最小或最大的元素，普通数组有两个明显问题：
-
-| 方案 | 插入 | 取最值 | 问题 |
+| Approach | Insert | Get extremum | Problem |
 | --- | --- | --- | --- |
-| 无序数组 | O(1) | O(n) | 每次都要扫描 |
-| 有序数组 | O(n) | O(1) | 插入要移动元素 |
-| 堆 | O(log n) | O(log n) | 插入和删除都稳定 |
+| Unsorted array | O(1) | O(n) | Must scan every time |
+| Sorted array | O(n) | O(1) | Insertion requires shifting elements |
+| Heap | O(log n) | O(log n) | Both insertion and deletion are stable |
 
-堆牺牲了完整有序性，只保证堆顶是全局最值，因此能在动态场景下取得更好的平衡。
+A heap sacrifices full ordering and only guarantees that the top of the heap is the global extremum, which allows it to achieve a better balance in dynamic scenarios.
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-堆是一棵完全二叉树，可以紧凑地存进数组：
+A heap is a complete binary tree that can be stored compactly in an array:
 
-```text
+ ```text
         1
       /   \
      3     5
@@ -55,46 +53,46 @@ lang: ''
 数组: [1, 3, 5, 7, 9, 8]
 ```
 
-数组下标关系：
+Array index relationships:
 
-```text
+ ```text
 parent(i) = Math.floor((i - 1) / 2)
 left(i)   = 2 * i + 1
 right(i)  = 2 * i + 2
 ```
 
-### 上浮
+### Sift Up
 
-插入新元素时，先放到数组末尾，再不断和父节点比较。如果比父节点更小，就交换位置。
+When inserting a new element, first place it at the end of the array, then repeatedly compare it with its parent. If it is smaller than its parent, swap positions.
 
-### 下沉
+### Sift Down
 
-删除堆顶时，把末尾元素放到堆顶，然后不断和更小的子节点交换，直到恢复堆性质。
-
----
-
-## 算法精细步骤
-
-小顶堆插入：
-
-1. 把元素追加到数组末尾；
-2. 当前下标设为新元素位置；
-3. 如果当前元素小于父节点，交换；
-4. 继续向上比较，直到根节点或父节点更小。
-
-小顶堆弹出：
-
-1. 保存堆顶作为返回值；
-2. 用末尾元素替换堆顶；
-3. 从根节点开始，与左右孩子中更小者比较；
-4. 如果当前节点更大，则交换并继续下沉；
-5. 恢复堆性质后返回原堆顶。
+When deleting the top of the heap, place the last element at the top, then repeatedly swap it with the smaller child until the heap property is restored.
 
 ---
 
-## TypeScript 实现
+## Detailed Algorithm Steps
 
-```typescript
+Min-heap insertion:
+
+1. Append the element to the end of the array;
+2. Set the current index to the new element's position;
+3. If the current element is smaller than its parent, swap;
+4. Continue comparing upward until reaching the root or until the parent is smaller.
+
+Min-heap pop:
+
+1. Save the top of the heap as the return value;
+2. Replace the top with the last element;
+3. Starting from the root, compare with the smaller of the left and right children;
+4. If the current node is larger, swap and continue sifting down;
+5. After restoring the heap property, return the original top.
+
+---
+
+## TypeScript Implementation
+
+ ```typescript
 class MinHeap<T> {
   private readonly data: T[] = [];
 
@@ -156,9 +154,9 @@ class MinHeap<T> {
 }
 ```
 
-### TopK 示例
+### TopK Example
 
-```typescript
+ ```typescript
 function topK(nums: number[], k: number): number[] {
   const heap = new MinHeap<number>((a, b) => a - b);
 
@@ -179,15 +177,15 @@ function topK(nums: number[], k: number): number[] {
 }
 ```
 
-这里用小顶堆保留最大的 k 个数，堆顶始终是当前 TopK 中最小的候选。
+Here a min-heap is used to keep the largest k numbers, and the top of the heap is always the smallest candidate in the current TopK.
 
 ---
 
-## 工程优化：优先队列接口
+## Engineering Optimization: Priority Queue Interface
 
-很多业务场景不直接关心“堆”，而关心“优先级最高的任务先执行”。这时可以把堆封装成优先队列：
+Many business scenarios do not directly care about the "heap" but about "the task with the highest priority executes first." In this case, the heap can be encapsulated as a priority queue:
 
-```typescript
+ ```typescript
 const queue = new MinHeap<{ priority: number; task: string }>(
   (a, b) => a.priority - b.priority,
 );
@@ -197,40 +195,40 @@ queue.push({ priority: 1, task: 'high' });
 console.log(queue.pop()?.task); // high
 ```
 
-把比较函数作为构造参数，可以让同一个堆实现支持数字、对象和自定义优先级。
+Using a comparison function as a constructor parameter allows the same heap implementation to support numbers, objects, and custom priorities.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- TopK 问题；
-- 合并 K 个有序数组或链表；
-- 数据流中位数；
-- Dijkstra 最短路径；
-- 任务调度和优先级队列。
+- TopK problems;
+- Merging K sorted arrays or linked lists;
+- Median of a data stream;
+- Dijkstra's shortest path;
+- Task scheduling and priority queues.
 
-### 局限性
+### Limitations
 
-- 堆只保证堆顶最优，不保证整体有序；
-- 查找任意元素仍然是 O(n)；
-- 删除非堆顶元素需要额外索引支持；
-- JavaScript 标准库没有内置堆，需要自己实现或引入库。
+- A heap only guarantees that the top is optimal, not that the whole structure is ordered;
+- Finding an arbitrary element is still O(n);
+- Deleting a non-top element requires additional index support;
+- The JavaScript standard library has no built-in heap, so you need to implement one yourself or bring in a library.
 
 ---
 
-## 总结
+## Summary
 
-```mermaid
+ ```mermaid
 graph LR
     A[数组表示完全二叉树] --> B[上浮维护堆序]
     B --> C[下沉维护堆序]
     C --> D[优先队列接口]
 ```
 
-- 堆是用数组表示的完全二叉树。
-- 小顶堆堆顶是最小值，大顶堆堆顶是最大值。
-- 插入靠上浮，删除堆顶靠下沉。
-- 堆适合动态维护最值，而不是完整排序。
-- TopK 和优先队列是堆最常见的应用场景。
+- A heap is a complete binary tree represented as an array.
+- In a min-heap the top is the minimum value, and in a max-heap the top is the maximum value.
+- Insertion relies on sifting up, and deleting the top relies on sifting down.
+- A heap is suitable for dynamically maintaining extrema, not for full sorting.
+- TopK and priority queues are the most common application scenarios for heaps.

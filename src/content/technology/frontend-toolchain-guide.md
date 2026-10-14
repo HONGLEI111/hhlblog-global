@@ -1,34 +1,32 @@
 ---
-title: 前端常用工具：从 package.json 到 Vite，一文梳理前端工程化
+title: 'Common Frontend Tools: From package.json to Vite, a Guide to Frontend Engineering'
 published: 2026-06-17
-description: '深入浅出地梳理前端工程化核心工具：package.json、依赖管理、版本号规则、lock 文件、npm/yarn/pnpm、scripts、Vite 与 Webpack。'
+description: 'A clear and accessible overview of core frontend engineering tools: package.json, dependency management, versioning rules, lock files, npm/yarn/pnpm, scripts, Vite, and Webpack.'
 image: ''
-tags: [前端工具, npm, Vite, Webpack, 工程化, 前端基础]
-category: '前端'
+tags: [frontend tools, npm, Vite, Webpack, engineering, frontend fundamentals]
+category: Frontend
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+Modern front-end development is no longer the era of "one HTML file + a few script tags." A typical front-end project uses:
+
+- Various third-party libraries (React, Vue, Lodash...)
+- Build tools (Vite, Webpack...)
+- Linting and formatting (ESLint, Prettier...)
+- Testing frameworks (Vitest, Playwright...)
+
+Managing these requires a toolchain. This article will walk you through the core concepts and tools of front-end engineering.
+
 ---
 
-## 1. 引言
+## 2. package.json: The Project's "Instruction Manual"
 
-现代前端开发早已不是「一个 HTML 文件 + 几个 script 标签」的时代了。一个典型的前端项目会用到：
+### 2.1 What Is It?
 
-- 各种第三方库（React、Vue、Lodash……）
-- 构建工具（Vite、Webpack……）
-- 代码检查与格式化（ESLint、Prettier……）
-- 测试框架（Vitest、Playwright……）
+`package.json` is the **metadata file** for every Node.js / front-end project, recording the project's basic information, dependencies, script commands, and more. You can think of it as the project's **ID card + instruction manual**.
 
-管理这些需要一套工具链。本文将带你梳理前端工程化的核心概念和工具。
-
----
-
-## 2. package.json：项目的「说明书」
-
-### 2.1 它是什么？
-
-`package.json` 是每个 Node.js / 前端项目的**元数据文件**，记录了项目的基本信息、依赖关系、脚本命令等。你可以把它理解为项目的**身份证 + 说明书**。
-
-### 2.2 一个典型的 package.json
+### 2.2 A Typical package.json
 
 ```json
 {
@@ -53,24 +51,24 @@ lang: ''
 }
 ```
 
-### 2.3 关键字段解读
+### 2.3 Key Fields Explained
 
-| 字段 | 作用 |
+| Field | Purpose |
 |------|------|
-| `name` | 项目名称（如果要发布到 npm，必须唯一） |
-| `version` | 项目版本号 |
-| `private: true` | 设为 true 防止意外发布到 npm |
-| `type` | `"module"` 启用 ES Module（`import`/`export`），默认是 CommonJS（`require`） |
-| `scripts` | 定义项目命令别名 |
-| `dependencies` | **生产依赖**，线上运行时需要的包 |
-| `devDependencies` | **开发依赖**，只在本地开发时需要的包 |
-| `peerDependencies` | 对等依赖，要求宿主提供指定版本的包 |
+| `name` | Project name (must be unique if publishing to npm) |
+| `version` | Project version number |
+| `private: true` | Set to true to prevent accidental publishing to npm |
+| `type` | `"module"` enables ES Module (`import`/`export`), defaults to CommonJS (`require`) |
+| `scripts` | Defines project command aliases |
+| `dependencies` | **Production dependencies**, packages needed at runtime in production |
+| `devDependencies` | **Development dependencies**, packages only needed during local development |
+| `peerDependencies` | Peer dependencies, requiring the host to provide a specified version of the package |
 
 ---
 
-## 3. dependencies 和 devDependencies
+## 3. dependencies and devDependencies
 
-### 3.1 区别
+### 3.1 The Difference
 
 ```
 生产依赖（dependencies）：
@@ -82,7 +80,7 @@ lang: ''
   → 例如：vite, webpack, typescript, eslint, prettier, vitest
 ```
 
-### 3.2 安装命令
+### 3.2 Install Commands
 
 ```bash
 # 安装为生产依赖（默认）
@@ -95,48 +93,48 @@ npm install -D vite typescript
 npm install --save-dev vite
 ```
 
-### 3.3 为什么需要区分？
+### 3.3 Why Distinguish Between Them?
 
-| 场景 | 不区分 | 区分 |
+| Scenario | No Distinction | With Distinction |
 |------|--------|------|
-| `npm install` | 安装全部 | 安装全部 |
-| `npm install --production` | 安装全部 | **只安装 dependencies** |
-| 最终打包 | 可能误引入测试工具 | Tree shaking 更干净 |
+| `npm install` | Install everything | Install everything |
+| `npm install --production` | Install everything | **Only install dependencies** |
+| Final bundle | May accidentally include testing tools | Cleaner tree shaking |
 
-在生产环境（CI/CD 或 Docker）中，用 `npm install --production` 可以**显著减少安装时间和磁盘占用**。
+In production environments (CI/CD or Docker), using `npm install --production` can **significantly reduce installation time and disk usage**.
 
 ---
 
-## 4. 版本号规则：SemVer
+## 4. Version Number Rules: SemVer
 
-### 4.1 语义化版本
+### 4.1 Semantic Versioning
 
-npm 采用**语义化版本**（Semantic Versioning，简称 SemVer），格式为：
+npm uses **Semantic Versioning** (SemVer for short), with the format:
 
 ```
 主版本号.次版本号.修订号
  MAJOR . MINOR . PATCH
 ```
 
-| 数字 | 含义 | 何时递增 |
+| Number | Meaning | When to Increment |
 |------|------|---------|
-| MAJOR | 主版本 | 不兼容的 API 修改（破坏性变更） |
-| MINOR | 次版本 | 向后兼容的新功能 |
-| PATCH | 修订号 | 向后兼容的 bug 修复 |
+| MAJOR | Major version | Incompatible API changes (breaking changes) |
+| MINOR | Minor version | Backward-compatible new features |
+| PATCH | Patch number | Backward-compatible bug fixes |
 
-示例：`3.2.1` = 主版本 3，次版本 2，修订号 1。
+Example: `3.2.1` = major version 3, minor version 2, patch number 1.
 
-### 4.2 版本范围符号
+### 4.2 Version Range Symbols
 
-`package.json` 里的版本号前面通常带有符号：
+Version numbers in `package.json` usually have a symbol in front of them:
 
-| 写法 | 含义 | 允许范围 |
+| Notation | Meaning | Allowed Range |
 |------|------|---------|
-| `^19.0.0` | 兼容补丁和小版本 | `>=19.0.0 <20.0.0` |
-| `~19.0.0` | 只兼容补丁 | `>=19.0.0 <19.1.0` |
-| `19.0.0` | 精确版本 | 只允许 `19.0.0` |
-| `*` | 任意版本 | 最新的 |
-| `>=19.0.0` | 大于等于 | `≥19.0.0` |
+| `^19.0.0` | Compatible with patches and minor versions | `>=19.0.0 <20.0.0` |
+| `~19.0.0` | Only compatible with patches | `>=19.0.0 <19.1.0` |
+| `19.0.0` | Exact version | Only allows `19.0.0` |
+| `*` | Any version | The latest |
+| `>=19.0.0` | Greater than or equal to | `≥19.0.0` |
 
 ```bash
 # 具体例子
@@ -145,28 +143,28 @@ npm 采用**语义化版本**（Semantic Versioning，简称 SemVer），格式�
 1.2.3   →  1.2.3 only       # 完全锁死
 ```
 
-> **建议**：日常开发使用 `^`（caret），让项目自动接收 bug 修复和新功能。关键库可用精确版本。
+> **Recommendation**: For everyday development, use `^` (caret) to let the project automatically receive bug fixes and new features. Critical libraries can use exact versions.
 
 ---
 
-## 5. npm install 与 node_modules
+## 5. npm install and node_modules
 
-### 5.1 `npm install` 做了什么？
+### 5.1 What Does `npm install` Do?
 
 ```bash
 npm install
 ```
 
-当你执行这条命令时，npm 会：
+When you run this command, npm will:
 
-1. 读取 `package.json` 中的 `dependencies` 和 `devDependencies`
-2. 解析依赖树，找出所有依赖的依赖（传递依赖）
-3. 将每个包的代码下载到 `node_modules/` 目录
-4. 生成或更新 `package-lock.json`
+1. Read `dependencies` and `devDependencies` from `package.json`
+2. Resolve the dependency tree, finding all dependencies of dependencies (transitive dependencies)
+3. Download each package's code to the `node_modules/` directory
+4. Generate or update `package-lock.json`
 
-### 5.2 node_modules 的「黑洞」
+### 5.2 The "Black Hole" of node_modules
 
-`node_modules` 目录以巨大著称。一个中等项目可能包含数百 MB、上万个文件：
+The `node_modules` directory is notorious for its size. A medium-sized project can contain hundreds of MB and tens of thousands of files:
 
 ```
 node_modules/
@@ -177,38 +175,38 @@ node_modules/
 ├── ...（数百个包）
 ```
 
-**重要**：`node_modules` **不应该提交到 Git**。`.gitignore` 中应包含：
+**Important**: `node_modules` **should not be committed to Git**. `.gitignore` should include:
 
 ```
 node_modules/
 ```
 
-团队成员 clone 项目后，运行 `npm install` 即可重新生成。
+After team members clone the project, they can run `npm install` to regenerate it.
 
 ---
 
-## 6. lock 文件：锁死确切版本
+## 6. Lock Files: Locking Down Exact Versions
 
-### 6.1 为什么需要 lock 文件？
+### 6.1 Why Are Lock Files Needed?
 
-`package.json` 使用 `^1.2.3` 这样的**范围版本**，意味着不同时间 `npm install` 可能装到不同版本：
+`package.json` uses **range versions** like `^1.2.3`, meaning that `npm install` at different times may install different versions:
 
 ```
 3月1日安装：react ^19.0.0 → 19.0.0
 5月1日安装：react ^19.0.0 → 19.2.3  ← 不一样！
 ```
 
-这会导致经典的「**在我机器上能跑啊**」问题。
+This leads to the classic "**it works on my machine**" problem.
 
-### 6.2 lock 文件的作用
+### 6.2 The Role of Lock Files
 
-| 工具 | lock 文件 | 特点 |
+| Tool | Lock File | Characteristics |
 |------|----------|------|
-| npm | `package-lock.json` | JSON 格式，记录所有包的精确版本和下载地址 |
-| yarn | `yarn.lock` | 类 YAML 格式 |
-| pnpm | `pnpm-lock.yaml` | YAML 格式 |
+| npm | `package-lock.json` | JSON format, records exact versions and download URLs of all packages |
+| yarn | `yarn.lock` | YAML-like format |
+| pnpm | `pnpm-lock.yaml` | YAML format |
 
-lock 文件记录了**每一层依赖的确切版本**，确保团队成员和 CI/CD 安装的依赖完全一致。
+Lock files record the **exact version of every layer of dependencies**, ensuring that dependencies installed by team members and CI/CD are completely identical.
 
 ```json
 // package-lock.json 片段
@@ -219,13 +217,13 @@ lock 文件记录了**每一层依赖的确切版本**，确保团队成员和 C
 }
 ```
 
-> **lock 文件必须提交到 Git。** 它是确保环境一致性的关键。
+> **Lock files must be committed to Git.** They are the key to ensuring environment consistency.
 
 ---
 
-## 7. npm、yarn、pnpm：三大包管理器
+## 7. npm, yarn, pnpm: The Three Major Package Managers
 
-### 7.1 发展历程
+### 7.1 Development History
 
 ```
 npm (2010)
@@ -238,37 +236,36 @@ pnpm (2017)
   → 磁盘效率最优，严格处理依赖
 ```
 
-### 7.2 核心对比
+### 7.2 Core Comparison
 
-| 特性 | npm | yarn | pnpm |
+| Feature | npm | yarn | pnpm |
 |------|-----|------|------|
-| 安装速度 | 中等 | 快 | 最快 |
-| 磁盘效率 | 低（每个项目独立拷贝） | 低（同 npm） | 高（全局存储 + 硬链接） |
-| 幽灵依赖 | 允许 | 允许 | **禁止**（严格模式） |
-| lock 文件 | `package-lock.json` | `yarn.lock` | `pnpm-lock.yaml` |
-| Monorepo 支持 | Workspaces | Workspaces | 原生一流支持 |
+| Install speed | Medium | Fast | Fastest |
+| Disk efficiency | Low (independent copy per project) | Low (same as npm) | High (global store + hard links) |
+| Phantom dependencies | Allowed | Allowed | **Prohibited** (strict mode) |
+| Lock file | `package-lock.json` | `yarn.lock` | `pnpm-lock.yaml` |
+| Monorepo support | Workspaces | Workspaces | Native first-class support |
 
-### 7.3 「幽灵依赖」问题
+### 7.3 The "Phantom Dependency" Problem
 
-npm 和 yarn Classic 会将所有依赖**扁平化**放在 `node_modules` 顶层。这使得你可以 `require('express')` 即使你没有在 `package.json` 中声明它（如果某个包依赖了 express）。
+npm and yarn Classic **flatten** all dependencies at the top level of `node_modules`. This allows you to `require('express')` even if you didn't declare it in `package.json` (if some package depends on express).
 
-pnpm 使用**严格的嵌套依赖**，你只能访问自己在 `package.json` 中声明的依赖，在写代码时就暴露了遗漏的依赖。
+pnpm uses **strict nested dependencies**, so you can only access dependencies you declared yourself in `package.json`, exposing missing dependencies at code-writing time.
 
-### 7.4 如何选择？
+### 7.4 How to Choose?
 
-| 场景 | 推荐 |
+| Scenario | Recommendation |
 |------|------|
-| 个人项目、快速原型 | npm（零配置） |
-| 团队协作、中大型项目 | pnpm（快、省磁盘、严格） |
-| Monorepo | pnpm（原生支持最好） |
+| Personal projects, rapid prototyping | npm (zero configuration) |
+| Team collaboration, medium-to-large projects | pnpm (fast, disk-efficient, strict) |
+| Monorepo | pnpm (best native support) |
 
 ---
+## 8. scripts and npm run: Giving Commands Aliases
 
-## 8. scripts 与 npm run：给命令起别名
+### 8.1 What is scripts?
 
-### 8.1 scripts 是什么？
-
-`package.json` 中的 `scripts` 字段允许你给复杂的命令起短别名：
+The `scripts` field in `package.json` allows you to give short aliases to complex commands:
 
 ```json
 {
@@ -283,7 +280,7 @@ pnpm 使用**严格的嵌套依赖**，你只能访问自己在 `package.json` �
 }
 ```
 
-使用时：
+When using:
 
 ```bash
 npm run dev    # 相当于执行 vite --host 0.0.0.0 --port 3000
@@ -291,9 +288,9 @@ npm run build  # 相当于执行 tsc && vite build
 npm run lint   # 相当于执行 eslint . --ext .ts,.tsx
 ```
 
-### 8.2 特殊脚本
+### 8.2 Special Scripts
 
-有些脚本名可以直接省略 `run`：
+Some script names can omit `run` directly:
 
 ```bash
 npm start      # 等同于 npm run start
@@ -302,9 +299,9 @@ npm stop       # 等同于 npm run stop
 npm restart    # 等同于 npm run restart
 ```
 
-### 8.3 pre 和 post 钩子
+### 8.3 pre and post Hooks
 
-npm 有内置的**生命周期钩子**：
+npm has built-in **lifecycle hooks**:
 
 ```json
 {
@@ -316,15 +313,15 @@ npm 有内置的**生命周期钩子**：
 }
 ```
 
-执行 `npm run build` 时，npm 按 `prebuild → build → postbuild` 顺序执行。
+When executing `npm run build`, npm executes in the order of `prebuild → build → postbuild`.
 
 ---
 
-## 9. Vite 和 Webpack：构建工具
+## 9. Vite and Webpack: Build Tools
 
-### 9.1 为什么需要构建工具？
+### 9.1 Why Do We Need Build Tools?
 
-浏览器无法直接运行 `.vue`、`.tsx`、`.scss` 文件，也不支持 `import` 路径别名。构建工具的作用是**把开发代码转换成浏览器能运行的代码**：
+Browsers cannot directly run `.vue`, `.tsx`, `.scss` files, nor do they support `import` path aliases. The role of build tools is to **transform development code into code that browsers can run**:
 
 ```
 源文件（.tsx / .vue / .scss）
@@ -334,7 +331,7 @@ npm 有内置的**生命周期钩子**：
 
 ### 9.2 Webpack
 
-**Webpack** 曾是前端构建的绝对王者（2014-2022）。它的核心思想：**一切皆模块，通过 Loader 和 Plugin 处理所有文件**。
+**Webpack** was once the absolute king of frontend building (2014-2022). Its core philosophy: **everything is a module, handle all files through Loader and Plugin**.
 
 ```javascript
 // webpack.config.js
@@ -356,15 +353,15 @@ module.exports = {
 };
 ```
 
-| 优势 | 劣势 |
+| Advantages | Disadvantages |
 |------|------|
-| 生态极其丰富 | 配置复杂（Webpack 配置工程师） |
-| 插件体系非常成熟 | 构建速度慢（JS 单线程） |
-| 存量项目众多 | 开发服务器启动慢 |
+| Extremely rich ecosystem | Complex configuration (Webpack configuration engineer) |
+| Very mature plugin system | Slow build speed (JS single-threaded) |
+| Large number of existing projects | Slow dev server startup |
 
 ### 9.3 Vite
 
-**Vite**（法语「快速」）由 Vue 作者尤雨溪打造，2022 年后迅速成为主流：
+**Vite** (French for "fast") was created by Vue author Evan You, and quickly became mainstream after 2022:
 
 ```javascript
 // vite.config.js
@@ -377,41 +374,41 @@ export default defineConfig({
 });
 ```
 
-Vite 与 Webpack 的核心区别：
+The core differences between Vite and Webpack:
 
-| 维度 | Webpack | Vite |
+| Dimension | Webpack | Vite |
 |------|---------|------|
-| 开发模式 | 打包所有模块再启动 → 慢 | 利用浏览器原生 ESM，按需编译 → 快 |
-| 底层引擎 | JavaScript (Node.js) | esbuild (Go) + Rolldown (Rust) |
-| 启动速度 | 几十秒（大中型项目） | **毫秒级** |
-| HMR 热更新 | 随模块数量增加而变慢 | 极快，与模块数量无关 |
-| 配置复杂度 | 高（需理解 Loader/Plugin） | 低（开箱即用） |
-| 生产构建 | Webpack 自身 | Rolldown（Rust，速度碾压） |
+| Dev mode | Bundle all modules then start → slow | Leverage browser native ESM, compile on demand → fast |
+| Underlying engine | JavaScript (Node.js) | esbuild (Go) + Rolldown (Rust) |
+| Startup speed | Tens of seconds (medium-to-large projects) | **Millisecond level** |
+| HMR hot update | Slows down as module count increases | Extremely fast, independent of module count |
+| Configuration complexity | High (need to understand Loader/Plugin) | Low (works out of the box) |
+| Production build | Webpack itself | Rolldown (Rust, speed dominates) |
 
-### 9.4 如何选择？
+### 9.4 How to Choose?
 
-| 场景 | 推荐 |
+| Scenario | Recommendation |
 |------|------|
-| 新项目 | **Vite**（更快、更简单、更现代） |
-| 老项目维护 | 保持现有 Webpack 配置不变 |
-| 需要兼容老旧浏览器 | Webpack（生态更成熟） |
-| 需要深度定制构建 | Webpack（插件最丰富） |
+| New projects | **Vite** (faster, simpler, more modern) |
+| Maintaining old projects | Keep existing Webpack configuration unchanged |
+| Need to support legacy browsers | Webpack (more mature ecosystem) |
+| Need deep build customization | Webpack (richest plugins) |
 
 ---
 
-## 10. 小结
+## 10. Summary
 
-前端工具链看起来很复杂，但每个工具都有明确的定位：
+The frontend toolchain looks complex, but each tool has a clear positioning:
 
-| 工具/概念 | 一句话定位 |
+| Tool/Concept | One-line positioning |
 |----------|----------|
-| `package.json` | 项目的身份证和说明书 |
-| `dependencies` / `devDependencies` | 运行时依赖 vs 开发时依赖 |
-| SemVer | `主.次.修` 标准化版本管理 |
-| `node_modules` | 依赖的实际代码存放处 |
-| lock 文件 | 锁死依赖的确切版本，确保环境一致 |
-| npm / yarn / pnpm | 安装依赖、管理版本的工具 |
-| `scripts` | 给复杂命令起别名 |
-| Vite / Webpack | 把开发代码编译成浏览器能运行的产物 |
+| `package.json` | The project's ID card and instruction manual |
+| `dependencies` / `devDependencies` | Runtime dependencies vs development dependencies |
+| SemVer | `主.次.修` standardized version management |
+| `node_modules` | Where the actual code of dependencies is stored |
+| lock file | Locks down the exact versions of dependencies, ensuring environment consistency |
+| npm / yarn / pnpm | Tools for installing dependencies and managing versions |
+| `scripts` | Giving aliases to complex commands |
+| Vite / Webpack | Compiling development code into artifacts that browsers can run |
 
-掌握这些工具链，你就能看懂任何一个前端项目的「骨架」，不再被 `package.json` 里密密麻麻的字段吓到。前端工程化，说到底就是在解决一个问题：**让代码从「能写」到「能跑」到「能维护」。**
+Mastering these tools will let you understand the "skeleton" of any frontend project, and no longer be intimidated by the dense fields in `package.json`. Frontend engineering, at its core, is about solving one problem: **taking code from "can write" to "can run" to "can maintain."**

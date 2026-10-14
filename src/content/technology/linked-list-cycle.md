@@ -1,19 +1,17 @@
 ---
-title: 判断单链表环并找出环起点：Floyd 判圈算法
+title: 'Detecting a Cycle in a Singly Linked List and Finding Its Start: Floyd''s Cycle Detection Algorithm'
 published: 2026-08-10
-description: '先用快慢指针判断链表是否有环，若有环则通过等速回找法定位环的入口节点。两道经典题的合并：Floyd 判圈 + 环起点的数学证明。附带 C / C++ / JavaScript 三语言实现。'
+description: 'First use fast and slow pointers to determine whether a linked list has a cycle; if it does, locate the entry node of the cycle by moving at equal speed. A combination of two classic problems: Floyd''s cycle detection plus the mathematical proof for the cycle start. Includes implementations in C, C++, and JavaScript.'
 image: ''
-tags: [链表, 快慢指针, Floyd判圈, 环检测, C, C++, JavaScript]
-category: '算法'
+tags: [linked list, fast and slow pointers, Floyd's cycle detection, cycle detection, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
+### Subproblem 1: Determine Whether a Linked List Contains a Cycle
 
-### 子问题一：判断链表是否包含环
-
-给定一个单链表的头节点 `head`，判断链表中是否存在环。如果链表中有某个节点可以通过连续跟踪 `next` 指针再次到达，则链表中存在环。
+Given the head node `head` of a singly linked list, determine whether a cycle exists in the linked list. If there is a node in the linked list that can be reached again by continuously following the `next` pointer, then a cycle exists in the linked list.
 
 ```
 输入：head = 3→2→0→-4
@@ -21,9 +19,9 @@ lang: ''
 输出：true
 ```
 
-### 子问题二：找出环的起点
+### Subproblem 2: Find the Starting Point of the Cycle
 
-在上题基础上，如果存在环，返回环的**入口节点**。
+Building on the previous problem, if a cycle exists, return the **entry node** of the cycle.
 
 ```
 输入：head = 3→2→0→-4
@@ -32,43 +30,43 @@ lang: ''
 解释：环的入口是节点 2
 ```
 
-## 解题思路
+## Solution Approach
 
-### 第一阶段：Floyd 判圈（判断有无环）
+### Phase 1: Floyd's Cycle Detection (Determine Whether a Cycle Exists)
 
-使用**快慢指针**：slow 每次走一步，fast 每次走两步。
+Use **fast and slow pointers**: slow moves one step at a time, fast moves two steps at a time.
 
-- 如果链表无环：fast 会先到达 `null`，判定无环
-- 如果链表有环：fast 和 slow 一定会在环中**相遇**（就像在圆形操场上，快的人总会套圈慢的人）
+- If the linked list has no cycle: fast will reach `null` first, and we determine there is no cycle
+- If the linked list has a cycle: fast and slow will definitely **meet** in the cycle (just like on a circular track, the faster person will always lap the slower person)
 
-### 第二阶段：找出环的入口（数学推导）
+### Phase 2: Find the Entry of the Cycle (Mathematical Derivation)
 
-当 fast 和 slow 在环中相遇后：
+After fast and slow meet in the cycle:
 
-1. 将 slow 重新指向链表头部
-2. slow 和 fast **以相同的速度**（每次一步）前进
-3. 两者再次相遇的节点就是**环的入口**
+1. Point slow back to the head of the linked list
+2. slow and fast advance **at the same speed** (one step at a time)
+3. The node where they meet again is the **entry of the cycle**
 
-### 数学证明
+### Mathematical Proof
 
-设：
-- 链表头部到环入口的距离为 **a**
-- 环入口到第一次相遇点的距离为 **b**  
-- 环的长度为 **L**，则相遇点到环入口的剩余距离为 **c = L - b**
+Let:
+- The distance from the head of the linked list to the cycle entry be **a**
+- The distance from the cycle entry to the first meeting point be **b**
+- The length of the cycle be **L**, then the remaining distance from the meeting point to the cycle entry is **c = L - b**
 
-第一次相遇时：
-- slow 走了 `a + b` 步
-- fast 走了 `a + b + n·L` 步（n 为 fast 多绕的圈数）
+At the first meeting:
+- slow has walked `a + b` steps
+- fast has walked `a + b + n·L` steps (n is the number of extra laps fast has made)
 
-因为 fast 速度是 slow 的 2 倍：`2(a + b) = a + b + n·L`
+Since fast's speed is twice that of slow: `2(a + b) = a + b + n·L`
 → `a + b = n·L`
 → `a = n·L - b = (n-1)·L + (L - b) = (n-1)·L + c`
 
-**a = c + (n-1)·L** —— 这意味着从链表头部走 `a` 步到环入口的距离，等于从相遇点走 `c` 步到环入口（可能多绕几圈）的距离。
+**a = c + (n-1)·L** — This means that the distance of `a` steps from the head of the linked list to the cycle entry equals the distance of `c` steps from the meeting point to the cycle entry (possibly with a few extra laps).
 
-所以，让 slow 从头出发，fast 从相遇点出发，两者同速前进，必定在环入口相遇。
+Therefore, if we let slow start from the head and fast start from the meeting point, and both advance at the same speed, they will definitely meet at the cycle entry.
 
-## 代码实现
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -208,9 +206,9 @@ function detectCycle(head) {
 ```
 :::
 
-## 图解过程
+## Illustrated Process
 
-### 第一阶段：判圈
+### Phase 1: Cycle Detection
 
 ```
 链表：3 → 2 → 0 → -4
@@ -222,7 +220,7 @@ Step 3: slow=0, fast=2   ← fast 绕了一圈，套圈 slow
 Step 4: slow=-4, fast=-4 ← 在节点 -4 相遇！有环！
 ```
 
-### 第二阶段：找环入口
+### Phase 2: Find the Cycle Entry
 
 ```
 第一次相遇后：
@@ -235,26 +233,26 @@ Step 1: slow=2, fast=2
         两者在节点 2 相遇 → 节点 2 就是环的入口！
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — slow 最多走 n 步（从头到入口再到相遇点），两阶段各 O(n) |
-| 空间复杂度 | **O(1)** — 只用了两个指针 |
+| Time Complexity | **O(n)** — slow walks at most n steps (from head to entry and then to the meeting point), each phase is O(n) |
+| Space Complexity | **O(1)** — only two pointers are used |
 
-## 关键要点
+## Key Takeaways
 
-1. **Floyd 判圈的核心是速度差**：只要 fast 比 slow 快（不一定是 2 倍），且速度差与环长互质，就能检测到环。选择 2 倍是工程最优实践。
+1. **The core of Floyd's cycle detection is the speed difference**: As long as fast is faster than slow (not necessarily 2x), and the speed difference is coprime with the cycle length, the cycle can be detected. Choosing 2x is the engineering-optimal practice.
 
-2. **数学证明是面试亮点**：能推导出 `a = c + (n-1)·L` 是区分"背模板"和"真理解"的关键。
+2. **The mathematical proof is an interview highlight**: Being able to derive `a = c + (n-1)·L` is the key to distinguishing "memorizing templates" from "truly understanding."
 
-3. **等速回找的优雅**：第二阶段的 slow 和 fast 同速走，相遇即入口——这是 Floyd 算法最美妙的部分。
+3. **The elegance of the equal-speed return search**: In the second phase, slow and fast walk at the same speed, and their meeting point is the entry — this is the most beautiful part of Floyd's algorithm.
 
-## 扩展思考
+## Extended Thinking
 
-- 如果要求计算**环的长度**，如何做？（相遇后 fast 不动，slow 继续走一圈计数）
-- 快指针走 3 步行不行？有什么影响？
+- If you need to calculate the **length of the cycle**, how would you do it? (After meeting, keep fast stationary, and let slow continue walking one full lap while counting)
+- Can the fast pointer move 3 steps at a time? What impact would that have?
 
-相关文章：
-- [寻找链表的中点](/technology/linked-list-middle/) — 快慢指针的简单应用
-- [判断相交并找交点](/technology/linked-list-intersection/) — 另一个双指针经典
+Related Articles:
+- [Finding the Middle of a Linked List](/technology/linked-list-middle/) — A simple application of fast and slow pointers
+- [Determine Intersection and Find the Intersection Point](/technology/linked-list-intersection/) — Another two-pointer classic

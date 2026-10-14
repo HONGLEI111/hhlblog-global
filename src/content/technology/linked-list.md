@@ -1,61 +1,59 @@
 ---
-title: 链表：从节点到 LRU 缓存的 TypeScript 实现
+title: 'Linked Lists: From Nodes to LRU Cache in TypeScript'
 published: 2026-04-26
-description: '深入理解链表的增删改查、反转技巧、以及 LFU/LRU 缓存的 TypeScript 实现，含完整代码。'
+description: A deep dive into linked list operations, reversal techniques, and TypeScript implementations of LFU/LRU caches, with complete code.
 image: ''
-tags: [链表, TypeScript, 数据结构]
-category: '算法'
+tags: [Linked List, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A linked list is a data structure made up of nodes connected in a chain. Each node stores data and points to the next node via a pointer. Unlike arrays, linked lists don't rely on contiguous indices; instead, they rely on reference relationships between nodes.
+
+The advantage of a linked list is that inserting and deleting nodes doesn't require shifting large numbers of elements; the trade-off is that you can't randomly access a position in O(1) like you can with an array.
+
+In frontend development and algorithms, linked lists frequently appear in LRU caches, queues, undo stacks, virtual list scheduling, and various pointer problems.
+
+> Prerequisites
+> - **Node references**: linked lists chain nodes together via `next`
+> - **Pointer rewiring**: insertion and deletion are essentially modifying references
+> - **Dummy head node**: unifies the handling of the head node and ordinary nodes
+
 ---
 
-## 概述
+## Problem Definition
 
-链表是一种由节点串联起来的数据结构。每个节点保存数据，并通过指针指向下一个节点。和数组不同，链表不依赖连续下标，而是依赖节点之间的引用关系。
+Linked lists are well-suited for representing data where "order exists, but position doesn't depend on an index."
 
-链表的优势是插入和删除节点时不需要移动大量元素；代价是无法像数组一样 O(1) 随机访问某个位置。
-
-在前端和算法中，链表经常出现在 LRU 缓存、队列、撤销栈、虚拟列表调度和各种指针题中。
-
-> 前置知识
-> - **节点引用**：链表通过 `next` 串联节点
-> - **指针重连**：插入和删除本质是修改引用
-> - **虚拟头节点**：统一头节点和普通节点的处理
-
----
-
-## 问题定义
-
-链表适合表示“顺序存在，但位置不依赖下标”的数据。
-
-一个单链表节点可以抽象为：
+A singly linked list node can be abstracted as:
 
 ```text
 value + next
 ```
 
-多个节点串起来：
+Multiple nodes chained together:
 
 ```text
 head -> A -> B -> C -> null
 ```
 
-链表要解决的问题是：当我们只知道某个节点引用时，如何高效地改变它周围的连接关系。
+The problem linked lists solve is: when we only know a reference to some node, how do we efficiently change the connections around it?
 
-| 操作 | 数组 | 链表 |
+| Operation | Array | Linked List |
 | --- | --- | --- |
-| 通过下标访问 | O(1) | O(n) |
-| 已知位置后插入 | O(n) 移动元素 | O(1) 改指针 |
-| 已知位置后删除 | O(n) 移动元素 | O(1) 改指针 |
-| 顺序遍历 | O(n) | O(n) |
+| Access by index | O(1) | O(n) |
+| Insert at known position | O(n) shifting elements | O(1) pointer change |
+| Delete at known position | O(n) shifting elements | O(1) pointer change |
+| Sequential traversal | O(n) | O(n) |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagrams
 
-### 插入节点
+### Inserting a Node
 
-在 `A` 和 `B` 之间插入 `X`：
+Insert `X` between `A` and `B`:
 
 ```text
 插入前: A -> B
@@ -64,48 +62,48 @@ head -> A -> B -> C -> null
 插入后: A -> X -> B
 ```
 
-顺序很重要：必须先让新节点指向后继节点，再让前驱节点指向新节点，否则会丢失原链路。
+Order matters: you must first make the new node point to its successor, then make the predecessor point to the new node; otherwise you'll lose the original chain.
 
-### 删除节点
+### Deleting a Node
 
-删除 `B`：
+Delete `B`:
 
 ```text
 删除前: A -> B -> C
 删除后: A ------> C
 ```
 
-只需要让 `A.next = C`。在有垃圾回收的语言里，`B` 不再被引用后会被回收。
+You only need to make `A.next = C`. In languages with garbage collection, `B` will be reclaimed once it's no longer referenced.
 
-### 虚拟头节点
+### Dummy Head Node
 
-很多链表题会引入 dummy 节点：
+Many linked list problems introduce a dummy node:
 
 ```text
 dummy -> head -> ...
 ```
 
-它能把“删除头节点”和“删除中间节点”统一成同一种逻辑，减少边界分支。
+It unifies "deleting the head node" and "deleting a middle node" into the same logic, reducing boundary branches.
 
 ---
 
-## 基本操作与复杂度
+## Basic Operations and Complexity
 
-| 操作 | 时间复杂度 | 说明 |
+| Operation | Time Complexity | Notes |
 | --- | --- | --- |
-| 查找某个值 | O(n) | 需要从头遍历 |
-| 头部插入 | O(1) | 新节点指向旧 head |
-| 尾部插入 | O(n) / O(1) | 有 tail 指针则 O(1) |
-| 删除已知后继 | O(1) | 改变 `next` 指向 |
-| 反转链表 | O(n) | 每条边反向一次 |
+| Find a value | O(n) | Requires traversal from the head |
+| Insert at head | O(1) | New node points to the old head |
+| Insert at tail | O(n) / O(1) | O(1) if a tail pointer exists |
+| Delete known successor | O(1) | Change `next`'s pointer |
+| Reverse linked list | O(n) | Each edge reversed once |
 
-链表题最关键的不是复杂度，而是指针更新顺序。一个节点引用写错，就可能断链或形成环。
+The most critical thing in linked list problems isn't complexity—it's the order of pointer updates. Get one node reference wrong and you might break the chain or create a cycle.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 节点定义
+### 1. Node Definition
 
 ```typescript
 class ListNode<T> {
@@ -116,7 +114,7 @@ class ListNode<T> {
 }
 ```
 
-### 2. 反转链表
+### 2. Reversing a Linked List
 
 ```typescript
 function reverseList<T>(head: ListNode<T> | null): ListNode<T> | null {
@@ -134,13 +132,13 @@ function reverseList<T>(head: ListNode<T> | null): ListNode<T> | null {
 }
 ```
 
-反转过程中的不变量：
+Invariants during the reversal process:
 
-- `prev` 是已经反转好的链表头；
-- `current` 是还未处理的第一个节点；
-- `next` 临时保存后续链路，避免断链。
+- `prev` is the head of the already-reversed list;
+- `current` is the first node not yet processed;
+- `next` temporarily saves the remaining chain to avoid breaking it.
 
-### 3. 删除指定值
+### 3. Deleting a Specified Value
 
 ```typescript
 function removeElements<T>(head: ListNode<T> | null, target: T): ListNode<T> | null {
@@ -159,23 +157,23 @@ function removeElements<T>(head: ListNode<T> | null, target: T): ListNode<T> | n
 }
 ```
 
-虚拟头节点让删除头节点和删除普通节点共享同一段逻辑。
+The dummy head node lets deletion of the head node and deletion of an ordinary node share the same logic.
 
 ---
 
-## 工程优化：双向链表与 LRU
+## Engineering Optimization: Doubly Linked Lists and LRU
 
-单链表只能从前往后走。若需要 O(1) 删除任意节点，通常使用双向链表：
+A singly linked list can only be traversed forward. If you need O(1) deletion of an arbitrary node, you typically use a doubly linked list:
 
 ```text
 prev <- node -> next
 ```
 
-LRU 缓存就是双向链表和哈希表的组合：
+An LRU cache is a combination of a doubly linked list and a hash map:
 
-- `Map` 负责 O(1) 找到节点；
-- 双向链表负责 O(1) 移动最近使用节点；
-- 头部表示最新，尾部表示最旧。
+- `Map` is responsible for O(1) node lookup;
+- The doubly linked list is responsible for O(1) moving of the most recently used node;
+- The head represents the most recent, the tail represents the oldest.
 
 ```typescript
 class DoublyNode<K, V> {
@@ -189,30 +187,30 @@ class DoublyNode<K, V> {
 }
 ```
 
-链表在工程里的价值往往不是单独使用，而是和哈希表组合，补足“顺序维护”能力。
+The value of linked lists in engineering often isn't in using them alone, but in combining them with hash maps to supplement "order maintenance" capabilities.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- LRU / LFU 缓存；
-- 队列和双端队列的底层实现；
-- 撤销、重做、历史记录；
-- 高频插入删除的有序数据；
-- 算法题中的反转、合并、判环、找中点。
+- LRU / LFU caches;
+- Underlying implementation of queues and deques;
+- Undo, redo, history records;
+- Ordered data with frequent insertions and deletions;
+- Reversal, merging, cycle detection, and finding the midpoint in algorithm problems.
 
-### 局限性
+### Limitations
 
-- 不能通过下标快速访问；
-- 每个节点额外存储指针，空间开销更高；
-- 指针操作容易断链、成环；
-- 在 JavaScript 中对象节点分散在堆上，缓存局部性不如数组。
+- Cannot quickly access by index;
+- Each node stores extra pointers, resulting in higher space overhead;
+- Pointer operations easily break chains or create cycles;
+- In JavaScript, object nodes are scattered across the heap, so cache locality is worse than arrays.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -221,8 +219,8 @@ graph LR
     C --> D[虚拟头简化边界]
 ```
 
-- 链表用引用关系维护顺序，不依赖连续下标。
-- 插入和删除的核心是改变指针指向。
-- dummy 节点能显著减少头节点边界处理。
-- 反转链表要先保存 `next`，再修改当前节点指向。
-- 链表常和哈希表组合，用于缓存和顺序维护。
+- Linked lists maintain order through reference relationships, not contiguous indices.
+- The core of insertion and deletion is changing pointer directions.
+- Dummy nodes can significantly reduce head-node boundary handling.
+- To reverse a linked list, first save `next`, then modify the current node's pointer.
+- Linked lists are often combined with hash maps for caching and order maintenance.

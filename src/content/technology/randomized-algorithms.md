@@ -1,41 +1,39 @@
 ---
-title: 随机算法：洗牌、蓄水池抽样与蒙特卡洛
+title: 'Randomized Algorithms: Shuffling, Reservoir Sampling, and Monte Carlo'
 published: 2026-04-26
-description: '掌握 Fisher-Yates 洗牌、蓄水池抽样、蒙特卡洛方法等经典随机算法，附带 TypeScript 实现与实际应用。'
+description: Master classic randomized algorithms like Fisher-Yates shuffling, reservoir sampling, and Monte Carlo methods, with TypeScript implementations and practical applications.
 image: ''
-tags: [随机算法, TypeScript, 算法]
-category: '算法'
+tags: [Randomized Algorithms, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Randomized Algorithms** use random numbers to make choices, sample, or approximate estimates. They are commonly used to shuffle order, uniformly sample from a data stream, distribute traffic by weight, and estimate complex results through random sampling.
+
+> Prerequisites
+> - **Probability fundamentals**: understanding uniform and weighted probability
+> - **Prefix sums / binary search**: for efficient weighted random selection
+> - **Hash functions**: for stable traffic splitting, rather than being fully random each time
+
 ---
 
-## 概述
+## Problem Definition
 
-**随机算法（Randomized Algorithms）** 利用随机数做选择、抽样或近似估计。它们常用于打乱顺序、从数据流中均匀抽样、按权重分配流量，以及用随机采样估算复杂结果。
+In scenarios involving uncertainty, design algorithms that satisfy probabilistic requirements while controlling time, space, and stability.
 
-> 前置知识
-> - **概率基础**：理解均匀分布和加权概率
-> - **前缀和 / 二分**：用于高效加权随机选择
-> - **哈希函数**：用于稳定分流，而不是每次完全随机
-
----
-
-## 问题定义
-
-在不确定性参与的场景中，设计满足概率要求的算法，并控制时间、空间和稳定性。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 数组、数据流、权重表或采样次数 |
-| 输出 | 随机排列、随机样本、加权结果或近似值 |
-| 核心要求 | 概率正确、复杂度可控、必要时可复现 |
-| 典型算法 | Fisher-Yates、蓄水池抽样、加权随机、蒙特卡洛 |
+| Input | Array, data stream, weight table, or number of samples |
+| Output | Random permutation, random sample, weighted result, or approximate value |
+| Core requirements | Probabilistically correct, controllable complexity, reproducible when necessary |
+| Typical algorithms | Fisher-Yates, reservoir sampling, weighted random, Monte Carlo |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-Fisher-Yates 洗牌从后往前固定位置，每次在 `[0, i]` 中等概率选一个元素交换：
+Fisher-Yates shuffle fixes positions from back to front, each time selecting an element from `[0, i]` with equal probability to swap:
 
 ```mermaid
 graph LR
@@ -46,11 +44,11 @@ graph LR
     E --> C
 ```
 
-因为第 `i` 个位置从剩余 `i + 1` 个元素中等概率选择，所以每个排列出现概率相同。
+Because the `i`-th position is chosen with equal probability from the remaining `i + 1` elements, every permutation has an equal probability of occurring.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：FisherYatesShuffle(arr)
@@ -63,21 +61,21 @@ graph LR
 4. return arr
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 算法 | 时间复杂度 | 空间复杂度 | 适用场景 |
+| Algorithm | Time complexity | Space complexity | Use case |
 |------|------|------|------|
-| Fisher-Yates | O(n) | O(1) | 均匀随机排列 |
-| 蓄水池抽样 | O(n) | O(k) | 未知长度数据流抽样 |
-| 加权随机线性版 | O(n) | O(1) | 少量选择 |
-| 前缀和 + 二分 | O(log n) / 次 | O(n) | 多次加权选择 |
-| 蒙特卡洛 | O(samples) | O(1) | 近似估计 |
+| Fisher-Yates | O(n) | O(1) | Uniform random permutation |
+| Reservoir sampling | O(n) | O(k) | Sampling from data streams of unknown length |
+| Weighted random linear version | O(n) | O(1) | Few selections |
+| Prefix sum + binary search | O(log n) / op | O(n) | Multiple weighted selections |
+| Monte Carlo | O(samples) | O(1) | Approximate estimation |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. Fisher-Yates 洗牌
+### 1. Fisher-Yates Shuffle
 
 ```typescript
 function shuffle<T>(arr: T[]): T[] {
@@ -90,7 +88,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 ```
 
-### 2. 蓄水池抽样
+### 2. Reservoir Sampling
 
 ```typescript
 function reservoirSampling<T>(stream: T[], k: number): T[] {
@@ -109,7 +107,7 @@ function reservoirSampling<T>(stream: T[], k: number): T[] {
 }
 ```
 
-### 3. 加权随机选择
+### 3. Weighted Random Selection
 
 ```typescript
 interface WeightedItem<T> {
@@ -130,7 +128,7 @@ function weightedRandom<T>(items: WeightedItem<T>[]): T {
 }
 ```
 
-### 4. 前缀和 + 二分优化
+### 4. Prefix Sum + Binary Search Optimization
 
 ```typescript
 class WeightedPicker<T> {
@@ -163,7 +161,7 @@ class WeightedPicker<T> {
 }
 ```
 
-### 5. 蒙特卡洛估算 π
+### 5. Monte Carlo Estimation of π
 
 ```typescript
 function estimatePi(samples = 1_000_000): number {
@@ -179,7 +177,7 @@ function estimatePi(samples = 1_000_000): number {
 }
 ```
 
-### 6. 稳定 A/B 分流
+### 6. Stable A/B Splitting
 
 ```typescript
 class ABTesting {
@@ -216,40 +214,40 @@ class ABTesting {
 
 ---
 
-## 工程优化：随机性、安全性与可复现
+## Engineering Optimization: Randomness, Security, and Reproducibility
 
-| 场景 | 推荐做法 | 原因 |
+| Scenario | Recommended approach | Reason |
 |------|------|------|
-| 普通 UI 随机 | `Math.random()` | 简单够用 |
-| 安全敏感随机 | `crypto.getRandomValues()` | `Math.random()` 不适合安全用途 |
-| A/B 测试 | 用户 ID 哈希 | 保证同一用户稳定分组 |
-| 测试随机算法 | 注入随机数生成器 | 便于复现和单元测试 |
-| 多次加权选择 | 前缀和 + 二分 | 预处理后单次 O(log n) |
+| Ordinary UI randomness | `Math.random()` | Simple and sufficient |
+| Security-sensitive randomness | `crypto.getRandomValues()` | `Math.random()` is not suitable for security purposes |
+| A/B testing | Hash user ID | Ensures the same user is consistently grouped |
+| Testing randomized algorithms | Inject random number generator | Facilitates reproduction and unit testing |
+| Multiple weighted selections | Prefix sum + binary search | O(log n) per operation after preprocessing |
 
-随机算法的正确性通常是概率意义上的，不应只用单次结果判断实现是否正确。
+The correctness of randomized algorithms is usually probabilistic, and a single result should not be used to judge whether an implementation is correct.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 列表洗牌、随机播放、抽奖
-- 日志流、数据流抽样
-- A/B 测试和灰度分流
-- 蒙特卡洛估计、随机化 QuickSelect
+- List shuffling, random playback, lotteries
+- Log stream and data stream sampling
+- A/B testing and gradual rollout
+- Monte Carlo estimation, randomized QuickSelect
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 结果不稳定 | 需要可复现时必须控制随机源 |
-| 概率验证困难 | 需要统计测试而不是单个样例 |
-| 安全要求不同 | 业务随机和密码学随机不能混用 |
+| Unstable results | The random source must be controlled when reproducibility is required |
+| Difficult probability verification | Requires statistical testing rather than a single example |
+| Different security requirements | Business randomness and cryptographic randomness cannot be mixed |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -259,9 +257,9 @@ graph LR
     D --> E[处理可复现和安全要求]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. Fisher-Yates 是均匀洗牌的标准算法。
-2. 蓄水池抽样适合未知长度的数据流。
-3. 多次加权选择可用前缀和和二分优化。
-4. 安全场景不要使用 `Math.random()`。
+1. Fisher-Yates is the standard algorithm for uniform shuffling.
+2. Reservoir sampling is suitable for data streams of unknown length.
+3. Multiple weighted selections can be optimized with prefix sums and binary search.
+4. Do not use `Math.random()` in security scenarios.

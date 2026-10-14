@@ -1,17 +1,15 @@
 ---
-title: 链表的分解：双 Dummy 节点分离再拼接
+title: 'Splitting a Linked List: Separating and Rejoining with Two Dummy Nodes'
 published: 2026-08-10
-description: '将链表中小于 x 的节点和大于等于 x 的节点分离，并保持相对顺序不变。使用两个 dummy 虚拟头节点分别收集，最后拼接。附带 C / C++ / JavaScript 三语言实现。'
+description: Separate nodes in a linked list that are less than x from those greater than or equal to x while preserving their relative order. Use two dummy head nodes to collect each group, then concatenate them. Includes implementations in C, C++, and JavaScript.
 image: ''
-tags: [链表, 双指针, 分解, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Two Pointers, Partition, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
-
-给定一个链表和一个特定值 `x`，将链表**重新排列**，使得所有**小于 `x`** 的节点出现在**大于或等于 `x`** 的节点之前。同时保留两部分内部节点的**原始相对顺序**。
+Given a linked list and a specific value `x`, **rearrange** the linked list so that all nodes **less than `x`** appear before nodes **greater than or equal to `x`**. At the same time, preserve the **original relative order** of the nodes within each of the two parts.
 
 ```
 输入：head = 1→4→3→2→5→2, x = 3
@@ -20,27 +18,27 @@ lang: ''
       大于等于 3 的：4, 3, 5（保持原序）
 ```
 
-## 解题思路
+## Solution Approach
 
-### 核心思想：双 Dummy 分离
+### Core Idea: Two-Dummy Separation
 
-直观想法是创建两个新链表——一个装"小值"，一个装"大值"——遍历原链表时把每个节点归到对应的链表。遍历完毕后，把小值链表的尾部接到大值链表的头部即可。
+The intuitive idea is to create two new linked lists—one holding the "small values" and one holding the "large values"—and while traversing the original linked list, assign each node to the corresponding list. After the traversal is complete, connect the tail of the small-value list to the head of the large-value list.
 
-但直接操作"新链表的头指针"会遇到"第一个节点是谁"的边界问题。所以我们用两个 **dummy 虚拟头节点** 来分别管理两条链。
+But directly manipulating the "head pointer of the new list" runs into the boundary problem of "who is the first node." So we use two **dummy head nodes** to manage the two chains separately.
 
-### 算法步骤
+### Algorithm Steps
 
-1. 创建 `smallDummy` 和 `largeDummy` 两个虚拟头节点
-2. 用 `small` 和 `large` 尾指针分别维护两个链表
-3. 遍历原链表，根据节点值与 `x` 的比较将节点归入对应链表
-4. 遍历结束后，将 `large` 链表接到 `small` 链表尾部
-5. **关键**：将 `large.next` 置为 `null`，否则可能形成环
-6. 返回 `smallDummy.next`
+1. Create two dummy head nodes `smallDummy` and `largeDummy`
+2. Use tail pointers `small` and `large` to maintain the two linked lists respectively
+3. Traverse the original linked list, and assign each node to the corresponding list based on how its value compares with `x`
+4. After the traversal ends, connect the `large` list to the tail of the `small` list
+5. **Key**: Set `large.next` to `null`, otherwise a cycle may form
+6. Return `smallDummy.next`
 
-> **为什么必须置 `large.next = null`？**
-> 大值链表的最后一个节点可能原本指向一个大值节点，如果不断开，拼接后链表末尾可能指向旧节点形成环。
+> **Why must `large.next = null` be set?**
+> The last node of the large-value list may originally point to a large-value node. If it is not disconnected, after concatenation the end of the list may point to an old node and form a cycle.
 
-## 代码实现
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -160,7 +158,7 @@ function partition(head, x) {
 ```
 :::
 
-## 图解过程
+## Illustrated Process
 
 ```
 输入：head = 1→4→3→2→5→2, x = 3
@@ -197,23 +195,23 @@ largeDummy → 4→3→5
 结果：1→2→2→4→3→5
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 遍历链表一次 |
-| 空间复杂度 | **O(1)** — 只用了几个指针，原地重组 |
+| Time Complexity | **O(n)** — traverse the linked list once |
+| Space Complexity | **O(1)** — only a few pointers are used, reorganizing in place |
 
-## 关键要点
+## Key Points
 
-1. **两个 dummy 节点各管一摊**：分别维护小值链和大值链，代码逻辑清晰
-2. **必须断开 large 末尾**：`large->next = null` 是防止环的关键一步，面试时忘记这一行会导致严重 bug
-3. **保持相对顺序**：由于是依次遍历并追加到尾部，两部分内部节点顺序自然不变
+1. **Two dummy nodes each manage one part**: maintain the small-value chain and the large-value chain separately, making the code logic clear
+2. **The end of large must be disconnected**: `large->next = null` is the key step to prevent a cycle; forgetting this line in an interview will cause a serious bug
+3. **Preserve relative order**: because nodes are traversed in order and appended to the tail, the internal order of the two parts naturally remains unchanged
 
-## 扩展思考
+## Extended Thinking
 
-- 如果题目不要求保持相对顺序，能否用更简洁的方法？（直接交换或原地调整）
-- 如果要求"大于 x 的在前、小于 x 的在后"，如何修改？
+- If the problem did not require preserving relative order, could a more concise method be used? (Direct swapping or in-place adjustment)
+- If the requirement were "nodes greater than x first, nodes less than x after," how would you modify it?
 
-相关文章：
-- [合并两个有序链表](/technology/linked-list-merge-two-sorted/) — 同样是"拼接"操作
+Related articles:
+- [Merge Two Sorted Lists](/technology/linked-list-merge-two-sorted/) — also a "concatenation" operation

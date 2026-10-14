@@ -13,7 +13,7 @@ lang: ''
 
 这篇文章记录我 2026 年的配置思路和具体文件，重点在「可复现」，而不是「堆插件」。
 
-## 一、总原则：配置是代码，不是手工艺品
+## 1. 总原则：配置是代码，不是手工艺品
 
 三条规则：
 
@@ -61,7 +61,7 @@ link "$DOTFILES/shell/.zshrc"  "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig" "$HOME/.gitconfig"
 ```
 
-## 二、Shell：zsh + starship，别名只留高频的
+## 2. Shell：zsh + starship，别名只留高频的
 
 我不再用 Oh My Zsh——启动慢、插件黑盒。现在是一个极简 `.zshrc` 加 Starship 做提示符。
 
@@ -109,7 +109,7 @@ alias cat='bat --style=plain'
 alias lg='lazygit'
 ```
 
-## 三、运行时版本：mise 一个工具管所有语言
+## 3. 运行时版本：mise 一个工具管所有语言
 
 过去我用 nvm 管 Node、pyenv 管 Python、rbenv 管 Ruby，三套逻辑三套坑。2026 年的答案基本收敛到 **mise**（前身 rtx），一个工具统管所有语言运行时，配置是统一格式：
 
@@ -148,7 +148,7 @@ mise run test    # 跑任务，替代 npm scripts 的层层转发
 
 这里有个实实在在的收益：**版本声明进了 Git**，团队里所有人的 Node 版本一致，CI 里只要跑一句 `mise install` 就能复现本地环境，"在我机器上是好的" 少了一大半。
 
-## 四、环境变量：direnv 按目录自动加载
+## 4. 环境变量：direnv 按目录自动加载
 
 `.env` 文件最大的问题是容易被误提交。**direnv** 的思路是按目录自动注入环境变量，并且默认不信任任何新文件，必须手动 `direnv allow` 一次：
 
@@ -167,7 +167,7 @@ layout node
 
 关键安全点：把 `.envrc` 提交进仓库，但**只放非敏感的开发默认值**，真实密钥仍然通过 `dotenv_if_exists` 从被忽略的 `.env` 读取。这样 `git clone` 之后不需要问任何人要配置，也不会泄露密钥。
 
-## 五、任务入口：just 替代散落的脚本
+## 5. 任务入口：just 替代散落的脚本
 
 每个项目都有一堆「怎么跑起来」的知识，散在 README、`package.json`、同事脑子里。**just** 用一个 `Justfile` 把它们收拢：
 
@@ -198,7 +198,7 @@ git clone git@github.com:team/project.git && cd project
 just setup && just dev
 ```
 
-## 六、编辑器：配置也要能版本化
+## 6. 编辑器：配置也要能版本化
 
 VS Code 我用 **Settings Sync + 仓库内 `.vscode/`** 双轨：个人偏好走 Sync，**项目约束走仓库**——格式化器、推荐插件、调试配置都提交进 Git，保证团队一致：
 
@@ -230,7 +230,7 @@ vim.opt.swapfile = false
 vim.g.mapleader = " "
 ```
 
-## 七、bootstrap.sh：新机器的唯一入口
+## 7. bootstrap.sh：新机器的唯一入口
 
 所有上面的东西，最后收敛成一个脚本。它的价值在于**可重复执行**——已经装过的跳过，没装的补上：
 

@@ -1,41 +1,39 @@
 ---
-title: 深度优先搜索：DFS 的递归与迭代 TypeScript 实现
+title: 'Depth-First Search: Recursive and Iterative TypeScript Implementations of DFS'
 published: 2026-04-26
-description: '掌握 DFS 在二叉树、图、二维数组中的递归和迭代模板，用 TypeScript 解决路径总和、岛屿周长、全排列等经典问题。'
+description: Master recursive and iterative templates for DFS in binary trees, graphs, and 2D arrays, and use TypeScript to solve classic problems such as path sum, island perimeter, and permutations.
 image: ''
-tags: [深度优先搜索, DFS, TypeScript, 算法]
-category: '算法'
+tags: [Depth-First Search, DFS, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Depth-First Search (DFS)** is a traversal method that goes as deep as possible along one path, then backtracks to a branching point to continue searching. It can use recursion to implicitly maintain the call stack, or an explicit stack for an iterative implementation.
+
+> Prerequisites
+> - **Stack**: DFS path state is last-in, first-out
+> - **Recursion**: naturally expresses deep exploration in trees, graphs, and grids
+> - **visited marking**: used in graphs and grids to avoid revisiting
+
 ---
 
-## 概述
+## Problem Definition
 
-**深度优先搜索（Depth-First Search, DFS）** 是一种沿着一条路径尽可能深入，再回退到分叉点继续搜索的遍历方法。它可以用递归隐式维护调用栈，也可以用显式栈迭代实现。
+Given a tree, graph, or grid structure, explore all reachable states from a starting point, and compute results or determine whether a target exists during the visit process.
 
-> 前置知识
-> - **栈**：DFS 的路径状态后进先出
-> - **递归**：天然表达树、图、网格中的深度探索
-> - **visited 标记**：图和网格中用于避免重复访问
-
----
-
-## 问题定义
-
-给定树、图或网格结构，从起点出发探索所有可达状态，并在访问过程中计算结果或判断目标是否存在。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 起点、邻接关系、网格或树节点 |
-| 输出 | 遍历顺序、连通区域、路径结果或布尔判断 |
-| 核心状态 | 当前节点、路径、visited 集合、递归返回值 |
-| 适用场景 | 连通性、路径枚举、树形递归、回溯搜索 |
+| Input | Starting point, adjacency relations, grid or tree nodes |
+| Output | Traversal order, connected regions, path results, or boolean determination |
+| Core state | Current node, path, visited set, recursive return value |
+| Applicable scenarios | Connectivity, path enumeration, tree recursion, backtracking search |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-DFS 会优先深入一个分支，直到不能继续，再回到上一个分叉点：
+DFS prioritizes going deep into one branch until it cannot continue, then returns to the previous branching point:
 
 ```mermaid
 graph TD
@@ -46,23 +44,23 @@ graph TD
     C --> F[6]
 ```
 
-从节点 `1` 开始，前序 DFS 访问顺序可能是：
+Starting from node `1`, the preorder DFS visit order might be:
 
 ```text
 1 → 2 → 4 → 回退 → 5 → 回退 → 3 → 6
 ```
 
-### 递归视角
+### Recursive Perspective
 
-每一层递归只负责一个节点：处理当前节点、递归处理邻居、必要时返回子问题结果。
+Each level of recursion is responsible for only one node: process the current node, recursively process neighbors, and return subproblem results when necessary.
 
-### 迭代视角
+### Iterative Perspective
 
-显式维护一个栈，每次弹出栈顶节点，将未访问邻居压栈。
+Explicitly maintain a stack, pop the top node each time, and push unvisited neighbors onto the stack.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：DFS(node)
@@ -77,20 +75,20 @@ graph TD
 6. 根据子结果合并并返回
 ```
 
-**复杂度分析**：
+**Complexity Analysis**:
 
-| 场景 | 时间复杂度 | 空间复杂度 | 说明 |
+| Scenario | Time Complexity | Space Complexity | Description |
 |------|------|------|------|
-| 树遍历 | O(n) | O(h) | h 为树高 |
-| 图遍历 | O(V + E) | O(V) | visited 和递归栈 |
-| 网格搜索 | O(mn) | O(mn) | 每个格子最多访问一次 |
-| 回溯搜索 | 指数级 | O(depth) | 取决于分支因子和深度 |
+| Tree traversal | O(n) | O(h) | h is tree height |
+| Graph traversal | O(V + E) | O(V) | visited and recursion stack |
+| Grid search | O(mn) | O(mn) | each cell is visited at most once |
+| Backtracking search | Exponential | O(depth) | depends on branching factor and depth |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 图 DFS 模板
+### 1. Graph DFS Template
 
 ```typescript
 function dfsGraph(graph: Map<number, number[]>, start: number): number[] {
@@ -112,7 +110,7 @@ function dfsGraph(graph: Map<number, number[]>, start: number): number[] {
 }
 ```
 
-### 2. 迭代 DFS
+### 2. Iterative DFS
 
 ```typescript
 function dfsIterative(graph: Map<number, number[]>, start: number): number[] {
@@ -135,7 +133,7 @@ function dfsIterative(graph: Map<number, number[]>, start: number): number[] {
 }
 ```
 
-### 3. 二叉树路径总和
+### 3. Binary Tree Path Sum
 
 ```typescript
 class TreeNode {
@@ -161,7 +159,7 @@ function hasPathSum(root: TreeNode | null, targetSum: number): boolean {
 }
 ```
 
-### 4. 岛屿最大面积
+### 4. Maximum Area of an Island
 
 ```typescript
 function maxAreaOfIsland(grid: number[][]): number {
@@ -193,7 +191,7 @@ function maxAreaOfIsland(grid: number[][]): number {
 }
 ```
 
-### 5. 路径枚举
+### 5. Path Enumeration
 
 ```typescript
 function pathSum(root: TreeNode | null, targetSum: number): number[][] {
@@ -220,39 +218,39 @@ function pathSum(root: TreeNode | null, targetSum: number): number[][] {
 
 ---
 
-## 工程优化：递归还是显式栈
+## Engineering Optimization: Recursion or Explicit Stack
 
-| 写法 | 优点 | 代价 |
+| Approach | Advantages | Cost |
 |------|------|------|
-| 递归 DFS | 表达自然，代码短 | 深度过大可能栈溢出 |
-| 迭代 DFS | 可控，不依赖调用栈 | 需要手动维护栈和状态 |
-| 原地标记 | 节省 visited 空间 | 会修改输入数据 |
-| visited 集合 | 不破坏输入 | 额外 O(n) 空间 |
+| Recursive DFS | Natural expression, short code | Stack overflow possible if depth is too large |
+| Iterative DFS | Controllable, does not depend on the call stack | Requires manually maintaining the stack and state |
+| In-place marking | Saves visited space | Modifies the input data |
+| visited set | Does not destroy the input | Extra O(n) space |
 
-在树结构中，递归通常最清晰；在图和大网格中，如果深度不可控，显式栈更稳妥。
+In tree structures, recursion is usually the clearest; in graphs and large grids, if depth is uncontrollable, an explicit stack is more reliable.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 树的遍历、深度、高度、路径计算
-- 图的连通性、环检测、拓扑相关判断
-- 网格岛屿、迷宫、区域填充
-- 回溯问题中的决策树搜索
+- Tree traversal, depth, height, path computation
+- Graph connectivity, cycle detection, topology-related determination
+- Grid islands, mazes, region filling
+- Decision tree search in backtracking problems
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 不保证最短路径 | 无权最短路应优先 BFS |
-| 递归深度风险 | 链式结构可能导致调用栈过深 |
-| 状态易混乱 | 路径类问题要注意回退和复制 |
+| Does not guarantee shortest path | For unweighted shortest paths, BFS should be preferred |
+| Recursion depth risk | Chain-like structures may cause the call stack to become too deep |
+| State is easy to confuse | Path-type problems require attention to backtracking and copying |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -262,9 +260,11 @@ graph LR
     D --> E[回退或合并结果]
 ```
 
-**核心要点**：
+**Key Points**:
 
-1. DFS = 沿一条路径深入到底，再回退探索其他分支。
-2. 树问题常用递归，图和网格问题必须处理 visited。
-3. 路径枚举要在进入时加入路径，在离开时撤销。
-4. 需要最短步数时，优先考虑 BFS 而不是 DFS。
+1. DFS = go deep along one path to the end, then backtrack to explore other branches.
+2. Tree problems commonly use recursion, while graph and grid problems must handle visited.
+3. Path enumeration should add to the path on entry and undo on exit.
+4. When the minimum number of steps is needed, prefer BFS over DFS.
+
+--- END CONTENT ---

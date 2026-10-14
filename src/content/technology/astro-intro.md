@@ -1,35 +1,33 @@
 ---
-title: Astro 入门：以内容为中心的现代 Web 框架
+title: 'Getting Started with Astro: A Modern Content-First Web Framework'
 published: 2026-06-17
-description: '从零学习 Astro —— 一个专为内容型网站设计的框架，默认零 JS、岛屿架构、多框架混用，让博客和文档站飞起来。'
+description: Learn Astro from scratch — a framework built for content-driven sites, with zero JS by default, islands architecture, and multi-framework support that makes blogs and documentation sites fly.
 image: ''
-tags: [Astro, SSG, 前端框架, 前端基础]
-category: '前端'
+tags: [Astro, SSG, Frontend Frameworks, Frontend Fundamentals]
+category: Frontend
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+**Astro** is a web framework designed specifically for **content-driven websites**. Its core philosophy is simple: **if most of a page's content doesn't need JavaScript, then JavaScript shouldn't be sent.**
+
+While the React/Vue community races on server-side rendering, streaming, and everything else, Astro took a completely different path:
+
+> Your blog posts, documentation pages, marketing sites—**99% of the content is static**. Why load a full JS runtime for that 99%?
+
+This approach made Astro an instant hit—it won first place in "Frontend Satisfaction" for two consecutive years (2023/2024), and in 2025 became one of the fastest-growing web frameworks on GitHub by stars.
+
+(The blog you're reading right now is built with Astro.)
+
 ---
 
-## 1. 引言
+## 2. Islands Architecture: Astro's Killer Feature
 
-**Astro** 是一个专为**内容驱动型网站**设计的 Web 框架。它的核心理念很简单：**大部分页面内容不需要 JavaScript，就不应该发送 JavaScript。**
+### 2.1 The Problem with Traditional SPAs
 
-在 React/Vue 社区卷服务端渲染、卷流式传输、卷一切的时候，Astro 走了一条完全不同的路：
+Traditional React/Vue single-page applications:
 
-> 你的博客文章、文档页面、营销网站，**99% 的内容是静态的**。为什么要为这 99% 的部分加载一个完整的 JS 运行时？
-
-这个思路让 Astro 一炮而红——它连续两年（2023/2024）获得「前端满意度」第一名，并在 2025 年成为 GitHub 上 Star 增长最快的 Web 框架之一。
-
-（你正在看的这个博客就是用 Astro 构建的。）
-
----
-
-## 2. 岛屿架构：Astro 的杀手锏
-
-### 2.1 传统 SPA 的问题
-
-传统的 React/Vue 单页应用：
-
-```
+ ```
 整个页面 = 一个巨大的 JS 应用
 ├── 导航栏（需要交互）
 ├── 文章内容（纯静态文字）
@@ -38,11 +36,11 @@ lang: ''
 └── 页脚（纯静态）
 ```
 
-加载这个页面，浏览器要下载**整个应用的 JS**，然后「水合」全部组件。即使 80% 的内容永远不会变化，也要为它们付出 JS 的代价。
+To load this page, the browser has to download **the entire application's JS**, then "hydrate" all components. Even if 80% of the content never changes, you still pay the JS cost for it.
 
-### 2.2 Astro 的答案
+### 2.2 Astro's Answer
 
-```
+ ```
 整个页面 = 纯 HTML（默认）
 ├── 导航栏          → 纯 HTML（零 JS）
 ├── 文章内容         → 纯 HTML（零 JS）
@@ -51,15 +49,15 @@ lang: ''
 └── 🏝️ 点赞按钮     → Vue 组件（按需水合）
 ```
 
-这就是**岛屿架构**：页面默认是静态 HTML，只有真正需要交互的部分才作为「岛屿」加载 JS。每个岛屿独立加载、独立水合，互不干扰。
+This is **islands architecture**: pages are static HTML by default, and only the parts that truly need interactivity load JS as "islands." Each island loads and hydrates independently, without interfering with the others.
 
 ---
 
-## 3. 创建第一个 Astro 项目
+## 3. Creating Your First Astro Project
 
-### 3.1 初始化
+### 3.1 Initialization
 
-```bash
+ ```bash
 # npm
 npm create astro@latest my-site
 
@@ -67,9 +65,9 @@ npm create astro@latest my-site
 pnpm create astro@latest my-site
 ```
 
-初始化向导：
+The initialization wizard:
 
-```
+ ```
 ✔ How would you like to start?                  → Empty
 ✔ Do you plan to write TypeScript?              → Yes
 ✔ How strict should TypeScript be?              → Strict
@@ -77,18 +75,18 @@ pnpm create astro@latest my-site
 ✔ Initialize a new git repository?              → Yes
 ```
 
-启动开发服务器：
+Start the dev server:
 
-```bash
+ ```bash
 cd my-site
 pnpm dev
 ```
 
-访问 `http://localhost:4321`，你的第一个 Astro 站点就跑起来了。
+Visit `http://localhost:4321`, and your first Astro site is up and running.
 
-### 3.2 项目结构
+### 3.2 Project Structure
 
-```
+ ```
 my-site/
 ├── astro.config.mjs      # Astro 配置文件
 ├── src/
@@ -107,13 +105,13 @@ my-site/
 
 ---
 
-## 4. Astro 组件语法
+## 4. Astro Component Syntax
 
-### 4.1 基础结构
+### 4.1 Basic Structure
 
-`.astro` 文件由两部分组成：**组件脚本**（服务端运行）和**模板**（输出 HTML）。
+A `.astro` file consists of two parts: the **component script** (runs on the server) and the **template** (outputs HTML).
 
-```astro
+ ```astro
 ---
 // 组件脚本（fence）：在服务端/构建时运行
 // 可以 import 其他组件、调用 API、查数据库
@@ -129,11 +127,11 @@ const items = ["SSG", "岛屿架构", "多框架"];
 </ul>
 ```
 
-> **关键区别**：`---` 之间的代码运行在**服务端（构建时）**，不会发送到浏览器。模板部分输出纯 HTML。
+> **Key difference**: the code between `---` runs on the **server (at build time)** and is not sent to the browser. The template portion outputs pure HTML.
 
-### 4.2 Props 和插槽
+### 4.2 Props and Slots
 
-```astro
+ ```astro
 ---
 // components/Card.astro
 export interface Props {
@@ -166,9 +164,9 @@ const { title, subtitle } = Astro.props;
 </style>
 ```
 
-使用这个组件：
+Using this component:
 
-```astro
+ ```astro
 ---
 import Card from '../components/Card.astro';
 ---
@@ -178,11 +176,11 @@ import Card from '../components/Card.astro';
 </Card>
 ```
 
-### 4.3 样式默认隔离
+### 4.3 Styles Are Scoped by Default
 
-Astro 的 `<style>` 标签**默认 scoped**——样式只作用于当前组件，不会泄露到页面的其他部分。这是内置能力，不需要 CSS Modules 或 styled-components。
+Astro's `<style>` tag is **scoped by default**—styles only apply to the current component and don't leak into other parts of the page. This is a built-in capability; you don't need CSS Modules or styled-components.
 
-```astro
+ ```astro
 <!-- 这个 h1 样式只影响本组件 -->
 <style>
     h1 { color: red; }
@@ -198,13 +196,13 @@ Astro 的 `<style>` 标签**默认 scoped**——样式只作用于当前组件�
 
 ---
 
-## 5. 内容集合（Content Collections）
+## 5. Content Collections
 
-对于博客、文档站这类以内容为主的站点，Astro 提供了**内容集合**——一个类型安全的内容管理系统。
+For content-centric sites like blogs and documentation sites, Astro provides **content collections**—a type-safe content management system.
 
-### 5.1 定义集合
+### 5.1 Defining a Collection
 
-```typescript
+ ```typescript
 // src/content/config.ts
 import { defineCollection, z } from 'astro:content';
 
@@ -224,9 +222,9 @@ export const collections = {
 };
 ```
 
-### 5.2 编写内容
+### 5.2 Writing Content
 
-```markdown
+ ```markdown
 ---
 # src/content/blog/hello-world.md
 title: 你好世界
@@ -237,9 +235,9 @@ tags: [Astro, 博客]
 这是我的第一篇 Astro 博客文章。
 ```
 
-### 5.3 查询和渲染
+### 5.3 Querying and Rendering
 
-```astro
+ ```astro
 ---
 // src/pages/blog/index.astro
 import { getCollection } from 'astro:content';
@@ -264,12 +262,11 @@ posts.sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 ```
 
 ---
+## 6. Mixing Other Frameworks
 
-## 6. 混合使用其他框架
+Astro's most magical feature: **you can use React, Vue, and Svelte components on the same page.**
 
-Astro 最神奇的地方：**你可以在同一个页面用 React、Vue、Svelte 组件。**
-
-### 6.1 添加集成
+### 6.1 Adding Integrations
 
 ```bash
 # 添加 React 支持
@@ -282,7 +279,7 @@ pnpm astro add vue
 pnpm astro add svelte
 ```
 
-### 6.2 在 Astro 中使用框架组件
+### 6.2 Using Framework Components in Astro
 
 ```astro
 ---
@@ -306,17 +303,17 @@ import SvelteChart from '../components/SvelteChart.svelte';
 <SvelteChart client:idle />
 ```
 
-### 6.3 client 指令：控制水合时机
+### 6.3 Client Directives: Controlling Hydration Timing
 
-每个框架组件都需要一个 `client:*` 指令来决定何时加载 JS：
+Every framework component needs a `client:*` directive to determine when to load JS:
 
-| 指令 | 行为 | 适用场景 |
+| Directive | Behavior | Use Case |
 |------|------|---------|
-| `client:load` | 页面加载后立即水合 | 高优先级交互（如导航菜单） |
-| `client:idle` | 浏览器空闲时水合 | 低优先级交互 |
-| `client:visible` | 组件进入视口时水合 | 页面下方的交互组件 |
-| `client:media` | 匹配媒体查询时水合 | 仅在移动端加载的组件 |
-| `client:only` | 跳过 SSR，仅客户端渲染 | 依赖浏览器 API 的组件 |
+| `client:load` | Hydrate immediately after page load | High-priority interactions (e.g., navigation menus) |
+| `client:idle` | Hydrate when the browser is idle | Low-priority interactions |
+| `client:visible` | Hydrate when the component enters the viewport | Interactive components lower on the page |
+| `client:media` | Hydrate when a media query matches | Components that only load on mobile |
+| `client:only` | Skip SSR, client-side rendering only | Components that depend on browser APIs |
 
 ```astro
 <!-- 示例：在不同时机加载不同组件 -->
@@ -328,11 +325,11 @@ import SvelteChart from '../components/SvelteChart.svelte';
 
 ---
 
-## 7. 路由与页面模式
+## 7. Routing and Page Modes
 
-### 7.1 SSR 模式（默认）
+### 7.1 SSR Mode (Default)
 
-Astro 默认是 SSG（构建时生成纯 HTML）。如果需要 SSR（每次请求动态渲染），在文件顶部加上：
+Astro is SSG by default (generates pure HTML at build time). If you need SSR (dynamic rendering on each request), add this at the top of the file:
 
 ```astro
 ---
@@ -343,7 +340,7 @@ export const prerender = false;
 <h1>当前时间：{new Date().toLocaleTimeString()}</h1>
 ```
 
-或者在 `astro.config.mjs` 中全局启用：
+Or enable it globally in `astro.config.mjs`:
 
 ```javascript
 export default defineConfig({
@@ -351,61 +348,61 @@ export default defineConfig({
 });
 ```
 
-### 7.2 三种输出模式
+### 7.2 Three Output Modes
 
-| 模式 | 说明 | 适用场景 |
+| Mode | Description | Use Case |
 |------|------|---------|
-| `static`（默认） | 构建时生成全静态 HTML | 博客、文档站、官网 |
-| `server` | 每次请求在服务端渲染 | 需要动态数据的站点 |
-| `hybrid` | 大部分页面静态，少数页面动态 | 静态博客 + 登录/搜索功能 |
+| `static` (default) | Generates fully static HTML at build time | Blogs, documentation sites, corporate sites |
+| `server` | Renders on the server on each request | Sites that need dynamic data |
+| `hybrid` | Most pages static, a few pages dynamic | Static blog + login/search functionality |
 
 ---
 
-## 8. Astro vs 其他框架
+## 8. Astro vs Other Frameworks
 
-| 维度 | Astro | Next.js | Nuxt |
+| Dimension | Astro | Next.js | Nuxt |
 |------|-------|---------|------|
-| 核心理念 | 零 JS 默认，岛屿增强 | React 全栈框架 | Vue 全栈框架 |
-| 默认渲染 | SSG | SSG | SSG |
-| JS 体积 | **极低**（默认 0KB） | 中等 | 中等 |
-| 多框架支持 | ✅ 原生支持 | ❌ 仅 React | ❌ 仅 Vue |
-| 学习曲线 | **平缓**（类 HTML 模板） | 陡峭（RSC、App Router） | 中等 |
-| 最佳场景 | 博客、文档、营销站 | 复杂全栈应用 | 复杂全栈应用 |
-| 构建速度 | **极快**（Go + Rust 引擎） | 中等 | 中等 |
+| Core philosophy | Zero JS by default, island enhancement | React full-stack framework | Vue full-stack framework |
+| Default rendering | SSG | SSG | SSG |
+| JS bundle size | **Extremely low** (0KB by default) | Medium | Medium |
+| Multi-framework support | ✅ Native support | ❌ React only | ❌ Vue only |
+| Learning curve | **Gentle** (HTML-like templates) | Steep (RSC, App Router) | Medium |
+| Best scenario | Blogs, docs, marketing sites | Complex full-stack apps | Complex full-stack apps |
+| Build speed | **Extremely fast** (Go + Rust engine) | Medium | Medium |
 
 ---
 
-## 9. 什么时候选 Astro？
+## 9. When to Choose Astro?
 
-选择 Astro 的典型信号：
+Typical signals for choosing Astro:
 
-| 场景 | 理由 |
+| Scenario | Reason |
 |------|------|
-| 个人博客 | 纯静态，零 JS，Lighthouse 满分 |
-| 技术文档站 | 内容为主，极少交互 |
-| 公司官网 / 营销页 | 首屏要快，SEO 要求高 |
-| 电商展示页 | 商品展示为主，交互通过岛屿 |
-| 微前端聚合 | 不同团队用不同框架，Astro 统合输出 |
+| Personal blog | Purely static, zero JS, perfect Lighthouse score |
+| Technical documentation site | Content-focused, minimal interaction |
+| Company website / marketing page | Fast first paint, high SEO requirements |
+| E-commerce showcase page | Product display-focused, interactions via islands |
+| Micro-frontend aggregation | Different teams use different frameworks, Astro unifies the output |
 
-不选 Astro 的信号：
+Signals not to choose Astro:
 
-| 场景 | 推荐替代 |
+| Scenario | Recommended Alternative |
 |------|---------|
-| 极度复杂的前端交互（如在线 Excel） | React / Vue SPA |
-| 需要客户端状态管理贯穿全站 | Next.js / Nuxt |
-| 团队已经深度投入某个框架生态 | 在其生态内选方案 |
+| Extremely complex frontend interactions (e.g., online Excel) | React / Vue SPA |
+| Need client-side state management across the entire site | Next.js / Nuxt |
+| Team is already deeply invested in a particular framework ecosystem | Choose a solution within that ecosystem |
 
 ---
 
-## 10. 小结
+## 10. Summary
 
-Astro 的成功来自一个简单的观察：**大多数网站的「交互」可能就几个按钮，但传统框架为整站加载了一个重型运行时。**
+Astro's success comes from a simple observation: **most websites' "interactions" might just be a few buttons, but traditional frameworks load a heavy runtime for the entire site.**
 
-它的设计哲学可以总结为：
+Its design philosophy can be summarized as:
 
-> 默认输出 HTML，按需注入 JavaScript。「多框架」不是噱头，而是解决了一个现实问题——不同团队、不同场景可以各用擅长的工具，最终由 Astro 统合为最佳性能的静态站点。
+> Output HTML by default, inject JavaScript on demand. "Multi-framework" isn't a gimmick—it solves a real problem: different teams and different scenarios can each use the tools they're best at, and Astro ultimately unifies them into a static site with optimal performance.
 
-如果你要建一个博客、文档站、营销页面，或者任何「内容 > 交互」的网站，Astro 可能是目前的最佳选择。就像这个博客一样——你现在看到的每一篇文章，都是 Astro 在构建时生成的纯 HTML，没有任何多余的 JS。
+If you want to build a blog, documentation site, marketing page, or any website where "content > interaction," Astro may be the best choice right now. Just like this blog—every article you're reading right now is pure HTML generated by Astro at build time, with no unnecessary JS.
 
 ```
 学习路径建议：

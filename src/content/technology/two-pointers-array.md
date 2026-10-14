@@ -1,41 +1,39 @@
 ---
-title: 数组双指针：从 O(n²) 到 O(n) 的优化利器
+title: 'Two Pointers on Arrays: An Optimization Tool from O(n²) to O(n)'
 published: 2026-04-26
-description: '掌握数组双指针的四种核心模式（左右指针、快慢指针、前后指针、分离指针），用 TypeScript 解决高频算法问题。'
+description: Master the four core patterns of two pointers on arrays (left-right pointers, fast-slow pointers, front-back pointers, and separated pointers) to solve high-frequency algorithm problems with TypeScript.
 image: ''
-tags: [双指针, TypeScript, 算法]
-category: '算法'
+tags: [Two Pointers, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Array two pointers** uses two indices to simultaneously maintain positional relationships within an array. It often optimizes enumerations that would otherwise require nested loops into a single or a few linear scans.
+
+> Prerequisites
+> - **Array indices**: pointers are essentially index variables
+> - **Sorted order**: left and right pointers often rely on array sorting
+> - **Invariant**: clearly define the meaning of the interval between the two pointers
+
 ---
 
-## 概述
+## Problem Definition
 
-**数组双指针** 用两个下标同时维护数组中的位置关系。它常把原本需要嵌套循环的枚举，优化为一次或少数几次线性扫描。
+Given an array or string, use the relative movement of two pointers to accomplish searching, merging, reversing, deduplication, or in-place modification.
 
-> 前置知识
-> - **数组下标**：指针本质是下标变量
-> - **有序性**：左右指针常依赖数组排序
-> - **不变量**：明确两个指针之间的区间含义
-
----
-
-## 问题定义
-
-给定数组或字符串，通过两个指针的相对移动，完成查找、合并、反转、去重或原地修改。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 数组、目标值、两个有序序列或字符串 |
-| 输出 | 下标、修改后的数组长度、合并结果或最优值 |
-| 指针模式 | 左右指针、快慢指针、分离指针 |
-| 典型收益 | 将 O(n²) 枚举降为 O(n) 扫描 |
+| Input | Array, target value, two sorted sequences, or string |
+| Output | Index, modified array length, merged result, or optimal value |
+| Pointer pattern | Left-right pointers, fast-slow pointers, separated pointers |
+| Typical benefit | Reduce O(n²) enumeration to O(n) scanning |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以有序数组两数之和为例：
+Taking two-sum on a sorted array as an example:
 
 ```text
 nums:   2   7   11   15
@@ -43,7 +41,7 @@ target: 9
         L            R
 ```
 
-如果 `nums[left] + nums[right]` 太大，就右指针左移；太小，就左指针右移。
+If `nums[left] + nums[right]` is too large, move the right pointer left; if too small, move the left pointer right.
 
 ```mermaid
 graph LR
@@ -55,11 +53,11 @@ graph LR
     E --> A
 ```
 
-这种移动成立的前提是数组有序，移动后能安全排除一批不可能答案。
+The premise for this movement to work is that the array is sorted, so after moving, a batch of impossible answers can be safely eliminated.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：TwoPointers(nums, target)
@@ -75,20 +73,20 @@ graph LR
 7. 返回未找到
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 模式 | 时间复杂度 | 空间复杂度 | 说明 |
+| Pattern | Time complexity | Space complexity | Description |
 |------|------|------|------|
-| 左右指针 | O(n) | O(1) | 两端向中间移动 |
-| 快慢指针 | O(n) | O(1) | 同向扫描，常用于原地修改 |
-| 分离指针 | O(m + n) | O(m + n) 或 O(1) | 合并两个序列 |
-| 三数之和 | O(n²) | O(1) | 排序后固定一个数再双指针 |
+| Left-right pointers | O(n) | O(1) | Move from both ends toward the middle |
+| Fast-slow pointers | O(n) | O(1) | Same-direction scanning, often used for in-place modification |
+| Separated pointers | O(m + n) | O(m + n) or O(1) | Merge two sequences |
+| Three-sum | O(n²) | O(1) | Sort, fix one number, then use two pointers |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 两数之和 II
+### 1. Two Sum II
 
 ```typescript
 function twoSum(numbers: number[], target: number): number[] {
@@ -106,7 +104,7 @@ function twoSum(numbers: number[], target: number): number[] {
 }
 ```
 
-### 2. 反转字符串
+### 2. Reverse String
 
 ```typescript
 function reverseString(s: string[]): void {
@@ -121,7 +119,7 @@ function reverseString(s: string[]): void {
 }
 ```
 
-### 3. 删除有序数组重复项
+### 3. Remove Duplicates from Sorted Array
 
 ```typescript
 function removeDuplicates(nums: number[]): number {
@@ -139,7 +137,7 @@ function removeDuplicates(nums: number[]): number {
 }
 ```
 
-### 4. 移动零
+### 4. Move Zeroes
 
 ```typescript
 function moveZeroes(nums: number[]): void {
@@ -154,7 +152,7 @@ function moveZeroes(nums: number[]): void {
 }
 ```
 
-### 5. 合并两个有序数组
+### 5. Merge Two Sorted Arrays
 
 ```typescript
 function merge(nums1: number[], m: number, nums2: number[], n: number): void {
@@ -172,7 +170,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 }
 ```
 
-### 6. 三数之和
+### 6. Three Sum
 
 ```typescript
 function threeSum(nums: number[]): number[][] {
@@ -207,39 +205,39 @@ function threeSum(nums: number[]): number[][] {
 
 ---
 
-## 工程优化：先定义指针不变量
+## Engineering Optimization: Define Pointer Invariants First
 
-| 模式 | 不变量 | 常见用途 |
+| Pattern | Invariant | Common use |
 |------|------|------|
-| 左右指针 | 答案在 `[left, right]` 内 | 有序查找、回文、反转 |
-| 快慢指针 | `[0, slow]` 是已处理有效区间 | 去重、过滤、移动元素 |
-| 分离指针 | 两个输入各自有序推进 | 合并数组、归并排序 |
-| 前后写指针 | 尾部空间未被覆盖 | 原地合并 |
+| Left-right pointers | The answer lies within `[left, right]` | Sorted search, palindrome, reversal |
+| Fast-slow pointers | `[0, slow]` is the processed valid interval | Deduplication, filtering, moving elements |
+| Separated pointers | Both inputs advance in sorted order | Merging arrays, merge sort |
+| Front-back write pointers | Tail space has not been overwritten | In-place merging |
 
-双指针代码不要只记模板，要说明为什么移动某个指针不会漏掉答案。
+Don't just memorize templates for two-pointer code; explain why moving a certain pointer won't miss the answer.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical applications
 
-- 有序数组查找两数之和
-- 原地去重、移动零、删除元素
-- 回文判断、字符串反转
-- 合并有序数组、三数之和
+- Finding two-sum in a sorted array
+- In-place deduplication, moving zeroes, removing elements
+- Palindrome checking, string reversal
+- Merging sorted arrays, three-sum
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 常依赖有序性 | 无序数组通常需要先排序或用哈希表 |
-| 移动规则需证明 | 不能安全排除候选时会漏答案 |
-| 排序会改变输入 | 三数之和等题目要注意是否允许原地排序 |
+| Often relies on sorted order | Unsorted arrays usually require sorting first or using a hash table |
+| Movement rules need proof | Answers will be missed if candidates cannot be safely eliminated |
+| Sorting changes the input | For problems like three-sum, note whether in-place sorting is allowed |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -249,9 +247,9 @@ graph LR
     D --> E[直到指针相遇或扫描结束]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 双指针的价值是用线性移动替代重复枚举。
-2. 左右指针通常依赖有序性，快慢指针常用于原地修改。
-3. 每次移动指针前，都要能证明被跳过的状态不可能成为答案。
-4. 三数之和是“排序 + 固定一个数 + 左右指针”的经典组合。
+1. The value of two pointers is replacing repeated enumeration with linear movement.
+2. Left-right pointers typically rely on sorted order; fast-slow pointers are often used for in-place modification.
+3. Before each pointer movement, you must be able to prove that the skipped states cannot be the answer.
+4. Three-sum is a classic combination of "sort + fix one number + left-right pointers."

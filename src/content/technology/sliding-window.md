@@ -1,41 +1,39 @@
 ---
-title: 滑动窗口：子数组/子串问题的通用解法
+title: 'Sliding Window: A General Approach to Subarray/Substring Problems'
 published: 2026-04-26
-description: '掌握滑动窗口的两大模板（定长窗口和变长窗口），用 TypeScript 解决无重复字符的最长子串、最小覆盖子串等经典问题。'
+description: Master the two main sliding window templates (fixed-length and variable-length windows) and use TypeScript to solve classic problems like Longest Substring Without Repeating Characters and Minimum Window Substring.
 image: ''
-tags: [滑动窗口, TypeScript, 算法]
-category: '算法'
+tags: [Sliding Window, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Sliding Window** is a common form of the two-pointer technique applied to contiguous interval problems. It maintains a window `[left, right]` or `[left, right)`, and as the right pointer expands and the left pointer contracts, it handles subarray or substring problems in O(n) time.
+
+> Prerequisites
+> - **Two Pointers**: the window's left and right boundaries are maintained by two pointers
+> - **Hash Map / Counter**: tracks the state of characters or elements within the window
+> - **Interval Invariant**: clearly defines what condition the window currently satisfies or fails to satisfy
+
 ---
 
-## 概述
+## Problem Definition
 
-**滑动窗口（Sliding Window）** 是双指针在连续区间问题中的常见形式。它维护一个窗口 `[left, right]` 或 `[left, right)`，随着右指针扩张、左指针收缩，在 O(n) 时间内处理子数组或子串问题。
+Given an array or string, find a contiguous interval that satisfies some condition, such as maximum length, minimum length, fixed-length optimum, or coverage relationship.
 
-> 前置知识
-> - **双指针**：窗口左右边界由两个指针维护
-> - **哈希表 / 计数器**：记录窗口内字符或元素状态
-> - **区间不变量**：明确窗口当前满足或不满足什么条件
-
----
-
-## 问题定义
-
-给定数组或字符串，寻找满足某种条件的连续区间，例如最大长度、最小长度、固定长度最优值或覆盖关系。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 数组、字符串、目标长度或约束条件 |
-| 输出 | 最长/最短窗口长度、窗口内容或统计值 |
-| 核心状态 | `left`、`right`、窗口计数、当前答案 |
-| 常见类型 | 定长窗口、变长窗口、覆盖窗口 |
+| Input | Array, string, target length, or constraint conditions |
+| Output | Longest/shortest window length, window contents, or statistical value |
+| Core State | `left`, `right`, window counts, current answer |
+| Common Types | Fixed-length window, variable-length window, covering window |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以变长窗口为例，右指针负责扩张，左指针负责恢复条件：
+Taking the variable-length window as an example, the right pointer is responsible for expansion, and the left pointer is responsible for restoring the condition:
 
 ```text
 s:      a  b  c  a  b  c  b  b
@@ -52,11 +50,11 @@ graph LR
     C -->|是| E[更新答案]
 ```
 
-滑动窗口之所以是 O(n)，是因为每个元素最多被右指针加入一次、被左指针移出一次。
+The reason sliding window is O(n) is that each element is added by the right pointer at most once and removed by the left pointer at most once.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：VariableSlidingWindow(nums)
@@ -74,20 +72,20 @@ graph LR
 9. 返回答案
 ```
 
-**复杂度分析**：
+**Complexity Analysis**:
 
-| 窗口类型 | 时间复杂度 | 空间复杂度 | 说明 |
+| Window Type | Time Complexity | Space Complexity | Description |
 |------|------|------|------|
-| 定长窗口 | O(n) | O(1) | 每次进一个、出一个 |
-| 变长窗口 | O(n) | O(k) | k 为窗口内不同元素数 |
-| 覆盖窗口 | O(n) | O(字符集大小) | 需要维护 need/window 计数 |
-| 暴力枚举 | O(n²) 或更高 | O(1) | 枚举所有连续区间 |
+| Fixed-length window | O(n) | O(1) | One in, one out each time |
+| Variable-length window | O(n) | O(k) | k is the number of distinct elements in the window |
+| Covering window | O(n) | O(alphabet size) | Requires maintaining need/window counts |
+| Brute force enumeration | O(n²) or higher | O(1) | Enumerate all contiguous intervals |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 定长窗口最大和
+### 1. Maximum Sum of Fixed-Length Window
 
 ```typescript
 function maxSumSubarray(nums: number[], k: number): number {
@@ -107,7 +105,7 @@ function maxSumSubarray(nums: number[], k: number): number {
 }
 ```
 
-### 2. 最大平均数
+### 2. Maximum Average
 
 ```typescript
 function findMaxAverage(nums: number[], k: number): number {
@@ -115,7 +113,7 @@ function findMaxAverage(nums: number[], k: number): number {
 }
 ```
 
-### 3. 无重复字符的最长子串
+### 3. Longest Substring Without Repeating Characters
 
 ```typescript
 function lengthOfLongestSubstring(s: string): number {
@@ -140,7 +138,7 @@ function lengthOfLongestSubstring(s: string): number {
 }
 ```
 
-### 4. 长度最小的子数组
+### 4. Minimum Size Subarray Sum
 
 ```typescript
 function minSubArrayLen(target: number, nums: number[]): number {
@@ -162,7 +160,7 @@ function minSubArrayLen(target: number, nums: number[]): number {
 }
 ```
 
-### 5. 最小覆盖子串
+### 5. Minimum Window Substring
 
 ```typescript
 function minWindow(s: string, t: string): string {
@@ -207,41 +205,41 @@ function minWindow(s: string, t: string): string {
 
 ---
 
-## 工程优化：窗口状态要可增量维护
+## Engineering Optimization: Window State Must Be Incrementally Maintainable
 
-滑动窗口的前提是窗口变化时，状态可以快速更新。
+The premise of sliding window is that when the window changes, the state can be updated quickly.
 
-| 状态 | 入窗口 | 出窗口 | 适用问题 |
+| State | Entering Window | Leaving Window | Applicable Problems |
 |------|------|------|------|
-| 求和 | `sum += x` | `sum -= x` | 子数组和、平均值 |
-| 计数 | `count[x]++` | `count[x]--` | 字符覆盖、频率限制 |
-| 去重 | 记录出现次数 | 重复时收缩 | 无重复子串 |
-| 最大/最小 | 单调队列 | 过期元素出队 | 窗口最大值 |
+| Sum | `sum += x` | `sum -= x` | Subarray sum, average |
+| Count | `count[x]++` | `count[x]--` | Character coverage, frequency limits |
+| Deduplication | Record occurrence count | Shrink on duplicate | Substring without repeats |
+| Max/Min | Monotonic queue | Dequeue expired elements | Window maximum |
 
-如果窗口状态不能 O(1) 或均摊 O(1) 更新，滑动窗口可能退化，需考虑单调队列、堆或其他结构。
+If the window state cannot be updated in O(1) or amortized O(1), the sliding window may degrade, and you should consider a monotonic queue, heap, or other structures.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 子数组/子串最长或最短问题
-- 固定长度窗口统计
-- 字符串覆盖、异位词、重复字符限制
-- 流式数据最近一段统计
+- Longest or shortest subarray/substring problems
+- Fixed-length window statistics
+- String coverage, anagrams, repeated character limits
+- Statistics over the most recent segment of streaming data
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 必须是连续区间 | 非连续子序列不适用 |
-| 条件需可维护 | 窗口扩张/收缩后要能快速更新状态 |
-| 单调性要求 | 变长窗口通常依赖“收缩会改善约束” |
+| Must be a contiguous interval | Non-contiguous subsequences do not apply |
+| Condition must be maintainable | State must be quickly updatable after window expansion/contraction |
+| Monotonicity requirement | Variable-length windows typically rely on "shrinking improves the constraint" |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -251,16 +249,16 @@ graph LR
     D --> E[更新答案]
 ```
 
-**核心要点**：
+**Key Points**:
 
-1. 滑动窗口适合连续子数组和子串问题。
-2. 定长窗口关注进出平衡，变长窗口关注合法性维护。
-3. 每个元素最多进出窗口一次，所以通常是 O(n)。
-4. 写代码前先定义窗口状态和收缩条件。
+1. Sliding window is suitable for contiguous subarray and substring problems.
+2. Fixed-length windows focus on balancing entry and exit; variable-length windows focus on maintaining validity.
+3. Each element enters and leaves the window at most once, so it is typically O(n).
+4. Define the window state and shrink condition before writing code.
 
-## 相关文章
+## Related Articles
 
-- [滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) — 把这篇的分类收敛成一套可套用的骨架：何时扩张、何时收缩、何时更新结果，以及窗口区间为什么写成左闭右开
-- [数组双指针：从 O(n²) 到 O(n) 的优化利器](/technology/two-pointers-array/) — 滑动窗口背后的双指针思想
-- [数组双指针经典习题（一）：一维数组与字符串](/technology/two-pointers-exercises-1d/) — 快慢指针、左右指针与荷兰国旗
-- [哈希表：从两数之和到子数组求和](/technology/hash/) — 滑动窗口常与哈希计数配合使用
+- [Sliding Window Core Code Template: Three Questions to Solve All Substring and Subarray Problems](/technology/sliding-window-template/) — Condenses the categories in this article into a reusable skeleton: when to expand, when to shrink, when to update the result, and why the window interval is written as left-closed right-open
+- [Array Two Pointers: An Optimization Tool from O(n²) to O(n)](/technology/two-pointers-array/) — The two-pointer idea behind sliding window
+- [Classic Array Two-Pointer Exercises (Part 1): One-Dimensional Arrays and Strings](/technology/two-pointers-exercises-1d/) — Fast-slow pointers, left-right pointers, and Dutch national flag
+- [Hash Map: From Two Sum to Subarray Sum](/technology/hash/) — Sliding window is often used in conjunction with hash counting

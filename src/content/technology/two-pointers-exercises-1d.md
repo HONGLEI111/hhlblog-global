@@ -1,52 +1,50 @@
 ---
-title: 数组双指针经典习题（一）：一维数组与字符串
+title: 'Classic Two-Pointer Array Problems (Part 1): One-Dimensional Arrays and Strings'
 published: 2026-09-29
-description: '力扣「数组和双指针」入门计划前五题精讲：删除有序数组中的重复项、验证回文串、颜色分类、合并两个有序数组、有序数组的平方。每题给出指针不变量、过程图解、易错点和 C / C++ / JavaScript 三语言实现。'
+description: 'A walkthrough of the first five problems in LeetCode''s "Array and Two Pointers" introductory plan: removing duplicates from a sorted array, validating a palindrome, sorting colors, merging two sorted arrays, and squaring a sorted array. Each problem includes pointer invariants, step-by-step diagrams, common pitfalls, and implementations in C, C++, and JavaScript.'
 image: ''
-tags: [双指针, 数组, 字符串, 力扣, 快慢指针, 荷兰国旗, C, C++, JavaScript]
-category: '算法'
+tags: [Two Pointers, Arrays, Strings, LeetCode, Fast and Slow Pointers, Dutch National Flag, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Introduction
 
-## 导读
+[Array Two Pointers: An Optimization Tool from O(n²) to O(n)](/technology/two-pointers-array/) covered four pointer patterns. This article begins applying those patterns to real problems.
 
-[数组双指针：从 O(n²) 到 O(n) 的优化利器](/technology/two-pointers-array/) 讲的是四种指针模式。本篇开始把模式落到真题上。
+The nine problems come from LeetCode's "Array and Two Pointers" introductory plan, split into two articles by theme:
 
-九道题来自力扣「数组和双指针」入门计划，按主题拆成两篇：
-
-| 篇目 | 内容 | 核心技巧 |
+| Article | Content | Core Technique |
 |------|------|---------|
-| **本篇（一）** | 删除有序数组中的重复项、验证回文串、颜色分类、合并两个有序数组、有序数组的平方 | 一维数组上的指针移动 |
-| [（二）矩阵与字符串](/technology/two-pointers-exercises-matrix/) | 将矩阵按对角线排序、二维网格迁移、转置矩阵、最长公共前缀 | 下标映射与纵向扫描 |
+| **This article (Part 1)** | Remove Duplicates from Sorted Array, Valid Palindrome, Sort Colors, Merge Sorted Array, Squares of a Sorted Array | Pointer movement on one-dimensional arrays |
+| [(Part 2) Matrices and Strings](/technology/two-pointers-exercises-matrix/) | Sort Matrix by Diagonals, Shift 2D Grid, Transpose Matrix, Longest Common Prefix | Index mapping and vertical scanning |
 
-这五道题有个共同点：**答案的判定只依赖两端或相邻位置的关系**。无论是「重复值必然相邻」（题 1）、「首尾必须对称」（题 2）、「只有三种取值可以就地分区」（题 3）、「两个序列各自有序」（题 4），还是「平方后的最大值必在两端」（题 5），都让每次指针移动都能安全排除一批候选，从而把原本 O(n²) 的枚举压到 O(n)。
+These five problems share a common trait: **the answer's determination depends only on the relationship between the two ends or adjacent positions**. Whether it's "duplicates must be adjacent" (Problem 1), "the first and last must be symmetric" (Problem 2), "only three values allow in-place partitioning" (Problem 3), "two sequences are each sorted" (Problem 4), or "the maximum squared value must be at one of the two ends" (Problem 5), each pointer movement can safely eliminate a batch of candidates, compressing what would otherwise be O(n²) enumeration down to O(n).
 
-### 五道题的指针速查
+### Quick Pointer Reference for the Five Problems
 
-| 题目 | 指针模式 | 指针含义 | 一句话 |
+| Problem | Pointer Pattern | Pointer Meaning | In One Sentence |
 |------|---------|---------|--------|
-| 删除有序数组中的重复项 | 快慢指针（同向） | `slow` 已写区间末尾，`fast` 扫描 | 把新值写到 `slow` 后面 |
-| 验证回文串 | 左右指针（相向） | `i` 左端，`j` 右端 | 跳过非字母数字再比较 |
-| 颜色分类 | 三指针分区 | `p0` 收 0，`p2` 收 2，`i` 扫描 | 换到 `p2` 后 `i` 不前进 |
-| 合并两个有序数组 | 逆向双指针 | `p1`、`p2` 各自末尾 | 从后往前填，避免覆盖 |
-| 有序数组的平方 | 左右指针 + 逆序填充 | `i` 左端，`j` 右端 | 最大值必在两端之一 |
+| Remove Duplicates from Sorted Array | Fast-slow pointers (same direction) | `slow` end of written range, `fast` scans | Write new values after `slow` |
+| Valid Palindrome | Left-right pointers (converging) | `i` left end, `j` right end | Skip non-alphanumeric then compare |
+| Sort Colors | Three-pointer partitioning | `p0` collects 0s, `p2` collects 2s, `i` scans | After swapping to `p2`, `i` does not advance |
+| Merge Sorted Array | Reverse two pointers | `p1`, `p2` each at their end | Fill from back to front, avoiding overwrites |
+| Squares of a Sorted Array | Left-right pointers + reverse filling | `i` left end, `j` right end | The maximum must be at one of the two ends |
 
-> **关于代码**
-> 每题给出 C / C++ / JavaScript 三语言实现，代码完全等价，可切换标签查看。
-> C 版本为了聚焦指针逻辑，省略了力扣官方签名中这里用不到的返回参数管理（如 `returnColumnSizes`）。
+> **About the Code**
+> Each problem provides implementations in C / C++ / JavaScript. The code is fully equivalent; switch tabs to view.
+> The C version omits the return parameter management from LeetCode's official signature that isn't used here (such as `returnColumnSizes`), in order to focus on the pointer logic.
 
 ---
 
-## 1. 删除有序数组中的重复项（LeetCode 26）
+## 1. Remove Duplicates from Sorted Array (LeetCode 26)
 
-### 题目描述
+### Problem Description
 
-给你一个**非严格递增**排列的数组 `nums`，请你**原地**删除重复出现的元素，使每个元素只出现一次，返回删除后数组的新长度。元素的相对顺序应该保持一致。
+Given an array `nums` arranged in **non-strictly increasing** order, **in-place** remove the duplicate elements so that each element appears only once, and return the new length of the array after removal. The relative order of the elements should be kept the same.
 
-由于在某些语言中无法改变数组的长度，所以必须将结果放在数组 `nums` 的前部分。更规范地说，如果在删除重复项之后有 `k` 个元素，那么 `nums` 的前 `k` 个元素应该保存最终结果。返回 `k` 即可，超出 `k` 的位置填什么都无所谓。
+Since the array's length cannot be changed in some languages, the result must be placed in the first part of the array `nums`. More formally, if there are `k` elements after removing duplicates, then the first `k` elements of `nums` should hold the final result. Return `k`; whatever is placed beyond position `k` doesn't matter.
 
-**示例：**
+**Example:**
 
 ```text
 输入：nums = [1,1,2]
@@ -56,25 +54,25 @@ lang: ''
 输出：5, nums = [0,1,2,3,4,_,_,_,_,_]
 ```
 
-**约束：** `1 <= nums.length <= 3 * 10^4`，`-100 <= nums[i] <= 100`，`nums` 已按非递减顺序排列。
+**Constraints:** `1 <= nums.length <= 3 * 10^4`, `-100 <= nums[i] <= 100`, `nums` is sorted in non-decreasing order.
 
-### 思路：快慢指针维护「已去重前缀」
+### Approach: Fast-Slow Pointers Maintaining a "Deduplicated Prefix"
 
-数组有序意味着**相等的元素一定相邻**。于是我们可以把数组分成两段：
+A sorted array means **equal elements must be adjacent**. So we can divide the array into two segments:
 
-- `[0, slow]`：已经去重的结果前缀，`nums[slow]` 是其中最后一个元素；
-- `[fast, n-1]`：还没检查的部分。
+- `[0, slow]`: the deduplicated result prefix, where `nums[slow]` is the last element in it;
+- `[fast, n-1]`: the part not yet checked.
 
-`fast` 从 1 开始一路向右扫：
+`fast` starts at 1 and scans rightward:
 
-- 若 `nums[fast] != nums[slow]`，说明遇到一个**新值**（因为重复值必然紧挨在一起），就把 `slow` 加一，把新值写到 `nums[slow]`；
-- 否则说明这个值和已写下的最后一个值相同，跳过。
+- If `nums[fast] != nums[slow]`, it means a **new value** has been encountered (since duplicates are necessarily adjacent), so increment `slow` and write the new value to `nums[slow]`;
+- Otherwise, this value is the same as the last value already written, so skip it.
 
-循环结束时 `slow` 是结果最后一个元素的下标，长度就是 `slow + 1`。
+When the loop ends, `slow` is the index of the last element of the result, and the length is `slow + 1`.
 
-### 过程图解
+### Process Illustration
 
-以 `nums = [0,0,1,1,1,2,2,3,3,4]` 为例：
+Taking `nums = [0,0,1,1,1,2,2,3,3,4]` as an example:
 
 ```text
 下标   0  1  2  3  4  5  6  7  8  9
@@ -95,7 +93,7 @@ fast=9: nums[9]=4 != nums[3]=3  → slow=4, nums[4]=4
 返回 slow + 1 = 5 → nums 前五位 [0,1,2,3,4] ✔
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -150,23 +148,23 @@ function removeDuplicates(nums) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — `fast` 走一遍 |
-| 空间复杂度 | **O(1)** — 只用了两个下标变量 |
-| 原地 | **是** — 只在 `nums` 内部读写 |
+| Time Complexity | **O(n)** — `fast` traverses once |
+| Space Complexity | **O(1)** — only two index variables used |
+| In-place | **Yes** — only reads and writes within `nums` |
 
-### 易错点
+### Common Pitfalls
 
-1. **返回 `slow + 1` 而不是 `slow`。** `slow` 是下标，长度要加一。空数组要单独返回 0，否则 `slow + 1` 会返回 1。
-2. **比较对象是 `nums[slow]` 而不是 `nums[fast - 1]`。** 两者在这道题里结果相同，但用 `slow` 才能自然推广到「每个元素最多保留 k 个」。
-3. **不要在发现重复时也移动 `slow`。** `slow` 只在写入新值时才前进。
+1. **Return `slow + 1`, not `slow`.** `slow` is an index; the length needs a plus one. An empty array must return 0 separately, otherwise `slow + 1` would return 1.
+2. **Compare against `nums[slow]`, not `nums[fast - 1]`.** Both give the same result for this problem, but using `slow` naturally generalizes to "each element may be kept at most k times."
+3. **Don't also move `slow` when a duplicate is found.** `slow` only advances when a new value is written.
 
-### 扩展：每个元素最多保留 k 个（LeetCode 80）
+### Extension: Keep Each Element at Most k Times (LeetCode 80)
 
-把「和前一个写入值比较」改成「和前 k 个写入值比较」，模板可以直接推广：
+Change "compare with the previous written value" to "compare with the previous k written values," and the template generalizes directly:
 
 ```cpp
 // 有序数组去重，每个元素最多保留 k 个（k = 1 就是本题，k = 2 是 LeetCode 80）
@@ -182,16 +180,15 @@ int removeDuplicatesAtMostK(vector<int>& nums, int k) {
 ```
 
 ---
+## 2. Valid Palindrome (LeetCode 125)
 
-## 2. 验证回文串（LeetCode 125）
+### Problem Description
 
-### 题目描述
+A phrase is considered a **palindrome** if, after converting all uppercase characters to lowercase and removing all non-alphanumeric characters, it reads the same forward and backward. Letters and digits are both alphanumeric characters.
 
-如果在将所有大写字符转换为小写字符、并移除所有非字母数字字符之后，短语正着读和反着读都一样，则可以认为该短语是一个**回文串**。字母和数字都属于字母数字字符。
+Given a string `s`, return `true` if it is a palindrome; otherwise, return `false`.
 
-给你一个字符串 `s`，如果它是回文串，返回 `true`；否则返回 `false`。
-
-**示例：**
+**Example:**
 
 ```text
 输入：s = "A man, a plan, a canal: Panama"
@@ -207,17 +204,17 @@ int removeDuplicatesAtMostK(vector<int>& nums, int k) {
 解释：移除非字母数字字符后得到空字符串 ""，空字符串正着反着读都一样
 ```
 
-**约束：** `1 <= s.length <= 2 * 10^5`，`s` 仅由可打印的 ASCII 字符组成。
+**Constraints:** `1 <= s.length <= 2 * 10^5`, `s` consists only of printable ASCII characters.
 
-### 思路：左右指针跳过「无效字符」
+### Approach: Two Pointers Skipping "Invalid Characters"
 
-如果不允许原地操作，最直观的做法是先把字符串过滤成纯字母数字、再翻转比较——但那需要 O(n) 额外空间。
+If in-place operation is not allowed, the most intuitive approach is to first filter the string into pure alphanumeric characters, then reverse and compare—but that requires O(n) extra space.
 
-回文的定义只关心「首尾是否对称」，所以用两个指针从两端向中间夹逼就够了：`i` 从左往右、`j` 从右往左，各自跳过非字母数字字符，然后比较这两个位置（统一转小写）。
+The definition of a palindrome only cares about whether the two ends are symmetric, so using two pointers converging from both ends toward the middle is sufficient: `i` moves from left to right, `j` moves from right to left, each skipping non-alphanumeric characters, then comparing the two positions (converting to lowercase uniformly).
 
-只遍历一遍，不需要构造新字符串。
+Only one pass is needed, and no new string needs to be constructed.
 
-### 过程图解
+### Process Illustration
 
 ```text
 s = "A man, a plan, a canal: Panama"
@@ -235,7 +232,7 @@ i='r', j='r' 相等 → i='a', j='a' 相等 → i='c', j='c' 相等
 → i='e' 跳过空格,j='a' → 'e' != 'a' → false ✘
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -305,31 +302,30 @@ function isPalindrome(s) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — `i` 只增、`j` 只减，合计移动 n 次 |
-| 空间复杂度 | **O(1)** — 不构造新的过滤字符串 |
+| Time Complexity | **O(n)** — `i` only increases, `j` only decreases, totaling n moves |
+| Space Complexity | **O(1)** — no new filtered string is constructed |
 
-### 易错点
+### Common Pitfalls
 
-1. **内层 `while` 必须带 `i < j`。** 否则当整个字符串都是非字母数字（如 `" "`、`"...."`）时，`i` 会一路越过 `j` 继续前进、`j` 会退到 `-1`，两边都在数组边界外读写——在 C 里这是未定义行为，用 AddressSanitizer 跑会直接报 `stack-buffer-overflow`。
-2. **C / C++ 的 `isalnum`、`tolower` 参数要转 `unsigned char`。** 这两个函数接受的是 `int` 且要求是 `unsigned char` 的值或 `EOF`；直接传 `char` 时，若字符字节为负数（UTF-8 多字节字符的后续字节就是这样），属于未定义行为。
-3. **`"0P"` 是 `false`，`"0P0"` 是 `true`。** 数字也要参与比较，别只判断字母。
-4. **`" "` 和 `""` 都返回 `true`。** 循环条件 `i < j` 保证空串或单字符直接判定成功。
+1. **The inner `while` must include `i < j`.** Otherwise, when the entire string consists of non-alphanumeric characters (such as `" "`, `"...."`), `i` will keep advancing past `j`, and `j` will retreat past `-1`, with both sides reading and writing outside the array bounds—in C this is undefined behavior, and running with AddressSanitizer will directly report `stack-buffer-overflow`.
+2. **C / C++ `isalnum`, `tolower` parameters must be cast to `unsigned char`.** These two functions accept `int` and require values that are `unsigned char` or `EOF`; when passing `char` directly, if the character byte is negative (which is the case for subsequent bytes of UTF-8 multi-byte characters), it is undefined behavior.
+3. **`"0P"` is `false`, `"0P0"` is `true`.** Digits must also participate in the comparison; don't only check for letters.
+4. **Both `" "` and `""` return `true`.** The loop condition `i < j` ensures that an empty string or a single character is directly judged as successful.
 
 ---
+## 3. Sort Colors (LeetCode 75)
 
-## 3. 颜色分类（LeetCode 75）
+### Problem Description
 
-### 题目描述
+Given an array `nums` of `n` elements containing red, white, and blue, **sort them in-place** so that elements of the same color are adjacent, arranged in the order red, white, and blue. We use the integers `0`, `1`, and `2` to represent red, white, and blue respectively.
 
-给定一个包含红色、白色和蓝色、共 `n` 个元素的数组 `nums`，**原地**对它们进行排序，使得相同颜色的元素相邻，并按照红色、白色、蓝色顺序排列。我们使用整数 `0`、`1` 和 `2` 分别表示红色、白色和蓝色。
+You must solve this problem without using the library's built-in `sort` function.
 
-必须在不使用库内置的 `sort` 函数的情况下解决这个问题。
-
-**示例：**
+**Example:**
 
 ```text
 输入：nums = [2,0,2,1,1,0]
@@ -339,13 +335,13 @@ function isPalindrome(s) {
 输出：[0,1,2]
 ```
 
-**约束：** `n == nums.length`，`1 <= n <= 300`，`nums[i]` 为 `0`、`1` 或 `2`。
+**Constraints:** `n == nums.length`, `1 <= n <= 300`, `nums[i]` is `0`, `1`, or `2`.
 
-**进阶：** 你能想出一个仅使用常数空间的一趟扫描算法吗？
+**Follow-up:** Could you come up with a one-pass algorithm using only constant extra space?
 
-### 思路：荷兰国旗问题，三个指针
+### Approach: Dutch National Flag Problem, Three Pointers
 
-只有三种取值，所以不需要真正的排序——只要把元素**分到三个区**里。用三个指针维护三块区域：
+There are only three possible values, so no real sorting is needed—just **partition the elements into three regions**. Use three pointers to maintain three zones:
 
 ```text
 [0, p0)  全是 0        p0：下一个 0 该放的位置
@@ -354,17 +350,17 @@ function isPalindrome(s) {
 (p2, n)  全是 2
 ```
 
-每一步看 `nums[i]`（也就是「未处理区」的最左元素）：
+At each step, look at `nums[i]` (the leftmost element of the "unprocessed region"):
 
-- `nums[i] == 0`：它属于左边，和 `nums[p0]` 交换。交换后 `p0` 处变成 0，`p0` 右移一位；换到 `i` 位置上的是原来的 `nums[p0]`——因为 `[p0, i)` 区间全是 1，所以换过来的只可能是 0 或 1，**已经确定归属**，于是 `i` 也可以右移。
-- `nums[i] == 2`：它属于右边，和 `nums[p2]` 交换。换到 `i` 位置上的是**从未处理区尾部拿来的元素**，还没看过，所以 `p2` 左移一位但 **`i` 不动**，下一轮重新检查这个位置。
-- `nums[i] == 1`：它本来就该在中间，`i` 直接右移。
+- `nums[i] == 0`: It belongs on the left, so swap it with `nums[p0]`. After the swap, position `p0` becomes 0, and `p0` moves right by one; the element swapped into position `i` is the original `nums[p0]`—since the `[p0, i)` range is all 1s, the swapped-in element can only be 0 or 1, **its placement is already determined**, so `i` can also move right.
+- `nums[i] == 2`: It belongs on the right, so swap it with `nums[p2]`. The element swapped into position `i` is **taken from the tail of the unprocessed region**, which hasn't been examined yet, so `p2` moves left by one but **`i` stays put**, and the next iteration re-examines this position.
+- `nums[i] == 1`: It already belongs in the middle, so `i` simply moves right.
 
-当 `i > p2` 时，未处理区为空，排序完成。
+When `i > p2`, the unprocessed region is empty and sorting is complete.
 
-### 过程图解
+### Walkthrough Diagram
 
-以 `nums = [2,0,2,1,1,0]` 为例：
+Using `nums = [2,0,2,1,1,0]` as an example:
 
 ```text
 初始：p0=0  i=0                    p2=5
@@ -383,7 +379,7 @@ i=3: nums[3]=1 → i=4
 i=4 > p2=3 → 结束 ✔
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -462,33 +458,32 @@ function sortColors(nums) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 每个元素最多被交换一次，`i` 与 `p2` 合计前进 n 步 |
-| 空间复杂度 | **O(1)** — 只有三个下标变量 |
-| 扫描趟数 | **1 趟** — 满足进阶要求 |
+| Time Complexity | **O(n)** — Each element is swapped at most once; `i` and `p2` together advance n steps |
+| Space Complexity | **O(1)** — Only three index variables |
+| Number of Passes | **1 pass** — Meets the follow-up requirement |
 
-### 易错点
+### Common Pitfalls
 
-1. **处理 2 之后 `i` 绝对不能前进。** 从尾部换过来的元素还没被检查过，它可能是 0。这是本题最容易写错的地方。
-2. **循环条件必须是 `i <= p2`，不能写 `i < p2`。** 当 `i == p2` 时那个位置还是未处理元素，仍需检查。写成 `i < p2` 会漏掉中间的一个元素：例如 `nums = [1,0,2,0,1]`，正确结果是 `[0,0,1,1,2]`，而 `i < p2` 会输出 `[0,1,1,0,2]`。
-3. **不要用「遍历两次计数排序」偷懒。** 统计 0/1/2 的个数再回填虽然也是 O(n) 时间 O(1) 空间，但要扫两趟，且没有展示指针分区的思想。
+1. **After handling a 2, `i` must absolutely not advance.** The element swapped in from the tail hasn't been examined yet—it could be a 0. This is the easiest place to make a mistake in this problem.
+2. **The loop condition must be `i <= p2`, not `i < p2`.** When `i == p2`, that position still holds an unprocessed element and must still be checked. Writing `i < p2` will skip a middle element: for example, `nums = [1,0,2,0,1]`, the correct result is `[0,0,1,1,2]`, but `i < p2` will output `[0,1,1,0,2]`.
+3. **Don't take the shortcut of "two-pass counting sort."** Counting the number of 0s/1s/2s and then filling them back in is also O(n) time and O(1) space, but it requires two passes and doesn't demonstrate the pointer-partitioning idea.
 
 ---
+## 4. Merge Two Sorted Arrays (LeetCode 88)
 
-## 4. 合并两个有序数组（LeetCode 88）
+### Problem Description
 
-### 题目描述
+You are given two integer arrays `nums1` and `nums2` arranged in **non-decreasing order**, along with two integers `m` and `n`, which represent the number of elements in `nums1` and `nums2` respectively.
 
-给你两个按**非递减顺序**排列的整数数组 `nums1` 和 `nums2`，另有两个整数 `m` 和 `n`，分别表示 `nums1` 和 `nums2` 中的元素数目。
+Please **merge** `nums2` into `nums1` so that the merged array is also arranged in non-decreasing order.
 
-请你**合并** `nums2` 到 `nums1` 中，使合并后的数组同样按非递减顺序排列。
+**Note:** The final merged array should not be returned by the function, but stored in array `nums1`. To accommodate this, the initial length of `nums1` is `m + n`, where the first `m` elements represent the elements to be merged, and the last `n` elements are `0` (placeholders) that should be ignored.
 
-**注意：** 最终合并后数组不应由函数返回，而是存储在数组 `nums1` 中。为了应对这种情况，`nums1` 的初始长度为 `m + n`，其中前 `m` 个元素表示应合并的元素，后 `n` 个元素为 `0`（占位符），应忽略。
-
-**示例：**
+**Example:**
 
 ```text
 输入：nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
@@ -498,18 +493,18 @@ function sortColors(nums) {
 输出：[1]
 ```
 
-**约束：** `nums1.length == m + n`，`nums2.length == n`，`0 <= m, n <= 200`。
+**Constraints:** `nums1.length == m + n`, `nums2.length == n`, `0 <= m, n <= 200`.
 
-### 思路：从后往前写，而不是从前往后
+### Approach: Write from Back to Front, Not Front to Back
 
-如果从前往后合并，第一个 `nums2` 的元素写进 `nums1[0]` 就会**覆盖掉还没处理的 `nums1` 元素**，除非先把 `nums1` 整体搬到别处（那就退化成 O(m+n) 额外空间）。
+If you merge from front to back, the first `nums2` element written into `nums1[0]` will **overwrite `nums1` elements that haven't been processed yet**, unless you first move all of `nums1` elsewhere (which degrades to O(m+n) extra space).
 
-但注意 `nums1` 的后 `n` 个位置本来就是空的！所以把方向反过来：**从数组末尾往前填**，每次取 `nums1` 和 `nums2` 剩余部分的较大者放到最右边。此时：
+But notice that the last `n` positions of `nums1` are already empty! So reverse the direction: **fill from the end of the array backward**, each time taking the larger of `nums1` and `nums2`'s remaining parts and placing it at the rightmost position. At this point:
 
-- 写入位置 `tail` 永远在 `p1`、`p2` 的右边，写的都是已经被读过的空位，不可能覆盖未处理元素；
-- 当 `nums2` 全部搬完（`p2 < 0`）时循环结束——此刻 `nums1` 剩下的元素本来就在正确位置上，不需要再动。
+- The write position `tail` is always to the right of `p1` and `p2`, writing into empty slots that have already been read, so it's impossible to overwrite unprocessed elements;
+- When `nums2` has been fully moved (`p2 < 0`), the loop ends — at this point the remaining elements of `nums1` are already in their correct positions and don't need to be touched.
 
-### 过程图解
+### Process Diagram
 
 ```text
 nums1 = [1,2,3,0,0,0]  m=3      nums2 = [2,5,6]  n=3
@@ -526,7 +521,7 @@ nums1 = [1,2,3,0,0,0]  m=3      nums2 = [2,5,6]  n=3
 p2 < 0 → 结束，nums1 前 m+n 位就是答案 ✔
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -587,30 +582,29 @@ function merge(nums1, m, nums2, n) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(m + n)** — 每个元素最多被写入一次 |
-| 空间复杂度 | **O(1)** — 没有开新数组，只用了三个下标 |
-| 原地 | **是** |
+| Time Complexity | **O(m + n)** — each element is written at most once |
+| Space Complexity | **O(1)** — no new array allocated, only three indices used |
+| In-place | **Yes** |
 
-### 易错点
+### Common Pitfalls
 
-1. **`p1 >= 0` 必须写在 `nums1[p1] > nums2[p2]` 前面。** 靠 `&&` 的短路求值来防止 `nums1[-1]` 越界访问。
-2. **循环条件只能是 `p2 >= 0`。** 不要写成 `p1 >= 0 && p2 >= 0`：`nums2` 先耗尽时 `nums1` 剩余元素已在正确位置、确实可以停；但 `nums1` 先耗尽时还必须继续把 `nums2` 剩下的搬过去（此时 `nums1[p1]` 不存在，靠 `p1 >= 0` 分支自动走 `else` 即可）。
-3. **`m = 0` 或 `n = 0` 的边界。** `n = 0` 时循环一次都不执行，`nums1` 原样返回；`m = 0` 时全部取 `nums2`。
-4. **别先把 `nums2` 复制到 `nums1` 尾部再排序。** 那样丢掉了「两个数组各自有序」这个前提，时间退化成 O((m+n)log(m+n))。
+1. **`p1 >= 0` must be written before `nums1[p1] > nums2[p2]`.** Rely on `&&`'s short-circuit evaluation to prevent out-of-bounds access to `nums1[-1]`.
+2. **The loop condition can only be `p2 >= 0`.** Don't write it as `p1 >= 0 && p2 >= 0`: when `nums2` is exhausted first, the remaining elements of `nums1` are already in their correct positions and it's indeed safe to stop; but when `nums1` is exhausted first, you must continue moving the remaining elements of `nums2` over (at this point `nums1[p1]` doesn't exist, and the `p1 >= 0` branch automatically takes `else`).
+3. **Boundary cases of `m = 0` or `n = 0`.** When `n = 0`, the loop doesn't execute even once, and `nums1` is returned as-is; when `m = 0`, all elements are taken from `nums2`.
+4. **Don't first copy `nums2` to the tail of `nums1` and then sort.** That discards the premise that "both arrays are individually sorted," degrading the time to O((m+n)log(m+n)).
 
 ---
+## 5. Squares of a Sorted Array (LeetCode 977)
 
-## 5. 有序数组的平方（LeetCode 977）
+### Problem Description
 
-### 题目描述
+Given an integer array `nums` sorted in **non-decreasing order**, return a new array consisting of the squares of each number, also sorted in **non-decreasing order**.
 
-给你一个按**非递减顺序**排序的整数数组 `nums`，返回每个数字的平方组成的新数组，要求也按**非递减顺序**排序。
-
-**示例：**
+**Example:**
 
 ```text
 输入：nums = [-4,-1,0,3,10]
@@ -621,19 +615,19 @@ function merge(nums1, m, nums2, n) {
 输出：[4,9,9,49,121]
 ```
 
-**约束：** `1 <= nums.length <= 10^4`，`-10^4 <= nums[i] <= 10^4`，`nums` 已按非递减顺序排序。
+**Constraints:** `1 <= nums.length <= 10^4`, `-10^4 <= nums[i] <= 10^4`, `nums` is sorted in non-decreasing order.
 
-### 思路：最大值只可能出现在两端
+### Approach: The Maximum Value Can Only Appear at Either End
 
-数组里有负数时，平方后的顺序和原顺序不再一致——`-4` 在 `-1` 左边，但平方后 `16 > 1`。不过有一个关键性质：
+When the array contains negative numbers, the order after squaring no longer matches the original order — `-4` is to the left of `-1`, but after squaring `16 > 1`. However, there is a key property:
 
-> 平方后的**最大值**，一定来自数组的最左端（绝对值最大的负数）或最右端（最大的正数），不可能来自中间。
+> The **maximum value** after squaring must come from either the leftmost end of the array (the negative number with the largest absolute value) or the rightmost end (the largest positive number); it cannot come from the middle.
 
-因为 `nums` 是单调递增的，`|nums[i]|` 在左半段单调递减、右半段单调递增，所以 `|nums[i]|` 的最大值必定在区间两端。
+Because `nums` is monotonically increasing, `|nums[i]|` is monotonically decreasing on the left half and monotonically increasing on the right half, so the maximum value of `|nums[i]|` must be at one of the two ends of the interval.
 
-于是可以「**从大到小**地生成结果」：用 `i`、`j` 两个指针分别指向两端，每次比较 `nums[i]²` 与 `nums[j]²`，把较大者填入结果数组的**末尾**，然后把对应指针向内移动。这样从后往前填，最终得到的就是升序结果。
+Therefore, we can generate the result **from largest to smallest**: use two pointers `i` and `j` pointing to the two ends respectively, compare `nums[i]²` with `nums[j]²` each time, fill the larger one into the **end** of the result array, then move the corresponding pointer inward. Filling from back to front this way, the final result is in ascending order.
 
-### 过程图解
+### Process Illustration
 
 ```text
 nums = [-4,-1,0,3,10]             res = [ , , , , ]
@@ -652,7 +646,7 @@ nums = [-4,-1,0,3,10]             res = [ , , , , ]
 res = [0,1,9,16,100] ✔
 ```
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -730,44 +724,44 @@ function sortedSquares(nums) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 两端指针合计移动 n 次 |
-| 空间复杂度 | **O(n)** — 返回的新数组（这是必须的，无法原地输出） |
+| Time Complexity | **O(n)** — the two pointers together move n times |
+| Space Complexity | **O(n)** — the new array returned (this is necessary; in-place output is not possible) |
 
-### 易错点
+### Common Pitfalls
 
-1. **结果数组要从后往前填。** 我们只能先确定最大值，从前往后填会把顺序搞反。
-2. **`i <= j` 而不是 `i < j`。** 奇数长度时最中间那个元素也要写进去。
-3. **注意平方溢出。** 本题 `|nums[i]| <= 10^4`，平方最大 10^8，`int` 装得下；但如果题目放宽到 `10^5`（平方 10^10），C / C++ 必须改用 `long long`。
-4. **别用先平方再排序的写法骗自己。** 那需要 O(n log n)，浪费了「数组有序」这一信息。
+1. **The result array must be filled from back to front.** We can only determine the maximum value first; filling from front to back would reverse the order.
+2. **`i <= j` instead of `i < j`.** For odd lengths, the middlemost element must also be written in.
+3. **Watch out for squaring overflow.** In this problem `|nums[i]| <= 10^4`, the maximum square is 10^8, which `int` can hold; but if the problem were relaxed to `10^5` (square 10^10), C / C++ would have to switch to `long long`.
+4. **Don't fool yourself with the square-then-sort approach.** That requires O(n log n), wasting the information that "the array is sorted."
 
 ---
 
-## 小结
+## Summary
 
-| 题目 | 指针模式 | 移动规则 | 时间 | 空间 |
+| Problem | Pointer Pattern | Movement Rule | Time | Space |
 |------|---------|---------|------|------|
-| 删除有序数组中的重复项 | 快慢指针（同向） | `fast` 总是前进；发现新值才移动 `slow` | O(n) | O(1) |
-| 验证回文串 | 左右指针（相向） | 先跳过无效字符，再同步内收 | O(n) | O(1) |
-| 颜色分类 | 三指针分区 | 遇 0 双指针同行；**遇 2 只动 `p2`** | O(n) | O(1) |
-| 合并两个有序数组 | 逆向双指针 | 比大小，较大者占 `tail` | O(m+n) | O(1) |
-| 有序数组的平方 | 左右指针 + 逆序填充 | 比平方（绝对值），较大者填末尾 | O(n) | O(n) |
+| Remove Duplicates from Sorted Array | Fast-slow pointers (same direction) | `fast` always advances; `slow` moves only when a new value is found | O(n) | O(1) |
+| Valid Palindrome | Left-right pointers (converging) | Skip invalid characters first, then move inward in sync | O(n) | O(1) |
+| Sort Colors | Three-pointer partitioning | On 0, both pointers advance together; **on 2, only `p2` moves** | O(n) | O(1) |
+| Merge Sorted Array | Reverse two pointers | Compare sizes, the larger one takes `tail` | O(m+n) | O(1) |
+| Squares of a Sorted Array | Left-right pointers + reverse filling | Compare squares (absolute values), the larger one fills the end | O(n) | O(n) |
 
-五道题里出现的三种移动节奏值得记住：
+The three movement rhythms that appear across these five problems are worth remembering:
 
-1. **同向快慢**：一个指针负责「扫」，一个指针负责「写」，写指针只在满足条件时前进（题 1）。
-2. **相向夹逼**：两端向中间靠拢，每一步都能排除掉一批不可能的状态（题 2、题 5）。
-3. **分区交换**：多个边界指针把数组切成已确定区与未处理区，交换后要判断新来的元素是否已确定归属（题 3）。
+1. **Same-direction fast-slow**: one pointer is responsible for "scanning," one for "writing," and the write pointer only advances when a condition is met (Problem 1).
+2. **Converging squeeze**: both ends close in toward the middle, and each step eliminates a batch of impossible states (Problems 2 and 5).
+3. **Partition swapping**: multiple boundary pointers cut the array into a confirmed region and an unprocessed region; after swapping, you must judge whether the newly arrived element's belonging has been determined (Problem 3).
 
-每种节奏都要能回答同一个问题：**我这次移动指针，为什么不会漏掉答案？** 答得上来，代码就不会写错。
+Each rhythm must be able to answer the same question: **When I move the pointer this time, why won't I miss the answer?** If you can answer that, you won't write the code wrong.
 
-## 相关文章
+## Related Articles
 
-- [数组双指针经典习题（二）：矩阵与字符串](/technology/two-pointers-exercises-matrix/) — 下一篇，二维矩阵的下标映射与最长公共前缀
-- [滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) — 当两个指针都只向右走、夹出的区间有明确含义时，双指针就升级成了滑动窗口
-- [数组双指针：从 O(n²) 到 O(n) 的优化利器](/technology/two-pointers-array/) — 四种指针模式的总体框架
-- [链表双指针：快慢指针在链表中的精妙应用](/technology/linked-list-two-pointers/) — 同样的模式，换到链表上
-- [二分搜索：从入门到边界处理精通](/technology/binary-search/) — 另一种把有序性变成 O(log n) 的手段
+- [Classic Array Two-Pointer Exercises (Part 2): Matrices and Strings](/technology/two-pointers-exercises-matrix/) — Next up, index mapping for 2D matrices and longest common prefix
+- [Sliding Window Core Code Template: Three Questions to Master All Substring and Subarray Problems](/technology/sliding-window-template/) — When both pointers only move right and the interval they squeeze out has a clear meaning, two pointers level up into a sliding window
+- [Array Two Pointers: The Optimization Tool from O(n²) to O(n)](/technology/two-pointers-array/) — The overall framework of the four pointer patterns
+- [Linked List Two Pointers: The Elegant Application of Fast-Slow Pointers in Linked Lists](/technology/linked-list-two-pointers/) — The same pattern, transferred to linked lists
+- [Binary Search: From Beginner to Boundary Handling Mastery](/technology/binary-search/) — Another means of turning sortedness into O(log n)

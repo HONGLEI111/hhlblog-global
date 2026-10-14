@@ -1,41 +1,39 @@
 ---
-title: 设计题：从设计模式到高频数据结构设计
+title: 'Design Problems: From Design Patterns to High-Frequency Data Structure Design'
 published: 2026-04-26
-description: '掌握 LRU、LFU、最小栈、设计哈希集合等高频数据结构设计题的 TypeScript 实现，理解设计题的核心考点。'
+description: Master TypeScript implementations of high-frequency data structure design problems like LRU, LFU, Min Stack, and Design HashSet, and understand the core concepts behind design interview questions.
 image: ''
-tags: [设计, TypeScript, 数据结构]
-category: '算法'
+tags: [Design, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Data structure design problems** require combining existing data structures to implement a new abstraction under specified operations and complexity constraints. The focus is not on writing a single function, but on maintaining the object's internal state so that every method satisfies its time and space requirements.
+
+> Prerequisites
+> - **Stacks, hash tables, linked lists**: the foundational building blocks for high-frequency design problems
+> - **Complexity constraints**: each API must be analyzed individually
+> - **Invariants**: the object's internal state must remain consistent after every operation
+
 ---
 
-## 概述
+## Problem Definition
 
-**数据结构设计题** 要求在指定操作和复杂度约束下，组合已有数据结构实现新的抽象。重点不是写一个函数，而是维护对象内部状态，让每个方法都满足时间和空间要求。
+Given a set of APIs and complexity requirements, design the class's internal data structures so that all operations execute correctly and efficiently.
 
-> 前置知识
-> - **栈、哈希表、链表**：高频设计题的基础组件
-> - **复杂度约束**：每个 API 都要单独分析
-> - **不变量**：对象内部状态必须在每次操作后保持一致
-
----
-
-## 问题定义
-
-给定一组 API 和复杂度要求，设计类的内部数据结构，使所有操作都能正确、高效地执行。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 构造参数和一组方法调用 |
-| 输出 | 每个方法的返回值和对象状态变化 |
-| 核心约束 | `get`、`put`、`push`、`pop` 等操作复杂度 |
-| 典型问题 | 最小栈、哈希集合、LRU 缓存、LFU 缓存 |
+| Input | Constructor parameters and a sequence of method calls |
+| Output | Each method's return value and the object's state changes |
+| Core constraint | Operation complexities such as `get`, `put`, `push`, `pop` |
+| Typical problems | Min stack, hash set, LRU cache, LFU cache |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以 LRU 缓存为例，哈希表负责 O(1) 定位节点，双向链表负责 O(1) 移动和淘汰：
+Taking the LRU cache as an example, the hash table handles O(1) node lookup, while the doubly linked list handles O(1) movement and eviction:
 
 ```mermaid
 graph LR
@@ -45,11 +43,11 @@ graph LR
     C --> D[tail]
 ```
 
-每次 `get` 或更新已有 key，都把节点移动到链表头部；容量超限时，从尾部删除最久未使用节点。
+On each `get` or update of an existing key, move the node to the head of the list; when capacity is exceeded, remove the least recently used node from the tail.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：LRUCache.put(key, value)
@@ -67,20 +65,19 @@ graph LR
 9.     从 Map 中删除对应 key
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 结构 | 操作 | 时间复杂度 | 空间复杂度 |
+| Structure | Operation | Time complexity | Space complexity |
 |------|------|------|------|
-| 最小栈 | `push/pop/top/getMin` | O(1) | O(n) |
-| 哈希集合 | `add/remove/contains` | 平均 O(1) | O(n) |
-| LRU 缓存 | `get/put` | O(1) | O(capacity) |
-| LFU 缓存 | `get/put` | O(1) 均摊 | O(capacity) |
+| Min stack | `push/pop/top/getMin` | O(1) | O(n) |
+| Hash set | `add/remove/contains` | Average O(1) | O(n) |
+| LRU cache | `get/put` | O(1) | O(capacity) |
+| LFU cache | `get/put` | O(1) amortized | O(capacity) |
 
 ---
+## TypeScript Implementation
 
-## TypeScript 实现
-
-### 1. 最小栈
+### 1. Min Stack
 
 ```typescript
 class MinStack {
@@ -110,7 +107,7 @@ class MinStack {
 }
 ```
 
-### 2. 哈希集合
+### 2. Hash Set
 
 ```typescript
 class MyHashSet {
@@ -138,7 +135,7 @@ class MyHashSet {
 }
 ```
 
-### 3. LRU 节点
+### 3. LRU Node
 
 ```typescript
 class DLinkedNode {
@@ -154,7 +151,7 @@ class DLinkedNode {
 }
 ```
 
-### 4. LRU 缓存
+### 4. LRU Cache
 
 ```typescript
 class LRUCache {
@@ -218,7 +215,7 @@ class LRUCache {
 }
 ```
 
-### 5. LFU 缓存简化实现
+### 5. Simplified LFU Cache Implementation
 
 ```typescript
 interface LFUNode {
@@ -282,39 +279,38 @@ class LFUCache {
 
 ---
 
-## 工程优化：用不变量管理状态
+## Engineering Optimization: Managing State with Invariants
 
-| 设计题 | 核心不变量 | 辅助结构 |
+| Design Problem | Core Invariant | Auxiliary Structure |
 |------|------|------|
-| 最小栈 | `minStack[i]` 存储前 i 层最小值 | 辅助栈 |
-| 哈希集合 | 同一 bucket 中不重复存 key | 桶数组 |
-| LRU | 链表头部最新，尾部最旧 | Map + 双向链表 |
-| LFU | `minFreq` 始终指向最小访问频率 | keyMap + freqMap |
+| Min Stack | `minStack[i]` stores the minimum of the first i levels | Auxiliary stack |
+| Hash Set | No duplicate keys within the same bucket | Bucket array |
+| LRU | Head of the linked list is most recent, tail is oldest | Map + doubly linked list |
+| LFU | `minFreq` always points to the minimum access frequency | keyMap + freqMap |
 
-写设计题时，先列 API，再列每个 API 后必须保持的不变量，比直接写代码更稳。
+When solving design problems, first list the APIs, then list the invariants that must be maintained after each API—this is more reliable than writing code directly.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 缓存淘汰策略：LRU、LFU
-- 栈/队列增强结构：最小栈、单调队列
-- 哈希结构：集合、映射、计数器
-- 业务对象状态机和资源池管理
+- Cache eviction policies: LRU, LFU
+- Enhanced stack/queue structures: min stack, monotonic queue
+- Hash structures: sets, maps, counters
+- Business object state machines and resource pool management
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 状态耦合高 | 多个结构必须同步更新 |
-| 边界多 | 空容量、重复 key、删除尾节点都要保持一致 |
-| 实现复杂度高 | O(1) 要求通常需要组合多个结构 |
+| High state coupling | Multiple structures must be updated in sync |
+| Many edge cases | Empty capacity, duplicate keys, and deleting the tail node must all remain consistent |
+| High implementation complexity | O(1) requirements typically require combining multiple structures |
 
 ---
-
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -324,9 +320,9 @@ graph LR
     D --> E[实现并维护状态同步]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 设计题的核心是用已有数据结构组合出新的操作语义。
-2. 每个方法都要单独满足复杂度要求。
-3. Map 负责快速定位，链表负责快速调整顺序，是缓存题的常见组合。
-4. 内部不变量比代码模板更重要。
+1. The core of a design problem is to combine existing data structures to create new operation semantics.
+2. Each method must individually satisfy the complexity requirements.
+3. A Map handles fast lookup, while a linked list handles fast reordering—a common combination for cache problems.
+4. Internal invariants matter more than code templates.

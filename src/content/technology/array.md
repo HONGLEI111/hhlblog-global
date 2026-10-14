@@ -1,71 +1,69 @@
 ---
-title: 数组：从底层到实战的 TypeScript 指南
+title: 'Arrays: A TypeScript Guide from Fundamentals to Practice'
 published: 2026-04-26
-description: '深入理解数组的底层原理、TypeScript 高级用法，从 CRUD 到实战优化，全方位掌握前端最核心的数据结构。'
+description: Gain a deep understanding of how arrays work under the hood and advanced TypeScript techniques, from CRUD operations to real-world optimization, to master front-end development's most essential data structure.
 image: ''
-tags: [数组, TypeScript, 数据结构]
-category: '算法'
+tags: [Arrays, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+Arrays are the most commonly used data structure: they place a group of elements in sequential logical positions and access them through indices. Whether it's frontend list rendering, table data processing, or interval scanning in algorithm problems, arrays are almost always the first layer of abstraction.
+
+The key to understanding arrays is not just knowing how to call `push`, `map`, `filter`, but understanding:
+
+- Why index access is fast;
+- Why insertion and deletion can be slow;
+- How to maintain state during traversal;
+- When to modify in place and when to return a new array.
+
+> Prerequisites
+> - **Index access**: Arrays locate elements by position
+> - **Dynamic arrays**: Understanding resizing, shifting, and amortized complexity
+> - **Traversal model**: Read-write pointers are the foundation of in-place array processing
+
 ---
 
-## 概述
+## Problem Definition
 
-数组是最常用的数据结构：它把一组元素按顺序放在连续的逻辑位置上，并通过下标进行访问。无论是前端列表渲染、表格数据处理、还是算法题里的区间扫描，数组几乎都是第一层抽象。
+Arrays are suitable for representing data collections that are "order-stable and locatable by position."
 
-理解数组的关键，不只是会调用 `push`、`map`、`filter`，而是知道：
-
-- 下标访问为什么快；
-- 插入、删除为什么可能慢；
-- 遍历时如何维护状态；
-- 什么时候应该原地修改，什么时候应该返回新数组。
-
-> 前置知识
-> - **下标访问**：数组通过位置定位元素
-> - **动态数组**：理解扩容、移动和摊还复杂度
-> - **遍历模型**：读写指针是数组原地处理的基础
-
----
-
-## 问题定义
-
-数组适合表示“顺序稳定、可通过位置定位”的数据集合。
-
-| 需求 | 数组是否适合 | 原因 |
+| Requirement | Is an array suitable? | Reason |
 | --- | --- | --- |
-| 通过下标读取第 k 个元素 | 适合 | 随机访问直接定位 |
-| 频繁在末尾追加 | 适合 | 动态数组通常摊还 O(1) |
-| 频繁在头部插入/删除 | 不适合 | 后续元素需要整体移动 |
-| 保持有序并二分查找 | 适合 | 下标可直接访问中点 |
-| 表示链式关系 | 不一定 | 链表或 Map 可能更自然 |
+| Read the k-th element by index | Suitable | Random access locates directly |
+| Frequent appends at the end | Suitable | Dynamic arrays are typically amortized O(1) |
+| Frequent insertions/deletions at the front | Not suitable | Subsequent elements need to be shifted entirely |
+| Maintain sorted order and binary search | Suitable | Indices can directly access the midpoint |
+| Represent chained relationships | Not necessarily | Linked lists or Maps may be more natural |
 
-在 JavaScript / TypeScript 中，数组是动态数组：长度可以变化，元素也可以是任意类型。但在算法分析里，我们仍然按“连续下标 + 顺序存储”的模型理解它。
+In JavaScript / TypeScript, arrays are dynamic arrays: the length can change, and elements can be of any type. But in algorithm analysis, we still understand them through the model of "contiguous indices + sequential storage."
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-假设数组为：
+Suppose the array is:
 
 ```text
 index:  0   1   2   3
 value: 10  20  30  40
 ```
 
-### 访问元素
+### Accessing Elements
 
-读取 `arr[2]` 时，只需要通过下标定位到第 2 个位置：
+When reading `arr[2]`, we only need to locate the 2nd position through the index:
 
 ```text
 index:  0   1   2   3
 value: 10  20 [30] 40
 ```
 
-所以随机访问是 O(1)。
+So random access is O(1).
 
-### 中间插入
+### Insertion in the Middle
 
-如果要在下标 1 插入 `15`，原来的 `20、30、40` 都要向后移动：
+If we want to insert `15` at index 1, the original `20、30、40` all need to shift backward:
 
 ```text
 插入前: 10 20 30 40
@@ -73,43 +71,43 @@ value: 10  20 [30] 40
 插入后: 10 15 20 30 40
 ```
 
-移动元素的成本与尾部长度有关，因此中间插入最坏是 O(n)。
+The cost of shifting elements depends on the length of the tail, so middle insertion is O(n) in the worst case.
 
-### 双指针原地修改
+### Two-Pointer In-Place Modification
 
-数组还常用于“读写指针”模型：一个指针扫描原数组，另一个指针维护写入位置。
+Arrays are also commonly used in the "read-write pointer" model: one pointer scans the original array, and another pointer maintains the write position.
 
 ```text
 read  -> 扫描每个元素
 write -> 指向下一个有效元素位置
 ```
 
-这类技巧能把很多“过滤、去重、压缩”问题从额外 O(n) 空间优化为 O(1) 额外空间。
+This type of technique can optimize many "filter, deduplicate, compress" problems from extra O(n) space to O(1) extra space.
 
 ---
 
-## 基本操作与复杂度
+## Basic Operations and Complexity
 
-| 操作 | 示例 | 时间复杂度 | 说明 |
+| Operation | Example | Time Complexity | Description |
 | --- | --- | --- | --- |
-| 随机访问 | `arr[i]` | O(1) | 通过下标定位 |
-| 修改元素 | `arr[i] = x` | O(1) | 不改变数组结构 |
-| 末尾追加 | `arr.push(x)` | 摊还 O(1) | 扩容时会有额外成本 |
-| 末尾删除 | `arr.pop()` | O(1) | 不移动前面的元素 |
-| 头部插入 | `arr.unshift(x)` | O(n) | 需要移动所有元素 |
-| 中间删除 | `arr.splice(i, 1)` | O(n) | 需要移动后续元素 |
-| 遍历 | `for ...` | O(n) | 每个元素访问一次 |
-| 排序 | `arr.sort()` | 通常 O(n log n) | 取决于运行时实现 |
+| Random access | `arr[i]` | O(1) | Locate by index |
+| Modify element | `arr[i] = x` | O(1) | Does not change array structure |
+| Append at end | `arr.push(x)` | Amortized O(1) | Resizing incurs extra cost |
+| Delete at end | `arr.pop()` | O(1) | Does not shift preceding elements |
+| Insert at front | `arr.unshift(x)` | O(n) | Requires shifting all elements |
+| Delete in middle | `arr.splice(i, 1)` | O(n) | Requires shifting subsequent elements |
+| Traversal | `for ...` | O(n) | Each element visited once |
+| Sorting | `arr.sort()` | Typically O(n log n) | Depends on runtime implementation |
 
-工程中最容易忽略的是 `shift` 和 `unshift`。它们看起来简单，但在大数组上可能比 `push` / `pop` 慢很多。
+The most easily overlooked operations in engineering are `shift` and `unshift`. They look simple, but on large arrays they can be much slower than `push` / `pop`.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-下面用一个“有序数组去重”的例子，把数组的访问、遍历、原地写入串起来。
+Below, we use an example of "deduplicating a sorted array" to connect array access, traversal, and in-place writing.
 
-### 1. 原地去重
+### 1. In-Place Deduplication
 
 ```typescript
 function removeDuplicates(nums: number[]): number {
@@ -132,13 +130,13 @@ const len = removeDuplicates(nums);
 console.log(nums.slice(0, len)); // [1, 2, 3, 4]
 ```
 
-这里的关键不变量是：
+The key invariant here is:
 
-- `[0, write)` 区间始终保存已经确认的唯一元素；
-- `read` 负责向右扫描候选元素；
-- 当发现新值时，把它写到 `write` 位置。
+- The interval `[0, write)` always holds the confirmed unique elements;
+- `read` is responsible for scanning candidate elements to the right;
+- When a new value is found, write it to position `write`.
 
-### 2. 合并两个有序数组
+### 2. Merging Two Sorted Arrays
 
 ```typescript
 function mergeSorted(left: number[], right: number[]): number[] {
@@ -163,54 +161,54 @@ function mergeSorted(left: number[], right: number[]): number[] {
 }
 ```
 
-这个实现展示了数组的另一个常见模型：两个下标分别在两个序列上移动，结果数组按顺序追加。
+This implementation demonstrates another common array model: two indices move on two sequences respectively, and the result array is appended in order.
 
 ---
 
-## 工程优化：原地还是新数组
+## Engineering Optimization: In-Place vs. New Array
 
-数组操作通常有两种风格：
+Array operations typically come in two styles:
 
-| 风格 | 示例 | 优点 | 代价 |
+| Style | Example | Advantage | Cost |
 | --- | --- | --- | --- |
-| 原地修改 | `sort`、`splice`、双指针写入 | 节省空间 | 容易影响调用方持有的引用 |
-| 返回新数组 | `map`、`filter`、`slice` | 更安全、更适合不可变状态 | 需要额外空间 |
+| In-place modification | `sort`, `splice`, two-pointer writing | Saves space | Easily affects references held by callers |
+| Return a new array | `map`, `filter`, `slice` | Safer, more suitable for immutable state | Requires extra space |
 
-在前端状态管理中，通常倾向返回新数组，因为 React 等框架依赖引用变化判断是否更新：
+In frontend state management, returning a new array is usually preferred, because frameworks like React rely on reference changes to determine whether to update:
 
 ```typescript
 const nextTodos = todos.filter(todo => !todo.completed);
 ```
 
-在算法或性能敏感场景中，原地修改更常见，因为它能减少额外内存：
+In algorithm or performance-sensitive scenarios, in-place modification is more common because it reduces extra memory:
 
 ```typescript
 nums.sort((a, b) => a - b);
 ```
 
-选择标准不是“哪个更高级”，而是当前场景更看重可读性、不可变性，还是空间效率。
+The criterion for choosing is not "which is more advanced," but whether the current scenario values readability, immutability, or space efficiency more.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 列表渲染、分页、排序和过滤；
-- 双指针、滑动窗口、前缀和等数组算法；
-- 矩阵、堆、并查集等结构的底层存储；
-- 批量请求结果、日志记录、表格数据处理。
+- List rendering, pagination, sorting, and filtering;
+- Array algorithms such as two pointers, sliding windows, and prefix sums;
+- Underlying storage for structures like matrices, heaps, and union-find;
+- Batch request results, log records, and table data processing.
 
-### 局限性
+### Limitations
 
-- 中间插入和删除成本高；
-- 稀疏数组会让行为变得不直观；
-- `sort` 默认按字符串排序，数字排序必须传比较函数；
-- 大数组频繁复制会带来明显的内存压力。
+- Middle insertion and deletion are costly;
+- Sparse arrays make behavior unintuitive;
+- `sort` sorts by string by default; numeric sorting requires passing a comparator function;
+- Frequent copying of large arrays brings significant memory pressure.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -220,8 +218,8 @@ graph LR
     C --> E[返回新数组]
 ```
 
-- 数组的核心优势是下标访问和顺序遍历。
-- 插入、删除的成本主要来自元素移动。
-- 双指针是数组原地处理问题的基础模型。
-- 工程中要区分原地修改和返回新数组两种风格。
-- 掌握数组，才能更自然地理解二分、滑动窗口、前缀和等算法。
+- The core advantage of arrays is index access and sequential traversal.
+- The cost of insertion and deletion mainly comes from element shifting.
+- Two pointers are the foundational model for in-place array processing.
+- In engineering, distinguish between in-place modification and returning a new array.
+- Mastering arrays enables a more natural understanding of binary search, sliding windows, prefix sums, and other algorithms.

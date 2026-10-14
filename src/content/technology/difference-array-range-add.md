@@ -1,64 +1,62 @@
 ---
-title: 差分数组实战：区间加法、航班预订、拼车三题一套模板，以及差分的四类延伸
+title: 'Difference Arrays in Practice: One Template for Range Addition, Flight Bookings, and Car Pooling, Plus Four Extensions'
 published: 2026-10-13
-description: '把 LeetCode 370 区间加法、1109 航班预订统计、1094 拼车收敛到同一套「两端打点 + 前缀和还原」模板：多开一位怎么写、1-indexed 怎么转、终点为什么是右开，附 C / C++ / JavaScript 三语言实现；最后延伸到二维差分、树上差分、扫描线思想与结构选型。'
+description: 'LeetCode 370 Range Addition, 1109 Corporate Flight Bookings, and 1094 Car Pooling all reduce to the same "mark both endpoints + prefix-sum restore" template: how to write it with an extra slot, how to convert 1-indexed input, and why the end is right-open, with implementations in C, C++, and JavaScript. The post then extends to 2D difference arrays, tree difference, sweep-line thinking, and structure selection.'
 image: ''
-tags: [差分数组, 力扣, 数组, 区间修改, 二维差分, 树上差分, C, C++, JavaScript]
-category: '算法'
+tags: [Difference Array, LeetCode, Array, Range Update, 2D Difference Array, Tree Difference, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Why Write a Separate Article
 
-## 为什么单独再写一篇
+[Difference Arrays: Reducing Range Updates from O(n) to O(1)](/technology/difference-array/) covered the **principles**: the definition of difference arrays, why `diff[left] += delta` / `diff[right+1] -= delta` hold, and the trade-offs between offline and online approaches.
 
-[差分数组：把区间修改从 O(n) 降到 O(1)](/technology/difference-array/) 那篇讲的是**原理**：差分的定义、`diff[left] += delta` / `diff[right+1] -= delta` 为什么成立、离线与在线的取舍。
+This article addresses a different kind of question — **when you actually sit down at the screen, how do you write these three problems**:
 
-这篇要解决的是另一类问题——**真正坐到屏幕前，这三道题该怎么写**：
+- **370. Range Addition**
+- **1109. Corporate Flight Bookings**
+- **1094. Car Pooling**
 
-- **370. Range Addition**（区间加法）
-- **1109. Corporate Flight Bookings**（航班预订统计）
-- **1094. Car Pooling**（拼车）
+What they share: **repeatedly applying "add the same value to an entire range" over a bunch of intervals, and finally needing a batch of results**. All three problems share one code skeleton; the differences lie only in **whether indices start at 0 or 1**, **whether the right endpoint is open or closed**, and **whether you restore everything at the end or check while restoring**. This article converges all three problems into a single template, then points out the "tiny differences" one by one, and finally spends a section on where difference arrays can extend — 2D difference arrays, tree difference, sweep line, and how they divide labor with Fenwick trees / segment trees.
 
-它们的共同点是：**对一堆区间反复做「整体加同一个值」，最后要一批结果**。三题共用一套代码骨架，差别只在**下标从 0 还是 1 开始**、**右端点是开还是闭**、**是最后统一还原还是边还原边判断**。这篇把三题收敛到同一套模板，再逐个点出「差那一点点」的地方，最后用一节讲差分能延伸到哪——二维差分、树上差分、扫描线，以及它和树状数组/线段树的分工。
-
-> **关于代码**
+> **About the Code**
 >
-> 三道题都给出 C / C++ / JavaScript 三语言实现，逻辑完全等价，可切换标签查看。
-> 三套模板统一使用**多开一位的 `diff`**（长度 `n + 1`）：多出来的最后一位专门接住 `right + 1`，省掉「越界判断」这一整类边界 bug。
+> All three problems provide implementations in C / C++ / JavaScript. The logic is completely equivalent; switch tabs to view.
+> All three templates uniformly use **an extra slot in the `diff`** (length `n + 1`): the extra last slot is dedicated to catching `right + 1`, eliminating the entire class of boundary bugs related to "out-of-bounds checks."
 
 ---
 
-## 一、一套模板：两端打点，前缀和还原
+## 1. One Template: Mark Both Ends, Restore with Prefix Sum
 
-### 差分的定义
+### Definition of Difference Arrays
 
-对数组 `nums`，定义**差分数组**：
+For an array `nums`, define the **difference array**:
 
 ```text
 diff[0] = nums[0]
 diff[i] = nums[i] - nums[i-1]        (i ≥ 1)
 ```
 
-也就是说，`diff[i]` 记录的是**相邻两个元素的差**——**值本身不重要，值「变了多少」才重要**。
+In other words, `diff[i]` records **the difference between two adjacent elements** — **the value itself doesn't matter; how much the value "changed" is what matters**.
 
-反过来，把 `diff` 从头累加（做一次前缀和）就能还原 `nums`：
+Conversely, accumulating `diff` from the start (doing one prefix sum) restores `nums`:
 
 ```text
 nums[i] = diff[0] + diff[1] + ... + diff[i]
 ```
 
-`diff` 和 `nums` 之间是**前缀和与差分的互逆关系**：`nums` 是 `diff` 的前缀和，`diff` 是 `nums` 的差分。一个负责「累积」，一个负责「变化」。
+`diff` and `nums` have an **inverse relationship between prefix sums and difference arrays**: `nums` is the prefix sum of `diff`, and `diff` is the difference array of `nums`. One handles "accumulation," the other handles "change."
 
-### 区间加为什么只动两个端点
+### Why Range Addition Only Touches Two Endpoints
 
-给区间 `[left, right]` 的**每个元素**加 `delta`，等价于在 `diff` 上做两次单点修改：
+Adding `delta` to **every element** in the range `[left, right]` is equivalent to performing two point updates on `diff`:
 
 ```text
 diff[left]     += delta        /* 从 left 开始，整体抬高 delta */
 diff[right + 1] -= delta       /* 从 right+1 开始，把抬高撤销 */
 ```
 
-看着单调的 `diff` 也许不好懂，画出来就很直观。以 `nums = [1, 2, 3, 4, 5]`、给 `[1, 3]` 加 `2` 为例：
+The monotone-looking `diff` might be hard to grasp, but it becomes intuitive when drawn out. Taking `nums = [1, 2, 3, 4, 5]` and adding `2` to `[1, 3]` as an example:
 
 ```text
 nums:   1   2   3   4   5
@@ -73,11 +71,11 @@ diff:   1   3   1   1  -1        ← 只改了两位
 nums:   1   4   5   6   5        ← 下标 1..3 全部 +2，其余不变  ✓
 ```
 
-原理一句话：**差分记录的是「变化率」**。在 `left` 处加一个台阶，从 `left` 往后所有前缀和都被抬高；再到 `right+1` 处减掉同样的台阶，`right` 之后又恢复原样。两个台阶之间，正好就是 `[left, right]`。
+The principle in one sentence: **a difference array records the "rate of change."** Adding a step at `left` raises all prefix sums from `left` onward; then subtracting the same step at `right+1` restores things after `right`. Between the two steps is exactly `[left, right]`.
 
-### 三段式模板
+### The Three-Stage Template
 
-差分题永远是三段，**和三题无关，写法固定**：
+Difference array problems always have three stages, **regardless of which problem, the structure is fixed**:
 
 ```text
 ① 打点：对每个操作 [left, right, delta]：
@@ -88,28 +86,27 @@ nums:   1   4   5   6   5        ← 下标 1..3 全部 +2，其余不变  ✓
 ③ 判/取：需要全局判断的（如拼车是否超载），在 ② 里边扫边判
 ```
 
-`diff` 长度开到 **`n + 1`** 就是为了第 ① 段里的 `right + 1`——当 `right == n - 1` 时它落在下标 `n`，多开的那一位正好接住，**不用再写 `if (right + 1 < n)`**。这一位不参与 ② 的累加，纯粹是「垃圾桶」。
+The reason `diff` has length **`n + 1`** is precisely for the `right + 1` in stage ① — when `right == n - 1`, it falls at index `n`, and the extra slot catches it exactly, **so you never need to write `if (right + 1 < n)`**. This slot doesn't participate in the accumulation in stage ②; it's purely a "trash bin."
 
-### 复杂度：为什么快
+### Complexity: Why It's Fast
 
-| | 暴力（逐元素改） | 差分 |
+| | Brute Force (element-by-element) | Difference Array |
 |---|---|---|
-| 单次区间加 | O(长度) | **O(1)** |
-| `m` 次区间加 | O(n·m) | **O(m)** |
-| 最后还原 | O(1) | O(n) |
-| 总计 | O(n·m) | **O(n + m)** |
+| Single range addition | O(length) | **O(1)** |
+| `m` range additions | O(n·m) | **O(m)** |
+| Final restoration | O(1) | O(n) |
+| Total | O(n·m) | **O(n + m)** |
 
-一次区间加从「遍历整个区间」变成「改两个数」，代价是**查询被推迟到最后一并还原**。这就是差分换速度的定价：**它卖的是「批量修改」，收的是「延迟查询」。**
+A single range addition goes from "traversing the entire range" to "modifying two numbers," at the cost of **queries being deferred until a final restoration**. This is the pricing of difference arrays for speed: **it sells "batch modifications" and charges "deferred queries."**
 
 ---
+## 2. Example 1: Range Addition (LeetCode 370)
 
-## 二、例题一：区间加法（LeetCode 370）
+### Problem Description
 
-### 题目描述
+Given an all-zero array of length `length`, and several operations `updates[i] = [startIdx, endIdx, inc]`. Each operation means **adding `inc` to every element in the index range `[startIdx, endIdx]` (inclusive of both ends)**. Return the array after all operations have been executed.
 
-给定一个长度 `length` 的全零数组，和若干操作 `updates[i] = [startIdx, endIdx, inc]`。每个操作表示**给下标区间 `[startIdx, endIdx]`（含两端）的每个元素加 `inc`**。返回所有操作执行完毕后的数组。
-
-**示例：**
+**Example:**
 
 ```text
 length = 5
@@ -118,13 +115,13 @@ updates = [[1, 3, 2], [2, 4, 3], [0, 2, -2]]
 结果 = [-2, 0, 3, 5, 3]
 ```
 
-**约束：** `0 <= length <= 10^5`，`0 <= updates.length <= 10^4`。
+**Constraints:** `0 <= length <= 10^5`, `0 <= updates.length <= 10^4`.
 
-### 思路：初始全零，连建表都省了
+### Approach: Initially all zeros, so we can even skip building the table
 
-这题初始数组**全是 0**，所以 `diff` 初始也全是 0——**第一步构建差分数组直接跳过**，只需要开一个长度为 `length + 1` 的全零数组，把每个操作打成两个点，最后前缀和还原。
+In this problem the initial array is **all 0s**, so `diff` is also initially all 0s — **the first step of building the difference array is skipped entirely**. We just need to allocate an all-zero array of length `length + 1`, mark each operation as two points, and finally restore via prefix sums.
 
-这是差分题里最干净的一种：**没有初值 → 无构建阶段 → 三段变两段。**
+This is the cleanest kind of difference-array problem: **no initial values → no build phase → three segments become two.**
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -192,44 +189,43 @@ function getModifiedArray(length, updates) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间 | **O(length + updates.length)** — 打点 O(m)，还原 O(n) |
-| 空间 | **O(n)** — 一个 `diff` 加一个 `res`；`res` 是题目要求的输出 |
+| Time | **O(length + updates.length)** — marking points O(m), restoration O(n) |
+| Space | **O(n)** — one `diff` plus one `res`; `res` is the output required by the problem |
 
-### 易错点
+### Common Pitfalls
 
-1. **`diff` 只开了 `length`。** 那么 `end == length - 1` 时 `diff[end + 1]` 写成 `diff[length]` 就**越界**。多开一位是这道题最省事的解法，比每次判 `end + 1 < length` 干净。
-2. **`diff[end + 1]` 写成了 `diff[end]`。** 这会把「撤销」提前一格，导致下标 `end` 那个元素**自己也撤掉了**，等价于只给 `[start, end-1]` 加了值——结果在边界上错一位。
-3. **把「打点阶段」和「还原阶段」合并。** 有人想「每来一个操作就立刻更新答案数组」，那就退化成 O(n·m) 的暴力了，白用差分。**必须先把 `m` 个操作全部打成点，最后一次性还原。**
+1. **`diff` is only allocated `length`.** Then when `end == length - 1`, writing `diff[end + 1]` as `diff[length]` will go **out of bounds**. Allocating one extra slot is the easiest fix for this problem, cleaner than checking `end + 1 < length` every time.
+2. **`diff[end + 1]` was written as `diff[end]`.** This shifts the "undo" one position earlier, causing the element at index `end` to **undo itself as well**, which is equivalent to only adding the value to `[start, end-1]` — the result is off by one at the boundary.
+3. **Merging the "marking phase" and the "restoration phase".** Some people think "update the answer array immediately after each operation", but that degenerates into an O(n·m) brute force, wasting the difference array. **You must first mark all `m` operations as points, then restore all at once at the end.**
 
 ---
+## 3. Example Two: Flight Booking Statistics (LeetCode 1109)
 
-## 三、例题二：航班预订统计（LeetCode 1109）
+### Problem Description
 
-### 题目描述
+There are `n` flights, numbered **from 1 to n**. Given booking records `bookings[i] = [first_i, last_i, seats_i]`, representing **`seats_i` seats booked from the `first_i`-th to the `last_i`-th flight (inclusive)**. Return an array `answer` of length `n`, where `answer[i]` is the **total number of seats booked on the `i + 1`-th flight**.
 
-有 `n` 个航班，编号 **从 1 到 n**。给定预订记录 `bookings[i] = [first_i, last_i, seats_i]`，表示**从第 `first_i` 到第 `last_i` 个航班（含两端）预订了 `seats_i` 个座位**。返回长度为 `n` 的数组 `answer`，其中 `answer[i]` 是**第 `i + 1` 个航班**上预订的总座位数。
-
-**示例：**
+**Example:**
 
 ```text
 bookings = [[1, 2, 10], [2, 3, 20], [2, 5, 25]], n = 5
 结果 = [10, 55, 45, 25, 25]
 ```
 
-**约束：** `1 <= n <= 2 · 10^4`，`bookings[i]` 的编号范围 `1 <= first <= last <= n`。
+**Constraints:** `1 <= n <= 2 · 10^4`, the numbering range of `bookings[i]` is `1 <= first <= last <= n`.
 
-### 思路：这题就是 370，只是坐标系换了
+### Approach: This problem is just 370, only the coordinate system has changed
 
-和例题一相比，1109 有**两处「翻译」**要做，都是下标层面的：
+Compared to Example One, 1109 has **two "translations"** to make, both at the index level:
 
-1. **1-indexed → 0-indexed**：题目的航班号是 `1..n`，数组下标是 `0..n-1`。区间左端 `first` 要写成 `diff[first - 1]`。
-2. **右端点的语义**：这是**闭区间** `[first, last]`，但按差分公式，撤销点应该落在 `last + 1`（1-indexed）。换到 0-indexed 数组，`last + 1` 恰好等于 `last`——所以**代码里写的是 `diff[last] -= seats`，看着像忘了 `+1`，其实正是它对**。
+1. **1-indexed → 0-indexed**: The flight numbers in the problem are `1..n`, while array indices are `0..n-1`. The left endpoint `first` of the interval should be written as `diff[first - 1]`.
+2. **The semantics of the right endpoint**: This is a **closed interval** `[first, last]`, but according to the difference array formula, the cancellation point should fall at `last + 1` (1-indexed). Converting to a 0-indexed array, `last + 1` happens to equal `last`—so **what's written in the code is `diff[last] -= seats`, which looks like forgetting `+1`, but it's actually correct**.
 
-拿第 2 点验证一下：`[1, 2, 10]` 表示航班 1、2 各加 10。用 `diff[0] += 10`、`diff[2] -= 10`，还原时 `diff[0]`、`diff[1]` 拿到 10，`diff[2]` 起撤销——命中下标 0、1 两个航班，**正好是 1、2 号**。✓
+Let's verify point 2: `[1, 2, 10]` means flights 1 and 2 each get 10 added. Using `diff[0] += 10` and `diff[2] -= 10`, when reconstructing, `diff[0]` and `diff[1]` receive 10, and cancellation starts from `diff[2]`—hitting indices 0 and 1, **which are exactly flights 1 and 2**. ✓
 
 ```text
 bookings = [[1,2,10], [2,3,20], [2,5,25]], n = 5
@@ -247,7 +243,7 @@ bookings = [[1,2,10], [2,3,20], [2,5,25]], n = 5
 结果 = [10, 55, 45, 25, 25]   ✓
 ```
 
-注意最后一条预订的 `last = 5` 等于 `n`，撤销点 `diff[5]` 正好落在**多开的那一位**（垃圾桶位）上——它不参与输出，只负责让「第 5 班之后不再有人」。这也再次说明 `diff` 为什么要开到 `n + 1`。
+Note that `last = 5` of the last booking equals `n`, and the cancellation point `diff[5]` falls exactly on **the extra slot** (the trash bin position)—it doesn't participate in the output, it only ensures that "no one after flight 5 gets anything." This also confirms why `diff` needs to be allocated with size `n + 1`.
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -315,29 +311,28 @@ function corpFlightBookings(bookings, n) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间 | **O(n + bookings.length)** |
-| 空间 | **O(n)** |
+| Time | **O(n + bookings.length)** |
+| Space | **O(n)** |
 
-### 易错点
+### Common Pitfalls
 
-1. **忘了 1-indexed 转换。** 题目的 `first`、`last` 是**航班号（从 1 开始）**，直接拿去当数组下标，整个结果会右移一位、末尾丢一个。**左端一定写 `first - 1`。**
-2. **自作主张给 `last` 加一。** 这是本题最反直觉的点：差分公式的「撤销点」是 `right + 1`，但那是 1-indexed 下的 `last + 1`；换到 0-indexed 数组，下标 `last + 1` 又减去 1，**净结果就是 `diff[last]`**。所以**代码里 `last` 不带 `+1`**。记法：**输入已经是 1-based 的「右开位置」，直接当 0-based 的撤销点用。**
-3. **`diff` 只开 `n` 位。** `last` 最大是 `n`，`diff[n]` 需要存在——多开一位（`n + 1`）才安全，否则最后一条预订一旦覆盖到第 `n` 班就写越界。
-4. **还原范围写成了 `n + 1`。** 多开的那一位是垃圾桶，**输出只有 `n` 个数**，循环上界是 `n`。
+1. **Forgetting the 1-indexed conversion.** The `first` and `last` in the problem are **flight numbers (starting from 1)**. Using them directly as array indices shifts the entire result right by one and drops one at the end. **The left endpoint must be written as `first - 1`.**
+2. **Adding one to `last` on your own.** This is the most counterintuitive point in this problem: the "cancellation point" in the difference array formula is `right + 1`, but that's `last + 1` under 1-indexed; converting to a 0-indexed array, index `last + 1` subtracts 1 again, **and the net result is `diff[last]`**. So **in the code, `last` does not carry `+1`**. Mnemonic: **The input is already a 1-based "right-open position"—use it directly as a 0-based cancellation point.**
+3. **Allocating only `n` slots for `diff`.** The maximum value of `last` is `n`, and `diff[n]` needs to exist—allocating one extra slot (`n + 1`) is safe; otherwise, if the last booking covers flight `n`, you'll write out of bounds.
+4. **Writing the reconstruction range as `n + 1`.** The extra slot is a trash bin, **the output has only `n` numbers**, and the loop upper bound is `n`.
 
 ---
+## 4. Example 3: Car Pooling (LeetCode 1094)
 
-## 四、例题三：拼车（LeetCode 1094）
+### Problem Description
 
-### 题目描述
+A car has a **capacity of `capacity`** and can only drive in one direction. Given trips `trips[i] = [numPassengers_i, from_i, to_i]`, representing **picking up `numPassengers_i` people at stop `from_i` and dropping them off at stop `to_i`**. Determine whether this car can handle all trips **in one go** (i.e., **the number of people in the car never exceeds `capacity` at any moment**).
 
-一辆车**容量为 `capacity`**，只能朝一个方向开。给定行程 `trips[i] = [numPassengers_i, from_i, to_i]`，表示**在站点 `from_i` 上车 `numPassengers_i` 人，在站点 `to_i` 下车**。判断这辆车能否**一次性**接送完所有行程（即**任何时刻车上人数都不超过 `capacity`**）。
-
-**示例：**
+**Example:**
 
 ```text
 trips = [[2,1,5], [3,3,7]], capacity = 4      → false
@@ -346,15 +341,15 @@ trips = [[2,1,5], [3,3,7]], capacity = 4      → false
 trips = [[2,1,5], [3,3,7]], capacity = 5      → true
 ```
 
-**约束：** `1 <= trips.length <= 1000`，`0 <= from_i < to_i <= 1000`。
+**Constraints:** `1 <= trips.length <= 1000`, `0 <= from_i < to_i <= 1000`.
 
-### 思路：区间加，但「加」的是人数
+### Approach: Range Addition, but What's Being "Added" Is the Number of People
 
-把每一段行程 `[from, to)` 看成一个区间，给它加 `numPassengers` 人——**又是区间加！** 只不过这次我们要的不是「具体每一站多少人」，而是「**过程中最高峰有没有超载**」。
+Treat each trip `[from, to)` as an interval and add `numPassengers` people to it — **range addition again!** Except this time, what we want is not "the exact number of people at each stop," but rather "**whether the peak during the process exceeds capacity**."
 
-所以模板的第二段（还原）要改成**边累加边判断**：`running` 就是「每个站点之后的在车人数」，一旦超过 `capacity` 立刻返回 `false`。
+So the second part of the template (restoration) needs to be changed to **accumulate and check simultaneously**: `running` is "the number of people in the car after each stop," and as soon as it exceeds `capacity`, immediately return `false`.
 
-**注意区间是右开的 `[from, to)`**：乘客在 `to` 站**下车**，所以 `to` 这一站**不计入**本次行程的人数占用。用差分写就是 `diff[from] += num`、`diff[to] -= num`——**撤销点落在 `to` 本身，不额外加一**，因为 `to` 就是「不包含」的第一个位置。
+**Note that the interval is right-open `[from, to)`**: passengers **get off** at stop `to`, so stop `to` is **not counted** toward this trip's occupancy. Written with difference arrays, this is `diff[from] += num`, `diff[to] -= num` — **the cancellation point falls on `to` itself, with no extra plus one**, because `to` is exactly the first position that is "not included."
 
 ```text
 trips = [[2,1,5], [3,3,7]], capacity = 4
@@ -430,50 +425,49 @@ function carPooling(trips, capacity) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间 | **O(trips.length + 1000)** — 坐标上界固定，等价于 O(n + C) |
-| 空间 | **O(C)** — `C = 1000` 是坐标范围，常数级 |
+| Time | **O(trips.length + 1000)** — the coordinate upper bound is fixed, equivalent to O(n + C) |
+| Space | **O(C)** — `C = 1000` is the coordinate range, constant level |
 
-### 易错点
+### Common Pitfalls
 
-1. **`to` 站写成 `diff[to + 1] -= num`。** 这会让乘客在 `to` 站**不下车**，多占一站，可能被误判超载。**`to` 是「下车」的位置，等价于右开区间的端点，不加一。**
-2. **区间端点用反。** 有人习惯写闭区间，于是写成 `diff[from] += num; diff[to + 1] -= num`——如果题面确实是「在 `to` 站占着座」，那对；但本题明确 `to` 是下车，所以是右开。**先确认题目对端点的定义，再决定加不加一。**
-3. **判超载的时机。** 必须在**每一站累加之后**立刻判——本题要的是「过程中任意时刻」，不是「最终总数」。累加到一半就超了，可以提前 `return false`。
-4. **不用排序、不用模拟每站的人。** 常见误区是按 `from` 排序后模拟上下车。差分天然给出了「每一站的净变化」，**站着不动扫一遍**即可，排序反而是多余开销。
-5. **坐标范围。** `to` 最大到 `1000`，`diff` 至少要 `1001` 长；写 `new Array(1000)` 会在最大站点处越界。
+1. **Writing stop `to` as `diff[to + 1] -= num`.** This causes passengers to **not get off** at stop `to`, occupying one extra stop, which may be misjudged as overcapacity. **`to` is the "drop-off" position, equivalent to the endpoint of a right-open interval, with no plus one.**
+2. **Reversing the interval endpoints.** Some people are used to writing closed intervals, so they write `diff[from] += num; diff[to + 1] -= num` — if the problem statement really says "occupying a seat at stop `to`," then that's correct; but this problem explicitly states that `to` is drop-off, so it's right-open. **First confirm the problem's definition of endpoints, then decide whether to add one.**
+3. **Timing of the overcapacity check.** It must be checked **immediately after accumulating at each stop** — this problem asks for "any moment during the process," not "the final total." If it exceeds capacity halfway through accumulation, you can exit early with `return false`.
+4. **No sorting, no simulating people at each stop.** A common mistake is sorting by `from` and then simulating pickups and drop-offs. The difference array naturally gives "the net change at each stop" — **just scan through without moving**, and sorting is unnecessary overhead.
+5. **Coordinate range.** `to` can be as large as `1000`, so `diff` needs to be at least `1001` long; writing `new Array(1000)` will cause an out-of-bounds at the maximum stop.
 
 ---
 
-## 五、三题对照：差在哪一点点
+## 5. Comparing the Three Problems: Where the Tiny Differences Lie
 
-三题的骨架**一模一样**，差别只在下面这几格：
+The skeleton of all three problems is **identical**; the differences lie only in the following cells:
 
-| | 370 区间加法 | 1109 航班预订 | 1094 拼车 |
+| | 370 Range Addition | 1109 Corporate Flight Bookings | 1094 Car Pooling |
 |---|---|---|---|
-| 有无初始数组 | 全零（无构建阶段） | 全零（无构建阶段） | 全零（无构建阶段） |
-| 下标基准 | 0-indexed | **1-indexed，要转** | 0-indexed |
-| 题目区间语义 | 闭区间 `[start, end]` | 闭区间 `[first, last]` | **右开 `[from, to)`** |
-| 打点写法 | `diff[s] += inc` / `diff[e+1] -= inc` | `diff[f-1] += seats` / `diff[last] -= seats` | `diff[from] += num` / `diff[to] -= num` |
-| 坐标上界 | `length` | `n` | `1000` |
-| 输出形式 | **整个数组** | **整个数组** | **一个布尔值** |
-| 判定时机 | 全部还原后取数组 | 全部还原后取数组 | **边还原边判**，可提前退出 |
+| Has initial array | All zeros (no build phase) | All zeros (no build phase) | All zeros (no build phase) |
+| Index base | 0-indexed | **1-indexed, needs conversion** | 0-indexed |
+| Problem interval semantics | Closed interval `[start, end]` | Closed interval `[first, last]` | **Right-open `[from, to)`** |
+| Marking notation | `diff[s] += inc` / `diff[e+1] -= inc` | `diff[f-1] += seats` / `diff[last] -= seats` | `diff[from] += num` / `diff[to] -= num` |
+| Coordinate upper bound | `length` | `n` | `1000` |
+| Output form | **The entire array** | **The entire array** | **A single boolean** |
+| When to evaluate | Take the array after full restoration | Take the array after full restoration | **Evaluate while restoring**, can exit early |
 
-**一句话提炼：**
+**One-sentence summary:**
 
-> 差分题只有一个变量——**把题目给的区间，翻译成 `diff` 上的两个点**。翻译时只要盯住两点：**左端在数组里落在哪**（要不要 `-1`）、**右端的「撤销点」是 `right + 1` 还是 `right`**（看右端开闭）。剩下的打点、还原、判断，三题共用一套代码。
+> Difference array problems have only one variable — **translating the interval given by the problem into two points on `diff`**. When translating, just watch two things: **where the left endpoint lands in the array** (whether to `-1`), and **whether the right endpoint's "cancellation point" is `right + 1` or `right`** (depending on whether the right end is open or closed). The rest — marking, restoring, and evaluating — all three problems share the same set of code.
 
 ---
+## 6. Extensions: How Far Can Difference Arrays Go?
 
-## 六、拓展延伸：差分还能走多远
+The previous three problems were "one-dimensional, offline, add-only." This section pushes the boundary outward in four steps.
 
-前面三题是「一维、离线、只加」。这一节把边界往外推四步。
+### 6.1 2D Difference: Adding the Same Value to an Entire Submatrix
 
-### 6.1 二维差分：子矩阵整体加同一个值
-
-一维是「区间加、两端打点」，二维就是「**子矩阵加、四角打点**」。给矩阵的矩形区域 `(r1, c1) ~ (r2, c2)`（四角都含）整体加 `v`：
+One dimension is "range add, mark two endpoints"; two dimensions is "**submatrix add, mark four corners**." To add `v` to an entire rectangular region `(r1, c1) ~ (r2, c2)` of a matrix (all four corners inclusive):
 
 ```text
 diff[r1][c1]         += v      /* 从左上角开始，整个右下区域抬高 */
@@ -482,13 +476,13 @@ diff[r2 + 1][c1]     -= v      /* 撤销：下边界之后 */
 diff[r2 + 1][c2 + 1] += v      /* 补回：右下角被减了两次，加回来 */
 ```
 
-你有没有觉得眼熟？**四个角的符号顺序 `+ − − +`，和[二维前缀和查询](/technology/prefix-sum/)的容斥公式是同一组。** 这不是巧合——**二维前缀和与二维差分互为逆运算**：
+Does this look familiar? **The sign order at the four corners, `+ − − +`, is the same set as the inclusion-exclusion formula for [2D prefix sum queries](/technology/prefix-sum/).** This is no coincidence—**2D prefix sum and 2D difference are inverse operations of each other**:
 
 ```text
 打点（用差分记录变化）  ── 二维前缀和 ──▶  还原出真正的矩阵
 ```
 
-还原时对 `diff` 做一次**二维前缀和**（就地累加）：
+To restore, perform a **2D prefix sum** on `diff` (accumulate in place):
 
 ```text
 for i in 0..m-1:
@@ -499,7 +493,7 @@ for i in 0..m-1:
         /* 此时 diff[i][j] 就是最终矩阵在 (i, j) 的值 */
 ```
 
-典型题是 **LeetCode 2536. Increment Submatrices by One**（给每个查询的子矩阵加 1）。C++ 骨架：
+A typical problem is **LeetCode 2536. Increment Submatrices by One** (add 1 to the submatrix of each query). C++ skeleton:
 
 ```cpp
 vector<vector<int>> rangeAddQueries(int n, vector<vector<int>>& queries) {
@@ -523,51 +517,51 @@ vector<vector<int>> rangeAddQueries(int n, vector<vector<int>>& queries) {
 }
 ```
 
-和一维一样：**「多开一圈」是为了接住 `+1`**，最后丢掉即可。
+Just like in one dimension: **"allocating one extra ring" is to catch `+1`**, and you simply discard it at the end.
 
-### 6.2 树上差分：给路径整体加
+### 6.2 Tree Difference: Adding to an Entire Path
 
-一维是「线段」，二维是「矩形」，**树上就是「路径」**：给树上 `u → v` 的简单路径上每个点加 `x`。做法是把差分搬到树的**子树前缀和**上——打四个点，最后一次 DFS 求子树和还原：
+One dimension is a "segment," two dimensions is a "rectangle," and **on a tree it's a "path"**: add `x` to every vertex on the simple path from `u → v` in the tree. The approach is to move the difference onto the tree's **subtree prefix sum**—mark four points, then do one final DFS to compute subtree sums and restore:
 
-| 场景 | 打点（以点权为例，`t = LCA(u, v)`，`p = t 的父节点`） |
+| Scenario | Marking (using vertex weights as an example, `t = LCA(u, v)`, `p = t 的父节点`) |
 |---|---|
-| 点权路径加 | `val[u] += x`、`val[v] += x`、`val[t] -= x`、`val[p] -= x` |
-| 边权路径加 | `val[u] += x`、`val[v] += x`、`val[t] -= 2x`（边权把值记在「儿子」上） |
+| Vertex-weight path add | `val[u] += x`, `val[v] += x`, `val[t] -= x`, `val[p] -= x` |
+| Edge-weight path add | `val[u] += x`, `val[v] += x`, `val[t] -= 2x` (edge weights are stored on the "child") |
 
-还原时按**后序遍历**做子树和：`val[u] += Σ val[child]`，一次 O(n)。本质还是那句老话——**「在变化的地方记录变化」**：路径加 = 两个「向上加」的叠加，在 LCA 处相互抵消。
+To restore, compute subtree sums via **post-order traversal**: `val[u] += Σ val[child]`, in O(n) time. The essence is still that old saying—**"record changes where they happen"**: a path add = the superposition of two "upward adds," which cancel each other out at the LCA.
 
-### 6.3 一般化：扫描线思想
+### 6.3 Generalization: The Sweep-Line Idea
 
-差分的本质不是数组技巧，而是一种更普遍的思想：
+The essence of difference arrays is not an array trick, but a more general idea:
 
-> **不要记录每个位置的值，只记录「值发生变化」的位置，然后从左到右扫一遍把它们累加起来。**
+> **Don't record the value at every position—only record the positions where "the value changes," then sweep from left to right and accumulate them.**
 
-1094 拼车就是活例子——**我们从头到尾没有模拟「某人在某站上车、某人在某站下车」**，只记了每一站人数的**净变化**，扫一遍就得到了任意时刻的在车人数。同一思想换个名字，就是：
+Problem 1094 Car Pooling is a live example—**we never simulated "someone boards at some stop, someone alights at some stop" from start to finish**; we only recorded the **net change** in passenger count at each stop, and a single sweep gives us the number of passengers on board at any moment. The same idea under a different name is:
 
-- **扫描线算法**：把区间拆成「进入 +1、离开 −1」两个事件，排序后扫一遍（比面积并、区间覆盖计数）。
-- **事件时间轴统计**：预约系统、日志系统里，只在「开始 / 结束」时刻记录增减，而不是逐秒维护状态。
+- **Sweep-line algorithm**: split intervals into two events, "enter +1, leave −1," sort them, and sweep once (compare with area union, interval coverage counting).
+- **Event-timeline statistics**: in booking systems and logging systems, record increments/decrements only at "start/end" moments, rather than maintaining state second by second.
 
-**一维差分 = 扫描线在「数轴上的区间」这个特例。** 认清了这层，差分就不再是「背公式」，而是「在变化处记账」。
+**1D difference = the sweep line specialized to "intervals on the number line."** Once you recognize this layer, difference arrays are no longer about "memorizing formulas," but about "keeping accounts at the points of change."
 
-### 6.4 选型与易混：什么时候不该用差分
+### 6.4 Selection and Pitfalls: When Not to Use Difference Arrays
 
-差分是**「批量区间修改」**的专用工具。一旦需求里出现「边改边查」，它就不够用了：
+Difference arrays are a specialized tool for **"batch range modifications."** As soon as the requirement involves "modify while querying," they're no longer sufficient:
 
-| 需求 | 该用什么 | 复杂度 |
+| Requirement | What to use | Complexity |
 |---|---|---|
-| 多次**区间加** + **最后一次**查询（本文三题） | **差分数组** | 改 O(1)、还原 O(n) |
-| 多次**区间加** + 多次**单点查询** | **差分数组**（每次查就是求一次前缀和）或树状数组 | 视查询而定 |
-| 多次**区间加** + 多次**区间求和**，交替进行 | **线段树**（带懒标记）或**两个树状数组** | 每次 O(log n) |
-| 多次**区间加** + 多次**区间最值** | **线段树** | 每次 O(log n) |
-| **二维**矩阵区间加 | **二维差分**（见 6.1） | 打点 O(1)、还原 O(m·n) |
+| Multiple **range adds** + **one final** query (the three problems in this article) | **Difference array** | modify O(1), restore O(n) |
+| Multiple **range adds** + multiple **point queries** | **Difference array** (each query is just one prefix sum) or a Fenwick tree | depends on queries |
+| Multiple **range adds** + multiple **range sums**, alternating | **Segment tree** (with lazy propagation) or **two Fenwick trees** | O(log n) per operation |
+| Multiple **range adds** + multiple **range min/max** | **Segment tree** | O(log n) per operation |
+| **2D** matrix range adds | **2D difference** (see 6.1) | mark O(1), restore O(m·n) |
 
-> **一个容易混淆的名字**：**差分约束系统（Difference Constraints）** 和本文的差分数组**毫无关系**——它是一类「`x_j − x_i ≤ c` 的不等式系统」，用最短路 / SPFA 求解。名字里都有「差分」，但一个是数组技巧，一个是图论模型，别混。
+> **An easily confused name**: **Difference Constraints** have **nothing to do** with the difference arrays in this article—they are a class of "systems of inequalities of the form `x_j − x_i ≤ c`," solved using shortest paths / SPFA. Both have "difference" in the name, but one is an array trick and the other is a graph-theoretic model—don't mix them up.
 
 ---
 
-## 相关文章
+## Related Articles
 
-- [差分数组：把区间修改从 O(n) 降到 O(1)](/technology/difference-array/) — 原理、分步图解与更多变体
-- [前缀和：把区间求和从 O(n) 降到 O(1)](/technology/prefix-sum/) — 差分的逆运算，二维容斥的前置
-- [二维数组：从矩阵遍历到原地变换](/technology/two-d-array/) — 二维下标推导与「多开一圈」的通用套路
-- [滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) — 另一套把一类题收敛到同一骨架的思路
+- [Difference Arrays: Reducing Range Modifications from O(n) to O(1)](/technology/difference-array/) — principles, step-by-step diagrams, and more variants
+- [Prefix Sums: Reducing Range Sums from O(n) to O(1)](/technology/prefix-sum/) — the inverse operation of difference arrays, a prerequisite for 2D inclusion-exclusion
+- [2D Arrays: From Matrix Traversal to In-Place Transformation](/technology/two-d-array/) — 2D index derivation and the general pattern of "allocating one extra ring"
+- [Sliding Window Core Code Template: Three Problems to Master All Substring and Subarray Problems](/technology/sliding-window-template/) — another approach that converges a class of problems onto the same skeleton

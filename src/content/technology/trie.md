@@ -1,32 +1,30 @@
 ---
-title: 字典树：前缀匹配的终极数据结构
+title: 'Trie: The Ultimate Data Structure for Prefix Matching'
 published: 2026-04-26
-description: '掌握 Trie 树的原理、构建与查询，用 TypeScript 实现搜索联想、单词匹配、前缀统计等高频应用。'
+description: Master the principles, construction, and querying of Trie trees, and implement high-frequency applications like search suggestions, word matching, and prefix counting in TypeScript.
 image: ''
-tags: [字典树, Trie, TypeScript, 数据结构]
-category: '算法'
+tags: [Trie, Trie, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A Trie, also called a dictionary tree or prefix tree, is a data structure specifically designed for handling string prefixes. It breaks words into character paths, and words sharing the same prefix share the same segment of nodes.
+
+If you frequently need to do things like "does a certain word exist," "does a certain prefix exist," or "autocomplete based on an input prefix," a Trie is more natural than scanning strings one by one.
+
+Its core idea is: use tree paths to represent strings.
+
+> Prerequisites
+> - **Tree structure**: each edge represents a character
+> - **Hash map / array**: node child links can be stored using a Map or an array
+> - **Prefix matching**: the query process goes down level by level along characters
+
 ---
 
-## 概述
+## Problem Definition
 
-Trie，也叫字典树或前缀树，是一种专门处理字符串前缀的数据结构。它把单词拆成字符路径，共享相同前缀的单词会共用同一段节点。
-
-如果需要频繁做“是否存在某个单词”“是否存在某个前缀”“根据输入前缀自动补全”，Trie 比逐个字符串扫描更自然。
-
-它的核心思想是：用树的路径表示字符串。
-
-> 前置知识
-> - **树结构**：每条边表示一个字符
-> - **哈希表 / 数组**：节点子链接可用 Map 或数组存储
-> - **前缀匹配**：查询过程沿字符逐层向下
-
----
-
-## 问题定义
-
-假设有三个单词：
+Suppose there are three words:
 
 ```text
 cat
@@ -34,7 +32,7 @@ car
 dog
 ```
 
-Trie 会把它们组织成：
+The Trie organizes them as:
 
 ```text
 root
@@ -47,71 +45,71 @@ root
       └─ g (word)
 ```
 
-这样查询前缀 `ca` 时，只需要走 `c -> a`，就能知道有哪些单词共享这个前缀。
+This way, when querying the prefix `ca`, you only need to walk `c -> a` to know which words share this prefix.
 
-Trie 适合的问题：
+Problems a Trie is suited for:
 
-| 需求 | 普通数组 | Trie |
+| Requirement | Plain array | Trie |
 | --- | --- | --- |
-| 判断单词是否存在 | O(n * L) | O(L) |
-| 判断前缀是否存在 | O(n * L) | O(L) |
-| 自动补全 | 需要扫描所有单词 | 定位前缀后遍历子树 |
+| Determine whether a word exists | O(n * L) | O(L) |
+| Determine whether a prefix exists | O(n * L) | O(L) |
+| Autocomplete | Need to scan all words | Locate the prefix, then traverse the subtree |
 
-其中 `L` 是单词长度，`n` 是单词数量。
+Here `L` is the word length, and `n` is the number of words.
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-### 插入单词
+### Inserting a Word
 
-插入 `cat`：
+Insert `cat`:
 
 ```text
 root -> c -> a -> t
 ```
 
-如果路径不存在，就创建节点；如果路径已存在，就复用节点。最后在 `t` 节点标记“这里是一个完整单词”。
+If the path does not exist, create nodes; if the path already exists, reuse the nodes. Finally, mark the `t` node as "this is a complete word."
 
-### 查询单词
+### Querying a Word
 
-查询 `car`：
+Query `car`:
 
-1. 从 root 出发；
-2. 依次查找 `c`、`a`、`r`；
-3. 如果路径断开，单词不存在；
-4. 如果路径存在，还要检查最后节点是否标记为完整单词。
+1. Start from root;
+2. Look up `c`, `a`, `r` in order;
+3. If the path breaks, the word does not exist;
+4. If the path exists, you still need to check whether the final node is marked as a complete word.
 
-### 查询前缀
+### Querying a Prefix
 
-查询前缀只需要路径存在，不要求最后节点是完整单词。
+Querying a prefix only requires the path to exist; it does not require the final node to be a complete word.
 
-这就是 `search("ca")` 和 `startsWith("ca")` 的区别。
+This is the difference between `search("ca")` and `startsWith("ca")`.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
-Trie 节点通常包含：
+A Trie node usually contains:
 
 ```text
 children: 当前字符到子节点的映射
 isWord:   是否在这里结束一个完整单词
 ```
 
-插入流程：
+Insertion process:
 
-1. 从根节点开始；
-2. 遍历单词的每个字符；
-3. 如果当前字符没有对应子节点，就创建；
-4. 移动到子节点；
-5. 遍历结束后标记 `isWord = true`。
+1. Start from the root node;
+2. Traverse each character of the word;
+3. If the current character has no corresponding child node, create one;
+4. Move to the child node;
+5. After traversal ends, mark `isWord = true`.
 
-查询流程类似，只是不创建节点；遇到缺失路径直接返回失败。
+The query process is similar, except that it does not create nodes; if it encounters a missing path, it directly returns failure.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
 ```typescript
 class TrieNode {
@@ -183,49 +181,49 @@ class Trie {
 
 ---
 
-## 工程优化：压缩 Trie
+## Engineering Optimization: Compressed Trie
 
-标准 Trie 的节点数可能很多，尤其当字符串很长且分支较少时，会产生大量只有一个子节点的节点。
+A standard Trie may have many nodes, especially when strings are long and branching is sparse, producing many nodes with only one child.
 
-例如：
+For example:
 
 ```text
 root -> a -> p -> p -> l -> e
 ```
 
-如果中间节点没有分叉，可以压缩成：
+If intermediate nodes have no branching, they can be compressed into:
 
 ```text
 root -> "apple"
 ```
 
-这类结构叫压缩 Trie 或 Radix Tree。它减少节点数量，但实现更复杂，需要处理字符串片段的拆分和匹配。
+This kind of structure is called a compressed Trie or Radix Tree. It reduces the number of nodes, but the implementation is more complex, requiring handling the splitting and matching of string fragments.
 
-工程中是否压缩，取决于数据规模、内存压力和查询性能要求。
-
----
-
-## 应用与局限
-
-### 典型应用
-
-- 搜索框自动补全；
-- 敏感词匹配；
-- 拼写检查；
-- 路由匹配；
-- IP 前缀匹配；
-- 单词游戏和词典查询。
-
-### 局限性
-
-- 相比哈希表，Trie 占用更多节点对象；
-- 字符集越大，子节点映射越复杂；
-- 删除单词需要清理无用节点；
-- 只适合前缀相关问题，不适合任意子串匹配。
+Whether to compress in engineering depends on data scale, memory pressure, and query performance requirements.
 
 ---
 
-## 总结
+## Applications and Limitations
+
+### Typical Applications
+
+- Search box autocomplete;
+- Sensitive word matching;
+- Spell checking;
+- Route matching;
+- IP prefix matching;
+- Word games and dictionary lookup.
+
+### Limitations
+
+- Compared with hash maps, a Trie occupies more node objects;
+- The larger the character set, the more complex the child node mapping;
+- Deleting words requires cleaning up useless nodes;
+- It is only suitable for prefix-related problems, not arbitrary substring matching.
+
+---
+
+## Summary
 
 ```mermaid
 graph LR
@@ -234,8 +232,8 @@ graph LR
     C --> D[查询单词或前缀]
 ```
 
-- Trie 用树路径表示字符串。
-- 共享前缀是 Trie 的核心优势。
-- `search` 要求完整单词存在，`startsWith` 只要求路径存在。
-- 自动补全可以先定位前缀节点，再遍历子树。
-- 数据量大时要关注节点数量和压缩策略。
+- A Trie uses tree paths to represent strings.
+- Shared prefixes are the core advantage of a Trie.
+- `search` requires a complete word to exist, while `startsWith` only requires the path to exist.
+- Autocomplete can first locate the prefix node, then traverse the subtree.
+- When the data volume is large, pay attention to the number of nodes and compression strategy.

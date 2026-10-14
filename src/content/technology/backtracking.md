@@ -1,41 +1,39 @@
 ---
-title: 回溯算法：从全排列到 N 皇后的 TypeScript 实现
+title: 'Backtracking Algorithms: From Permutations to N-Queens in TypeScript'
 published: 2026-04-26
-description: '掌握回溯算法的决策树模型、模板框架，用 TypeScript 解决排列、组合、子集、N 皇后等经典问题。'
+description: Master the decision tree model and template framework of backtracking, and use TypeScript to solve classic problems like permutations, combinations, subsets, and N-Queens.
 image: ''
-tags: [回溯算法, TypeScript, 算法]
-category: '算法'
+tags: [Backtracking, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Backtracking** is an enumeration method that performs a depth-first search on a decision tree. It tries a choice and continues searching downward; if the current path does not satisfy the conditions, it undoes the choice and returns to the previous level to try other branches.
+
+> Prerequisites
+> - **DFS**: Backtracking is essentially a depth-first traversal of a decision tree
+> - **Recursion**: Using the call stack to save the choice state at each level
+> - **Pruning**: Skipping branches that cannot possibly produce an answer
+
 ---
 
-## 概述
+## Problem Definition
 
-**回溯算法（Backtracking）** 是一种在决策树上进行深度优先搜索的枚举方法。它会尝试一个选择，继续向下搜索；如果当前路径不满足条件，就撤销选择，回到上一层尝试其他分支。
+Given a set of choice spaces, enumerate all solutions that satisfy the constraints, and avoid invalid branches during the search process.
 
-> 前置知识
-> - **DFS**：回溯本质上是深度优先遍历决策树
-> - **递归**：用调用栈保存每一层选择状态
-> - **剪枝**：提前跳过不可能产生答案的分支
-
----
-
-## 问题定义
-
-给定一组选择空间，枚举所有满足约束的解，并在搜索过程中避免无效分支。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 候选元素、目标长度、目标和或棋盘约束 |
-| 输出 | 所有满足条件的路径、组合、排列或布局 |
-| 关键状态 | 当前路径、可选范围、已使用标记、约束判断 |
-| 典型问题 | 全排列、组合、子集、组合总和、N 皇后 |
+| Input | Candidate elements, target length, target sum, or board constraints |
+| Output | All paths, combinations, permutations, or layouts that satisfy the conditions |
+| Key State | Current path, available range, used markers, constraint checking |
+| Typical Problems | Full permutations, combinations, subsets, combination sum, N-Queens |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以 `[1, 2, 3]` 的全排列为例，每一层选择一个尚未使用的数字：
+Taking the full permutations of `[1, 2, 3]` as an example, each level selects a number that has not yet been used:
 
 ```mermaid
 graph TD
@@ -48,17 +46,17 @@ graph TD
     B2 --> B21[1,3,2]
 ```
 
-回溯的核心动作可以拆成三步：
+The core actions of backtracking can be broken down into three steps:
 
-1. **做选择**：把候选元素加入当前路径。
-2. **继续搜索**：递归进入下一层决策。
-3. **撤销选择**：恢复现场，让同一层可以尝试下一个候选。
+1. **Make a choice**: Add a candidate element to the current path.
+2. **Continue searching**: Recurse into the next level of decision-making.
+3. **Undo the choice**: Restore the state so that the same level can try the next candidate.
 
-如果把所有路径都看作一棵树，回溯就是“沿一条路走到底，再退回来换路”。
+If all paths are viewed as a tree, backtracking is "walking all the way down one path, then retreating to switch paths."
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：Backtrack(path, choices)
@@ -76,21 +74,21 @@ graph TD
 9.     撤销 choice 和状态更新
 ```
 
-**复杂度分析**：
+**Complexity Analysis**:
 
-| 问题类型 | 搜索规模 | 说明 |
+| Problem Type | Search Scale | Description |
 |------|------|------|
-| 排列 | O(n × n!) | n! 个排列，每个结果复制 O(n) |
-| 组合 | O(k × C(n,k)) | 只枚举长度为 k 的路径 |
-| 子集 | O(n × 2^n) | 每个元素选或不选 |
-| N 皇后 | 近似 O(n!) | 剪枝后远小于暴力 n^n |
-| 空间复杂度 | O(n) + 输出 | 递归深度和当前路径为 O(n) |
+| Permutations | O(n × n!) | n! permutations, each result copied in O(n) |
+| Combinations | O(k × C(n,k)) | Only enumerates paths of length k |
+| Subsets | O(n × 2^n) | Each element is either chosen or not |
+| N-Queens | Approximately O(n!) | After pruning, far less than brute-force n^n |
+| Space Complexity | O(n) + output | Recursion depth and current path are O(n) |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 全排列
+### 1. Full Permutations
 
 ```typescript
 function permute(nums: number[]): number[][] {
@@ -119,7 +117,7 @@ function permute(nums: number[]): number[][] {
 }
 ```
 
-### 2. 组合
+### 2. Combinations
 
 ```typescript
 function combine(n: number, k: number): number[][] {
@@ -144,7 +142,7 @@ function combine(n: number, k: number): number[][] {
 }
 ```
 
-### 3. 子集
+### 3. Subsets
 
 ```typescript
 function subsets(nums: number[]): number[][] {
@@ -166,7 +164,7 @@ function subsets(nums: number[]): number[][] {
 }
 ```
 
-### 4. N 皇后
+### 4. N-Queens
 
 ```typescript
 function solveNQueens(n: number): string[][] {
@@ -205,40 +203,40 @@ function solveNQueens(n: number): string[][] {
 
 ---
 
-## 工程优化：剪枝与状态隔离
+## Engineering Optimization: Pruning and State Isolation
 
-回溯代码最容易出错的地方是状态复用。工程中可以从三点优化：
+The most error-prone aspect of backtracking code is state reuse. In engineering, optimization can be approached from three angles:
 
-| 优化点 | 做法 | 价值 |
+| Optimization Point | Approach | Value |
 |------|------|------|
-| 剪枝条件前置 | 先判断剩余元素是否足够、当前和是否超限 | 减少无效递归 |
-| 状态成对修改 | `push` 和 `pop`、`add` 和 `delete` 成对出现 | 避免污染其他分支 |
-| 复制结果 | 收集答案时使用 `[...path]` | 防止后续回溯改动已保存结果 |
+| Pruning conditions upfront | First check whether remaining elements are sufficient and whether the current sum exceeds the limit | Reduces invalid recursion |
+| Paired state modifications | `push` and `pop`, `add` and `delete` appear in pairs | Avoids contaminating other branches |
+| Copy results | Use `[...path]` when collecting answers | Prevents subsequent backtracking from modifying already-saved results |
 
-N 皇后中用 `cols / diag1 / diag2` 三个集合替代逐格扫描，可以把每次合法性判断从 O(n) 降到 O(1)。
+In N-Queens, using the three sets `cols / diag1 / diag2` instead of scanning cell by cell reduces each validity check from O(n) to O(1).
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 排列、组合、子集等枚举问题
-- 棋盘搜索：N 皇后、数独
-- 路径搜索：迷宫路径、单词搜索
-- 约束满足问题：括号生成、电话号码字母组合
+- Enumeration problems such as permutations, combinations, and subsets
+- Board search: N-Queens, Sudoku
+- Path search: maze paths, word search
+- Constraint satisfaction problems: parenthesis generation, phone number letter combinations
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 搜索空间大 | 多数回溯问题本质是指数级 |
-| 容易状态污染 | 忘记撤销选择会导致结果错误 |
-| 递归深度受限 | 深度过大时可能触发调用栈限制 |
+| Large search space | Most backtracking problems are inherently exponential |
+| Prone to state contamination | Forgetting to undo a choice leads to incorrect results |
+| Limited recursion depth | Excessive depth may trigger call stack limits |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -249,9 +247,9 @@ graph LR
     E --> F[撤销选择]
 ```
 
-**核心要点**：
+**Key Takeaways**:
 
-1. 回溯 = DFS + 状态选择 + 撤销选择。
-2. 排列用 `used` 控制重复使用，组合和子集用 `start` 控制顺序。
-3. 剪枝不是改变答案，而是跳过不可能产生答案的分支。
-4. 收集结果时必须复制当前路径，不能直接保存引用。
+1. Backtracking = DFS + state selection + undoing choices.
+2. Permutations use `used` to control repeated use; combinations and subsets use `start` to control order.
+3. Pruning does not change the answer; it skips branches that cannot possibly produce an answer.
+4. When collecting results, you must copy the current path and cannot directly save a reference.

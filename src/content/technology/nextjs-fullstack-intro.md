@@ -1,25 +1,23 @@
 ---
-title: Next.js 全栈开发入门：从零搭建一个现代 Web 应用
+title: 'Getting Started with Next.js Full-Stack Development: Building a Modern Web App from Scratch'
 published: 2026-06-17
-description: '从零开始学习 Next.js，理解 App Router、Server Components、路由与数据获取，掌握现代全栈开发的核心范式。'
+description: Learn Next.js from scratch by understanding the App Router, Server Components, routing, and data fetching, and master the core paradigms of modern full-stack development.
 image: ''
-tags: [Next.js, React, 全栈, SSR, 前端基础]
-category: '前端'
+tags: [Next.js, React, Full-Stack, SSR, Frontend Fundamentals]
+category: Frontend
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+**Next.js** is currently the most popular React full-stack framework. It extends React's component-based capabilities to the **server side**, allowing you to write frontend pages and backend APIs in the same project.
+
+Recalling the three rendering modes (CSR / SSR / SSG) we discussed in the previous article, what makes Next.js unique is: **it allows these three modes to work seamlessly together in the same project** — you can decide the rendering strategy on a per-page basis.
+
 ---
 
-## 1. 引言
+## 2. Creating Your First Next.js Project
 
-**Next.js** 是目前最流行的 React 全栈框架。它把 React 的组件化能力扩展到了**服务端**，让你可以在同一个项目里写前端页面和后端 API。
-
-回顾上一篇文章我们讲的三种渲染模式（CSR / SSR / SSG），Next.js 的独特之处在于：**它让这三种模式在同一个项目中无缝协作** —— 你可以按页面粒度决定渲染策略。
-
----
-
-## 2. 创建第一个 Next.js 项目
-
-### 2.1 初始化
+### 2.1 Initialization
 
 ```bash
 npx create-next-app@latest my-blog
@@ -27,7 +25,7 @@ cd my-blog
 npm run dev
 ```
 
-初始化向导会问你几个问题：
+The initialization wizard will ask you a few questions:
 
 ```
 ✔ Would you like to use TypeScript?     Yes
@@ -36,9 +34,9 @@ npm run dev
 ✔ Would you like to use App Router?     Yes（推荐）
 ```
 
-启动后访问 `http://localhost:3000`，第一个 Next.js 项目就跑起来了。
+After starting, visit `http://localhost:3000`, and your first Next.js project is up and running.
 
-### 2.2 项目结构
+### 2.2 Project Structure
 
 ```
 my-blog/
@@ -61,24 +59,24 @@ my-blog/
 └── next.config.ts
 ```
 
-**核心规则：文件系统即路由。** `app/` 目录下的文件夹结构直接映射为 URL 路径。
+**Core rule: the file system is the router.** The folder structure under the `app/` directory maps directly to URL paths.
 
 ---
 
-## 3. App Router：文件即路由
+## 3. App Router: Files as Routes
 
-### 3.1 基础约定
+### 3.1 Basic Conventions
 
-| 文件 | 作用 |
+| File | Purpose |
 |------|------|
-| `page.tsx` | 页面内容 |
-| `layout.tsx` | 布局（包裹子页面，切换页面时保持状态） |
-| `loading.tsx` | 加载中的 UI（自动包裹 `Suspense`） |
-| `error.tsx` | 错误处理 UI（自动包裹 `ErrorBoundary`） |
-| `not-found.tsx` | 404 页面 |
-| `route.ts` | API 路由（纯后端） |
+| `page.tsx` | Page content |
+| `layout.tsx` | Layout (wraps child pages, preserves state when switching pages) |
+| `loading.tsx` | Loading UI (automatically wraps `Suspense`) |
+| `error.tsx` | Error handling UI (automatically wraps `ErrorBoundary`) |
+| `not-found.tsx` | 404 page |
+| `route.ts` | API routes (pure backend) |
 
-### 3.2 路由示例
+### 3.2 Routing Example
 
 ```
 app/
@@ -92,7 +90,7 @@ app/
     └── settings/page.tsx     → /dashboard/settings
 ```
 
-### 3.3 动态路由和参数
+### 3.3 Dynamic Routes and Parameters
 
 ```tsx
 // app/blog/[slug]/page.tsx
@@ -113,15 +111,15 @@ export default async function BlogPost({
 }
 ```
 
-URL `/blog/hello-world` → `slug = "hello-world"`。
+URL `/blog/hello-world` → `slug = "hello-world"`.
 
 ---
 
 ## 4. Server Components vs Client Components
 
-Next.js 13+ 引入了**React Server Components（RSC）**，这是理解现代 Next.js 的关键。
+Next.js 13+ introduced **React Server Components (RSC)**, which is the key to understanding modern Next.js.
 
-### 4.1 默认是服务端组件
+### 4.1 Server Components by Default
 
 ```tsx
 // ✅ 这是 Server Component（默认）
@@ -141,7 +139,7 @@ export default async function PostList() {
 }
 ```
 
-### 4.2 需要交互时用客户端组件
+### 4.2 Use Client Components When Interactivity Is Needed
 
 ```tsx
 'use client'; // ← 加这一行，变为客户端组件
@@ -159,24 +157,24 @@ export default function LikeButton() {
 }
 ```
 
-### 4.3 什么时候用哪个？
+### 4.3 When to Use Which?
 
-| 需求 | 用哪种组件 |
+| Requirement | Which Component to Use |
 |------|----------|
-| 从数据库获取数据 | **Server Component** |
-| 展示静态内容 | **Server Component** |
-| 处理用户交互（onClick、onChange...） | Client Component |
-| 使用状态（useState、useReducer） | Client Component |
-| 使用浏览器 API（localStorage、window） | Client Component |
-| 使用 Effect（useEffect） | Client Component |
+| Fetching data from a database | **Server Component** |
+| Displaying static content | **Server Component** |
+| Handling user interactions (onClick, onChange...) | Client Component |
+| Using state (useState, useReducer) | Client Component |
+| Using browser APIs (localStorage, window) | Client Component |
+| Using Effects (useEffect) | Client Component |
 
-> **最佳实践：尽可能使用 Server Component，只在必要处添加客户端交互。** 这样可以最小化发往客户端的 JS 体积，获得最佳性能。
+> **Best practice: use Server Components as much as possible, and only add client-side interactivity where necessary.** This minimizes the JS bundle sent to the client and achieves optimal performance.
 
 ---
 
-## 5. 数据获取
+## 5. Data Fetching
 
-### 5.1 在 Server Component 中直接获取
+### 5.1 Fetching Directly in Server Components
 
 ```tsx
 // app/posts/page.tsx
@@ -199,9 +197,9 @@ export default async function PostsPage() {
 }
 ```
 
-### 5.2 Next.js 增强了 fetch
+### 5.2 Next.js Enhances fetch
 
-Next.js 扩展了原生的 `fetch` API，增加了缓存控制：
+Next.js extends the native `fetch` API with cache control:
 
 ```tsx
 // 缓存，默认行为（类似 SSG）
@@ -214,9 +212,9 @@ fetch('/api/data', { cache: 'no-store' });
 fetch('/api/data', { next: { revalidate: 60 } }); // 60秒
 ```
 
-### 5.3 使用 ORM 直接操作数据库
+### 5.3 Using ORMs to Interact with the Database Directly
 
-因为 Server Component 运行在服务器上，你可以直接使用 Prisma、Drizzle 等 ORM：
+Because Server Components run on the server, you can directly use ORMs like Prisma, Drizzle, etc.:
 
 ```tsx
 // app/users/page.tsx
@@ -246,12 +244,11 @@ export default async function UsersPage() {
 ```
 
 ---
+## 6. API Routes: Writing Backend Endpoints
 
-## 6. API 路由：编写后端接口
+Next.js isn't just a frontend framework — it can also write backend APIs:
 
-Next.js 不仅仅是前端框架，还能写后端 API：
-
-### 6.1 创建 API 端点
+### 6.1 Creating an API Endpoint
 
 ```tsx
 // app/api/posts/route.ts
@@ -271,7 +268,7 @@ export async function POST(request: Request) {
 }
 ```
 
-### 6.2 动态 API 路由
+### 6.2 Dynamic API Routes
 
 ```tsx
 // app/api/posts/[id]/route.ts
@@ -302,9 +299,9 @@ export async function DELETE(
 }
 ```
 
-### 6.3 Server Actions：另一种「后端」方式
+### 6.3 Server Actions: Another "Backend" Approach
 
-Next.js 还提供了 **Server Actions** —— 你可以直接在表单里调用服务端函数，无需手动创建 API：
+Next.js also provides **Server Actions** — you can call server-side functions directly in forms without manually creating an API:
 
 ```tsx
 // app/actions.ts
@@ -342,9 +339,9 @@ export default function NewPostPage() {
 
 ---
 
-## 7. 渲染策略实战
+## 7. Rendering Strategy in Practice
 
-Next.js 支持按页面粒度选择渲染策略：
+Next.js supports choosing rendering strategies at the page level:
 
 ```tsx
 // 1. SSG（默认）— 构建时生成，永不改变
@@ -367,9 +364,9 @@ export async function generateStaticParams() {
 
 ---
 
-## 8. 部署
+## 8. Deployment
 
-Next.js 最自然的部署平台是 **Vercel**（Next.js 的创造者），但也可以部署到任何支持 Node.js 的环境：
+The most natural deployment platform for Next.js is **Vercel** (the creator of Next.js), but it can also be deployed to any environment that supports Node.js:
 
 ```bash
 # 生产构建
@@ -379,36 +376,36 @@ npm run build
 npm run start
 ```
 
-| 部署方式 | 特点 |
+| Deployment Method | Characteristics |
 |---------|------|
-| Vercel | 零配置，自动优化，全球 CDN |
-| Docker | 容器化部署，适合自托管 |
-| Node.js 服务器 | 传统方式，`next start` |
-| 静态导出 | `next export`，纯静态文件放 CDN |
+| Vercel | Zero config, automatic optimization, global CDN |
+| Docker | Containerized deployment, suitable for self-hosting |
+| Node.js Server | Traditional approach, `next start` |
+| Static Export | `next export`, pure static files served from CDN |
 
 ---
 
-## 9. 学习路线建议
+## 9. Suggested Learning Path
 
-| 阶段 | 内容 | 关键概念 |
+| Stage | Content | Key Concepts |
 |------|------|---------|
-| 入门 | 创建项目、页面路由、基础组件 | App Router 约定 |
-| 进阶 | Server Components、数据获取、API Routes | RSC、缓存策略 |
-| 实战 | 认证（NextAuth）、数据库（Prisma）、表单 | Server Actions |
-| 深入 | 中间件、国际化、性能优化、错误监控 | Edge Runtime |
+| Beginner | Creating projects, page routing, basic components | App Router conventions |
+| Intermediate | Server Components, data fetching, API Routes | RSC, caching strategies |
+| Practical | Authentication (NextAuth), database (Prisma), forms | Server Actions |
+| Advanced | Middleware, internationalization, performance optimization, error monitoring | Edge Runtime |
 
 ---
 
-## 10. 小结
+## 10. Summary
 
-Next.js 的核心价值一句话总结：**它把 React 从一个「前端库」升级为「全栈框架」。**
+The core value of Next.js in one sentence: **It upgrades React from a "frontend library" to a "full-stack framework."**
 
-| 传统 React（CSR） | Next.js |
+| Traditional React (CSR) | Next.js |
 |-------------------|---------|
-| 在浏览器里渲染 | 服务端渲染 + 客户端交互 |
-| 需要单独搭建后端 | 自带 API Routes / Server Actions |
-| 手动配置路由 | 文件系统即路由 |
-| SEO 差 | 原生 SEO 友好 |
-| 单一渲染模式 | SSG / SSR / ISR 按需选择 |
+| Renders in the browser | Server-side rendering + client-side interaction |
+| Requires a separately built backend | Built-in API Routes / Server Actions |
+| Manual route configuration | File system as routing |
+| Poor SEO | Native SEO-friendly |
+| Single rendering mode | SSG / SSR / ISR chosen on demand |
 
-学完 HTML/CSS/JavaScript 基础、理解了 React 的组件化思维、弄清了三种渲染模式的区别之后，Next.js 就是你将所有这些知识整合在一起的「最终武器」。从想法到上线，一个仓库就够了。
+After learning the fundamentals of HTML/CSS/JavaScript, understanding React's component-based thinking, and grasping the differences between the three rendering modes, Next.js is the "ultimate weapon" that integrates all this knowledge together. From idea to launch, one repository is all you need.

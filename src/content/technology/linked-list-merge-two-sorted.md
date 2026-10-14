@@ -1,44 +1,42 @@
 ---
-title: 合并两个有序链表：双指针与 Dummy 节点
+title: 'Merge Two Sorted Linked Lists: Two Pointers and a Dummy Node'
 published: 2026-08-10
-description: '将两个升序链表合并为一个新的升序链表。使用双指针逐个比较节点值，dummy 虚拟头节点统一处理边界情况。附带 C / C++ / JavaScript 三语言实现。'
+description: Merge two ascending linked lists into a single ascending linked list. Use two pointers to compare node values one by one, and a dummy head node to handle edge cases uniformly. Includes implementations in C, C++, and JavaScript.
 image: ''
-tags: [链表, 双指针, 合并, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Two Pointers, Merge, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
-
-将两个**升序**链表 `list1` 和 `list2` 合并为一个新的**升序**链表，并返回合并后的链表头节点。新链表由两个输入链表的所有节点拼接而成。
+Merge two **ascending** linked lists `list1` and `list2` into a new **ascending** linked list, and return the head node of the merged linked list. The new linked list is formed by concatenating all the nodes of the two input linked lists.
 
 ```
 输入：list1 = 1→2→4, list2 = 1→3→4
 输出：1→1→2→3→4→4
 ```
 
-## 解题思路
+## Solution Approach
 
-### 核心思想：双指针逐个比较
+### Core Idea: Two Pointers Comparing One by One
 
-想象你有两叠按从小到大排好的扑克牌，你要把它们合并成一叠。每次你只需要看两叠牌最上面那张，把较小的拿走放到结果中。
+Imagine you have two stacks of playing cards sorted from smallest to largest, and you want to merge them into one stack. Each time, you only need to look at the top card of each stack and take the smaller one and put it into the result.
 
-对于链表，这个"比较 → 取较小者 → 指针后移"的过程可以完美地用双指针实现。
+For linked lists, this process of "compare → take the smaller one → advance the pointer" can be perfectly implemented with two pointers.
 
-### Dummy 节点的作用
+### The Role of the Dummy Node
 
-合并链表的第一个节点是谁？是 `list1` 的头还是 `list2` 的头？这个判断会让代码变得啰嗦。引入一个**虚拟头节点（dummy）**，所有节点统一追加在 dummy 之后，最后返回 `dummy.next` 即可。
+Who is the first node of the merged linked list? Is it the head of `list1` or the head of `list2`? This judgment would make the code verbose. Introduce a **dummy head node (dummy)**, append all nodes uniformly after the dummy, and finally return `dummy.next`.
 
-### 算法步骤
+### Algorithm Steps
 
-1. 创建 dummy 节点和尾指针 `tail`
-2. 同时遍历两个链表，比较当前节点值
-3. 将较小节点接在 tail 后面，对应指针后移
-4. 当任一链表遍历完毕，将剩余链表直接接在尾部
-5. 返回 `dummy.next`
+1. Create a dummy node and a tail pointer `tail`
+2. Traverse both linked lists simultaneously, comparing the current node values
+3. Attach the smaller node after tail, and advance the corresponding pointer
+4. When either linked list is fully traversed, directly attach the remaining linked list to the tail
+5. Return `dummy.next`
 
-## 代码实现
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -144,7 +142,7 @@ function mergeTwoLists(list1, list2) {
 ```
 :::
 
-## 图解过程
+## Illustrated Process
 
 ```
 初始状态：
@@ -173,24 +171,24 @@ dummy → 1 → 1 → 2 → 3 → 4 → 4(list2)
 结果：1→1→2→3→4→4
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(m + n)** — 两个链表各遍历一次 |
-| 空间复杂度 | **O(1)** — 只用了 dummy 和 tail 两个额外指针，原地合并 |
+| Time Complexity | **O(m + n)** — Each linked list is traversed once |
+| Space Complexity | **O(1)** — Only two extra pointers, dummy and tail, are used, merging in place |
 
-## 关键要点
+## Key Points
 
-1. **Dummy 节点的妙用**：避免了对"头节点是谁"的特殊判断，让所有节点统一处理
-2. **尾指针 tail**：始终指向结果链表的最后一个节点，方便 `O(1)` 追加
-3. **剩余链表直接拼接**：循环结束后，未遍历完的链表本身就是有序的，直接接上即可
+1. **The clever use of the Dummy node**: It avoids the special judgment of "who is the head node" and allows all nodes to be handled uniformly
+2. **Tail pointer tail**: Always points to the last node of the result linked list, making it convenient to append `O(1)`
+3. **Directly concatenating the remaining linked list**: After the loop ends, the untraversed linked list is itself ordered, so it can be attached directly
 
-## 扩展思考
+## Extended Thinking
 
-- 如果要求**去重**（相等元素只保留一个），如何修改？
-- 如果要求**不开辟新节点**但返回**全新链表**（深拷贝节点），怎么处理？
+- If **deduplication** is required (keeping only one copy of equal elements), how should it be modified?
+- If it is required to **not allocate new nodes** but return a **completely new linked list** (deep-copying nodes), how should it be handled?
 
-相关文章：
-- [合并 K 个有序链表](/technology/linked-list-merge-k-sorted/) — 从 2 到 K 的扩展
-- [链表的分解](/technology/linked-list-partition/) — 同样是"拆分再组合"的思想
+Related Articles:
+- [Merge K Sorted Linked Lists](/technology/linked-list-merge-k-sorted/) — Extending from 2 to K
+- [Decomposition of Linked Lists](/technology/linked-list-partition/) — Also the idea of "split and recombine"

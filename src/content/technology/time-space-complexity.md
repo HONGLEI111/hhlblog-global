@@ -1,41 +1,39 @@
 ---
-title: 时间与空间复杂度入门
+title: Introduction to Time and Space Complexity
 published: 2026-04-26
-description: '从零理解大O表示法，掌握常见时间/空间复杂度分析。含前端实战案例与图解，适合算法初学者快速上手。'
+description: Understand Big O notation from scratch and master common time and space complexity analysis. Includes front-end practical examples and diagrams, ideal for algorithm beginners to get started quickly.
 image: ''
-tags: [算法入门, 复杂度分析, 大O表示法]
-category: '算法'
+tags: [Algorithm Basics, Complexity Analysis, Big O Notation]
+category: Algorithms
 draft: false 
-lang: ''
+---
+## Overview
+
+**Time complexity** and **space complexity** are used to describe how the running time and memory usage of code grow as the input size increases. They don't care about the specific time taken on a particular machine, but rather about the growth trend.
+
+> Prerequisites
+> - **Input size n**: array length, number of nodes, string length, etc.
+> - **Loops and recursion**: complexity usually comes from the number of repeated executions
+> - **Cost of data structure operations**: the complexity of APIs for arrays, Maps, Sets, sorting, etc. differs
+
 ---
 
-## 概述
+## Problem Definition
 
-**时间复杂度** 和 **空间复杂度** 用来描述代码在输入规模变大时，运行时间和内存占用如何增长。它们不关心某台机器上的具体耗时，而关心增长趋势。
+Given a piece of code or an algorithm, estimate its time and space cost as the input size grows.
 
-> 前置知识
-> - **输入规模 n**：数组长度、节点数量、字符串长度等
-> - **循环与递归**：复杂度通常来自重复执行的次数
-> - **数据结构操作成本**：数组、Map、Set、排序等 API 的复杂度不同
-
----
-
-## 问题定义
-
-给定一段代码或算法，估算它随输入规模增长时的时间和空间成本。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 一段程序、算法或数据结构操作 |
-| 输出 | 时间复杂度、空间复杂度和主要瓶颈 |
-| 分析目标 | 找出增长最快的部分，忽略常数和低阶项 |
-| 常见结果 | O(1)、O(log n)、O(n)、O(n log n)、O(n²)、O(2^n) |
+| Input | A program, algorithm, or data structure operation |
+| Output | Time complexity, space complexity, and the main bottleneck |
+| Analysis goal | Find the fastest-growing part, ignoring constants and lower-order terms |
+| Common results | O(1), O(log n), O(n), O(n log n), O(n²), O(2^n) |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-从 100 万用户中查找一个用户：
+Finding one user among 1 million users:
 
 ```typescript
 interface User {
@@ -64,7 +62,7 @@ graph LR
     C --> E[查询成本基本稳定]
 ```
 
-大 O 表示法只保留增长最快的项：
+Big O notation keeps only the fastest-growing term:
 
 ```text
 T(n) = 3n² + 100n + 5000  =>  O(n²)
@@ -74,7 +72,7 @@ T(n) = 200                =>  O(1)
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：AnalyzeComplexity(code)
@@ -88,22 +86,22 @@ T(n) = 200                =>  O(1)
 5. 统计额外申请的空间，不把输入本身算入额外空间
 ```
 
-**常见复杂度对比**：
+**Common complexity comparison**:
 
-| 复杂度 | 增长方式 | 典型场景 |
+| Complexity | Growth pattern | Typical scenarios |
 |------|------|------|
-| O(1) | 不随输入规模变化 | 数组下标访问、Map 查询 |
-| O(log n) | 每次排除一半 | 二分搜索、堆操作 |
-| O(n) | 遍历一次输入 | 求和、过滤、线性查找 |
-| O(n log n) | 每层 O(n)，共 log n 层 | 归并排序、堆排序 |
-| O(n²) | 双重枚举 | 暴力两数配对、矩阵遍历 |
-| O(2^n) | 每个元素选或不选 | 子集枚举、朴素递归 |
+| O(1) | Does not change with input size | Array index access, Map lookup |
+| O(log n) | Eliminates half each time | Binary search, heap operations |
+| O(n) | Traverses the input once | Summation, filtering, linear search |
+| O(n log n) | O(n) per level, log n levels total | Merge sort, heap sort |
+| O(n²) | Double enumeration | Brute-force pair matching, matrix traversal |
+| O(2^n) | Each element chosen or not | Subset enumeration, naive recursion |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. O(1)：常量时间
+### 1. O(1): Constant time
 
 ```typescript
 function getFirst<T>(arr: T[]): T | undefined {
@@ -115,7 +113,7 @@ function getByKey<K, V>(map: Map<K, V>, key: K): V | undefined {
 }
 ```
 
-### 2. O(log n)：二分查找
+### 2. O(log n): Binary search
 
 ```typescript
 function binarySearch(nums: number[], target: number): number {
@@ -133,7 +131,7 @@ function binarySearch(nums: number[], target: number): number {
 }
 ```
 
-### 3. O(n)：线性扫描
+### 3. O(n): Linear scan
 
 ```typescript
 function sum(nums: number[]): number {
@@ -153,7 +151,7 @@ function findMax(nums: number[]): number {
 }
 ```
 
-### 4. O(n²) 优化到 O(n)
+### 4. Optimizing O(n²) to O(n)
 
 ```typescript
 function findDuplicatesSlow(nums: number[]): number[] {
@@ -181,7 +179,7 @@ function findDuplicatesFast(nums: number[]): number[] {
 }
 ```
 
-### 5. 空间复杂度对比
+### 5. Space complexity comparison
 
 ```typescript
 function reverseInPlace<T>(arr: T[]): T[] {
@@ -208,42 +206,42 @@ function reverseNew<T>(arr: T[]): T[] {
 
 ---
 
-## 工程优化：先看数据量再优化
+## Engineering Optimization: Look at the Data Size Before Optimizing
 
-复杂度分析的目的不是让所有代码都极致优化，而是判断当前数据规模下风险在哪里。
+The purpose of complexity analysis is not to make all code extremely optimized, but to determine where the risk lies at the current data scale.
 
-| 数据量 | 经验判断 | 建议 |
+| Data size | Rule of thumb | Recommendation |
 |------|------|------|
-| < 1,000 | 多数写法都可接受 | 优先可读性 |
-| 1,000 ~ 100,000 | 避免 O(n²) | 用 Map/Set、排序、双指针 |
-| 100,000 ~ 1,000,000 | 警惕大常数和内存复制 | 优先 O(n log n) 或 O(n) |
-| > 1,000,000 | 关注索引、分页、流式处理 | 尽量 O(log n) / O(1) 查询 |
+| < 1,000 | Most approaches are acceptable | Prioritize readability |
+| 1,000 ~ 100,000 | Avoid O(n²) | Use Map/Set, sorting, two pointers |
+| 100,000 ~ 1,000,000 | Watch out for large constants and memory copying | Prefer O(n log n) or O(n) |
+| > 1,000,000 | Focus on indexing, pagination, streaming | Aim for O(log n) / O(1) queries |
 
-前端场景也有复杂度问题：大列表渲染、搜索联想、表格筛选、组件树重渲染，都需要关注输入规模。
+Frontend scenarios also have complexity issues: rendering large lists, search suggestions, table filtering, and component tree re-rendering all require attention to input size.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical applications
 
-- 评估算法题解能否通过数据范围
-- 判断接口、列表、搜索在大数据量下的性能风险
-- 选择数组、Map、Set、堆、树等数据结构
-- 解释排序、搜索、遍历和递归的成本
+- Assessing whether an algorithm solution can pass within the data range
+- Determining the performance risk of APIs, lists, and searches under large data volumes
+- Choosing data structures such as arrays, Maps, Sets, heaps, and trees
+- Explaining the cost of sorting, searching, traversal, and recursion
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 忽略常数 | O(n) 不一定总比 O(n log n) 快 |
-| 忽略硬件因素 | 缓存、IO、网络延迟可能更重要 |
-| 平均和最坏不同 | 哈希、快速排序等需要区分场景 |
-| 只看增长趋势 | 小数据下可读性往往比复杂度更重要 |
+| Ignores constants | O(n) is not always faster than O(n log n) |
+| Ignores hardware factors | Cache, IO, and network latency may matter more |
+| Average and worst case differ | Hashing, quicksort, etc. need to distinguish scenarios |
+| Only looks at growth trends | With small data, readability is often more important than complexity |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -253,9 +251,9 @@ graph LR
     D --> E[结合数据量决策]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 大 O 描述的是增长趋势，而不是精确运行时间。
-2. 时间复杂度看执行次数，空间复杂度看额外占用。
-3. Map/Set 常用于用空间换时间，把 O(n²) 降到 O(n)。
-4. 优化前先看数据量，避免为了小规模场景牺牲可读性。
+1. Big O describes the growth trend, not the exact running time.
+2. Time complexity looks at the number of executions; space complexity looks at extra usage.
+3. Map/Set are often used to trade space for time, reducing O(n²) to O(n).
+4. Before optimizing, look at the data size first, to avoid sacrificing readability for small-scale scenarios.

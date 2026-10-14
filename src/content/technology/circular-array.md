@@ -1,52 +1,50 @@
 ---
-title: 环形数组：循环缓冲区的 TypeScript 实现
+title: 'Circular Arrays: Implementing Ring Buffers in TypeScript'
 published: 2026-04-26
-description: '掌握环形数组的原理与实现，用 TypeScript 构建循环队列、环形缓冲区，解决循环遍历问题。'
+description: Master the principles and implementation of circular arrays by building circular queues and ring buffers in TypeScript to solve cyclic traversal problems.
 image: ''
-tags: [环形数组, TypeScript, 数据结构]
-category: '算法'
+tags: [Circular Array, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A circular array is not a new physical storage structure, but rather a way of "connecting the ends of an ordinary array together." It uses modulo arithmetic to make the index wrap back to the beginning at the array boundary, thereby simulating a ring.
+
+This structure is especially suitable for scenarios with fixed capacity and continuous reads and writes, such as circular queues, log buffers, audio and video frame buffers, and the most recent N records.
+
+An ordinary array stops once its tail reaches the capacity limit, whereas a circular array maps the next write back to a previously freed position.
+
+> Prerequisites
+> - **Modulo arithmetic**: indices wrap around via `% capacity`
+> - **Queue semantics**: head and tail pointers handle reads and writes respectively
+> - **Capacity design**: empty and full states need to be distinguished
+
 ---
 
-## 概述
+## Problem Definition
 
-环形数组不是一种新的物理存储结构，而是一种“把普通数组首尾相接”的使用方式。它通过取模运算让下标在数组边界处回到开头，从而模拟一个环。
-
-这种结构特别适合固定容量、持续读写的场景，例如循环队列、日志缓冲区、音视频帧缓存和最近 N 条记录。
-
-普通数组的尾部到达容量上限后就停止，而环形数组会把下一次写入映射回前面已经释放的位置。
-
-> 前置知识
-> - **取模运算**：下标通过 `% capacity` 回绕
-> - **队列语义**：头尾指针分别负责读写
-> - **容量设计**：需要区分空、满两种状态
-
----
-
-## 问题定义
-
-假设我们有一个固定长度为 5 的数组：
+Suppose we have an array with a fixed length of 5:
 
 ```text
 index: 0 1 2 3 4
 value: _ _ _ _ _
 ```
 
-希望它支持：
+We want it to support:
 
-- 从尾部写入新元素；
-- 从头部读取旧元素；
-- 空间用完时不要移动元素；
-- 下标越过尾部时自动回到 0。
+- Writing new elements from the tail;
+- Reading old elements from the head;
+- Not moving elements when space runs out;
+- Automatically returning to 0 when the index goes past the tail.
 
-这就是环形数组要解决的问题：用固定数组实现逻辑上的循环空间。
+This is the problem that a circular array solves: using a fixed array to implement logically circular space.
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-环形数组通常维护三个状态：
+A circular array usually maintains three states:
 
 ```text
 capacity: 固定容量
@@ -55,15 +53,15 @@ tail:     下一个写入位置
 size:     当前元素数量
 ```
 
-### 写入元素
+### Writing Elements
 
-写入时把元素放到 `tail`，然后移动尾指针：
+When writing, place the element at `tail`, then move the tail pointer:
 
 ```text
 tail = (tail + 1) % capacity
 ```
 
-当 `tail` 到达数组末尾后，下一步会回到 0：
+When `tail` reaches the end of the array, the next step returns to 0:
 
 ```text
 index: 0 1 2 3 4
@@ -72,49 +70,49 @@ head:        ^
 tail:     ^
 ```
 
-这张图表示逻辑顺序是 `A -> B -> C -> D`，但物理存储被分成了两段。
+This diagram shows that the logical order is `A -> B -> C -> D`, but the physical storage is split into two segments.
 
-### 读取元素
+### Reading Elements
 
-读取时从 `head` 取出元素，然后移动头指针：
+When reading, take the element from `head`, then move the head pointer:
 
 ```text
 head = (head + 1) % capacity
 ```
 
-只要所有指针移动都使用同一个取模规则，数组就能稳定地循环使用。
+As long as all pointer movements use the same modulo rule, the array can be reused cyclically and stably.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
-实现环形队列时，重点是区分“空”和“满”。常见做法有两种：
+When implementing a circular queue, the key point is distinguishing "empty" from "full." There are two common approaches:
 
-| 方案 | 判断空 | 判断满 | 特点 |
+| Approach | Check empty | Check full | Characteristics |
 | --- | --- | --- | --- |
-| 额外维护 `size` | `size === 0` | `size === capacity` | 语义直观 |
-| 预留一个空位 | `head === tail` | `(tail + 1) % capacity === head` | 少维护一个字段，但浪费一个位置 |
+| Maintain an extra `size` | `size === 0` | `size === capacity` | Intuitive semantics |
+| Reserve one empty slot | `head === tail` | `(tail + 1) % capacity === head` | Maintains one fewer field, but wastes one position |
 
-本文采用 `size` 方案，因为它更适合教学和 TypeScript 封装。
+This article adopts the `size` approach because it is better suited to teaching and TypeScript encapsulation.
 
-入队步骤：
+Enqueue steps:
 
-1. 如果队列已满，拒绝写入；
-2. 将元素写入 `items[tail]`；
-3. `tail` 向后移动一格并取模；
-4. `size` 加一。
+1. If the queue is full, reject the write;
+2. Write the element to `items[tail]`;
+3. Move `tail` forward by one position and apply modulo;
+4. Increment `size` by one.
 
-出队步骤：
+Dequeue steps:
 
-1. 如果队列为空，返回 `undefined`；
-2. 读取 `items[head]`；
-3. 清理当前位置；
-4. `head` 向后移动一格并取模；
-5. `size` 减一。
+1. If the queue is empty, return `undefined`;
+2. Read `items[head]`;
+3. Clear the current position;
+4. Move `head` forward by one position and apply modulo;
+5. Decrement `size` by one.
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
 ```typescript
 class CircularQueue<T> {
@@ -176,13 +174,13 @@ console.log(queue.dequeue()); // 1
 queue.enqueue(4);
 ```
 
-这个实现中，数组容量始终不变，所有位置都可以被重复利用。
+In this implementation, the array capacity never changes, and all positions can be reused.
 
 ---
 
-## 工程优化：环形缓冲区
+## Engineering Optimization: Ring Buffer
 
-在日志或监控场景中，有时不希望队列满了以后拒绝写入，而是覆盖最旧的数据。这就是环形缓冲区。
+In logging or monitoring scenarios, sometimes we do not want to reject writes after the queue is full, but instead overwrite the oldest data. This is a ring buffer.
 
 ```typescript
 class RingBuffer<T> {
@@ -214,30 +212,30 @@ class RingBuffer<T> {
 }
 ```
 
-队列强调“不丢数据”，缓冲区强调“保留最新数据”。两者都使用环形数组，但业务语义不同。
+A queue emphasizes "not losing data," while a buffer emphasizes "keeping the latest data." Both use a circular array, but their business semantics differ.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 固定容量任务队列；
-- 最近 N 条日志；
-- 音视频流缓冲；
-- 滑动窗口统计；
-- 游戏或嵌入式系统中的事件队列。
+- Fixed-capacity task queues;
+- The most recent N logs;
+- Audio and video stream buffering;
+- Sliding window statistics;
+- Event queues in games or embedded systems.
 
-### 局限性
+### Limitations
 
-- 容量固定，不适合无上限增长的数据；
-- 需要明确满时策略：拒绝、等待、扩容还是覆盖；
-- 取模运算让下标调试比普通数组更绕；
-- 多线程环境下需要额外同步，单纯数组逻辑不保证并发安全。
+- Fixed capacity, not suitable for data that grows without an upper bound;
+- The full-policy must be made explicit: reject, wait, expand, or overwrite;
+- Modulo arithmetic makes index debugging more convoluted than with ordinary arrays;
+- Multithreaded environments require additional synchronization; array logic alone does not guarantee concurrency safety.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -247,7 +245,7 @@ graph LR
     C --> D
 ```
 
-- 环形数组用取模把普通数组变成逻辑闭环。
-- `head`、`tail`、`size` 是实现循环队列的核心状态。
-- 队列和缓冲区的差异在于满时策略。
-- 它适合固定容量、高频读写、避免元素搬移的场景。
+- A circular array uses modulo to turn an ordinary array into a logical closed loop.
+- `head`, `tail`, and `size` are the core states for implementing a circular queue.
+- The difference between a queue and a buffer lies in the full-policy.
+- It is suitable for scenarios with fixed capacity, high-frequency reads and writes, and avoidance of element shifting.

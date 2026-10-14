@@ -1,41 +1,39 @@
 ---
-title: 二分搜索：从入门到边界处理精通
+title: 'Binary Search: From Beginner to Boundary Mastery'
 published: 2026-04-26
-description: '彻底掌握二分搜索的左闭右闭、左闭右开写法，以及搜索左边界、右边界的 TypeScript 实现，附带实用场景。'
+description: Fully master binary search with closed-closed and closed-open interval approaches, plus TypeScript implementations for finding left and right boundaries, with practical use cases.
 image: ''
-tags: [二分搜索, TypeScript, 算法]
-category: '算法'
+tags: [Binary Search, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Binary Search** is an algorithm that uses monotonicity to eliminate half of the candidate space each time. It is not only used to "find a value in a sorted array," but also commonly used to "find the first position that satisfies a condition" or "binary search over the answer range."
+
+> Prerequisites
+> - **Sorted array**: the most common carrier for binary search
+> - **Monotonic predicate**: a condition that changes from false to true, or from true to false, only once
+> - **Interval invariant**: the answer must remain within the candidate interval after each loop iteration
+
 ---
 
-## 概述
+## Problem Definition
 
-**二分搜索（Binary Search）** 是利用单调性每次排除一半候选空间的算法。它不只用于“在有序数组里找值”，也常用于“寻找第一个满足条件的位置”或“在答案范围上二分”。
+Given a sorted or monotonic search space, quickly locate a target value, boundary position, or optimal answer.
 
-> 前置知识
-> - **有序数组**：最常见的二分载体
-> - **单调谓词**：条件从 false 到 true，或从 true 到 false 只变化一次
-> - **区间不变量**：每轮循环都要保持答案仍在候选区间内
-
----
-
-## 问题定义
-
-给定一个有序或具有单调性的搜索空间，快速定位目标值、边界位置或最优答案。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 有序数组、目标值，或一个单调判断函数 |
-| 输出 | 目标下标、插入位置、左/右边界或最小可行答案 |
-| 核心条件 | 搜索空间可以被一分为二并安全排除一半 |
-| 典型应用 | 查找、lower_bound、旋转数组、答案二分 |
+| Input | A sorted array, target value, or a monotonic predicate function |
+| Output | Target index, insertion position, left/right boundary, or minimum feasible answer |
+| Core condition | The search space can be split in two and one half safely eliminated |
+| Typical applications | Lookup, lower_bound, rotated array, binary search on answer |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以数组 `[1, 3, 5, 7, 9, 11, 13]` 查找 `9` 为例：
+Taking the array `[1, 3, 5, 7, 9, 11, 13]` and searching for `9` as an example:
 
 ```mermaid
 graph LR
@@ -45,11 +43,11 @@ graph LR
     D --> E[区间 4..4 找到 9]
 ```
 
-二分的关键不是 `mid` 怎么写，而是每次比较后能证明被排除的一半一定不包含答案。
+The key to binary search is not how to write `mid`, but being able to prove after each comparison that the eliminated half definitely does not contain the answer.
 
-### 边界搜索
+### Boundary Search
 
-很多题不是找任意一个目标，而是找边界：
+Many problems are not about finding any occurrence of a target, but about finding a boundary:
 
 ```text
 nums:   1  2  2  2  3
@@ -58,11 +56,11 @@ index:  0  1  2  3  4
 右边界:          ^
 ```
 
-这类问题更适合转化为“找第一个 `>= target` 的位置”和“找第一个 `> target` 的位置”。
+Such problems are better transformed into "find the first position of `>= target`" and "find the first position of `> target`."
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：LowerBound(nums, target)
@@ -79,20 +77,20 @@ index:  0  1  2  3  4
 8. return left
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 操作 | 时间复杂度 | 空间复杂度 | 说明 |
+| Operation | Time complexity | Space complexity | Description |
 |------|------|------|------|
-| 普通查找 | O(log n) | O(1) | 每轮排除一半 |
-| 左边界 / 右边界 | O(log n) | O(1) | 循环次数不变 |
-| 旋转数组搜索 | O(log n) | O(1) | 每轮至少一半有序 |
-| 答案二分 | O(log R × check) | O(1) 或取决于 check | R 为答案范围 |
+| Standard lookup | O(log n) | O(1) | Eliminate half each round |
+| Left boundary / right boundary | O(log n) | O(1) | Number of iterations unchanged |
+| Rotated array search | O(log n) | O(1) | At least half is sorted each round |
+| Binary search on answer | O(log R × check) | O(1) or depends on check | R is the answer range |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 普通查找
+### 1. Standard Lookup
 
 ```typescript
 function binarySearch(nums: number[], target: number): number {
@@ -110,7 +108,7 @@ function binarySearch(nums: number[], target: number): number {
 }
 ```
 
-### 2. 左边界
+### 2. Left Boundary
 
 ```typescript
 function lowerBound(nums: number[], target: number): number {
@@ -132,7 +130,7 @@ function searchLeft(nums: number[], target: number): number {
 }
 ```
 
-### 3. 右边界
+### 3. Right Boundary
 
 ```typescript
 function upperBound(nums: number[], target: number): number {
@@ -154,7 +152,7 @@ function searchRight(nums: number[], target: number): number {
 }
 ```
 
-### 4. 旋转排序数组搜索
+### 4. Search in Rotated Sorted Array
 
 ```typescript
 function searchRotated(nums: number[], target: number): number {
@@ -178,7 +176,7 @@ function searchRotated(nums: number[], target: number): number {
 }
 ```
 
-### 5. 寻找峰值
+### 5. Find Peak Element
 
 ```typescript
 function findPeakElement(nums: number[]): number {
@@ -197,41 +195,41 @@ function findPeakElement(nums: number[]): number {
 
 ---
 
-## 工程优化：把问题改写成单调判断
+## Engineering Optimization: Rewriting Problems as Monotonic Predicates
 
-二分最稳定的写法是抽象出 `check(mid)`：
+The most stable way to write binary search is to abstract out `check(mid)`:
 
-| 问题 | 单调判断 |
+| Problem | Monotonic predicate |
 |------|------|
-| 找插入位置 | `nums[mid] >= target` |
-| 最小可行容量 | `capacity` 是否能完成任务 |
-| 第一个错误版本 | `isBadVersion(mid)` |
-| 峰值问题 | `nums[mid] > nums[mid + 1]` 决定峰值方向 |
+| Find insertion position | `nums[mid] >= target` |
+| Minimum feasible capacity | Whether `capacity` can complete the task |
+| First bad version | `isBadVersion(mid)` |
+| Peak problem | `nums[mid] > nums[mid + 1]` determines peak direction |
 
-在工程代码里，推荐先写清楚区间含义，再写循环条件。对于左闭右开 `[left, right)`，循环通常是 `while (left < right)`；对于左闭右闭 `[left, right]`，循环通常是 `while (left <= right)`。
+In production code, it is recommended to first clarify the meaning of the interval, then write the loop condition. For half-open intervals `[left, right)`, the loop is usually `while (left < right)`; for closed intervals `[left, right]`, the loop is usually `while (left <= right)`.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 有序数组查找、插入位置、边界定位
-- 日志时间戳定位、版本区间定位
-- 峰值、旋转数组等隐式单调问题
-- 最小化最大值、最大化最小值的答案二分
+- Sorted array lookup, insertion position, boundary location
+- Log timestamp location, version range location
+- Implicitly monotonic problems such as peaks and rotated arrays
+- Binary search on answer for minimizing the maximum or maximizing the minimum
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 依赖单调性 | 无序且不可判定方向时不能直接二分 |
-| 边界易错 | 区间定义不清会导致死循环或漏答案 |
-| 重复元素复杂 | 旋转数组含大量重复值时可能退化 |
+| Depends on monotonicity | Cannot directly binary search when unordered and direction is undecidable |
+| Boundaries are error-prone | Unclear interval definitions can cause infinite loops or missed answers |
+| Duplicate elements add complexity | Rotated arrays with many duplicates may degrade |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -242,9 +240,9 @@ graph LR
     E --> F[返回边界或目标]
 ```
 
-**核心要点**：
+**Key takeaways**:
 
-1. 二分的本质是利用单调性排除一半候选空间。
-2. 普通查找可用左闭右闭，边界查找更适合左闭右开。
-3. `lowerBound` 和 `upperBound` 能覆盖大多数边界问题。
-4. 先写区间不变量，再写代码，能显著减少边界错误。
+1. The essence of binary search is using monotonicity to eliminate half of the candidate space.
+2. Standard lookup can use closed intervals, while boundary search is better suited to half-open intervals.
+3. `lowerBound` and `upperBound` can cover most boundary problems.
+4. Writing the interval invariant before the code can significantly reduce boundary errors.

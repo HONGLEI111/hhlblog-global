@@ -1,36 +1,34 @@
 ---
-title: 递归遍历：前序、中序、后序的 TypeScript 完全指南
+title: 'Recursive Traversal: A Complete TypeScript Guide to Preorder, Inorder, and Postorder'
 published: 2026-04-26
-description: '掌握二叉树的前序、中序、后序遍历的递归与迭代实现，理解 Morris 遍历的 O(1) 空间优化，用 TypeScript 实现所有变体。'
+description: Master recursive and iterative implementations of binary tree preorder, inorder, and postorder traversal, understand the O(1) space optimization of Morris traversal, and implement all variants in TypeScript.
 image: ''
-tags: [递归遍历, TypeScript, 算法]
-category: '算法'
+tags: [Recursive Traversal, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+Recursive traversal is the foundation for understanding binary trees. The difference between preorder, inorder, and postorder traversal is not which nodes are visited, but "when the current node is processed."
+
+The three orders are:
+
+- Preorder: process the current node first, then process the left and right subtrees;
+- Inorder: process the left subtree first, then the current node, and finally the right subtree;
+- Postorder: process the left and right subtrees first, and finally the current node.
+
+Once you master these three orders, many tree problems can be transformed into choosing the appropriate processing timing.
+
+> Prerequisites
+> - **Recursive call stack**: stores the current node and return position
+> - **Binary tree structure**: traversal order revolves around root, left, and right
+> - **Visit timing**: preorder, inorder, and postorder differ only in where the current node is processed
+
 ---
 
-## 概述
+## Problem Definition
 
-递归遍历是理解二叉树的基础。前序、中序、后序三种遍历的区别，不在于访问了哪些节点，而在于“什么时候处理当前节点”。
-
-三种顺序分别是：
-
-- 前序：先处理当前节点，再处理左右子树；
-- 中序：先处理左子树，再处理当前节点，最后处理右子树；
-- 后序：先处理左右子树，最后处理当前节点。
-
-掌握这三种顺序后，很多树形问题都能转化成选择合适的处理时机。
-
-> 前置知识
-> - **递归调用栈**：保存当前节点和返回位置
-> - **二叉树结构**：遍历顺序围绕根、左、右展开
-> - **访问时机**：前序、中序、后序只差处理当前节点的位置
-
----
-
-## 问题定义
-
-给定一棵二叉树：
+Given a binary tree:
 
 ```text
       A
@@ -40,15 +38,15 @@ lang: ''
   D   E
 ```
 
-不同遍历结果如下：
+The different traversal results are as follows:
 
-| 遍历方式 | 顺序 | 结果 |
+| Traversal Type | Order | Result |
 | --- | --- | --- |
-| 前序 | 根 -> 左 -> 右 | A B D E C |
-| 中序 | 左 -> 根 -> 右 | D B E A C |
-| 后序 | 左 -> 右 -> 根 | D E B C A |
+| Preorder | root -> left -> right | A B D E C |
+| Inorder | left -> root -> right | D B E A C |
+| Postorder | left -> right -> root | D E B C A |
 
-遍历的本质是：每个节点都会经过三次关键位置。
+The essence of traversal is: every node passes through three key positions.
 
 ```text
 进入节点前
@@ -56,13 +54,13 @@ lang: ''
 处理完右子树后
 ```
 
-把“访问当前节点”的语句放在哪个位置，就得到哪种遍历。
+Whichever position you place the "visit current node" statement in, you get the corresponding traversal.
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Diagram
 
-递归函数可以写成一个统一框架：
+A recursive function can be written as a unified framework:
 
 ```typescript
 function traverse(node: TreeNode | null): void {
@@ -76,35 +74,35 @@ function traverse(node: TreeNode | null): void {
 }
 ```
 
-### 前序位置
+### Preorder Position
 
-适合自顶向下传递信息，例如复制树、序列化、输出目录结构。
+Suitable for passing information top-down, such as copying a tree, serialization, or printing a directory structure.
 
-### 中序位置
+### Inorder Position
 
-对 BST 特别重要，因为 BST 的中序遍历是升序。
+Especially important for BSTs, because the inorder traversal of a BST is in ascending order.
 
-### 后序位置
+### Postorder Position
 
-适合自底向上汇总信息，例如计算高度、判断平衡、释放资源。
-
----
-
-## 算法精细步骤
-
-写递归遍历时，可以按下面顺序思考：
-
-1. 空节点如何处理；
-2. 当前节点应该在前序、中序还是后序位置被访问；
-3. 是否需要把状态作为参数向下传递；
-4. 是否需要从子树拿返回值向上汇总；
-5. 递归深度是否可能过大。
-
-递归的优势是代码贴近树的定义；缺点是调用栈由运行时维护，极深的树可能栈溢出。
+Suitable for aggregating information bottom-up, such as calculating height, checking balance, or releasing resources.
 
 ---
 
-## TypeScript 实现
+## Detailed Algorithm Steps
+
+When writing recursive traversal, you can think in the following order:
+
+1. How empty nodes are handled;
+2. Whether the current node should be visited in the preorder, inorder, or postorder position;
+3. Whether state needs to be passed down as parameters;
+4. Whether return values need to be collected upward from subtrees;
+5. Whether the recursion depth may become too large.
+
+The advantage of recursion is that the code stays close to the definition of the tree; the disadvantage is that the call stack is maintained by the runtime, and extremely deep trees may cause a stack overflow.
+
+---
+
+## TypeScript Implementation
 
 ```typescript
 class TreeNode<T> {
@@ -116,7 +114,7 @@ class TreeNode<T> {
 }
 ```
 
-### 1. 前序遍历
+### 1. Preorder Traversal
 
 ```typescript
 function preorder<T>(root: TreeNode<T> | null): T[] {
@@ -135,7 +133,7 @@ function preorder<T>(root: TreeNode<T> | null): T[] {
 }
 ```
 
-### 2. 中序遍历
+### 2. Inorder Traversal
 
 ```typescript
 function inorder<T>(root: TreeNode<T> | null): T[] {
@@ -154,7 +152,7 @@ function inorder<T>(root: TreeNode<T> | null): T[] {
 }
 ```
 
-### 3. 后序遍历
+### 3. Postorder Traversal
 
 ```typescript
 function postorder<T>(root: TreeNode<T> | null): T[] {
@@ -175,9 +173,9 @@ function postorder<T>(root: TreeNode<T> | null): T[] {
 
 ---
 
-## 工程优化：递归转迭代
+## Engineering Optimization: Converting Recursion to Iteration
 
-递归依赖调用栈。如果树可能非常深，可以显式使用栈模拟遍历。
+Recursion relies on the call stack. If the tree may be very deep, you can explicitly use a stack to simulate traversal.
 
 ```typescript
 function preorderIterative<T>(root: TreeNode<T> | null): T[] {
@@ -198,29 +196,29 @@ function preorderIterative<T>(root: TreeNode<T> | null): T[] {
 }
 ```
 
-因为栈是后进先出，所以要先压入右子节点，再压入左子节点，才能保证左子树先被处理。
+Because the stack is last-in, first-out, you must push the right child first and then the left child to ensure that the left subtree is processed first.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 前序：复制树、序列化、打印层级结构；
-- 中序：BST 升序遍历、验证 BST、找第 K 小；
-- 后序：计算高度、判断平衡、删除或释放树；
-- 迭代遍历：避免深树递归栈溢出。
+- Preorder: copying a tree, serialization, printing hierarchical structure;
+- Inorder: ascending traversal of a BST, validating a BST, finding the Kth smallest;
+- Postorder: calculating height, checking balance, deleting or releasing a tree;
+- Iterative traversal: avoiding recursive stack overflow on deep trees.
 
-### 局限性
+### Limitations
 
-- 递归深度受运行时调用栈限制；
-- 闭包状态过多时不易调试；
-- 中序遍历只对 BST 有天然排序意义；
-- 迭代写法更冗长，容易压栈顺序出错。
+- Recursion depth is limited by the runtime call stack;
+- Too much closure state makes debugging difficult;
+- Inorder traversal only has natural sorting significance for BSTs;
+- The iterative version is more verbose and prone to errors in push order.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -231,7 +229,7 @@ graph LR
     E --> F[后序位置]
 ```
 
-- 前序、中序、后序的区别是处理当前节点的位置。
-- 二叉树递归框架能统一三种遍历。
-- 前序适合自顶向下，中序适合 BST，后序适合自底向上。
-- 深树场景可以用显式栈改写递归。
+- The difference between preorder, inorder, and postorder is where the current node is processed.
+- The binary tree recursion framework can unify all three traversals.
+- Preorder is suitable for top-down, inorder is suitable for BSTs, and postorder is suitable for bottom-up.
+- For deep tree scenarios, recursion can be rewritten using an explicit stack.

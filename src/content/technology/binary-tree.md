@@ -1,35 +1,33 @@
 ---
-title: 二叉树：从定义到进阶的 TypeScript 完全指南
+title: 'Binary Trees: A Complete TypeScript Guide from Basics to Advanced'
 published: 2026-04-26
-description: '全面掌握二叉树的结构、遍历（DFS/BFS）、序列化、最近公共祖先等经典问题，用 TypeScript 逐个击破。'
+description: Master binary tree structures, traversals (DFS/BFS), serialization, lowest common ancestor, and other classic problems, tackled one by one in TypeScript.
 image: ''
-tags: [二叉树, TypeScript, 数据结构]
-category: '算法'
+tags: [Binary Tree, TypeScript, Data Structures]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+A binary tree is a tree structure in which each node has at most two child nodes. It can represent hierarchical relationships and also serves as the foundation for structures such as search trees, heaps, expression trees, and syntax trees.
+
+The most important thing when learning binary trees is to establish two perspectives:
+
+- Recursive perspective: a tree consists of a root node, a left subtree, and a right subtree;
+- Traversal perspective: visit each node in some order and maintain the answer during the visit.
+
+Many seemingly different binary tree problems ultimately come back to "what information does the current node need to obtain from its left and right subtrees."
+
+> Prerequisites
+> - **Recursion**: binary tree problems are usually broken down into left and right subtrees
+> - **Traversal order**: preorder, inorder, and postorder correspond to different processing timings
+> - **Null nodes**: boundary conditions are usually defined starting from `null`
+
 ---
 
-## 概述
+## Problem Definition
 
-二叉树是每个节点最多有两个子节点的树结构。它既能表示层级关系，也能作为搜索、堆、表达式树、语法树等结构的基础。
-
-学习二叉树最重要的是建立两个视角：
-
-- 递归视角：一棵树由根节点、左子树和右子树组成；
-- 遍历视角：用某种顺序访问每个节点，并在访问过程中维护答案。
-
-很多看似不同的二叉树问题，最终都会回到“当前节点要从左右子树获得什么信息”。
-
-> 前置知识
-> - **递归**：二叉树问题通常拆成左右子树
-> - **遍历顺序**：前序、中序、后序对应不同处理时机
-> - **空节点**：边界条件通常从 `null` 开始定义
-
----
-
-## 问题定义
-
-一个二叉树节点包含三个部分：
+A binary tree node contains three parts:
 
 ```text
 value
@@ -37,7 +35,7 @@ left  -> 左子树
 right -> 右子树
 ```
 
-示例：
+Example:
 
 ```text
       1
@@ -47,39 +45,39 @@ right -> 右子树
   4   5
 ```
 
-这棵树的根节点是 `1`，节点 `2` 有两个子节点，节点 `4` 和 `5` 是叶子节点。
+The root node of this tree is `1`, node `2` has two child nodes, and nodes `4` and `5` are leaf nodes.
 
-二叉树问题常见目标：
+Common goals of binary tree problems:
 
-| 类型 | 例子 | 核心问题 |
+| Type | Example | Core question |
 | --- | --- | --- |
-| 遍历 | 前序、中序、后序、层序 | 以什么顺序访问节点 |
-| 高度/深度 | 最大深度、最小深度 | 子树如何向上返回信息 |
-| 结构判断 | 对称、相同、平衡 | 左右子树关系是否满足条件 |
-| 路径问题 | 直径、路径和 | 路径如何穿过当前节点 |
-| 构造问题 | 根据遍历序列建树 | 根节点如何切分左右子树 |
+| Traversal | preorder, inorder, postorder, level order | In what order are nodes visited |
+| Height/depth | maximum depth, minimum depth | How subtrees return information upward |
+| Structural judgment | symmetric, same, balanced | Whether the relationship between left and right subtrees satisfies a condition |
+| Path problems | diameter, path sum | How a path passes through the current node |
+| Construction problems | build tree from traversal sequences | How the root node splits the left and right subtrees |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-### 递归分解
+### Recursive Decomposition
 
-二叉树天然适合递归。对任意节点 `root`，都可以把问题拆成：
+Binary trees are naturally suited to recursion. For any node `root`, the problem can be broken down into:
 
 ```text
 solve(root) = combine(root.value, solve(root.left), solve(root.right))
 ```
 
-例如最大深度：
+For example, maximum depth:
 
 ```text
 maxDepth(root) = 1 + max(maxDepth(left), maxDepth(right))
 ```
 
-### 遍历顺序
+### Traversal Order
 
-同一棵树，不同遍历顺序会得到不同序列：
+For the same tree, different traversal orders produce different sequences:
 
 ```text
       A
@@ -87,49 +85,49 @@ maxDepth(root) = 1 + max(maxDepth(left), maxDepth(right))
     B   C
 ```
 
-| 遍历 | 顺序 | 结果 |
+| Traversal | Order | Result |
 | --- | --- | --- |
-| 前序 | 根 -> 左 -> 右 | A B C |
-| 中序 | 左 -> 根 -> 右 | B A C |
-| 后序 | 左 -> 右 -> 根 | B C A |
-| 层序 | 从上到下 | A B C |
+| Preorder | root -> left -> right | A B C |
+| Inorder | left -> root -> right | B A C |
+| Postorder | left -> right -> root | B C A |
+| Level order | top to bottom | A B C |
 
-### 当前节点的角色
+### The Role of the Current Node
 
-写二叉树递归时，先问三个问题：
+When writing binary tree recursion, first ask three questions:
 
-1. 空节点返回什么？
-2. 当前节点要从左、右子树拿到什么？
-3. 当前节点要向父节点返回什么？
+1. What does a null node return?
+2. What does the current node need to get from the left and right subtrees?
+3. What does the current node need to return to its parent node?
 
-这三个答案确定后，代码通常就很短。
-
----
-
-## 算法精细步骤
-
-以“二叉树直径”为例，直径是任意两个节点之间最长路径的边数。
-
-核心思路：
-
-1. 对每个节点计算左子树高度；
-2. 计算右子树高度；
-3. 经过当前节点的最长路径是 `leftHeight + rightHeight`；
-4. 用全局变量更新最大值；
-5. 当前节点向父节点返回自己的高度。
-
-这里有一个常见区分：
-
-- 返回给父节点的是“单边高度”；
-- 更新答案时用的是“左右两边相加”。
-
-很多树形 DP 都有类似结构：返回值服务父节点，全局答案记录当前节点能形成的最优结果。
+Once these three answers are determined, the code is usually very short.
 
 ---
 
-## TypeScript 实现
+## Detailed Algorithm Steps
 
-### 1. 节点定义
+Take the "binary tree diameter" as an example. The diameter is the number of edges in the longest path between any two nodes.
+
+Core idea:
+
+1. For each node, calculate the height of the left subtree;
+2. Calculate the height of the right subtree;
+3. The longest path passing through the current node is `leftHeight + rightHeight`;
+4. Use a global variable to update the maximum value;
+5. The current node returns its own height to its parent node.
+
+There is a common distinction here:
+
+- What is returned to the parent node is the "single-side height";
+- What is used to update the answer is the "sum of both left and right sides."
+
+Many tree DPs have a similar structure: the return value serves the parent node, while the global answer records the optimal result that the current node can form.
+
+---
+
+## TypeScript Implementation
+
+### 1. Node Definition
 
 ```typescript
 class TreeNode<T> {
@@ -141,7 +139,7 @@ class TreeNode<T> {
 }
 ```
 
-### 2. 最大深度
+### 2. Maximum Depth
 
 ```typescript
 function maxDepth<T>(root: TreeNode<T> | null): number {
@@ -151,7 +149,7 @@ function maxDepth<T>(root: TreeNode<T> | null): number {
 }
 ```
 
-### 3. 判断对称二叉树
+### 3. Check Symmetric Binary Tree
 
 ```typescript
 function isSymmetric<T>(root: TreeNode<T> | null): boolean {
@@ -169,7 +167,7 @@ function isSymmetric<T>(root: TreeNode<T> | null): boolean {
 }
 ```
 
-### 4. 二叉树直径
+### 4. Binary Tree Diameter
 
 ```typescript
 function diameterOfBinaryTree<T>(root: TreeNode<T> | null): number {
@@ -192,9 +190,9 @@ function diameterOfBinaryTree<T>(root: TreeNode<T> | null): number {
 
 ---
 
-## 工程优化：序列化与边界表达
+## Engineering Optimization: Serialization and Boundary Representation
 
-如果要把二叉树存储到文本、网络或本地缓存中，需要序列化。关键是保留空节点，否则结构会丢失。
+If a binary tree needs to be stored in text, transmitted over a network, or kept in a local cache, it must be serialized. The key is to preserve null nodes; otherwise, the structure will be lost.
 
 ```typescript
 function serialize<T>(root: TreeNode<T> | null): Array<T | null> {
@@ -216,30 +214,30 @@ function serialize<T>(root: TreeNode<T> | null): Array<T | null> {
 }
 ```
 
-空节点标记是结构信息的一部分。没有它，很多不同形状的树可能会得到相同遍历序列。
+Null node markers are part of the structural information. Without them, many trees of different shapes may produce the same traversal sequence.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 层级数据和组织结构；
-- 表达式树、AST、DOM 类树结构；
-- 二叉搜索树、堆、平衡树；
-- 编码树、决策树；
-- 搜索、路径、构造和序列化问题。
+- Hierarchical data and organizational structures;
+- Expression trees, ASTs, and DOM-like tree structures;
+- Binary search trees, heaps, and balanced trees;
+- Coding trees and decision trees;
+- Search, path, construction, and serialization problems.
 
-### 局限性
+### Limitations
 
-- 普通二叉树没有排序特性，查找不一定快；
-- 树过深时递归可能栈溢出；
-- 指针结构比数组更难做缓存友好访问；
-- 构造和序列化时必须明确空节点表示。
+- An ordinary binary tree has no ordering property, so lookup is not necessarily fast;
+- If the tree is too deep, recursion may cause a stack overflow;
+- Pointer structures are harder to access in a cache-friendly way than arrays;
+- When constructing and serializing, the representation of null nodes must be made explicit.
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -248,8 +246,8 @@ graph LR
     C --> D[合并返回值]
 ```
 
-- 二叉树的核心模型是根节点、左子树、右子树。
-- 递归是解决二叉树问题的第一思路。
-- 遍历顺序决定“何时处理当前节点”。
-- 树形问题要区分返回给父节点的信息和全局答案。
-- 空节点是边界，也是序列化时不可忽略的结构信息。
+- The core model of a binary tree is the root node, left subtree, and right subtree.
+- Recursion is the first approach to solving binary tree problems.
+- Traversal order determines "when the current node is processed."
+- Tree-shaped problems must distinguish between the information returned to the parent node and the global answer.
+- Null nodes are boundaries and also structural information that cannot be ignored during serialization.

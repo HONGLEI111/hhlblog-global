@@ -1,57 +1,55 @@
 ---
-title: 前缀和实战：数组不可变、矩阵不可变的区间查询，以及它答不了的题
+title: 'Prefix Sums in Practice: Range Queries on Immutable Arrays and Immutable Matrices, and the Problems They Can''t Solve'
 published: 2026-10-13
-description: '把 LeetCode 303 / 304 两道 "Immutable" 题收敛到同一套「多开一位」模板：一维 pre[r+1] - pre[l]、二维容斥四个角怎么来，附 C / C++ / JavaScript 三语言实现；最后聊前缀和答不了的四类问题（动态修改、无逆元运算、溢出、丢失内部结构），以及该换成什么结构。'
+description: 'Converge LeetCode 303 and 304, both "Immutable" problems, onto a single "one extra slot" template: how 1D pre[r+1] - pre[l] and the 2D inclusion-exclusion four corners work, with implementations in C, C++, and JavaScript. Then look at four kinds of problems prefix sums can''t handle (dynamic updates, operations without inverses, overflow, and lost internal structure) and what structures to use instead.'
 image: ''
-tags: [前缀和, 力扣, 数组, 矩阵, 容斥原理, C, C++, JavaScript]
-category: '算法'
+tags: [Prefix Sum, LeetCode, Array, Matrix, Inclusion-Exclusion Principle, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Why Write a Separate Article
 
-## 为什么单独再写一篇
+The [Prefix Sum: Reducing Range Sum Queries from O(n) to O(1)](/technology/prefix-sum/) article covered the **principles**: why prefix sums are fast, and how to use a hash map for subarrays that sum to K. This article tackles a different class of problems—**the two LeetCode problems literally named "Immutable"**:
 
-[前缀和：把区间求和从 O(n) 降到 O(1)](/technology/prefix-sum/) 那篇讲的是**原理**：前缀和为什么快、和为 K 的子数组怎么套哈希。这篇要解决的是另一类问题——**力扣里那两道名字就叫 "Immutable" 的题**：
+- **303. Range Sum Query - Immutable** (immutable array)
+- **304. Range Sum Query 2D - Immutable** (immutable matrix)
 
-- **303. Range Sum Query - Immutable**（数组不可变）
-- **304. Range Sum Query 2D - Immutable**（矩阵不可变）
+Their common trait is right there in the title: **the array/matrix itself never changes; what changes is the query**. This is exactly the scenario prefix sums excel at, and it's the "standard answer" for both the 1D and 2D templates. The word "Immutable" in the title also exposes prefix sums' Achilles' heel—**once elements can change, this preprocessing falls apart**.
 
-它们的共同点写在题名里：**数组/矩阵本身不会变，变的是查询**。这正是前缀和最擅长的场景，也是它一维和二维两套模板的「标准答案」。而题名里的 "Immutable" 反过来也点破了前缀和的软肋——**一旦元素可变，这套预处理就崩了**。
+So this article has three parts: the 1D template, the 2D template, and finally a dedicated section on **the limitations of prefix sums**—under what conditions they hold, and what to switch to when those conditions aren't met.
 
-所以这篇分三段：一维模板、二维模板，最后专门用一节讲**前缀和的局限性**——它在什么条件下才成立，以及条件不满足时该换成什么。
-
-> **关于代码**
+> **About the code**
 >
-> 两道题都给出 C / C++ / JavaScript 三语言实现，逻辑完全等价，可切换标签查看。
-> 两套模板统一采用**多开一位（圈）**的写法：一维 `pre` 长 `n + 1`，二维 `pre` 是 `(m + 1) × (n + 1)`。多出来的这一位是 0，专门用来消掉边界特判。
+> Both problems provide implementations in C / C++ / JavaScript. The logic is completely equivalent; switch tabs to view.
+> Both templates uniformly adopt the **extra-slot (ring)** approach: 1D `pre` has length `n + 1`, 2D `pre` is `(m + 1) × (n + 1)`. The extra slot is 0, specifically used to eliminate boundary special-casing.
 
 ---
 
-## 一、把问题抽象成同一句话
+## 1. Abstracting the Problem into a Single Sentence
 
-两道题去掉背景后，是同一个问题：
+Strip away the context, and both problems are the same problem:
 
-> **预处理一次，之后每次查询「某个连续区域的和」都要 O(1)。**
+> **Preprocess once, then every query for "the sum of some contiguous region" must be O(1).**
 
-| | 303 数组不可变 | 304 矩阵不可变 |
+| | 303 Immutable Array | 304 Immutable Matrix |
 |---|---|---|
-| 预处理 | 一维前缀和 | 二维前缀和 |
-| 查询对象 | 一维区间 `[l, r]` | 二维矩形 `(r1, c1) ~ (r2, c2)` |
-| 预处理复杂度 | O(n) | O(m·n) |
-| 单次查询 | O(1) | O(1) |
-| 空间 | O(n) | O(m·n) |
+| Preprocessing | 1D prefix sum | 2D prefix sum |
+| Query target | 1D interval `[l, r]` | 2D rectangle `(r1, c1) ~ (r2, c2)` |
+| Preprocessing complexity | O(n) | O(m·n) |
+| Single query | O(1) | O(1) |
+| Space | O(n) | O(m·n) |
 
-核心动作只有一个：**把「区域和」拆成「两个（或四个）从原点出发的前缀和」的加减**。难点全在「多开的一圈」和「±号有几项」上，下面逐个拆。
+There's only one core action: **decompose the "region sum" into addition/subtraction of "two (or four) prefix sums starting from the origin"**. All the difficulty lies in the "extra ring" and "how many ± terms there are"—let's break them down one by one.
 
 ---
 
-## 二、数组不可变（LeetCode 303）
+## 2. Immutable Array (LeetCode 303)
 
-### 题目描述
+### Problem Description
 
-给定一个整数数组 `nums`，多次调用 `sumRange(left, right)`，返回下标 `left` 到 `right`（含两端）之间元素的和。**数组本身不会被修改**。
+Given an integer array `nums`, call `sumRange(left, right)` multiple times, returning the sum of elements from index `left` to `right` (inclusive). **The array itself is never modified**.
 
-**示例：**
+**Example:**
 
 ```text
 nums = [-2, 0, 3, -5, 2, -1]
@@ -61,33 +59,33 @@ sumRange(2, 5) → -1     // 3 + (-5) + 2 + (-1)
 sumRange(0, 5) → -3     // 整个数组
 ```
 
-**约束：** `0 <= nums.length <= 10^4`，`sumRange` 最多调用 `10^4` 次。
+**Constraints:** `0 <= nums.length <= 10^4`, `sumRange` is called at most `10^4` times.
 
-### 朴素解为什么不给分
+### Why the Naive Solution Doesn't Pass
 
-每次 `sumRange` 都从 `left` 累加到 `right`，单次 O(n)。最坏情况下（每次查整个数组）总复杂度 O(n·q)，`n = q = 10^4` 就是 10⁸ 次累加——够呛，而且这个瓶颈**每次查询都要重新付**。
+Each `sumRange` accumulates from `left` to `right`, O(n) per call. In the worst case (querying the entire array each time), total complexity is O(n·q), and `n = q = 10^4` means 10⁸ additions—rough. And this bottleneck **must be paid anew on every query**.
 
-前缀和的价值就在「**付一次，用很久**」：构造时扫一遍 O(n)，之后每次查询只碰两次数组——**O(1)**。
+The value of prefix sums is "**pay once, use forever**": construction scans once in O(n), and afterward each query touches the array only twice—**O(1)**.
 
-### 关键：多开一位，语义才干净
+### The Key: One Extra Slot Makes the Semantics Clean
 
-定义前缀数组 `pre`，长度 **`n + 1`**：
+Define the prefix array `pre` with length **`n + 1`**:
 
 ```text
 pre[0] = 0
 pre[i] = nums[0] + nums[1] + ... + nums[i-1]     (1 ≤ i ≤ n)
 ```
 
-也就是说 **`pre[i]` 表示「前 i 个元素的和」**，是一个**左闭右开**区间的累计值 `[0, i)`。多开的那一位 `pre[0] = 0` 是整套写法的粘合剂——它让「空区间」也有前缀和，边界不用特判。
+That is, **`pre[i]` represents "the sum of the first i elements"**, a cumulative value over a **left-closed, right-open** interval `[0, i)`. The extra slot `pre[0] = 0` is the glue for the whole approach—it gives the "empty interval" a prefix sum too, so boundaries need no special-casing.
 
-于是区间 `[left, right]`（闭区间）的和可以写成**两个前缀之差**：
+Thus the sum over interval `[left, right]` (closed interval) can be written as **the difference of two prefixes**:
 
 ```text
 sum(left, right) = nums[left] + ... + nums[right]
                  = pre[right + 1] - pre[left]
 ```
 
-为什么是 `right + 1`？因为 `pre[right + 1]` 才刚好包含到 `nums[right]`（前 `right + 1` 个元素 = 下标 0..right），而 `pre[left]` 恰好是 `left` 之前的部分。**一头一尾对上了。**
+Why `right + 1`? Because `pre[right + 1]` just barely includes up to `nums[right]` (the first `right + 1` elements = indices 0..right), while `pre[left]` is exactly the part before `left`. **Head and tail line up.**
 
 ```text
 nums:  [ -2,  0,  3, -5,  2, -1 ]
@@ -102,9 +100,9 @@ sumRange(2, 5) = pre[6] - pre[2] = -3 - (-2) = -1   ✓
                   └ 前 6 个 ┘  └ 前 2 个 ┘
 ```
 
-### 三段式模板
+### The Three-Part Template
 
-前缀和的代码永远是三段：**建表 → 查表 → （C 语言）释放**。
+Prefix sum code is always three parts: **build table → query table → (C only) free**.
 
 ```text
 ① 建表：pre[0] = 0;  for i in 1..n:  pre[i] = pre[i-1] + nums[i-1]
@@ -173,30 +171,29 @@ NumArray.prototype.sumRange = function (left, right) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 构造 | **O(n)** — 扫一遍数组 |
-| 单次查询 | **O(1)** — 一次减法 |
-| 空间 | **O(n)** — 多存一个长度 `n + 1` 的数组 |
+| Construction | **O(n)** — one pass over the array |
+| Single query | **O(1)** — one subtraction |
+| Space | **O(n)** — one extra array of length `n + 1` |
 
-### 易错点
+### Common Pitfalls
 
-1. **`pre` 忘记多开一位。** 只开 `n` 长度，`pre[right + 1]` 在 `right == n - 1` 时就越界。多开的那一位不是「浪费」，它是 `sumRange(0, x)` 能写成统一公式的前提。
-2. **下标差一。** 记住这套语义就错不了：**`pre[i]` 对应「前 i 个」，查询是 `pre[right + 1] - pre[left]`**。`right` 要 `+1`、`left` 不要，是因为左闭右开区间 `[left, right+1)` 正好等于闭区间 `[left, right]`。
-3. **混淆 `nums[i]` 和 `pre[i]` 的下标。** 建表那行是 `pre[i + 1] = pre[i] + nums[i]`——**`pre` 比 `nums` 整体错开一位**。写成 `pre[i] += nums[i]` 就全乱了。
-4. **题目没保证区间非空但保证了 `left ≤ right`。** `left == right` 时公式给出 `nums[left]` 本身，天然正确，不用特判。
+1. **Forgetting to allocate one extra slot in `pre`.** Allocating only `n` in length means `pre[right + 1]` goes out of bounds when `right == n - 1`. The extra slot isn't "waste"—it's the precondition for writing `sumRange(0, x)` as a unified formula.
+2. **Off-by-one in indices.** Remember this semantics and you can't go wrong: **`pre[i]` corresponds to "the first i elements", and the query is `pre[right + 1] - pre[left]`**. `right` wants `+1`, `left` doesn't, because the left-closed, right-open interval `[left, right+1)` is exactly the closed interval `[left, right]`.
+3. **Confusing the indices of `nums[i]` and `pre[i]`.** The build-table line is `pre[i + 1] = pre[i] + nums[i]`—**`pre` is shifted by one relative to `nums`**. Writing `pre[i] += nums[i]` throws everything off.
+4. **The problem doesn't guarantee the interval is non-empty but does guarantee `left ≤ right`.** When `left == right`, the formula yields `nums[left]` itself, which is naturally correct—no special-casing needed.
 
 ---
+## 3. Immutable Matrix (LeetCode 304)
 
-## 三、矩阵不可变（LeetCode 304）
+### Problem Description
 
-### 题目描述
+Given a 2D matrix `matrix`, call `sumRegion(row1, col1, row2, col2)` multiple times, returning the sum of elements within the **rectangular region** formed from the top-left corner `(row1, col1)` to the bottom-right corner `(row2, col2)` (all four corners inclusive). **The matrix itself will not be modified.**
 
-给定一个二维矩阵 `matrix`，多次调用 `sumRegion(row1, col1, row2, col2)`，返回左上角 `(row1, col1)` 到右下角 `(row2, col2)` 构成的**矩形区域**内元素的和（四个角都含）。**矩阵本身不会被修改**。
-
-**示例：**
+**Example:**
 
 ```text
 matrix = [[3, 0, 1, 4, 2],
@@ -210,23 +207,23 @@ sumRegion(1, 1, 2, 2) → 11
 sumRegion(1, 2, 2, 4) → 12
 ```
 
-**约束：** `m, n <= 200`，`sumRegion` 最多调用 `10^4` 次。
+**Constraints:** `m, n <= 200`, `sumRegion` will be called at most `10^4` times.
 
-### 从一维到二维：多开「一圈」
+### From 1D to 2D: Allocate an Extra "Ring"
 
-一维时多开一位（`pre[0] = 0`），二维时**多开一行一列**：`pre` 大小 `(m + 1) × (n + 1)`，第 0 行和第 0 列全填 0。
+In 1D we allocate one extra position (`pre[0] = 0`); in 2D we **allocate one extra row and one extra column**: `pre` of size `(m + 1) × (n + 1)`, with row 0 and column 0 all filled with 0.
 
-定义：
+Definition:
 
 ```text
 pre[i][j] = 矩阵中左上角 (0,0) 到右下角 (i-1, j-1) 的子矩阵之和
 ```
 
-也就是 `pre[i][j]` 表示「**前 i 行、前 j 列**」构成的矩形和。多出来的第 0 行 / 第 0 列，就是二维版的 `pre[0] = 0`——它让「贴着上边界或左边界」的查询不用特判。
+That is, `pre[i][j]` represents the rectangle sum formed by "**the first i rows and the first j columns**." The extra row 0 / column 0 is the 2D version of `pre[0] = 0`—it lets queries that "hug the top or left boundary" avoid special-case handling.
 
-### 递推：一个格子由三个格子推出来
+### Recurrence: One Cell Derived from Three Cells
 
-`pre[i][j]` 覆盖的矩形，可以拆成三块已知区域再加当前格子 `matrix[i-1][j-1]`：
+The rectangle covered by `pre[i][j]` can be decomposed into three known regions plus the current cell `matrix[i-1][j-1]`:
 
 ```text
 ① pre[i-1][j]     正上方的矩形（前 i-1 行、前 j 列）
@@ -238,7 +235,7 @@ pre[i][j] = pre[i-1][j] + pre[i][j-1] - pre[i-1][j-1] + matrix[i-1][j-1]
             └────①────┘ └────②────┘ └─────③─────┘ └──────④──────┘
 ```
 
-**为什么减 `pre[i-1][j-1]`？** ① 和 ② 都覆盖了左上角那块「前 i-1 行、前 j-1 列」，它被重复加了两次，所以补一次减法——这就是**容斥原理**。
+**Why subtract `pre[i-1][j-1]`?** Both ① and ② cover the top-left block "the first i-1 rows and the first j-1 columns," which gets added twice, so we compensate with one subtraction—this is the **inclusion-exclusion principle**.
 
 ```text
       前 j-1 列   第 j 列
@@ -250,9 +247,9 @@ i-1 │    ③     │  ① │
 i行 └──────────┴─────┘
 ```
 
-### 查询：四个角，两个减一个加
+### Query: Four Corners, Two Subtractions and One Addition
 
-矩形 `(r1, c1) ~ (r2, c2)` 的和，用四个「从原点到某角」的前缀和做容斥：
+The sum of rectangle `(r1, c1) ~ (r2, c2)` is computed using inclusion-exclusion over four "from origin to some corner" prefix sums:
 
 ```text
 sum(r1, c1, r2, c2)
@@ -262,7 +259,7 @@ sum(r1, c1, r2, c2)
     + pre[r1][c1]             /* 加：左上被减了两次，补回来 */
 ```
 
-**四个角的位置**（注意每个都是 `±1` 之后的前缀和下标）：
+**Positions of the four corners** (note each is a prefix-sum index after `±1`):
 
 ```text
                         c1        c2
@@ -283,9 +280,9 @@ sum(r1, c1, r2, c2)
  = 目标    ▓▓ 格子之和
 ```
 
-**记忆口诀：右下 `+1`，左上不加；减两次的补一次加。** 也就是 `r2`、`c2` 处取 `+1`，`r1`、`c1` 处原样，符号从左到右是 `+ − − +`。
+**Mnemonic: bottom-right `+1`, top-left no addition; what was subtracted twice gets added back once.** That is, at `r2` and `c2` take `+1`, at `r1` and `c1` keep as-is, and the signs from left to right are `+ − − +`.
 
-### 三段式模板
+### Three-Part Template
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -376,96 +373,95 @@ NumMatrix.prototype.sumRegion = function (row1, col1, row2, col2) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 构造 | **O(m·n)** — 每个格子常数次运算 |
-| 单次查询 | **O(1)** — 四个查询、三次加减 |
-| 空间 | **O(m·n)** — 多开一行一列 |
+| Construction | **O(m·n)** — constant number of operations per cell |
+| Single query | **O(1)** — four lookups, three additions/subtractions |
+| Space | **O(m·n)** — one extra row and column |
 
-### 易错点
+### Common Pitfalls
 
-1. **四个角记混。** 卡死时别背公式，回去看上面的容斥图：大矩形减上方条、减左方条，左上块被减了两次所以加回来。**符号顺序 `+ − − +`**，只有 `r2`、`c2` 带 `+1`。
-2. **`pre` 的第 0 行 / 第 0 列没置 0。** C 语言里 `malloc` 不会清零——必须用 `calloc`（或 memset）把多开的一圈显式置 0，否则贴着上/左边界时读到垃圾值。
-3. **`matrix[i-1][j-1]` 写成了 `matrix[i][j]`。** 建表循环从 1 开始，`pre` 的下标比 `matrix` 大 1，取原矩阵元素时一定要**减回来**。
-4. **行列为空。** 矩阵至少 1 行 1 列（题目约束保证），所以 C 版直接取 `matrixColSize[0]` 安全；但如果自己封装通用函数，空矩阵要单独挡一道。
+1. **Mixing up the four corners.** When stuck, don't memorize the formula—go back to the inclusion-exclusion diagram above: the big rectangle minus the top strip, minus the left strip; the top-left block was subtracted twice so add it back. **Sign order `+ − − +`**, only `r2` and `c2` carry `+1`.
+2. **Row 0 / column 0 of `pre` not set to 0.** In C, `malloc` does not zero-initialize—you must use `calloc` (or memset) to explicitly zero the extra ring, otherwise you read garbage values when hugging the top/left boundary.
+3. **`matrix[i-1][j-1]` written as `matrix[i][j]`.** The table-building loop starts from 1, and the index of `pre` is 1 larger than that of `matrix`, so when accessing the original matrix element you must **subtract it back**.
+4. **Empty rows or columns.** The matrix has at least 1 row and 1 column (guaranteed by the problem constraints), so the C version can safely take `matrixColSize[0]` directly; but if you wrap it in a general-purpose function yourself, empty matrices need a separate guard.
 
 ---
+## 4. Two Templates Side by Side
 
-## 四、两套模板对照
-
-| | 一维（数组不可变） | 二维（矩阵不可变） |
+| | One-dimensional (immutable array) | Two-dimensional (immutable matrix) |
 |---|---|---|
-| `pre` 尺寸 | `n + 1` | `(m + 1) × (n + 1)` |
-| `pre` 的语义 | 前 `i` 个元素和 | 前 `i` 行、前 `j` 列的矩形和 |
-| 建表递推 | `pre[i] = pre[i-1] + nums[i-1]` | `pre[i][j] = pre[i-1][j] + pre[i][j-1] − pre[i-1][j-1] + M[i-1][j-1]` |
-| 容斥项数 | 2 项（两端） | 4 项（四个角） |
-| 查询公式 | `pre[r+1] − pre[l]` | `pre[r2+1][c2+1] − pre[r1][c2+1] − pre[r2+1][c1] + pre[r1][c1]` |
-| 符号规律 | `−` | `+ − − +` |
-| 构造 / 查询 / 空间 | O(n) / O(1) / O(n) | O(m·n) / O(1) / O(m·n) |
+| `pre` Size | `n + 1` | `(m + 1) × (n + 1)` |
+| Semantics of `pre` | Sum of the first `i` elements | Rectangular sum of the first `i` rows and first `j` columns |
+| Table-building recurrence | `pre[i] = pre[i-1] + nums[i-1]` | `pre[i][j] = pre[i-1][j] + pre[i][j-1] − pre[i-1][j-1] + M[i-1][j-1]` |
+| Number of inclusion-exclusion terms | 2 terms (two ends) | 4 terms (four corners) |
+| Query formula | `pre[r+1] − pre[l]` | `pre[r2+1][c2+1] − pre[r1][c2+1] − pre[r2+1][c1] + pre[r1][c1]` |
+| Sign pattern | `−` | `+ − − +` |
+| Build / Query / Space | O(n) / O(1) / O(n) | O(m·n) / O(1) / O(m·n) |
 
-一句话总结：**一维是「多开一位」，二维是「多开一圈」；项数从 2 变 4，是因为矩形边界比线段多一个维度。** 理解了二维的容斥，三维、四维只是项数指数增长——但工程里几乎用不到，理解到这个层级足够了。
+In one sentence: **One dimension is "allocate one extra slot," two dimensions is "allocate one extra ring"; the number of terms goes from 2 to 4 because a rectangle's boundary has one more dimension than a line segment.** Once you understand two-dimensional inclusion-exclusion, three and four dimensions are just exponential growth in the number of terms—but they're almost never used in engineering, and understanding up to this level is enough.
 
 ---
 
-## 五、前缀和的局限性
+## 5. Limitations of Prefix Sums
 
-前面两节顺风顺水，是因为题目把最苛刻的条件写在了标题里：**Immutable——不可变**。这一节把隐藏的前提摊开讲：**前缀和不是万能加速器，它是拿「预处理换查询」的静态技巧，一旦前提破了就会失效。**
+The previous two sections went smoothly because the problem wrote its most demanding condition right in the title: **Immutable**. This section lays out the hidden premise: **prefix sums are not a universal accelerator—they are a static technique that trades preprocessing for queries, and once the premise breaks, they stop working.**
 
-### 局限 1：不支持动态修改
+### Limitation 1: No support for dynamic modification
 
-前缀和是**一次性算好、只读**的结构。原数组只要改一个元素 `nums[i]`，从 `i` 往后所有的 `pre[i]` 全部失效，**重建是 O(n)**。
+Prefix sums are a **compute-once, read-only** structure. If even a single element `nums[i]` in the original array changes, every `pre[i]` from `i` onward is invalidated, and **rebuilding is O(n)**.
 
 ```text
 nums: [ 1, 2, 3, 4, 5 ]        把 nums[0] 改成 100
 pre:  [ 0, 1, 3, 6, 10, 15 ]   →  pre[1..5] 全部要重算，O(n)
 ```
 
-于是：
+Therefore:
 
-| 需求 | 前缀和 | 该换成 |
+| Requirement | Prefix sums | Should switch to |
 |---|---|---|
-| **只查询、不修改** | ✅ 最优 | —— |
-| **批量区间修改，最后统一查询** | ❌ | [差分数组](/technology/difference-array/)，修改 O(1)、最后 O(n) 还原 |
-| **单点修改 + 区间查询，交替进行** | ❌ O(n) | **树状数组（BIT）/ 线段树**，两者都是 O(log n) |
+| **Query only, no modification** | ✅ Optimal | —— |
+| **Batch range modifications, then a single final query** | ❌ | [Difference array](/technology/difference-array/), modification O(1), final O(n) to restore |
+| **Point modification + range query, alternating** | ❌ O(n) | **Binary Indexed Tree (BIT) / Segment tree**, both O(log n) |
 
-这就是题目为什么反复强调 "Immutable"——**一旦可变，正确答案就不是前缀和了**。树状数组和线段树本质上是「让前缀和也能增量更新」的升级版，那是另一个话题。
+This is why the problem repeatedly emphasizes "Immutable"—**once it's mutable, prefix sums are no longer the right answer**. Binary Indexed Trees and segment trees are essentially upgraded versions that "let prefix sums be incrementally updated too," but that's another topic.
 
-### 局限 2：只对「有逆运算」的运算成立
+### Limitation 2: Only works for operations with an inverse
 
-一维取区间和的公式 `pre[r+1] - pre[l]`，本质是**用减法去掉区间外的部分**。所以前缀和只对**有逆元的运算**有效：
+The one-dimensional range-sum formula `pre[r+1] - pre[l]` is essentially **using subtraction to remove the part outside the range**. So prefix sums only work for **operations that have an inverse element**:
 
-| 运算 | 有逆元？ | 区间查询能否用前缀和 | 说明 |
+| Operation | Has inverse? | Can range queries use prefix sums? | Notes |
 |---|---|---|---|
-| 加法 `+` | ✅ 减法 | **可以** | 区间和 `= pre[r+1] - pre[l]` |
-| 异或 `^` | ✅ 异或自身 | **可以** | 区间异或 `= pre[r+1] ^ pre[l]` |
-| 模意义下的乘法 | ✅ 乘法逆元 | 可以（模为素数时） | 需要求逆元，且**遇到 0 就崩** |
-| `min` / `max` | ❌ | **不行** | 前缀最小值和区间最小值没有减法关系 |
-| `gcd` / `lcm` | ❌ | **不行** | 同理，无法「除掉」区间外部分 |
-| 普通乘法 | ❌ | **不行** | 数组里一旦有 0 就无逆元；就算没有，也要小心精度 |
+| Addition `+` | ✅ Subtraction | **Yes** | Range sum `= pre[r+1] - pre[l]` |
+| XOR `^` | ✅ XOR is its own inverse | **Yes** | Range XOR `= pre[r+1] ^ pre[l]` |
+| Multiplication under a modulus | ✅ Modular inverse | Yes (when modulus is prime) | Requires computing inverses, and **breaks down on 0** |
+| `min` / `max` | ❌ | **No** | Prefix minimum and range minimum have no subtraction relationship |
+| `gcd` / `lcm` | ❌ | **No** | Same reasoning—can't "divide out" the part outside the range |
+| Ordinary multiplication | ❌ | **No** | Once there's a 0 in the array there's no inverse; even without one, watch out for precision |
 
 ```text
 区间最小值 ≠ prefixMin[r+1] - prefixMin[l]     ← 完全错误，前缀 min 减不出来
 ```
 
-需要**区间 min / max / gcd** 时，该换的武器是：
+When you need **range min / max / gcd**, the weapons to switch to are:
 
-| 需求 | 结构 | 单次查询 |
+| Requirement | Structure | Per-query cost |
 |---|---|---|
-| 静态区间最值 | **ST 表（稀疏表）** | O(1) 查询，O(n log n) 预处理 |
-| 动态区间最值 | **线段树** | O(log n) |
-| **滑动窗口**最值 | **单调队列** | O(1) 均摊 |
+| Static range min/max | **Sparse Table (ST table)** | O(1) query, O(n log n) preprocessing |
+| Dynamic range min/max | **Segment tree** | O(log n) |
+| **Sliding window** min/max | **Monotonic queue** | O(1) amortized |
 
-> **一句话判据：能写出 `区间结果 = f(前缀, 前缀)` 这种「相减/相消」关系的，才轮到前缀和。**
+> **One-line criterion: only when you can write a "subtract/cancel" relationship like `区间结果 = f(前缀, 前缀)` is it prefix sums' turn.**
 
-### 局限 3：累加会溢出，也会丢精度
+### Limitation 3: Accumulation overflows and loses precision
 
-前缀和是**累加量**，数值比原数组大得多，溢出风险和原数组不是一个量级。
+Prefix sums are **accumulated quantities**, much larger in magnitude than the original array, so the overflow risk is on a different scale entirely.
 
-- **整数溢出**：`10^5` 个 `10^9` 级别的数相加，和能到 `10^14`——**32 位 `int` 早就爆了**。构建前缀和时**必须开 `long long`（C / C++）/ `BigInt`（JS）**，哪怕题目原数组是 `int`。
-- **浮点误差**：`pre[r+1] - pre[l]` 是两个大数相减，**大数相减会导致有效位丢失**。若数组元素是浮点数，长前缀相减可能得到明显偏差的结果，需要对精度敏感的场景改用其他方案。
-- **二维放大更快**：矩阵不可变里 `pre` 的每个格子是矩形和，总量是 `m·n` 个元素的和——**溢出门槛比一维更低**，更要用宽类型。
+- **Integer overflow**: summing `10^5` numbers on the order of `10^9` can reach `10^14`—**32-bit `int` blows up long before that**. When building prefix sums you **must use `long long` (C / C++) / `BigInt` (JS)**, even if the problem's original array is `int`.
+- **Floating-point error**: `pre[r+1] - pre[l]` is the subtraction of two large numbers, and **subtracting large numbers causes loss of significant digits**. If the array elements are floating-point, subtracting long prefixes can yield noticeably biased results, and precision-sensitive scenarios need a different approach.
+- **Two dimensions amplify faster**: in the immutable matrix, each cell of `pre` is a rectangular sum, totaling the sum of `m·n` elements—**the overflow threshold is even lower than in one dimension**, so wide types are even more essential.
 
 ```cpp
 // ❌ 原数组是 int，但前缀和一定是 long long
@@ -477,34 +473,34 @@ vector<long long> pre(n + 1, 0);
 pre[i + 1] = pre[i] + nums[i];
 ```
 
-### 局限 4：丢掉了区间内部结构
+### Limitation 4: Loses the internal structure of the range
 
-前缀和只记住「到某点的累计值」，换来 O(1) 查询，代价是**看不见区间内部的分布**。两类问题因此与它无缘：
+Prefix sums only remember "the cumulative value up to some point," trading for O(1) queries at the cost of **being unable to see the distribution inside the range**. Two classes of problems are therefore out of reach:
 
-- **需要内部极值的**：区间最大值、最长连续子段……内部信息的答案没法由「两个前缀之差」推出（见局限 2）。
-- **依赖单调性的**：前缀和单调**只在元素全非负时成立**。数组里一旦有负数，`pre` 就不再单调，于是「二分前缀和找答案」这类套路当场失效——比如**和为 K 的子数组**，元素含负数时就不能靠双指针/二分，只能老老实实**哈希表 + 前缀和**统计出现次数（详见[原理篇](/technology/prefix-sum/)）。
+- **Those needing internal extrema**: range maximum, longest consecutive subsegment... the answers to internal-information questions can't be derived from "the difference of two prefixes" (see Limitation 2).
+- **Those relying on monotonicity**: prefix sums are monotonic **only when all elements are non-negative**. Once there are negative numbers in the array, `pre` is no longer monotonic, and tricks like "binary search on prefix sums to find the answer" fail on the spot—for example, **subarrays summing to K**: when elements include negatives, you can't rely on two pointers / binary search, and must honestly use a **hash map + prefix sums** to count occurrences (see the [Principles article](/technology/prefix-sum/) for details).
 
 ```text
 nums = [1, -1, 1, -1]     pre = [0, 1, 0, 1, 0]   ← 上下反复，不单调
 nums = [1,  2, 3,  4]     pre = [0, 1, 3, 6, 10]  ← 单调递增
 ```
 
-### 局限小结
+### Limitations summary
 
-| 前缀和能回答 | 前缀和答不了，该换成 |
+| What prefix sums can answer | What prefix sums can't, and what to switch to |
 |---|---|
-| 静态数组/矩阵的任意区间和 | 元素可变 → 树状数组 / 线段树 |
-| 静态区间异或、模意义乘法 | 区间 min / max / gcd → ST 表 / 线段树 / 单调队列 |
-| 全非负 + 找和/二分类问题 | 含负数 + 二分 → 哈希表前缀和计数 |
-| —— | 数值超大 → 宽类型 / BigInt；浮点 → 换方案 |
+| Any range sum of a static array/matrix | Elements mutable → Binary Indexed Tree / Segment tree |
+| Static range XOR, modular multiplication | Range min / max / gcd → Sparse table / Segment tree / Monotonic queue |
+| All non-negative + sum-finding / binary-search-type problems | Contains negatives + binary search → Hash map prefix-sum counting |
+| —— | Values too large → Wide types / BigInt; floating-point → switch approach |
 
-**记住前缀和的定位：它是「静态区间可逆聚合」的专用加速器，不是通用数据结构。** 用之前先问三句——**数据会变吗？运算可逆吗？数值会溢出吗？** 三问都过关，再上前缀和。
+**Remember prefix sums' positioning: it's a specialized accelerator for "static, invertible range aggregation," not a general-purpose data structure.** Before using it, ask three questions—**Will the data change? Is the operation invertible? Will the values overflow?** Only when all three pass should you bring out prefix sums.
 
 ---
 
-## 相关文章
+## Related Articles
 
-- [前缀和：把区间求和从 O(n) 降到 O(1)](/technology/prefix-sum/) — 原理、和为 K 的子数组、前缀积等变体
-- [差分数组：把区间修改从 O(n) 降到 O(1)](/technology/difference-array/) — 前缀和的逆运算，批量区间修改的利器
-- [二维数组：从矩阵遍历到原地变换](/technology/two-d-array/) — 矩阵不变量、原地旋转与二维下标推导
-- [二分查找框架：一套模板搞定元素搜索与左右边界](/technology/binary-search-template/) — 同属「一套模板收敛一类题」的思路
+- [Prefix Sums: Bringing Range Sum from O(n) down to O(1)](/technology/prefix-sum/) — Principles, subarrays summing to K, prefix products, and other variants
+- [Difference Arrays: Bringing Range Modification from O(n) down to O(1)](/technology/difference-array/) — The inverse operation of prefix sums, a sharp tool for batch range modifications
+- [Two-Dimensional Arrays: From Matrix Traversal to In-Place Transformation](/technology/two-d-array/) — Matrix invariants, in-place rotation, and two-dimensional index derivation
+- [Binary Search Framework: One Template for Element Search and Left/Right Boundaries](/technology/binary-search-template/) — Also in the spirit of "one template converging a class of problems"

@@ -1,17 +1,15 @@
 ---
-title: 寻找单链表的倒数第 K 个节点：双指针间隔法
+title: 'Finding the Kth Node from the End of a Singly Linked List: Two-Pointer Gap Method'
 published: 2026-08-10
-description: '只遍历一次就找到单链表倒数第 K 个节点。使用双指针技巧：fast 先走 K 步，然后 slow 和 fast 同步前进，fast 到末尾时 slow 恰在目标位置。附带 C / C++ / JavaScript 三语言实现。'
+description: 'Find the Kth node from the end of a singly linked list in just one pass. Use the two-pointer technique: fast moves K steps ahead, then slow and fast advance together, so when fast reaches the end, slow is exactly at the target position. Includes implementations in C, C++, and JavaScript.'
 image: ''
-tags: [链表, 双指针, 滑动窗口, C, C++, JavaScript]
-category: '算法'
+tags: [Linked List, Two Pointers, Sliding Window, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
-
-给定一个单链表的头节点 `head` 和一个正整数 `k`，返回链表中**倒数第 `k`** 个节点。
+Given the head node `head` of a singly linked list and a positive integer `k`, return the **`k`th from the end** node in the linked list.
 
 ```
 输入：head = 1→2→3→4→5, k = 2
@@ -19,38 +17,38 @@ lang: ''
 解释：倒数第 2 个节点是 4
 ```
 
-## 解题思路
+## Solution Approach
 
-### 暴力法的问题
+### The Problem with the Brute Force Method
 
-最直接的想法是先遍历一遍求出链表长度 `n`，然后再从头走 `n - k` 步。但这需要**两次遍历**。
+The most straightforward idea is to first traverse the list to find its length `n`, then walk `n - k` steps from the beginning. But this requires **two traversals**.
 
-### 双指针间隔法（一次遍历）
+### Two-Pointer Gap Method (Single Traversal)
 
-想象两个人在一条笔直的马路上赛跑：A 先跑出去 K 米，然后 B 才开始跑。当 A 到达终点时，B 距离终点恰好是 K 米——也就是"倒数第 K 米"的位置。
+Imagine two people racing on a straight road: A runs K meters ahead first, then B starts running. When A reaches the finish line, B is exactly K meters from the finish line—which is the "Kth from the end" position.
 
-对应到链表：
-- `fast` 指针先走 `k` 步
-- 然后 `slow` 和 `fast` 同步前进（每次都走一步）
-- 当 `fast` 到达 `null`（末尾）时，`slow` 恰好指向倒数第 `k` 个节点
+Applied to a linked list:
+- The `fast` pointer moves `k` steps first
+- Then `slow` and `fast` advance in sync (each moving one step at a time)
+- When `fast` reaches `null` (the end), `slow` points exactly to the `k`th from the end node
 
-### 算法步骤
+### Algorithm Steps
 
-1. fast 指针先走 k 步
-2. 如果 fast 在走 k 步的过程中变为 null → k 超出链表长度，返回 null
-3. slow 和 fast 同步前进，直到 fast 指向 null
-4. 返回 slow（此时 slow 指向倒数第 k 个节点）
+1. The fast pointer moves k steps first
+2. If fast becomes null while moving k steps → k exceeds the list length, return null
+3. slow and fast advance in sync until fast points to null
+4. Return slow (at this point slow points to the kth from the end node)
 
-### 关键细节：fast 应该走到哪里？
+### Key Detail: Where Should fast Stop?
 
-假设链表长度为 n，倒数第 k 个节点是正数第 `n - k` 个（从 1 开始编号）。
+Assume the list length is n, and the kth from the end node is the `n - k`th node from the start (1-indexed).
 
-- fast 先走 k 步，到达第 k+1 个节点
-- slow 从第 1 个开始
-- 当 fast 走到第 n+1 个（null）时，slow 同步走到 `(n+1) - k = n - k + 1` 个
-- 这恰好是倒数第 k 个 ✓
+- fast moves k steps first, reaching the (k+1)th node
+- slow starts from the 1st node
+- When fast reaches the (n+1)th position (null), slow advances in sync to the `(n+1) - k = n - k + 1`th node
+- This is exactly the kth from the end ✓
 
-## 代码实现
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -149,7 +147,7 @@ function findKthFromEnd(head, k) {
 ```
 :::
 
-## 图解过程
+## Illustrated Walkthrough
 
 ```
 输入：head = 1→2→3→4→5, k = 2
@@ -177,23 +175,23 @@ Step 2: slow 和 fast 同步走
 当 fast == null 时，slow 指向节点 4（倒数第 2 个节点）
 ```
 
-## 复杂度分析
+## Complexity Analysis
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 只遍历一次链表 |
-| 空间复杂度 | **O(1)** — 只用了两个指针 |
+| Time Complexity | **O(n)** — only one traversal of the list |
+| Space Complexity | **O(1)** — only two pointers used |
 
-## 关键要点
+## Key Takeaways
 
-1. **间隔的思想**：fast 和 slow 始终保持 k 步的间隔，这是双指针技巧的核心
-2. **边界处理**：fast 先走 k 步的过程中，如果中途变为 null，说明 k > n，需返回 null
-3. **一次遍历**：相比"先求长度再走 n-k 步"的两次遍历，双指针只需一次
+1. **The gap concept**: fast and slow always maintain a gap of k steps—this is the core of the two-pointer technique
+2. **Boundary handling**: while fast moves k steps first, if it becomes null midway, it means k > n, and null should be returned
+3. **Single traversal**: compared to the two-traversal approach of "find length first, then walk n-k steps," two pointers need only one
 
-## 扩展思考
+## Extended Thinking
 
-- 如果要**删除**倒数第 k 个节点（LeetCode 19），如何利用本题思路找到倒数第 k+1 个节点？
-- 如果链表是**双向链表**，能否有更优解法？
+- If you need to **delete** the kth from the end node (LeetCode 19), how can you use this problem's approach to find the (k+1)th from the end node?
+- If the list is **doubly linked**, is there a more optimal solution?
 
-相关文章：
-- [寻找链表的中点](/technology/linked-list-middle/) — 同样是双指针，但这里是"速度差"而非"位置差"
+Related articles:
+- [Finding the Middle of a Linked List](/technology/linked-list-middle/) — also two pointers, but here it's a "speed difference" rather than a "position difference"

@@ -1,76 +1,74 @@
 ---
-title: 寻找重复数：二分查找与快慢指针（不修改数组、O(1) 空间）
+title: 'Find the Duplicate Number: Binary Search and Fast/Slow Pointers (No Array Modification, O(1) Space)'
 published: 2026-09-01
-description: '给定 n+1 个取值范围在 [1,n] 的整数，找出唯一的重复数，且不修改数组、只用 O(1) 额外空间。分别用值域二分与 Floyd 判圈（快慢指针）两种思路求解，附 C / C++ / JavaScript 三语言实现。'
+description: Given n+1 integers in the range [1,n], find the unique duplicate without modifying the array and using only O(1) extra space. Solve it with value-range binary search and Floyd's cycle detection (fast/slow pointers), with implementations in C, C++, and JavaScript.
 image: ''
-tags: [数组, 二分查找, 快慢指针, Floyd判圈, 双指针, 鸽巢原理, C, C++, JavaScript]
-category: '算法'
+tags: [Array, Binary Search, Fast and Slow Pointers, Floyd's Cycle Detection, Two Pointers, Pigeonhole Principle, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 题目描述
+Given an array `n + 1` containing `nums` integers, where the numbers are all in the range `[1, n]` (inclusive of 1 and n), it is known that at least one duplicate integer exists.
 
-给定一个包含 `n + 1` 个整数的数组 `nums`，其数字都在 `[1, n]` 范围内（包括 1 和 n），可知至少存在一个重复的整数。
+Assuming that `nums` contains **only one** duplicate integer, return this duplicate number.
 
-假设 `nums` **只有一个**重复的整数，返回这个重复的数。
+Your designed solution must **not modify** the array `nums`, and must use only constant-level **O(1)** extra space.
 
-你设计的解决方案必须**不修改**数组 `nums`，且只用常量级 **O(1)** 的额外空间。
-
-**示例 1：**
+**Example 1:**
 
 ```
 输入：nums = [1,3,4,2,2]
 输出：2
 ```
 
-**示例 2：**
+**Example 2:**
 
 ```
 输入：nums = [3,1,3,4,2]
 输出：3
 ```
 
-**示例 3：**
+**Example 3:**
 
 ```
 输入：nums = [3,3,3,3,3]
 输出：3
 ```
 
-**提示与约束：**
+**Hints and Constraints:**
 
 - `1 <= n <= 10^5`
 - `nums.length == n + 1`
 - `1 <= nums[i] <= n`
-- `nums` 中只有一个整数出现两次或多次，其余整数均只出现一次
+- `nums` contains only one integer that appears twice or more, and all other integers appear only once
 
-## 为什么至少存在一个重复数
+## Why at least one duplicate must exist
 
-这是**鸽巢原理**（抽屉原理）的直接应用：
+This is a direct application of the **pigeonhole principle** (drawer principle):
 
-> 把 `n + 1` 只「鸽子」放进 `n` 个「巢」里，至少有一个巢里住着两只鸽子。
+> Place `n + 1` "pigeons" into `n` "nests"; at least one nest must contain two pigeons.
 
-在本题中，「鸽子」是数组里的 `n + 1` 个元素，「巢」是取值范围 `1..n` 这 `n` 个数字。元素数量比取值个数多 1，所以必然有某个数字至少出现两次——重复数一定存在。
+In this problem, the "pigeons" are the `n + 1` elements in the array, and the "nests" are the `n` numbers in the value range `1..n`. The number of elements is one more than the number of possible values, so some number must appear at least twice—the duplicate is guaranteed to exist.
 
-## 解法一：值域二分（O(n log n) 时间 / O(1) 空间）
+## Solution 1: Binary search on the value range (O(n log n) time / O(1) space)
 
-### 核心洞察
+### Core insight
 
-直觉上，二分查找需要「有序数组」；但本题的关键在于：**我们不是对数组下标二分，而是对值的范围 `[1, n]` 二分**。
+Intuitively, binary search requires a "sorted array"; but the key to this problem is: **we are not binary searching over array indices, but over the value range `[1, n]`**.
 
-对任意候选值 `mid ∈ [1, n]`，统计 `nums` 中满足 `≤ mid` 的元素个数，记为 `cnt`：
+For any candidate value `mid ∈ [1, n]`, count the number of elements in `nums` satisfying `≤ mid`, denoted as `cnt`:
 
-- 如果 `cnt > mid`：说明 `[1, mid]` 这个范围里「装了比范围本身还多的元素」。由鸽巢原理，重复数必然落在 `[1, mid]`，于是把右边界收紧到 `mid`。
-- 如果 `cnt <= mid`：说明重复数不在 `[1, mid]`，而落在 `[mid + 1, n]`，于是把左边界推进到 `mid + 1`。
+- If `cnt > mid`: this means the range `[1, mid]` "contains more elements than the range itself." By the pigeonhole principle, the duplicate must lie in `[1, mid]`, so tighten the right boundary to `mid`.
+- If `cnt <= mid`: this means the duplicate is not in `[1, mid]`, but in `[mid + 1, n]`, so advance the left boundary to `mid + 1`.
 
-> 为什么 `cnt > mid` 就一定有重复？因为范围 `[1, mid]` 一共只有 `mid` 个不同数字，若它们每个最多出现一次，则 `≤ mid` 的元素最多只有 `mid` 个；现在 `cnt > mid`，说明其中必然有数字出现了不止一次。
+> Why must `cnt > mid` contain a duplicate? Because the range `[1, mid]` has only `mid` distinct numbers in total; if each of them appeared at most once, then `≤ mid` would contain at most `mid` elements; now `cnt > mid`, which means some number must appear more than once.
 
-不断二分，最终收敛到的 `left` 就是那个重复数。
+Keep binary searching, and the final converged `left` is the duplicate number.
 
-### 分步图解
+### Step-by-step illustration
 
-以 `nums = [1,3,4,2,2]`、`n = 4` 为例（值域 `[1,4]`）：
+Take `nums = [1,3,4,2,2]`, `n = 4` as an example (value range `[1,4]`):
 
 ```text
 初始：left=1, right=4
@@ -84,42 +82,42 @@ mid = 1，统计 ≤ 1 的元素：[1] → cnt = 1
 left == right == 2 → 返回 2 ✔
 ```
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n log n)** — 二分共 O(log n) 轮，每轮扫描整个数组 O(n) |
-| 空间复杂度 | **O(1)** — 只用了几个计数变量 |
-| 是否修改数组 | **否** — 全程只读 |
+| Time complexity | **O(n log n)** — binary search takes O(log n) rounds in total, each round scans the entire array O(n) |
+| Space complexity | **O(1)** — only a few counting variables are used |
+| Whether the array is modified | **No** — read-only throughout |
 
-## 解法二：快慢指针 / Floyd 判圈（O(n) 时间 / O(1) 空间）
+## Solution 2: Fast and slow pointers / Floyd cycle detection (O(n) time / O(1) space)
 
-### 核心洞察：把数组看成链表
+### Core insight: treat the array as a linked list
 
-这是本题最精妙的一步——**把数组当成一个链表**：
+This is the most ingenious step in this problem—**treat the array as a linked list**:
 
-- 把每个下标 `i` 看作链表的一个「节点」；
-- 节点 `i` 的 `next` 指针指向 `nums[i]`，即 `i → nums[i]`。
+- Treat each index `i` as a "node" of the linked list;
+- The `next` pointer of node `i` points to `nums[i]`, i.e., `i → nums[i]`.
 
-由于所有元素值都在 `[1, n]`，而数组长度为 `n + 1`，所以：
+Since all element values are in `[1, n]`, and the array length is `n + 1`, therefore:
 
-- **没有任何节点指向下标 `0`**（所有值都 ≥ 1）；
-- 从下标 `0` 出发沿着 `next` 一直走，必然会进入一个「环」。
+- **No node points to index `0`** (all values are ≥ 1);
+- Starting from index `0` and following `next`, one must eventually enter a "cycle."
 
-而这个**环的入口，恰好就是重复数**——因为重复数 `d` 被至少两个不同的下标同时指向，形成「两条路径汇入同一个节点」，这正是环入口的特征。
+And the **entrance of this cycle is exactly the duplicate number**—because the duplicate number `d` is pointed to by at least two different indices simultaneously, forming "two paths merging into the same node," which is precisely the characteristic of a cycle entrance.
 
-于是「找重复数」被转化成了我们已经熟悉的「**找链表环入口**」问题，直接套用 **Floyd 判圈**。
+Thus "finding the duplicate number" is transformed into the familiar problem of "**finding the entrance of a cycle in a linked list**," and we can directly apply **Floyd cycle detection**.
 
-### 两阶段算法
+### Two-phase algorithm
 
-- **第一阶段：找到环内相遇点**。`slow` 每次走一步（`slow = nums[slow]`），`fast` 每次走两步（`fast = nums[nums[fast]]`），直到两者相遇。
-- **第二阶段：找到环入口**。把 `slow` 重置回下标 `0`，然后 `slow` 与 `fast` **以相同速度**（每次一步）前进，再次相遇的节点就是环入口，也就是重复数。
+- **Phase 1: Find the meeting point inside the cycle.** `slow` moves one step at a time (`slow = nums[slow]`), `fast` moves two steps at a time (`fast = nums[nums[fast]]`), until the two meet.
+- **Phase 2: Find the cycle entrance.** Reset `slow` back to index `0`, then `slow` and `fast` advance **at the same speed** (one step at a time); the node where they meet again is the cycle entrance, which is the duplicate number.
 
-### 数学证明（简）
+### Mathematical proof (brief)
 
-设链表起点到环入口的距离为 `a`，环入口到第一次相遇点的距离为 `b`，环长为 `L`，则相遇点到环入口的剩余距离为 `c = L - b`。
+Let the distance from the starting point of the linked list to the cycle entrance be `a`, the distance from the cycle entrance to the first meeting point be `b`, and the cycle length be `L`; then the remaining distance from the meeting point to the cycle entrance is `c = L - b`.
 
-第一次相遇时，`slow` 走了 `a + b` 步，`fast` 走了 `a + b + k·L` 步（多绕了 k 圈）。因为 `fast` 速度是 `slow` 的两倍：
+At the first meeting, `slow` has walked `a + b` steps, and `fast` has walked `a + b + k·L` steps (having gone around k extra loops). Since `fast`'s speed is twice `slow`'s:
 
 ```text
 2(a + b) = a + b + k·L
@@ -127,13 +125,13 @@ left == right == 2 → 返回 2 ✔
        a = (k-1)·L + (L - b) = (k-1)·L + c
 ```
 
-也就是说：**从起点走 `a` 步到环入口的距离，等于从相遇点走 `c` 步（可能多绕几圈）到环入口的距离**。所以让 `slow` 从起点、`fast` 从相遇点同速前进，必定在环入口相遇。
+In other words: **the distance from the starting point to the cycle entrance after walking `a` steps equals the distance from the meeting point to the cycle entrance after walking `c` steps (possibly with a few extra loops)**. Therefore, letting `slow` start from the starting point and `fast` start from the meeting point and advance at the same speed, they will definitely meet at the cycle entrance.
 
-> 完整的推导细节可参考文末的《判断单链表环并找出环起点》一文。
+> For the complete derivation details, refer to the article "Detecting a cycle in a singly linked list and finding the cycle start" at the end of this post.
 
-### 分步图解
+### Step-by-step illustration
 
-以 `nums = [1,3,4,2,2]` 为例，链表结构为 `0 → 1 → 3 → 2 ⇄ 4`：
+Take `nums = [1,3,4,2,2]` as an example; the linked list structure is `0 → 1 → 3 → 2 ⇄ 4`:
 
 ```text
 下标： 0  1  2  3  4
@@ -156,15 +154,14 @@ slow 重置到 0，fast 留在 4
 返回 2 ✔
 ```
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 两个阶段各线性扫描 |
-| 空间复杂度 | **O(1)** — 只用了两个指针 |
-| 是否修改数组 | **否** — 全程只读 |
-
-## 代码实现
+| Time complexity | **O(n)** — each of the two phases performs a linear scan |
+| Space complexity | **O(1)** — only two pointers are used |
+| Whether the array is modified | **No** — read-only throughout |
+## Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -300,31 +297,31 @@ function findDuplicateFloyd(nums) {
 ```
 :::
 
-## 解法对比
+## Solution Comparison
 
-| 解法 | 时间复杂度 | 空间复杂度 | 修改数组 | 核心思想 |
+| Solution | Time Complexity | Space Complexity | Modifies Array | Core Idea |
 |------|-----------|-----------|---------|---------|
-| 值域二分 | O(n log n) | O(1) | 否 | 对值域二分 + 鸽巢原理计数 |
-| 快慢指针 | **O(n)** | O(1) | 否 | 把数组建模成链表 + Floyd 判圈 |
+| Binary search on value range | O(n log n) | O(1) | No | Binary search on value range + pigeonhole principle counting |
+| Fast and slow pointers | **O(n)** | O(1) | No | Model the array as a linked list + Floyd's cycle detection |
 
-- **二分查找**更通用：只要存在「按阈值计数满足单调性」的性质即可套用，不依赖 `[1, n]` 这一特殊值域；代价是慢一档（多一个 log n）。
-- **快慢指针**是线性最优解，但技巧性强：它依赖「值域 `[1, n]`、长度 `n + 1`」这个精确结构，才能把数组完美建模成带环链表。
+- **Binary search** is more general: it applies as long as there exists a property of "counting by threshold satisfies monotonicity," and does not depend on the special value range of `[1, n]`; the cost is being one notch slower (an extra log n).
+- **Fast and slow pointers** is the linear optimal solution, but it is highly technique-dependent: it relies on the precise structure of "value range `[1, n]`, length `n + 1`" to perfectly model the array as a linked list with a cycle.
 
-## 关键要点
+## Key Points
 
-1. **鸽巢原理是正确性根基**：二分解法的「`cnt > mid` 则重复数在左侧」正是鸽巢原理的另一种表述。
-2. **二分不一定二分下标**：本题展示了「对值域二分」这一重要变体，把「找数」变成「找第一个满足 `cnt > mid` 的位置」。
-3. **把数组当链表是神来之笔**：`i → nums[i]` 的建模让「找重复数」回归到熟悉的「找环入口」问题。
-4. **两者都天然满足约束**：全程只读数组、只用 O(1) 空间，无需排序、无需哈希表、无需标记。
+1. **The pigeonhole principle is the foundation of correctness**: the binary search solution's "`cnt > mid` means the duplicate is on the left side" is precisely another formulation of the pigeonhole principle.
+2. **Binary search does not necessarily mean binary searching indices**: this problem demonstrates the important variant of "binary searching on the value range," turning "finding a number" into "finding the first position that satisfies `cnt > mid`."
+3. **Treating the array as a linked list is a stroke of genius**: the modeling of `i → nums[i]` brings "finding the duplicate number" back to the familiar problem of "finding the cycle entrance."
+4. **Both naturally satisfy the constraints**: the entire process only reads the array and uses only O(1) space, with no need for sorting, hash tables, or marking.
 
-## 扩展思考
+## Extended Thoughts
 
-- 如果**允许修改数组**，还有更直观的做法：遍历时把 `nums[i]` 对应位置的值取负数做「标记」，再次遇到负值即命中重复数（负号标记法，O(n) 时间）。
-- 如果**允许 O(n) 额外空间**，直接用哈希表统计出现次数即可，这是最朴素的对照。
-- 本题的链表建模依赖「值域正好是 `[1, n]`」。如果值域被破坏（比如包含 0），还能否建模成链表？提示：需要给下标 0 一个「不会被指向」的性质。
+- If **modifying the array is allowed**, there is a more intuitive approach: during traversal, negate the value at the position corresponding to `nums[i]` as a "mark," and when a negative value is encountered again, the duplicate is found (negation marking method, O(n) time).
+- If **O(n) extra space is allowed**, simply use a hash table to count occurrences, which is the most straightforward baseline for comparison.
+- The linked list modeling in this problem relies on "the value range being exactly `[1, n]`." If the value range is broken (for example, containing 0), can it still be modeled as a linked list? Hint: index 0 needs a property of "never being pointed to."
 
-## 相关文章
+## Related Articles
 
-- [判断单链表环并找出环起点](/technology/linked-list-cycle/) — Floyd 判圈在链表上的标准版本，含完整数学推导
-- [二分搜索：从入门到边界处理精通](/technology/binary-search/) — 值域二分与边界处理的基础
-- [数组双指针](/technology/two-pointers-array/) — 快慢指针等双指针模式概述
+- [Detecting a Cycle in a Singly Linked List and Finding the Cycle Entrance](/technology/linked-list-cycle/) — the standard version of Floyd's cycle detection on linked lists, with complete mathematical derivation
+- [Binary Search: From Beginner to Mastery of Boundary Handling](/technology/binary-search/) — the fundamentals of binary search on value ranges and boundary handling
+- [Array Two Pointers](/technology/two-pointers-array/) — an overview of two-pointer patterns such as fast and slow pointers

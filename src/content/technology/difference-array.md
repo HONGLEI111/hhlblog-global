@@ -1,48 +1,46 @@
 ---
-title: 差分数组：把区间修改从 O(n) 降到 O(1)
+title: 'Difference Arrays: Reducing Range Updates from O(n) to O(1)'
 published: 2026-04-26
-description: '理解差分数组的原理与实现，用 TypeScript 解决区间增减、航班预订统计等高频问题。'
+description: Understand the principles and implementation of difference arrays, and use TypeScript to solve common problems like range increments and flight booking statistics.
 image: ''
-tags: [差分数组, TypeScript, 算法]
-category: '算法'
+tags: [Difference Array, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+The **Difference Array** is the inverse operation of prefix sums. It transforms the operation of "adding the same value to all elements within a range" into modifying only the two endpoints of the range, thereby reducing a single range update from O(n) to O(1).
+
+> Prerequisites
+> - **Prefix sums**: The difference array is ultimately restored to the original array via prefix sums
+> - **Range endpoints**: Focus on handling the boundaries of `right + 1`
+> - **Offline processing**: Suitable for batch modifications first, then a unified query of results at the end
+
 ---
 
-## 概述
+## Problem Definition
 
-**差分数组（Difference Array）** 是前缀和的逆运算。它把“对一个区间内所有元素加同一个值”的操作，转化为只修改区间两端，从而将单次区间修改从 O(n) 降到 O(1)。
+Given an initial array and multiple range increment/decrement operations, find the final array after all operations are completed.
 
-> 前置知识
-> - **前缀和**：差分数组最后通过前缀和还原原数组
-> - **区间端点**：重点处理 `right + 1` 的边界
-> - **离线处理**：适合先批量修改，最后统一查询结果
-
----
-
-## 问题定义
-
-给定初始数组和多次区间增减操作，求所有操作完成后的最终数组。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 初始数组、若干 `[left, right, delta]` 操作 |
-| 输出 | 所有区间修改后的最终数组 |
-| 更新公式 | `diff[left] += delta`，`diff[right + 1] -= delta` |
-| 还原公式 | `nums[i] = nums[i - 1] + diff[i]` |
+| Input | Initial array, several `[left, right, delta]` operations |
+| Output | The final array after all range modifications |
+| Update formula | `diff[left] += delta`, `diff[right + 1] -= delta` |
+| Restoration formula | `nums[i] = nums[i - 1] + diff[i]` |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-原数组 `[1, 2, 3, 4, 5]` 的差分数组为：
+The difference array of the original array `[1, 2, 3, 4, 5]` is:
 
 ```text
 nums:  1  2  3  4  5
 diff:  1  1  1  1  1
 ```
 
-对区间 `[1, 3]` 加 `2`：
+Add `2` to the range `[1, 3]`:
 
 ```text
 diff[1] += 2   从下标 1 开始整体抬高
@@ -63,7 +61,7 @@ graph LR
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：DifferenceArray(nums, updates)
@@ -79,20 +77,20 @@ graph LR
 7. 对 diff 做前缀和，还原最终数组
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 操作 | 暴力 | 差分 | 说明 |
+| Operation | Brute force | Difference | Description |
 |------|------|------|------|
-| 单次区间修改 | O(n) | O(1) | 只改两个端点 |
-| m 次区间修改 | O(nm) | O(m) | 修改阶段不遍历区间 |
-| 最终还原 | O(1) | O(n) | 统一前缀和还原 |
-| 总复杂度 | O(nm) | O(n + m) | 适合批量离线修改 |
+| Single range update | O(n) | O(1) | Only modify two endpoints |
+| m range updates | O(nm) | O(m) | The update phase does not traverse the range |
+| Final restoration | O(1) | O(n) | Unified prefix sum restoration |
+| Total complexity | O(nm) | O(n + m) | Suitable for batch offline modifications |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 差分数组类
+### 1. Difference Array Class
 
 ```typescript
 class Difference {
@@ -127,7 +125,7 @@ class Difference {
 }
 ```
 
-### 2. 航班预订统计
+### 2. Flight Booking Statistics
 
 ```typescript
 function corpFlightBookings(bookings: number[][], n: number): number[] {
@@ -150,7 +148,7 @@ function corpFlightBookings(bookings: number[][], n: number): number[] {
 }
 ```
 
-### 3. 拼车
+### 3. Car Pooling
 
 ```typescript
 function carPooling(trips: number[][], capacity: number): boolean {
@@ -171,7 +169,7 @@ function carPooling(trips: number[][], capacity: number): boolean {
 }
 ```
 
-### 4. 区间加法
+### 4. Range Addition
 
 ```typescript
 function getModifiedArray(length: number, updates: number[][]): number[] {
@@ -195,41 +193,41 @@ function getModifiedArray(length: number, updates: number[][]): number[] {
 
 ---
 
-## 工程优化：离线修改与动态查询的取舍
+## Engineering Optimization: Trade-offs Between Offline Modifications and Dynamic Queries
 
-差分数组适合“多次修改后一次性取结果”，不适合“边修改边查询”。
+The difference array is suitable for "multiple modifications followed by a single retrieval of results," but not for "querying while modifying."
 
-| 需求 | 推荐结构 | 原因 |
+| Requirement | Recommended structure | Reason |
 |------|------|------|
-| 多次区间加，最后查询 | 差分数组 | 修改 O(1)，最终 O(n) 还原 |
-| 区间加 + 单点查询 | 差分 / 树状数组 | 查询频率决定实现 |
-| 区间加 + 区间查询 | 线段树 | 需要支持懒标记 |
-| 二维矩阵区间加 | 二维差分 | 四个角记录变化 |
+| Multiple range additions, query at the end | Difference array | Update O(1), final O(n) restoration |
+| Range addition + point query | Difference array / Fenwick tree | Query frequency determines the implementation |
+| Range addition + range query | Segment tree | Requires lazy propagation support |
+| 2D matrix range addition | 2D difference | Record changes at four corners |
 
-如果业务里每次修改后都要立即读取区间和，差分数组会失去优势，应换用支持在线查询的数据结构。
+If the business logic requires immediately reading the range sum after each modification, the difference array loses its advantage, and a data structure that supports online queries should be used instead.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 批量区间加减
-- 航班预订、会议室人数、拼车容量
-- 时间轴事件统计
-- 二维网格批量涂色或加权
+- Batch range increment/decrement
+- Flight bookings, meeting room occupancy, carpool capacity
+- Timeline event statistics
+- 2D grid batch coloring or weighting
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 查询滞后 | 通常要所有修改完成后统一还原 |
-| 只适合可累加修改 | 对最大值、最小值等操作不直接适用 |
-| 边界容易出错 | `right + 1` 是否存在必须判断清楚 |
+| Delayed queries | Typically requires all modifications to be completed before unified restoration |
+| Only suitable for additive modifications | Not directly applicable to operations such as maximum or minimum |
+| Boundaries are error-prone | Whether `right + 1` exists must be clearly determined |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -239,9 +237,9 @@ graph LR
     D --> E[前缀和还原]
 ```
 
-**核心要点**：
+**Key points**:
 
-1. 差分数组是前缀和的逆运算。
-2. 区间 `[left, right]` 加值，只需改 `left` 和 `right + 1`。
-3. 适合“批量区间修改 + 最后一次查询”的离线场景。
-4. 动态查询需求更强时，应考虑树状数组或线段树。
+1. The difference array is the inverse operation of prefix sums.
+2. To add a value to the range `[left, right]`, only `left` and `right + 1` need to be modified.
+3. Suitable for offline scenarios of "batch range modifications + a single query at the end."
+4. When dynamic query requirements are stronger, a Fenwick tree or segment tree should be considered.

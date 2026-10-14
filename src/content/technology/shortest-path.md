@@ -1,41 +1,39 @@
 ---
-title: 最短路径：Dijkstra、Bellman-Ford、Floyd 的 TypeScript 实现
+title: 'Shortest Paths: TypeScript Implementations of Dijkstra, Bellman-Ford, and Floyd'
 published: 2026-04-26
-description: '掌握三种经典最短路径算法的原理与 TypeScript 实现，理解适用场景（无负权图、负权边、多源）。'
+description: Master the principles and TypeScript implementations of three classic shortest path algorithms, and understand when to use each (non-negative weight graphs, negative weight edges, multi-source).
 image: ''
-tags: [最短路径, TypeScript, 算法]
-category: '算法'
+tags: [Shortest Path, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Shortest path** studies the minimum-cost path from one point to another in a graph. Depending on whether edge weights can be negative and whether all-pairs results are needed, common algorithms include Dijkstra, Bellman-Ford, and Floyd-Warshall.
+
+> Prerequisites
+> - **Adjacency list / edge list for graphs**: different algorithms suit different representations
+> - **Relaxation operation**: update distances using shorter paths
+> - **Priority queue**: used to optimize Dijkstra's selection of the minimum-distance node
+
 ---
 
-## 概述
+## Problem Definition
 
-**最短路径** 研究图中从一个点到另一个点的最低代价路径。根据边权是否为负、是否需要所有点对结果，常用算法包括 Dijkstra、Bellman-Ford 和 Floyd-Warshall。
+Given a weighted graph, a source and target or all nodes, compute the path length with the smallest sum of path weights.
 
-> 前置知识
-> - **图的邻接表 / 边列表**：不同算法适合不同表示
-> - **松弛操作**：用更短路径更新距离
-> - **优先队列**：用于优化 Dijkstra 的最小距离节点选择
-
----
-
-## 问题定义
-
-给定带权图、起点和终点或全部节点，计算路径权重之和最小的路径长度。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 顶点、带权边、起点或所有点 |
-| 输出 | 单源距离数组、某个目标距离或所有点对距离矩阵 |
-| 核心操作 | 松弛：`dist[v] = min(dist[v], dist[u] + w)` |
-| 算法选择 | 无负权用 Dijkstra，有负权用 Bellman-Ford，多源用 Floyd |
+| Input | Vertices, weighted edges, a source or all points |
+| Output | Single-source distance array, a single target distance, or an all-pairs distance matrix |
+| Core operation | Relaxation: `dist[v] = min(dist[v], dist[u] + w)` |
+| Algorithm choice | Use Dijkstra when there are no negative weights, Bellman-Ford when there are negative weights, and Floyd for multiple sources |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-Dijkstra 每次确定当前未访问节点中距离最小的点：
+Dijkstra determines, at each step, the point with the smallest distance among the currently unvisited nodes:
 
 ```mermaid
 graph LR
@@ -46,18 +44,18 @@ graph LR
     C -- 1 --> D
 ```
 
-从 `0` 出发：
+Starting from `0`:
 
-1. 初始 `dist[0] = 0`，其他为无穷大。
-2. 选择距离最小的未确定节点。
-3. 用它的出边更新邻居距离。
-4. 重复直到所有可达节点确定。
+1. Initially `dist[0] = 0`, others are infinity.
+2. Select the undetermined node with the smallest distance.
+3. Use its outgoing edges to update neighbor distances.
+4. Repeat until all reachable nodes are determined.
 
-Dijkstra 依赖“当前最短节点不会再被更新”的贪心性质，因此不能处理负权边。
+Dijkstra relies on the greedy property that "the current shortest node will not be updated again," so it cannot handle negative-weight edges.
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：Dijkstra(graph, start)
@@ -75,20 +73,19 @@ Dijkstra 依赖“当前最短节点不会再被更新”的贪心性质，因�
 9. 返回 dist
 ```
 
-**复杂度分析**：
+**Complexity analysis**:
 
-| 算法 | 适用场景 | 时间复杂度 | 空间复杂度 |
+| Algorithm | Applicable scenario | Time complexity | Space complexity |
 |------|------|------|------|
-| Dijkstra 朴素版 | 无负权、稠密图 | O(V² + E) | O(V) |
-| Dijkstra 堆优化 | 无负权、稀疏图 | O(E log V) | O(V + E) |
-| Bellman-Ford | 可含负权边 | O(VE) | O(V) |
-| Floyd-Warshall | 所有点对 | O(V³) | O(V²) |
+| Dijkstra naive version | No negative weights, dense graph | O(V² + E) | O(V) |
+| Dijkstra heap-optimized | No negative weights, sparse graph | O(E log V) | O(V + E) |
+| Bellman-Ford | May contain negative-weight edges | O(VE) | O(V) |
+| Floyd-Warshall | All pairs | O(V³) | O(V²) |
 
 ---
+## TypeScript Implementation
 
-## TypeScript 实现
-
-### 1. 图类型与朴素 Dijkstra
+### 1. Graph Types and Naive Dijkstra
 
 ```typescript
 type WeightedGraph = [number, number][][];
@@ -119,7 +116,7 @@ function dijkstra(graph: WeightedGraph, start: number): number[] {
 }
 ```
 
-### 2. 堆优化 Dijkstra
+### 2. Heap-Optimized Dijkstra
 
 ```typescript
 class MinHeap {
@@ -245,40 +242,40 @@ function floydWarshall(graph: number[][]): number[][] {
 
 ---
 
-## 工程优化：按图类型选算法
+## Engineering Optimization: Choosing an Algorithm by Graph Type
 
-| 图特征 | 推荐算法 | 原因 |
+| Graph Characteristics | Recommended Algorithm | Reason |
 |------|------|------|
-| 非负权单源 | Dijkstra + 优先队列 | 速度快，最常用 |
-| 有负权边 | Bellman-Ford | 能检测负权环 |
-| 所有点对 | Floyd-Warshall | 实现简单，适合节点较少 |
-| 边权都为 1 | BFS | 不需要最短路径权重算法 |
-| 0/1 边权 | 0-1 BFS | 可用双端队列优化 |
+| Non-negative weight, single source | Dijkstra + priority queue | Fast, most commonly used |
+| Negative weight edges | Bellman-Ford | Can detect negative weight cycles |
+| All pairs | Floyd-Warshall | Simple to implement, suitable for fewer nodes |
+| All edge weights are 1 | BFS | No need for a shortest path weight algorithm |
+| 0/1 edge weights | 0-1 BFS | Can be optimized with a deque |
 
-实际工程中还要注意距离溢出、不可达节点表示、图是否为有向图，以及输入节点编号是否从 0 开始。
+In practical engineering, also pay attention to distance overflow, representation of unreachable nodes, whether the graph is directed, and whether input node numbering starts from 0.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 地图导航、路由规划
-- 网络延迟时间、任务链路成本
-- 游戏寻路、图上资源分配
-- 多源距离预处理
+- Map navigation, route planning
+- Network delay time, task chain cost
+- Game pathfinding, resource allocation on graphs
+- Multi-source distance preprocessing
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| Dijkstra 不支持负权 | 负权会破坏贪心正确性 |
-| Floyd 成本高 | O(V³) 只适合节点数较小的图 |
-| 图建模影响结果 | 边方向、权重和节点编号必须定义清楚 |
+| Dijkstra does not support negative weights | Negative weights break the correctness of the greedy approach |
+| Floyd is costly | O(V³) is only suitable for graphs with a small number of nodes |
+| Graph modeling affects results | Edge direction, weights, and node numbering must be clearly defined |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -289,9 +286,11 @@ graph LR
     E -->|是| F[Floyd-Warshall]
 ```
 
-**核心要点**：
+**Key Points**:
 
-1. 最短路径的核心操作是松弛边。
-2. 无负权单源最短路优先使用 Dijkstra。
-3. 有负权边时使用 Bellman-Ford，并检测负权环。
-4. 所有点对最短路可用 Floyd，但要接受 O(V³) 成本。
+1. The core operation of shortest paths is edge relaxation.
+2. For single-source shortest paths without negative weights, prefer Dijkstra.
+3. When there are negative weight edges, use Bellman-Ford and detect negative weight cycles.
+4. For all-pairs shortest paths, Floyd can be used, but you must accept the O(V³) cost.
+
+--- END CONTENT ---

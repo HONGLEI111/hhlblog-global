@@ -1,31 +1,29 @@
 ---
-title: 前端三件套：HTML、CSS 与 JavaScript
+title: 'The Frontend Trio: HTML, CSS, and JavaScript'
 published: 2026-06-17
-description: '一文读懂前端三件套 —— HTML 定义结构、CSS 控制样式、JavaScript 赋予交互，理解它们如何协作构建现代网页。'
+description: A guide to the frontend trio — HTML defines structure, CSS controls styling, and JavaScript adds interactivity — and how they work together to build modern web pages.
 image: ''
-tags: [HTML, CSS, JavaScript, 前端基础]
-category: '前端'
+tags: [HTML, CSS, JavaScript, Frontend Fundamentals]
+category: Frontend
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+If front-end development were compared to building a house, then:
+
+- **HTML** is the skeleton and structure of the house — the walls, floors, and ceiling
+- **CSS** is the decoration and finishing — paint, wallpaper, furniture placement
+- **JavaScript** is the plumbing, electrical system, and smart home features — turning lights on and off, adjusting temperature, automated curtains
+
+Each of the three has its own role, and none can be missing. Once you understand this trio, you've got your ticket into the front-end world.
+
 ---
 
-## 1. 引言
+## 2. HTML: The Skeleton of a Webpage
 
-如果把前端开发比作盖房子，那么：
+### 2.1 What Is HTML?
 
-- **HTML** 是房屋的骨架和结构 —— 墙壁、地板、天花板
-- **CSS** 是装修和装饰 —— 油漆、壁纸、家具摆放
-- **JavaScript** 是水电系统和智能家居 —— 开关灯、调节温度、自动窗帘
-
-三者各司其职，缺一不可。理解了这三件套，你就拿到了前端世界的入场券。
-
----
-
-## 2. HTML：网页的骨架
-
-### 2.1 HTML 是什么？
-
-**HTML**（HyperText Markup Language，超文本标记语言）使用**标签**来描述页面的结构和内容。它不关心好不好看，只关心「有什么」和「是什么」。
+**HTML** (HyperText Markup Language) uses **tags** to describe the structure and content of a page. It doesn't care about whether things look good — only about "what's there" and "what it is."
 
 ```html
 <!DOCTYPE html>
@@ -55,22 +53,22 @@ lang: ''
 </html>
 ```
 
-### 2.2 常用 HTML 标签
+### 2.2 Common HTML Tags
 
-| 分类 | 标签 | 用途 |
+| Category | Tags | Purpose |
 |------|------|------|
-| 结构 | `<header>`, `<main>`, `<footer>`, `<nav>`, `<article>`, `<section>` | 语义化布局 |
-| 标题 | `<h1>` ~ `<h6>` | 六级标题，`h1` 最重要 |
-| 文本 | `<p>`, `<span>`, `<strong>`, `<em>` | 段落、行内文本、加粗、强调 |
-| 链接 | `<a href="...">` | 超链接 |
-| 媒体 | `<img>`, `<video>`, `<audio>` | 图片、视频、音频 |
-| 列表 | `<ul>`, `<ol>`, `<li>` | 无序列表、有序列表 |
-| 表单 | `<form>`, `<input>`, `<button>`, `<select>` | 用户输入 |
-| 容器 | `<div>` | 通用块级容器 |
+| Structure | `<header>`, `<main>`, `<footer>`, `<nav>`, `<article>`, `<section>` | Semantic layout |
+| Headings | `<h1>` ~ `<h6>` | Six heading levels, `h1` is the most important |
+| Text | `<p>`, `<span>`, `<strong>`, `<em>` | Paragraphs, inline text, bold, emphasis |
+| Links | `<a href="...">` | Hyperlinks |
+| Media | `<img>`, `<video>`, `<audio>` | Images, video, audio |
+| Lists | `<ul>`, `<ol>`, `<li>` | Unordered lists, ordered lists |
+| Forms | `<form>`, `<input>`, `<button>`, `<select>` | User input |
+| Containers | `<div>` | Generic block-level container |
 
-### 2.3 语义化 HTML
+### 2.3 Semantic HTML
 
-语义化就是用正确的标签描述正确的内容，而不是满屏的 `<div>`：
+Semantic HTML means using the right tags to describe the right content, rather than filling the screen with `<div>`:
 
 ```html
 <!-- ❌ 不推荐：全是 div -->
@@ -84,18 +82,18 @@ lang: ''
 </header>
 ```
 
-**语义化的好处：**
-- **SEO**：搜索引擎更好地理解页面内容
-- **可访问性**：屏幕阅读器能准确传达信息给视障用户
-- **可维护性**：代码结构清晰，团队协作更轻松
+**Benefits of semantic HTML:**
+- **SEO**: Search engines understand page content better
+- **Accessibility**: Screen readers can accurately convey information to visually impaired users
+- **Maintainability**: Clearer code structure makes team collaboration easier
 
 ---
 
-## 3. CSS：网页的皮肤
+## 3. CSS: The Skin of a Webpage
 
-### 3.1 CSS 是什么？
+### 3.1 What Is CSS?
 
-**CSS**（Cascading Style Sheets，层叠样式表）负责网页的视觉呈现：颜色、字体、间距、布局、动画等。
+**CSS** (Cascading Style Sheets) handles the visual presentation of a webpage: colors, fonts, spacing, layout, animations, and more.
 
 ```css
 /* 选择器 { 属性: 值; } */
@@ -120,9 +118,9 @@ h1 {
 }
 ```
 
-### 3.2 核心概念
+### 3.2 Core Concepts
 
-#### 选择器
+#### Selectors
 
 ```css
 /* 元素选择器 */
@@ -140,16 +138,16 @@ nav > a { }
 input[type="text"] { }
 ```
 
-#### 盒模型
+#### The Box Model
 
-每个元素都是一个矩形盒子，由内到外依次是：
+Every element is a rectangular box, and from the inside out it consists of:
 
-| 层次 | 属性 | 说明 |
+| Layer | Property | Description |
 |------|------|------|
-| content | `width` / `height` | 内容区域 |
-| padding | `padding` | 内边距（内容到边框） |
-| border | `border` | 边框 |
-| margin | `margin` | 外边距（元素到元素） |
+| content | `width` / `height` | Content area |
+| padding | `padding` | Inner spacing (content to border) |
+| border | `border` | Border |
+| margin | `margin` | Outer spacing (element to element) |
 
 ```css
 .box {
@@ -161,7 +159,7 @@ input[type="text"] { }
 }
 ```
 
-#### 布局：Flexbox 和 Grid
+#### Layout: Flexbox and Grid
 
 ```css
 /* Flexbox：一维布局 */
@@ -180,7 +178,7 @@ input[type="text"] { }
 }
 ```
 
-#### 响应式设计
+#### Responsive Design
 
 ```css
 /* 移动端优先 */
@@ -205,11 +203,11 @@ input[type="text"] { }
 
 ---
 
-## 4. JavaScript：网页的大脑
+## 4. JavaScript: The Brain of a Webpage
 
-### 4.1 JavaScript 是什么？
+### 4.1 What Is JavaScript?
 
-**JavaScript**（简称 JS）是一门**动态、弱类型**的脚本语言，让网页「活」起来。它运行在浏览器中，可以操作 HTML 和 CSS，响应用户交互。
+**JavaScript** (JS for short) is a **dynamic, weakly typed** scripting language that brings webpages to life. It runs in the browser and can manipulate HTML and CSS and respond to user interactions.
 
 ```javascript
 // 点击按钮，切换主题
@@ -223,9 +221,9 @@ button.addEventListener('click', () => {
 });
 ```
 
-### 4.2 核心概念速览
+### 4.2 Core Concepts at a Glance
 
-#### 变量和作用域
+#### Variables and Scope
 
 ```javascript
 // let：可变变量（块级作用域）
@@ -239,20 +237,20 @@ const API_URL = 'https://api.example.com';
 var oldWay = '不要这样写';
 ```
 
-#### 数据类型
+#### Data Types
 
-| 类型 | 示例 | 说明 |
+| Type | Example | Description |
 |------|------|------|
-| Number | `42`, `3.14`, `NaN` | 所有数字都是浮点数 |
-| String | `'hello'`, `"世界"`, `` `模板` `` | 文本 |
-| Boolean | `true`, `false` | 逻辑值 |
-| Object | `{ name: 'Alice', age: 25 }` | 键值对 |
-| Array | `[1, 2, 3]` | 有序列表 |
-| Function | `function() {}` / `() => {}` | 可调用对象 |
-| Undefined | `undefined` | 未定义 |
-| Null | `null` | 空值 |
+| Number | `42`, `3.14`, `NaN` | All numbers are floating-point |
+| String | `'hello'`, `"世界"`, `` `template` `` | Text |
+| Boolean | `true`, `false` | Logical values |
+| Object | `{ name: 'Alice', age: 25 }` | Key-value pairs |
+| Array | `[1, 2, 3]` | Ordered list |
+| Function | `function() {}` / `() => {}` | Callable object |
+| Undefined | `undefined` | Undefined |
+| Null | `null` | Null value |
 
-#### DOM 操作
+#### DOM Manipulation
 
 ```javascript
 // 查询元素
@@ -274,7 +272,7 @@ newDiv.textContent = '我是新元素';
 document.body.appendChild(newDiv);
 ```
 
-#### 异步编程
+#### Asynchronous Programming
 
 ```javascript
 // Promise
@@ -296,10 +294,9 @@ async function fetchData() {
 ```
 
 ---
+## 5. How the Three Work Together
 
-## 5. 三者如何协作
-
-一个实际的前端页面是 HTML、CSS、JavaScript 的协同作品：
+A real front-end page is a collaborative work of HTML, CSS, and JavaScript:
 
 ```html
 <!DOCTYPE html>
@@ -345,25 +342,27 @@ async function fetchData() {
 </html>
 ```
 
-看到没？**HTML 搭好架子，CSS 画好样子，JavaScript 赋予脑子**。三者各司其职，组成了你在浏览器里看到的每一个网页。
+See that? **HTML builds the frame, CSS paints the look, and JavaScript gives it a brain**. Each of the three has its own role, and together they make up every web page you see in your browser.
 
 ---
 
-## 6. 学习路线建议
+## 6. Suggested Learning Path
 
-| 阶段 | 内容 | 建议时长 |
+| Stage | Content | Suggested Duration |
 |------|------|---------|
-| 入门 | HTML 常用标签 + CSS 选择器 + JS 变量和函数 | 2~3 周 |
-| 进阶 | CSS 布局（Flex/Grid）+ JS DOM 操作 + 事件 | 3~4 周 |
-| 实战 | 响应式设计 + AJAX/Fetch + ES6 语法 | 4~6 周 |
-| 框架 | React 或 Vue（二选一入门） | 8~12 周 |
+| Beginner | Common HTML tags + CSS selectors + JS variables and functions | 2–3 weeks |
+| Intermediate | CSS layout (Flex/Grid) + JS DOM manipulation + events | 3–4 weeks |
+| Practical | Responsive design + AJAX/Fetch + ES6 syntax | 4–6 weeks |
+| Frameworks | React or Vue (pick one to start) | 8–12 weeks |
 
-> **建议**：不要试图一次学完所有东西。先掌握 HTML 和 CSS 做出静态页面，再学 JavaScript 加上交互，最后再接触框架。基础越扎实，框架学起来越轻松。
+> **Advice**: Don't try to learn everything at once. First master HTML and CSS to build static pages, then learn JavaScript to add interactivity, and only then move on to frameworks. The more solid your fundamentals, the easier frameworks will be to learn.
 
 ---
 
-## 7. 小结
+## 7. Summary
 
-HTML、CSS、JavaScript 这「三件套」是前端开发的基石，无论你以后使用什么框架（React、Vue、Angular），写什么工具（Webpack、Vite），最终输出的都是这三样东西。
+HTML, CSS, and JavaScript—this "holy trinity"—are the cornerstones of front-end development. No matter what frameworks you use later (React, Vue, Angular) or what tools you write with (Webpack, Vite), the final output is always these three things.
 
-记住这个类比就够了：**HTML 是骨架，CSS 是皮囊，JavaScript 是灵魂。**
+Just remember this analogy: **HTML is the skeleton, CSS is the skin, and JavaScript is the soul.**
+
+---

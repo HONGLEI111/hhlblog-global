@@ -1,49 +1,46 @@
 ---
-title: 滑动窗口算法经典习题（一）：窗口内的和、积与计数
+title: 'Classic Sliding Window Algorithm Problems (Part 1): Sum, Product, and Counting Within a Window'
 published: 2026-09-30
-description: '四道变长窗口真题精讲：长度最小的子数组、乘积小于 K 的子数组、最大连续 1 的个数 III、替换后的最长重复字符。每题给出三个问题的答案、过程图解、易错点和 C / C++ / JavaScript 三语言实现。'
+description: 'A detailed walkthrough of four variable-length window problems: Minimum Size Subarray Sum, Subarray Product Less Than K, Max Consecutive Ones III, and Longest Repeating Character Replacement. Each problem includes answers to three key questions, step-by-step diagrams, common pitfalls, and implementations in C, C++, and JavaScript.'
 image: ''
-tags: [滑动窗口, 双指针, 数组, 力扣, 子数组, C, C++, JavaScript]
-category: '算法'
+tags: [Sliding Window, Two Pointers, Array, LeetCode, Subarray, C, C++, JavaScript]
+category: Algorithms
 draft: false
-lang: ''
 ---
+## Introduction
 
-## 导读
+[Sliding Window Core Code Template: Three Questions to Solve All Substring and Subarray Problems](/technology/sliding-window-template/) condenses substring and subarray problems into a single skeleton, while [Sliding Window: A General Approach to Subarray/Substring Problems](/technology/sliding-window/) covers the classification. This article begins applying the skeleton to real problems.
 
-[滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) 把子串、子数组题收敛成了一套骨架，[滑动窗口：子数组/子串问题的通用解法](/technology/sliding-window/) 讲的是分类。这篇开始把骨架落到真题上。
+The eight problems are split into two articles based on "what state is maintained in the window":
 
-八道题按「窗口里维护什么状态」拆成两篇：
-
-| 篇目 | 题目 | 窗口状态 |
+| Article | Problems | Window State |
 |------|------|---------|
-| **本篇（一）** | 长度最小的子数组、乘积小于 K 的子数组、最大连续 1 的个数 III、替换后的最长重复字符 | 都是在窗口上**加减一个数**（和、积、0 的个数、频次），收缩条件是一个不等式 |
-| [（二）换状态、反向转化与枚举维度](/technology/sliding-window-exercises-2/) | 存在重复元素 II、存在重复元素 III、将 x 减到 0 的最小操作数、至少有 K 个重复字符的最长子串 | 状态换成哈希表、分桶，以及「反着问」和「多枚举一个维度」两种变形 |
+| **This article (Part 1)** | Minimum Size Subarray Sum, Subarray Product Less Than K, Max Consecutive Ones III, Longest Repeating Character Replacement | All involve **adding/subtracting a single number** on the window (sum, product, count of 0s, frequency), with the shrink condition being a single inequality |
+| [(Part 2) Changing State, Reverse Transformation, and Enumerating Dimensions](/technology/sliding-window-exercises-2/) | Contains Duplicate II, Contains Duplicate III, Minimum Operations to Reduce X to Zero, Longest Substring with At Least K Repeating Characters | State switches to hash maps, bucketing, plus two variants: "asking in reverse" and "enumerating an extra dimension" |
 
-这四道题有个共同点：**窗口的合法性可以只看一个跟着窗口单调变化的量**——和、积、0 的个数、最高频字符的次数。所以模板里的 ②③④⑤ 四个填空处都是「加减一个数 + 比一个不等式」，不需要额外的数据结构。真正需要动脑子的只有一件事：**这个量什么时候用来判收缩，什么时候用来记答案。**
+These four problems share a common trait: **the window's validity can be determined by a single quantity that changes monotonically with the window** — the sum, product, count of 0s, or the frequency of the most frequent character. So the four blanks ②③④⑤ in the template are all "add/subtract a number + compare an inequality," with no additional data structures needed. The only thing that truly requires thought is: **when is this quantity used to decide shrinking, and when is it used to record the answer.**
 
-### 四道题的三问速查
+### Three-Question Quick Reference for the Four Problems
 
-| 题目 | ② 加入时维护 | ③ 收缩条件 | ④ 更新结果 | 答案是什么 |
+| Problem | ② Maintain on add | ③ Shrink condition | ④ Update result | What is the answer |
 |------|------------|-----------|-----------|-----------|
-| [长度最小的子数组](#1-长度最小的子数组leetcode-209) | `sum += nums[right]` | `sum >= target`（满足就缩） | 收缩**前** | 最短长度 |
-| [乘积小于 K 的子数组](#2-乘积小于-k-的子数组leetcode-713) | `prod *= nums[right]` | `prod >= k`（违规就缩） | 收缩**后**，按 `right - left` 记账 | 子数组个数 |
-| [最大连续 1 的个数 III](#3-最大连续-1-的个数-iiileetcode-1004) | `zeros += (nums[right] == 0)` | `zeros > k`（违规就缩） | 收缩**后** | 最长长度 |
-| [替换后的最长重复字符](#4-替换后的最长重复字符leetcode-424) | `cnt[c]++`，维护 `maxCnt` | `right - left - maxCnt > k`（违规就缩） | 收缩**后** | 最长长度 |
+| [Minimum Size Subarray Sum](#1-minimum-size-subarray-sum-leetcode-209) | `sum += nums[right]` | `sum >= target` (shrink when satisfied) | **Before** shrinking | Minimum length |
+| [Subarray Product Less Than K](#2-subarrays-with-product-less-than-k-leetcode-713) | `prod *= nums[right]` | `prod >= k` (shrink when violated) | **After** shrinking, counted by `right - left` | Number of subarrays |
+| [Max Consecutive Ones III](#3-max-consecutive-ones-iii-leetcode-1004) | `zeros += (nums[right] == 0)` | `zeros > k` (shrink when violated) | **After** shrinking | Maximum length |
+| [Longest Repeating Character Replacement](#4-longest-repeating-character-replacement-leetcode-424) | `cnt[c]++`, maintain `maxCnt` | `right - left - maxCnt > k` (shrink when violated) | **After** shrinking | Maximum length |
 
-> **关于代码**
-> 每题给出 C / C++ / JavaScript 三语言实现，三种写法逻辑完全等价，可切换标签查看。
-> 窗口一律写成左闭右开的 `[left, right)`，所以长度永远是 `right - left`，`nums[right]` 是刚进窗的元素、`nums[left]` 是即将出窗的元素。
+> **About the code**
+> Each problem provides implementations in C / C++ / JavaScript. The three versions are logically equivalent; switch tabs to view them.
+> The window is always written as left-closed, right-open `[left, right)`, so the length is always `right - left`, `nums[right]` is the element that just entered the window, and `nums[left]` is the element about to leave the window.
 
 ---
+## 1. Minimum Size Subarray Sum (LeetCode 209)
 
-## 1. 长度最小的子数组（LeetCode 209）
+### Problem Description
 
-### 题目描述
+Given an array `nums` of `n` **positive integers** and a positive integer `target`, find the minimum length of a subarray whose sum is **greater than or equal to** `target`, and return its length. If no such subarray exists, return `0`.
 
-给定一个含有 `n` 个**正整数**的数组 `nums` 和一个正整数 `target`。找出该数组中满足其总和**大于等于** `target` 的长度最小的子数组，并返回其长度。如果不存在符合条件的子数组，返回 `0`。
-
-**示例：**
+**Example:**
 
 ```text
 输入：target = 7, nums = [2,3,1,2,4,3]
@@ -54,20 +51,20 @@ lang: ''
 输入：target = 11, nums = [1,1,1,1,1,1,1,1]  输出：0
 ```
 
-**约束：** `1 <= target <= 10^9`，`1 <= nums.length <= 10^5`，`1 <= nums[i] <= 10^4`。
+**Constraints:** `1 <= target <= 10^9`, `1 <= nums.length <= 10^5`, `1 <= nums[i] <= 10^4`.
 
-### 思路：和够了就缩，收缩前记录
+### Approach: Shrink Once the Sum Is Enough, Record Before Shrinking
 
-窗口状态只有一个 `sum`。因为数组里**全是正数**，往右扩张时 `sum` 单调增、往左收缩时 `sum` 单调减，这就带来两个性质：
+The window state is just a single `sum`. Because the array is **all positive numbers**, `sum` increases monotonically when expanding right and `sum` decreases monotonically when shrinking left. This gives two properties:
 
-1. **只要 `sum >= target` 就该立刻收缩**——继续往外扩只会让窗口更长，不可能更优。这是模板里典型的「满足就缩」（流派 A）。
-2. **收缩一定会破坏「已经够了」这个状态**，所以答案必须在移出 `left` **之前**记录，也就是「先记录、再破坏」。
+1. **As soon as `sum >= target`, you should shrink immediately** — continuing to expand only makes the window longer, never better. This is the classic "shrink when satisfied" pattern (Style A).
+2. **Shrinking will definitely break the "already enough" state**, so the answer must be recorded **before** removing `left` — that is, "record first, then break."
 
-顺着模板填四个空：② 加入时 `sum += nums[right]`；③ 收缩条件是 `sum >= target`；④ 在收缩循环的第一行记录 `right - left`；⑤ 移出时 `sum -= nums[left]`。
+Fill in the four blanks following the template: ② when adding, `sum += nums[right]`; ③ the shrink condition is `sum >= target`; ④ record `right - left` on the first line of the shrink loop; ⑤ when removing, `sum -= nums[left]`.
 
-### 过程图解
+### Walkthrough
 
-以 `target = 7`、`nums = [2,3,1,2,4,3]` 为例：
+Using `target = 7`, `nums = [2,3,1,2,4,3]` as an example:
 
 ```text
 下标   0  1  2  3  4  5
@@ -93,9 +90,9 @@ nums   2  3  1  2  4  3
 答案 2 ✔（子数组 [4,3]）
 ```
 
-注意两件事：`left` 永远不会超过 `right`（窗口始终合法）；以及**每一轮收缩都要先记录、再移出**——顺序反了就会记到一段「和已经小于 `target`」的窗口，长度偏小而且根本不合法。这道题上因为这个原因得到的长度恰好相同，所以很容易蒙混过关；换一组数据就会露馅（见下面的易错点 4）。
+Note two things: `left` will never exceed `right` (the window is always valid); and **each round of shrinking must record first, then remove** — reversing the order will record a window whose "sum is already less than `target`," giving a length that is too small and actually invalid. On this problem, the length obtained for this reason happens to be the same, so it's easy to get away with it; a different dataset will expose the bug (see pitfall 4 below).
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -168,31 +165,30 @@ function minSubArrayLen(target, nums) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — `right` 和 `left` 各自单向走完全程，每个元素最多进窗一次、出窗一次 |
-| 空间复杂度 | **O(1)** — 只用了 `sum`、`best` 和两个指针 |
+| Time complexity | **O(n)** — `right` and `left` each traverse the entire array in one direction; each element enters the window at most once and leaves at most once |
+| Space complexity | **O(1)** — only `sum`, `best`, and two pointers are used |
 
-### 易错点
+### Pitfalls
 
-1. **`sum` 用 `long long` 更稳妥。** 窗口和的上界就是整个数组之和 `n × nums[i] = 10^5 × 10^4 = 10^9`，`int` 恰好装得下（上限约 `2.1 × 10^9`）；但题目里 `target` 本身也给到了 `10^9`，只要数据规模再涨一档就会溢出。写 `long long` 不花什么代价。
-2. **找不到答案时返回 `0`，而不是把 `best` 的初值返回。** 所以初值要取 `n + 1` 这种不可能等于任何合法长度的哨兵，最后再判断一次。
-3. **收缩条件用的是 `>=` 而不是 `>`。** 题目要的是「大于等于 `target`」，写成 `>` 会漏掉和恰好等于 `target` 的窗口。
-4. **内层必须是 `while`，不能换成 `if`。** 有些题的收缩是「一轮最多缩一格」，这题不是：`sum >= target` 时可能要连缩好几格才把 `sum` 降下去。反例：`target = 10, nums = [1,1,1,10]`，正确答案是 1（子数组 `[10]`）。用 `while` 会一路缩到 `[10]`；换成 `if` 只缩一格，`left` 停在 1，答案会错报成 4。
+1. **Using `long long` for `sum` is safer.** The upper bound of the window sum is the sum of the entire array `n × nums[i] = 10^5 × 10^4 = 10^9`, and `int` just barely fits it (upper limit around `2.1 × 10^9`); but `target` in the problem itself is given as `10^9`, so if the data scale goes up one more notch it will overflow. Writing `long long` costs nothing.
+2. **Return `0` when no answer is found, not the initial value of `best`.** So the initial value should be a sentinel like `n + 1` that can never equal any valid length, and a final check is needed.
+3. **The shrink condition uses `>=`, not `>`.** The problem asks for "greater than or equal to `target`"; writing `>` will miss windows whose sum is exactly `target`.
+4. **The inner loop must be `while`, not `if`.** In some problems the shrink is "at most one step per round," but not here: when `sum >= target`, you may need to shrink several steps in a row to bring `sum` down. Counterexample: `target = 10, nums = [1,1,1,10]`, the correct answer is 1 (subarray `[10]`). Using `while` will shrink all the way to `[10]`; switching to `if` shrinks only one step, `left` stops at 1, and the answer will be wrongly reported as 4.
 
-> **扩展**：本题还有一个 O(n log n) 的解法——前缀和 + 二分答案（固定长度 `L`，检查是否存在长度 `L` 且和 ≥ `target` 的窗口，检验函数随 `L` 单调）。因为是正数数组，滑动窗口已经是最优，但这个「二分 + 前缀和」的套路在「不好维护窗口状态」的题上很有用。
+> **Extension**: This problem also has an O(n log n) solution — prefix sum + binary search on the answer (fix a length `L`, check whether there exists a window of length `L` with sum ≥ `target`; the check function is monotonic in `L`). Because the array is all positive, the sliding window is already optimal, but this "binary search + prefix sum" technique is very useful for problems where "the window state is hard to maintain."
 
 ---
+## 2. Subarrays with Product Less Than K (LeetCode 713)
 
-## 2. 乘积小于 K 的子数组（LeetCode 713）
+### Problem Description
 
-### 题目描述
+Given an integer array `nums` and an integer `k`, return the number of contiguous subarrays where the product of all elements in the subarray is **strictly less than** `k`.
 
-给你一个整数数组 `nums` 和一个整数 `k`，请返回子数组内所有元素的乘积**严格小于** `k` 的连续子数组的数目。
-
-**示例：**
+**Example:**
 
 ```text
 输入：nums = [10,5,2,6], k = 100
@@ -204,22 +200,22 @@ function minSubArrayLen(target, nums) {
 输入：nums = [1,2,3], k = 0   输出：0
 ```
 
-**约束：** `1 <= nums.length <= 3 * 10^4`，`1 <= nums[i] <= 1000`，`0 <= k <= 10^6`。
+**Constraints:** `1 <= nums.length <= 3 * 10^4`, `1 <= nums[i] <= 1000`, `0 <= k <= 10^6`.
 
-### 思路：每个右端点贡献 `right - left` 个子数组
+### Approach: Each Right Endpoint Contributes `right - left` Subarrays
 
-窗口状态是 `prod`。这题和上一题是同一种味道——都是正数，`prod` 随扩张单调增、随收缩单调减——但**答案的形状不一样**：
+The window state is `prod`. This problem has the same flavor as the previous one—all positive numbers, `prod` increases monotonically as the window expands and decreases monotonically as it shrinks—but **the shape of the answer is different**:
 
-- 上一题要的是「最短的、满足条件的窗口」，是一个**窗口本身**；
-- 这题要的是**子数组的个数**，得会数。
+- The previous problem asked for "the shortest window that satisfies the condition," which is a **window itself**;
+- This problem asks for **the number of subarrays**, so you need to know how to count.
 
-数的办法是：固定右端点 `right - 1`，问「以它为结尾的合法子数组有多少个」。因为数组全是正数，乘积随窗口变长只增不减，所以**以 `right - 1` 结尾的合法子数组，起点正好是 `left, left+1, …, right-1` 这连续的一段**，一共 `right - left` 个。把每个右端点的贡献加起来就是答案。
+The counting method is: fix the right endpoint `right - 1` and ask "how many valid subarrays end at this position." Since the array is all positive numbers, the product only increases as the window grows, so **the valid subarrays ending at `right - 1` have starting points that form exactly the contiguous range `left, left+1, …, right-1`**, giving `right - left` in total. Summing up the contribution of each right endpoint gives the answer.
 
-于是四个填空处：② `prod *= nums[right]`；③ 收缩条件是 `prod >= k`（**违规就缩**，流派 B——`prod` 越小越合法）；④ 收缩**之后**才有 `right - left` 可数，所以在收缩循环之后累加；⑤ `prod /= nums[left]`。
+So the four blanks: ② `prod *= nums[right]`; ③ the shrink condition is `prod >= k` (**shrink when violated**, style B—the smaller `prod` is, the more valid); ④ only **after** shrinking is there a `right - left` to count, so accumulate after the shrink loop; ⑤ `prod /= nums[left]`.
 
-### 过程图解
+### Walkthrough
 
-以 `nums = [10,5,2,6]`、`k = 100` 为例：
+Taking `nums = [10,5,2,6]`, `k = 100` as an example:
 
 ```text
 下标   0   1  2  3
@@ -240,9 +236,9 @@ nums   10  5  2  6
 答案 8 ✔
 ```
 
-注意 `prod = 100` 那一轮：题目要求**严格小于** `k`，所以 `prod >= k` 就得缩；缩到 `prod = 10` 之后，窗口是 `[5,2]`，`prod` 的递减性保证了「再缩只会更小」，不会漏解。
+Note the round with `prod = 100`: the problem requires **strictly less than** `k`, so `prod >= k` must shrink; after shrinking to `prod = 10`, the window is `[5,2]`, and the monotonic decrease of `prod` guarantees that "shrinking further only makes it smaller," so no solutions are missed.
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -309,29 +305,28 @@ function numSubarrayProductLessThanK(nums, k) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 每个元素进窗一次、出窗一次，`count += right - left` 是 O(1) |
-| 空间复杂度 | **O(1)** |
+| Time Complexity | **O(n)** — each element enters and leaves the window once, `count += right - left` is O(1) |
+| Space Complexity | **O(1)** |
 
-### 易错点
+### Common Pitfalls
 
-1. **收缩循环里必须带 `left < right` 这个条件。** 当 `k <= 1` 时（`nums[i] >= 1`，任何非空子数组的乘积都 ≥ 1），`prod >= k` 会一直成立，循环会把 `left` 推到 `right`。此时若还想 `prod /= nums[left]`，就会读到窗口外的元素、甚至除到 0 上。加上 `left < right` 之后，空窗口时自动停下，`count += right - left` 恰好贡献 0。
-2. **`count += right - left` 写在收缩循环之外。** 写在里面会把同一轮的多个窗口重复计数。
-3. **`count` 会很大。** `n = 3 × 10^4` 且全部元素为 1、`k` 很大时，答案是 `n(n+1)/2 = 4.5 × 10^8`，还在 `int` 范围内；但如果你把同样的模板套到更大的数据上，记得换 64 位。
-4. **`prod` 在 C / C++ 里要留出余量。** 收缩是「超了就缩」，所以 `prod` 的峰值是 `k × nums[right] ≈ 10^6 × 1000 = 10^9`，`int` 勉强够，但写 `long long` 更稳。
+1. **The shrink loop must include the condition `left < right`.** When `k <= 1` (`nums[i] >= 1`, the product of any non-empty subarray is ≥ 1), `prod >= k` will always hold, and the loop will push `left` to `right`. At this point, if you still try to `prod /= nums[left]`, you will read elements outside the window or even divide by 0. With `left < right` added, it automatically stops when the window is empty, and `count += right - left` contributes exactly 0.
+2. **`count += right - left` goes outside the shrink loop.** Putting it inside will double-count multiple windows in the same round.
+3. **`count` can be very large.** When `n = 3 × 10^4` and all elements are 1 and `k` is very large, the answer is `n(n+1)/2 = 4.5 × 10^8`, which is still within the `int` range; but if you apply the same template to larger data, remember to switch to 64-bit.
+4. **`prod` needs headroom in C / C++.** Shrinking is "shrink when exceeded," so the peak of `prod` is `k × nums[right] ≈ 10^6 × 1000 = 10^9`; `int` is barely enough, but writing `long long` is safer.
 
 ---
+## 3. Max Consecutive Ones III (LeetCode 1004)
 
-## 3. 最大连续 1 的个数 III（LeetCode 1004）
+### Problem Description
 
-### 题目描述
+Given a binary array `nums` and an integer `k`, assuming at most `k` `0` can be flipped, return the maximum number of consecutive `1` in the array after performing the operation.
 
-给定一个二进制数组 `nums` 和一个整数 `k`，假设最多可以翻转 `k` 个 `0`，返回执行操作后数组中连续 `1` 的最大个数。
-
-**示例：**
+**Example:**
 
 ```text
 输入：nums = [1,1,1,0,0,0,1,1,1,1,0], k = 2
@@ -343,24 +338,24 @@ function numSubarrayProductLessThanK(nums, k) {
 输出：10
 ```
 
-**约束：** `1 <= nums.length <= 10^5`，`nums[i]` 不是 `0` 就是 `1`，`0 <= k <= nums.length`。
+**Constraints:** `1 <= nums.length <= 10^5`, `nums[i]` is either `0` or `1`, `0 <= k <= nums.length`.
 
-### 思路：把「窗口里有几个 0」当违规计数
+### Approach: Treat "how many 0s are in the window" as the violation count
 
-「翻转最多 `k` 个 0」等价于：**找一个最长的窗口，窗口里的 0 不超过 `k` 个**。因为窗口里的 `0` 全部翻转成 `1` 之后，这个窗口就是一整段连续的 `1`；而窗口外的 `0` 不用管。
+"Flip at most `k` 0s" is equivalent to: **find the longest window where the number of 0s in the window does not exceed `k`**. Because after all the `0` in the window are flipped to `1`, the window becomes one continuous stretch of `1`; and the `0` outside the window don't matter.
 
-于是窗口状态是 `zeros`（窗口里 0 的个数）：
+So the window state is `zeros` (the number of 0s in the window):
 
-- ② 加入 `nums[right]` 时，如果是 0 就 `zeros++`；
-- ③ 收缩条件是 `zeros > k`，这是「违规就缩」（流派 B）；
-- ④ 收缩**之后**窗口才是合法的，这时才记录 `right - left`；
-- ⑤ 移出 `nums[left]` 时，如果是 0 就 `zeros--`。
+- ② When adding `nums[right]`, if it is 0 then `zeros++`;
+- ③ The shrink condition is `zeros > k`, which is "shrink on violation" (style B);
+- ④ The window is only valid **after** shrinking, and only then do we record `right - left`;
+- ⑤ When removing `nums[left]`, if it is 0 then `zeros--`.
 
-这题是「违规就缩」里最干净的一个例子：违规指标和窗口内容一一对应，没有任何花样。真正值得注意的是 ④ 的位置——**它必须写在收缩循环之后**。
+This problem is the cleanest example of "shrink on violation": the violation metric corresponds one-to-one with the window contents, with no tricks at all. What is truly worth noting is the position of ④ — **it must be written after the shrink loop**.
 
-### 过程图解
+### Walkthrough Diagram
 
-以 `nums = [1,1,1,0,0,0,1,1,1,1,0]`、`k = 2` 为例：
+Taking `nums = [1,1,1,0,0,0,1,1,1,1,0]`, `k = 2` as an example:
 
 ```text
 下标  0  1  2  3  4  5  6  7  8  9  10
@@ -385,9 +380,9 @@ right=10：窗口 [4,11)=0011110，zeros=3 > 2 ← 违规，收缩
 答案 6 ✔
 ```
 
-看清楚 ③ 和 ④ 的关系：**违规的窗口永远参与不了计分**。收缩循环的作用就是把窗口修回到 `zeros <= k`，修好之后再量长度。
+Look clearly at the relationship between ③ and ④: **a violating window can never contribute to the score**. The purpose of the shrink loop is to repair the window back to `zeros <= k`, and only after it is repaired do we measure its length.
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -460,29 +455,28 @@ function longestOnes(nums, k) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** |
-| 空间复杂度 | **O(1)** |
+| Time Complexity | **O(n)** |
+| Space Complexity | **O(1)** |
 
-### 易错点
+### Common Pitfalls
 
-1. **`k = 0` 是合法输入。** 此时窗口里一个 0 都不能有，答案可能为 0（比如 `nums = [0,0]`），所以 `best` 的初值取 0 是对的，不要取 `-1` 或者 `n + 1`。
-2. **记录答案放在收缩循环之后。** 放进去会记到 `zeros > k` 的窗口，答案偏大。
-3. **不要把「翻转」真的写出到数组上。** 这题只要求个数，窗口里的 0 视作可翻转即可，不需要真的改 `nums`——`nums` 一旦被改，后面的窗口统计就全乱了。
-4. **`zeros > k` 而不是 `zeros >= k`。** 最多可以翻转 `k` 个，所以 `zeros == k` 是合法的。
+1. **`k = 0` is a valid input.** In this case the window cannot contain a single 0, and the answer may be 0 (for example, `nums = [0,0]`), so initializing `best` to 0 is correct; do not use `-1` or `n + 1`.
+2. **Record the answer after the shrink loop.** Putting it inside will record a `zeros > k` window, making the answer too large.
+3. **Do not actually write the "flips" onto the array.** This problem only asks for the count; the 0s in the window can simply be treated as flippable, and there is no need to actually modify `nums` — once `nums` is modified, all subsequent window statistics will be thrown off.
+4. **`zeros > k`, not `zeros >= k`.** At most `k` can be flipped, so `zeros == k` is valid.
 
 ---
+## 4. Longest Repeating Character Replacement (LeetCode 424)
 
-## 4. 替换后的最长重复字符（LeetCode 424）
+### Problem Description
 
-### 题目描述
+You are given a string `s` and an integer `k`. You can choose any character in the string and change it to any other uppercase English letter, and this operation can be performed at most `k` times. Return the length of the longest substring containing the same letter after performing the above operations.
 
-给你一个字符串 `s` 和一个整数 `k`。你可以选择字符串中的任一字符，并将其更改为任何其他大写英文字母，该操作最多可执行 `k` 次。返回执行上述操作之后，包含相同字母的最长子字符串的长度。
-
-**示例：**
+**Example:**
 
 ```text
 输入：s = "ABAB", k = 2     输出：4
@@ -490,26 +484,26 @@ function longestOnes(nums, k) {
 解释：把中间的 'A' 替换为 'B'，得到 "AABBBBA"，其中子串 "BBBB" 有最长重复字母，长度为 4。
 ```
 
-**约束：** `1 <= s.length <= 10^5`，`s` 仅由大写英文字母组成，`0 <= k <= s.length`。
+**Constraints:** `1 <= s.length <= 10^5`, `s` consists only of uppercase English letters, `0 <= k <= s.length`.
 
-### 思路：窗口长度 − 窗口内最多字符的个数 ≤ k
+### Approach: Window length − count of the most frequent character in the window ≤ k
 
-这题和上一题是**同一道题换了层皮**：
+This problem and the previous one are **the same problem in different clothing**:
 
 | | 1004 | 424 |
 |---|---|---|
-| 「可操作」的字符 | 0（翻转成 1） | 非最高频字符（改成最高频字符） |
-| 窗口合法条件 | `窗口里 0 的个数 ≤ k` | `窗口长度 - 窗口内最多字符的个数 ≤ k` |
+| Characters that can be "operated on" | 0 (flip to 1) | Non-most-frequent characters (change to the most frequent character) |
+| Window validity condition | `count of 0s in the window <= k` | `window length - count of the most frequent character in the window <= k` |
 
-道理是：想让一个窗口整体变成同一个字母，代价最小的改法是「留下窗口里出现最多的那种字母，其余的全都改掉」，所以要替换的字符数就是 `窗口长度 - 最高频字符的次数`。它不超过 `k` 就说明这个窗口可行。
+The reasoning is: to make an entire window into the same letter, the cheapest modification is to "keep the letter that appears most often in the window and change all the rest," so the number of characters to replace is `window length - count of the most frequent character`. If it does not exceed `k`, the window is feasible.
 
-维护的状态是 `cnt[26]` 和 `maxCnt`（窗口里出现最多的那个字符出现了几次）。③ 收缩条件是 `right - left - maxCnt > k`。
+The state we maintain is `cnt[26]` and `maxCnt` (how many times the most frequent character in the window appears). The ③ shrink condition is `right - left - maxCnt > k`.
 
-这里有个**关键细节**：`maxCnt` 只在加入字符时更新，**从不因为移出字符而减小**。也就是说它记的是「历史上出现过的最大频次」，不是「当前窗口内的最大频次」。这样写有两个好处：窗口长度变成单调不降的，收缩从 `while` 退化成 `if`（每轮最多缩一格）；同时真实答案也不会被算错。为什么可以这样，见下面的易错点。
+There is a **key detail** here: `maxCnt` is only updated when a character is added, and **never decreases when a character is removed**. In other words, it records "the maximum frequency ever seen in history," not "the maximum frequency in the current window." Writing it this way has two benefits: the window length becomes monotonically non-decreasing, and shrinking degrades from `while` to `if` (at most one step per round); at the same time, the true answer will not be miscalculated. For why this works, see the pitfalls below.
 
-### 过程图解
+### Walkthrough
 
-以 `s = "AABABBA"`、`k = 1` 为例：
+Taking `s = "AABABBA"`, `k = 1` as an example:
 
 ```text
 下标  0  1  2  3  4  5  6
@@ -538,9 +532,9 @@ s     A  A  B  A  B  B  A
 答案 4 ✔
 ```
 
-注意后面三轮里 `maxCnt = 3` 已经**不是当前窗口的真实最高频次**了（`[3,7)` 里 `A` 和 `B` 各 2 个），但窗口长度被稳定在 4，`best` 也就停在 4——而 4 确实是正确答案。
+Note that in the last three rounds, `maxCnt = 3` is already **no longer the true maximum frequency of the current window** (in `[3,7)`, `A` and `B` each appear 2 times), but the window length is held steady at 4, and `best` also stops at 4—and 4 is indeed the correct answer.
 
-### 代码实现
+### Code Implementation
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -622,23 +616,22 @@ function characterReplacement(s, k) {
 ```
 :::
 
-### 复杂度
+### Complexity
 
-| 维度 | 分析 |
+| Dimension | Analysis |
 |------|------|
-| 时间复杂度 | **O(n)** — 每个字符进出窗口各一次，`cnt` 只有 26 个格子 |
-| 空间复杂度 | **O(1)** — 定长 26 的计数数组 |
+| Time complexity | **O(n)** — each character enters and leaves the window once, and `cnt` has only 26 slots |
+| Space complexity | **O(1)** — a fixed-length count array of size 26 |
 
-### 易错点
+### Pitfalls
 
-1. **`maxCnt` 不是「当前窗口的最大频次」，而是「历史最大频次」。** 它只增不减，所以 `长度 - maxCnt <= k` 只能用来控制窗口长度，不能理解为「当前窗口一定合法」。配上 `if`（每轮最多缩一格、窗口长度单调不降）是主流写法；如果改成 `while`，就必须在收缩时重新统计窗口内的真实最高频次，否则判断条件和「窗口合法」不再等价。（顺带说一句：网上流传的「`while` + 只增不减的 `maxCnt` 一定是错的」这个说法我没能验证出来——把两种写法在 64 万组穷举数据上跑了一遍（长度 ≤ 9 的三字母串 118092 组 + 长度 ≤ 16 的二字母串 524280 组），结果完全一致。稳妥起见，还是用 `if` 版。）
-2. **`cnt` 的下标要减去 `'A'`（65），别直接拿字符当下标。** C / C++ 里 `cnt[c]` 会越界；JS 里 `cnt[c]` 会变成 `undefined`，`++` 之后是 `NaN`，一路静默算错。
-3. **收缩要写在更新答案之前。** 和 1004 一样，违规窗口不能参与计分。
-4. **窗口里只留「成本最低」的那个字母作为保留字符。** 也就是出现次数最多的那个——别去枚举「保留哪个字母」，`maxCnt` 已经替你选好了。
+1. **`maxCnt` is not "the maximum frequency of the current window," but "the historical maximum frequency."** It only increases and never decreases, so `length - maxCnt <= k` can only be used to control the window length and cannot be understood as "the current window is definitely valid." Pairing it with `if` (at most one shrink per round, window length monotonically non-decreasing) is the mainstream formulation; if you change it to `while`, you must recompute the true maximum frequency within the window when shrinking, otherwise the judgment condition is no longer equivalent to "the window is valid." (By the way: the claim circulating online that "`while` + a `maxCnt` that only increases and never decreases is definitely wrong" is something I could not verify—I ran both versions on 640,000 exhaustive test cases (118,092 three-letter strings of length ≤ 9 + 524,280 two-letter strings of length ≤ 16), and the results were completely identical. To be safe, still use the `if` version.)
+2. **The index for `cnt` must subtract `'A'` (65); do not directly use the character as an index.** In C / C++, `cnt[c]` will go out of bounds; in JS, `cnt[c]` will become `undefined`, and after `++` comes `NaN`, silently producing wrong results all the way.
+3. **Shrinking must be written before updating the answer.** As with 1004, an invalid window must not participate in scoring.
+4. **Only keep the "lowest-cost" letter in the window as the retained character.** That is, the one with the highest occurrence count—do not enumerate "which letter to keep"; `maxCnt` has already chosen it for you.
 
 ---
-
-## 四道题对照表
+## Comparison Table of the Four Problems
 
 ```text
 题目                          ② 加入时维护               ③ 收缩条件                 ④ 更新结果           流派
@@ -648,17 +641,17 @@ function characterReplacement(s, k) {
 424  替换后的最长重复字符      cnt[c]++、更新 maxCnt     right-left-maxCnt > k      收缩循环后            违规就缩
 ```
 
-三句话概括：
+Three sentences to summarize:
 
-1. **全正数的数组上，「和 / 积」这类窗口状态天然单调**：扩张让它变大，收缩让它变小。所以收缩条件就是「它越过了某个阈值」，答案的合法性完全由这个不等式决定。
-2. **「最短」类问题（209）属于流派 A**：窗口一旦满足条件，继续扩张只会变差，就地收缩，并且要**在收缩前**把满足条件的窗口记下来。
-3. **「最长」类问题（1004、424）属于流派 B**：窗口一旦违规，先收缩修好，**收缩后**才有资格量长度。713 也是流派 B，只是它记的不是长度，而是「以当前右端点结尾的合法窗口个数」。
+1. **On arrays of all positive numbers, window states like "sum / product" are naturally monotonic**: expanding makes them larger, shrinking makes them smaller. So the shrink condition is simply "it has crossed some threshold," and the validity of the answer is entirely determined by this inequality.
+2. **"Shortest" type problems (209) belong to school A**: once the window satisfies the condition, continuing to expand only makes things worse, so shrink in place, and you must **record the satisfying window before shrinking**.
+3. **"Longest" type problems (1004, 424) belong to school B**: once the window violates the condition, shrink first to fix it, and only **after shrinking** is it eligible to measure length. 713 is also school B, except what it records is not length, but "the number of valid windows ending at the current right endpoint."
 
-再回头看模板的三问，「什么时候更新结果」这一问的答案在这里体现得最直接：**你要的状态会不会被收缩破坏？会被破坏就提前记，不能被破坏就收缩后再记。**
+Looking back at the three questions of the template, the answer to "when to update the result" is reflected most directly here: **will the state you want be destroyed by shrinking? If it will be destroyed, record it in advance; if it won't be destroyed, record it after shrinking.**
 
-## 相关文章
+## Related Articles
 
-- [滑动窗口核心代码模板：三个问题搞定所有子串、子数组题](/technology/sliding-window-template/) — 本篇用到的骨架、三问和左闭右开区间
-- [滑动窗口算法经典习题（二）：换状态、反向转化与枚举维度](/technology/sliding-window-exercises-2/) — 哈希表、分桶、反向转化与枚举维度
-- [滑动窗口：子数组/子串问题的通用解法](/technology/sliding-window/) — 定长、变长、覆盖三类窗口的分类
-- [数组双指针：从 O(n²) 到 O(n) 的优化利器](/technology/two-pointers-array/) — 滑动窗口背后的双指针思想
+- [Sliding Window Core Code Template: Three Questions to Master All Substring and Subarray Problems](/technology/sliding-window-template/) — The skeleton, three questions, and left-closed right-open interval used in this article
+- [Classic Sliding Window Algorithm Exercises (Part 2): Changing State, Reverse Transformation, and Enumeration Dimensions](/technology/sliding-window-exercises-2/) — Hash tables, bucketing, reverse transformation, and enumeration dimensions
+- [Sliding Window: A General Approach to Subarray/Substring Problems](/technology/sliding-window/) — Classification of fixed-length, variable-length, and covering windows
+- [Array Two Pointers: The Optimization Tool from O(n²) to O(n)](/technology/two-pointers-array/) — The two-pointer idea behind sliding windows

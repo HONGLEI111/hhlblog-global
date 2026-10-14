@@ -1,41 +1,39 @@
 ---
-title: 动态规划：从爬楼梯到背包问题的 TypeScript 实战
+title: 'Dynamic Programming: TypeScript in Practice from Climbing Stairs to the Knapsack Problem'
 published: 2026-04-26
-description: '掌握 DP 的核心概念（最优子结构、重叠子问题、状态转移），用 TypeScript 解决爬楼梯、背包、最长公共子序列、编辑距离等经典问题。'
+description: Master the core concepts of DP (optimal substructure, overlapping subproblems, state transitions) and use TypeScript to solve classic problems such as climbing stairs, the knapsack problem, longest common subsequence, and edit distance.
 image: ''
-tags: [动态规划, TypeScript, 算法]
-category: '算法'
+tags: [Dynamic Programming, TypeScript, Algorithms]
+category: Algorithms
 draft: false
-lang: ''
+---
+## Overview
+
+**Dynamic Programming (DP)** avoids repeated computation by storing the results of subproblems. It is suitable for scenarios with optimal substructure and overlapping subproblems, such as path counting, sequence matching, knapsack selection, and interval optimal values.
+
+> Prerequisites
+> - **Recursion / Memoized Search**: Understanding state dependencies from a top-down perspective
+> - **Arrays and Matrices**: One-dimensional and two-dimensional DP tables are the most common state storage
+> - **State Transitions**: Deriving the current problem from known smaller problems
+
 ---
 
-## 概述
+## Problem Definition
 
-**动态规划（Dynamic Programming, DP）** 通过保存子问题结果，避免重复计算。它适合具有最优子结构和重叠子问题的场景，比如路径计数、序列匹配、背包选择和区间最优值。
+Given an optimization or counting problem that can be decomposed into overlapping subproblems, define the state and solve for the final answer through a transition equation.
 
-> 前置知识
-> - **递归 / 记忆化搜索**：自顶向下理解状态依赖
-> - **数组与矩阵**：一维、二维 DP 表是最常见的状态存储
-> - **状态转移**：从已知小问题推导当前问题
-
----
-
-## 问题定义
-
-给定一个可拆分为重叠子问题的优化或计数问题，定义状态并通过转移方程求解最终答案。
-
-| 要素 | 说明 |
+| Element | Description |
 |------|------|
-| 输入 | 序列、容量、目标值或两个字符串 |
-| 输出 | 最大/最小值、方案数、最长长度或最少操作数 |
-| 核心状态 | `dp[i]`、`dp[i][j]` 或压缩后的一维数组 |
-| 关键问题 | 状态含义、转移方程、初始化、遍历顺序 |
+| Input | Sequence, capacity, target value, or two strings |
+| Output | Maximum/minimum value, number of solutions, longest length, or minimum number of operations |
+| Core State | `dp[i]`, `dp[i][j]`, or a compressed one-dimensional array |
+| Key Questions | State meaning, transition equation, initialization, iteration order |
 
 ---
 
-## 核心原理：分步图解
+## Core Principle: Step-by-Step Illustration
 
-以爬楼梯为例，到第 `i` 阶只能从 `i - 1` 或 `i - 2` 转移而来：
+Taking stair climbing as an example, reaching step `i` can only come from `i - 1` or `i - 2`:
 
 ```mermaid
 graph LR
@@ -47,17 +45,17 @@ graph LR
     D --> E
 ```
 
-状态转移为：
+The state transition is:
 
 ```text
 dp[i] = dp[i - 1] + dp[i - 2]
 ```
 
-动态规划的难点通常不在代码，而在把问题改写成“当前状态如何由更小状态得到”。
+The difficulty of dynamic programming usually lies not in the code, but in reformulating the problem as "how the current state can be obtained from smaller states."
 
 ---
 
-## 算法精细步骤
+## Detailed Algorithm Steps
 
 ```
 算法：SolveDP(problem)
@@ -71,21 +69,21 @@ dp[i] = dp[i - 1] + dp[i - 2]
 5. 返回答案：dp[n]、dp[m][n] 或表中最大值
 ```
 
-**复杂度分析**：
+**Complexity Analysis**:
 
-| 问题 | 状态定义 | 时间复杂度 | 空间复杂度 |
+| Problem | State Definition | Time Complexity | Space Complexity |
 |------|------|------|------|
-| 爬楼梯 | `dp[i]` 到第 i 阶方案数 | O(n) | O(1) |
-| 打家劫舍 | `dp[i]` 前 i 间最大收益 | O(n) | O(1) |
-| LCS | `dp[i][j]` 两个前缀最长公共子序列 | O(mn) | O(mn) |
-| 编辑距离 | `dp[i][j]` 前缀转换最少操作 | O(mn) | O(mn) |
-| 0-1 背包 | `dp[w]` 容量 w 最大价值 | O(nW) | O(W) |
+| Stair Climbing | `dp[i]` number of ways to reach step i | O(n) | O(1) |
+| House Robber | `dp[i]` maximum profit from first i houses | O(n) | O(1) |
+| LCS | `dp[i][j]` longest common subsequence of two prefixes | O(mn) | O(mn) |
+| Edit Distance | `dp[i][j]` minimum operations to convert prefixes | O(mn) | O(mn) |
+| 0-1 Knapsack | `dp[w]` maximum value at capacity w | O(nW) | O(W) |
 
 ---
 
-## TypeScript 实现
+## TypeScript Implementation
 
-### 1. 爬楼梯
+### 1. Stair Climbing
 
 ```typescript
 function climbStairs(n: number): number {
@@ -104,7 +102,7 @@ function climbStairs(n: number): number {
 }
 ```
 
-### 2. 打家劫舍
+### 2. House Robber
 
 ```typescript
 function rob(nums: number[]): number {
@@ -121,7 +119,7 @@ function rob(nums: number[]): number {
 }
 ```
 
-### 3. 最长公共子序列
+### 3. Longest Common Subsequence
 
 ```typescript
 function longestCommonSubsequence(text1: string, text2: string): number {
@@ -143,7 +141,7 @@ function longestCommonSubsequence(text1: string, text2: string): number {
 }
 ```
 
-### 4. 编辑距离
+### 4. Edit Distance
 
 ```typescript
 function minDistance(word1: string, word2: string): number {
@@ -168,7 +166,7 @@ function minDistance(word1: string, word2: string): number {
 }
 ```
 
-### 5. 0-1 背包
+### 5. 0-1 Knapsack
 
 ```typescript
 function knapsack(weights: number[], values: number[], capacity: number): number {
@@ -184,7 +182,7 @@ function knapsack(weights: number[], values: number[], capacity: number): number
 }
 ```
 
-### 6. 最长递增子序列
+### 6. Longest Increasing Subsequence
 
 ```typescript
 function lengthOfLIS(nums: number[]): number {
@@ -209,40 +207,40 @@ function lengthOfLIS(nums: number[]): number {
 
 ---
 
-## 工程优化：状态压缩与遍历顺序
+## Engineering Optimization: State Compression and Iteration Order
 
-| 优化点 | 做法 | 注意事项 |
+| Optimization | Approach | Notes |
 |------|------|------|
-| 一维压缩 | 只保留上一行或必要状态 | 必须确认依赖方向 |
-| 滚动变量 | 如爬楼梯只保留两个值 | 适合依赖固定数量旧状态 |
-| 0-1 背包 | 容量倒序遍历 | 防止同一物品被重复使用 |
-| 完全背包 | 容量正序遍历 | 允许同一物品重复使用 |
-| 记忆化搜索 | 自顶向下缓存结果 | 更贴近递归定义，调试直观 |
+| One-dimensional compression | Keep only the previous row or necessary states | Must confirm dependency direction |
+| Rolling variables | E.g., stair climbing keeps only two values | Suitable when depending on a fixed number of old states |
+| 0-1 Knapsack | Iterate capacity in reverse order | Prevents the same item from being used repeatedly |
+| Unbounded Knapsack | Iterate capacity in forward order | Allows the same item to be used repeatedly |
+| Memoized Search | Cache results top-down | Closer to the recursive definition, intuitive for debugging |
 
-DP 优化不能只看空间减少，还要保证状态依赖没有被提前覆盖。
+DP optimization cannot focus solely on space reduction; it must also ensure that state dependencies are not overwritten prematurely.
 
 ---
 
-## 应用与局限
+## Applications and Limitations
 
-### 典型应用
+### Typical Applications
 
-- 路径计数、爬楼梯、网格路径
-- 序列问题：LCS、LIS、编辑距离
-- 背包与资源分配
-- 股票买卖、区间 DP、状态压缩 DP
+- Path counting, stair climbing, grid paths
+- Sequence problems: LCS, LIS, edit distance
+- Knapsack and resource allocation
+- Stock trading, interval DP, bitmask DP
 
-### 局限性
+### Limitations
 
-| 局限 | 说明 |
+| Limitation | Description |
 |------|------|
-| 状态设计困难 | 状态含义不清会导致转移错误 |
-| 空间可能很大 | 二维或多维 DP 容易占用大量内存 |
-| 不适合无重叠子问题 | 没有重复计算时 DP 收益有限 |
+| Difficult state design | Unclear state meaning leads to incorrect transitions |
+| Space can be large | Two-dimensional or multi-dimensional DP easily consumes large amounts of memory |
+| Not suitable without overlapping subproblems | DP yields limited benefit when there is no repeated computation |
 
 ---
 
-## 总结
+## Summary
 
 ```mermaid
 graph LR
@@ -253,9 +251,9 @@ graph LR
     E --> F[必要时状态压缩]
 ```
 
-**核心要点**：
+**Key Takeaways**:
 
-1. DP 解决的是具有重叠子问题和最优子结构的问题。
-2. 写 DP 前先说清楚 `dp` 数组每个位置的含义。
-3. 遍历顺序必须保证依赖状态已经计算完成。
-4. 状态压缩的核心是确认旧状态不会被错误覆盖。
+1. DP solves problems with overlapping subproblems and optimal substructure.
+2. Before writing DP, first clarify the meaning of each position in the `dp` array.
+3. The iteration order must ensure that dependency states have already been computed.
+4. The core of state compression is ensuring that old states are not incorrectly overwritten.
