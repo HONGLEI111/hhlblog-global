@@ -100,6 +100,7 @@ try {
 			body: [
 				"window.turnstile = {",
 				"  render: (el, options) => {",
+				"    window.__turnstileOptions = options;",
 				"    window.__turnstileCallback = options.callback;",
 				'    options.callback("chat-check-token");',
 				'    return "chat-check-widget";',
@@ -161,6 +162,15 @@ try {
 			"turnstile token sent",
 			typeof captured?.turnstileToken === "string" && captured.turnstileToken.length > 0,
 			`token=${captured?.turnstileToken ? "present" : "missing"}`,
+		);
+		// The site is English-only, so the challenge must not fall back to the
+		// browser's language: that rendered a Chinese "请验证您是真人" checkbox on the
+		// live site. Pinned via the widget's `language` option.
+		const turnstileOptions = await page.evaluate(() => window.__turnstileOptions ?? null);
+		check(
+			"turnstile widget pinned to English",
+			turnstileOptions?.language === "en",
+			`language=${turnstileOptions?.language ?? "auto"}`,
 		);
 	}
 	check(

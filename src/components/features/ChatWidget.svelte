@@ -214,6 +214,9 @@ async function mountTurnstile(): Promise<void> {
 		// Invisible unless Cloudflare decides an interaction is needed, so the
 		// panel keeps its shape for the reader who never sees a challenge.
 		appearance: "interaction-only",
+		// Turnstile follows the browser's language by default, which on this
+		// otherwise English-only site produced a Chinese "请验证您是真人" checkbox.
+		language: "en",
 		callback: (token: string) => {
 			turnstileToken = token;
 		},
@@ -416,8 +419,10 @@ async function sendMessage(preset?: string) {
 		// Send only a token the challenge actually issued: guessing here would just
 		// trade a clear message for a 403 from the proxy.
 		if (TURNSTILE_SITE_KEY && !turnstileToken) {
+			// Two causes, so the wording covers both: the silent challenge has not
+			// finished yet, or an interactive one is waiting above to be completed.
 			error =
-				"Waiting for the verification challenge — please try again in a moment.";
+				"Verification is not ready — complete the check above if you see one, then send again.";
 			void mountTurnstile();
 			return;
 		}
