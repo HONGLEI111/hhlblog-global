@@ -30,6 +30,9 @@ const CONTAINERS = containersMatch[1]
 	.map((s) => s.trim().replace(/^["']|["']$/g, ""))
 	.filter(Boolean);
 
+// Keep in sync with src/pages/. `/blog/archive/` used to live here but the page
+// was deleted (it duplicated /archive/); leaving the route listed made this
+// check fail against a 404 that has no Swup containers.
 const ROUTES = [
 	"/",
 	"/posts/",
@@ -39,7 +42,6 @@ const ROUTES = [
 	"/about/",
 	"/tools/",
 	"/archive/",
-	"/blog/archive/",
 	"/posts/ai-agent-architecture-patterns/",
 ];
 
