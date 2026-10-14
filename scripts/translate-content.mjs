@@ -198,7 +198,7 @@ const MARK_CLOSE = "\uE001";
 const MARK_RE = /\uE000(\d+)\uE001/g;
 const mark = (index) => `${MARK_OPEN}${index}${MARK_CLOSE}`;
 /** Human-readable form used in the prompt, so the model sees the real glyphs. */
-const MARK_SHAPE = `${MARK_OPEN}0${MARK_CLOSE}`;
+export const MARK_SHAPE = `${MARK_OPEN}0${MARK_CLOSE}`;
 
 /**
  * Masks only what must survive byte-for-byte. Prose is deliberately left
@@ -300,7 +300,7 @@ function packChunks(segments, maxChars = MAX_CHUNK_CHARS) {
 // ── API ─────────────────────────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function callApi(prompt, maxTokens) {
+export async function callApi(prompt, maxTokens) {
 	const response = await fetch(ENDPOINT, {
 		method: "POST",
 		headers: {
@@ -325,7 +325,7 @@ async function callApi(prompt, maxTokens) {
 	return choice?.message?.content ?? "";
 }
 
-async function withRetry(label, fn) {
+export async function withRetry(label, fn) {
 	let lastError;
 	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
 		try {
