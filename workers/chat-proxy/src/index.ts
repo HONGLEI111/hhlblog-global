@@ -44,10 +44,17 @@ const DEV_ORIGIN = "http://localhost:4321";
  * writes, so any non-browser client can forge it. Turnstile is what actually
  * gates the endpoint; this list only stops a browser on another site and a
  * scanner that does not bother to spoof.
+ *
+ * Delimiters: commas OR newlines/whitespace. Commas are what the docs and
+ * wrangler.toml describe, but pasting one origin per line into the dashboard
+ * is the natural thing to do — and it FAILS SILENTLY, because a multi-line
+ * value is one non-empty "origin" that matches nothing while also
+ * suppressing the DEV_ORIGIN fallback. That happened once in production;
+ * accepting whitespace makes the mistake harmless.
  */
-function allowedOrigins(env: Env): Set<string> {
+export function allowedOrigins(env: Env): Set<string> {
   const configured = (env.ALLOWED_ORIGINS ?? '')
-    .split(',')
+    .split(/[,\s]+/)
     .map((value) => value.trim())
     .filter(Boolean);
   return new Set(configured.length > 0 ? configured : [DEV_ORIGIN]);

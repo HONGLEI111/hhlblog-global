@@ -3,7 +3,17 @@ main = "src/index.ts"
 compatibility_date = "2025-05-15"
 
 [vars]
-# Comma-separated, exact-match origins allowed to call this proxy.
+# Exact-match origins allowed to call this proxy, comma-separated:
+#   ALLOWED_ORIGINS = "https://www.example.com,https://nextjs.example.com"
+#
+# Newlines/whitespace also work as delimiters (the parser splits on
+# /[,\s]+/), because pasting one origin per line into the dashboard textarea
+# is the natural thing to do and used to fail SILENTLY: the whole multi-line
+# value became one non-empty "origin" that matched nothing while also
+# suppressing the localhost fallback, so every request 403'd.
+#
+# No trailing slash on any entry: the browser's `Origin` header never has one,
+# so "https://example.com/" would never match. See src/index.test.ts.
 #
 # This is deliberately empty here: a fork must not inherit someone else's
 # domain, and the worker falls back to http://localhost:4321 when it is unset.
