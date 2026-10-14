@@ -18,22 +18,22 @@ Your designed solution must **not modify** the array `nums`, and must use only c
 **Example 1:**
 
 ```
-输入：nums = [1,3,4,2,2]
-输出：2
+Input: nums = [1,3,4,2,2]
+Output: 2
 ```
 
 **Example 2:**
 
 ```
-输入：nums = [3,1,3,4,2]
-输出：3
+Input: nums = [3,1,3,4,2]
+Output: 3
 ```
 
 **Example 3:**
 
 ```
-输入：nums = [3,3,3,3,3]
-输出：3
+Input: nums = [3,3,3,3,3]
+Output: 3
 ```
 
 **Hints and Constraints:**
@@ -71,15 +71,15 @@ Keep binary searching, and the final converged `left` is the duplicate number.
 Take `nums = [1,3,4,2,2]`, `n = 4` as an example (value range `[1,4]`):
 
 ```text
-初始：left=1, right=4
+Initial: left=1, right=4
 
-mid = 2，统计 ≤ 2 的元素：[1,2,2] → cnt = 3
-3 > 2 → 重复数在 [1,2]，right = 2
+mid = 2, count elements ≤ 2: [1,2,2] → cnt = 3
+3 > 2 → the duplicate is in [1,2], right = 2
 
-mid = 1，统计 ≤ 1 的元素：[1] → cnt = 1
-1 > 1 不成立 → 重复数在 [2,2]，left = 2
+mid = 1, count elements ≤ 1: [1] → cnt = 1
+1 > 1 does not hold → the duplicate is in [2,2], left = 2
 
-left == right == 2 → 返回 2 ✔
+left == right == 2 → return 2 ✔
 ```
 
 ### Complexity
@@ -134,24 +134,24 @@ In other words: **the distance from the starting point to the cycle entrance aft
 Take `nums = [1,3,4,2,2]` as an example; the linked list structure is `0 → 1 → 3 → 2 ⇄ 4`:
 
 ```text
-下标： 0  1  2  3  4
-值：   1  3  4  2  2
+Index: 0  1  2  3  4
+Value: 1  3  4  2  2
 
-链表：0 → 1 → 3 → 2 ⇄ 4   （2 和 4 构成环，环入口是 2）
+Linked list: 0 → 1 → 3 → 2 ⇄ 4   (2 and 4 form a cycle, the cycle entrance is 2)
 
-第一阶段（找相遇点）：
+Phase 1 (find meeting point):
 slow=0, fast=0
   slow=nums[0]=1, fast=nums[nums[0]]=nums[1]=3
   slow=nums[1]=3, fast=nums[nums[3]]=nums[2]=4
   slow=nums[3]=2, fast=nums[nums[4]]=nums[2]=4
-  slow=nums[2]=4, fast=nums[nums[4]]=nums[2]=4  ← 在 4 相遇
+  slow=nums[2]=4, fast=nums[nums[4]]=nums[2]=4  ← meet at 4
 
-第二阶段（找环入口）：
-slow 重置到 0，fast 留在 4
+Phase 2 (find cycle entrance):
+reset slow to 0, keep fast at 4
   slow=nums[0]=1, fast=nums[4]=2
   slow=nums[1]=3, fast=nums[2]=4
-  slow=nums[3]=2, fast=nums[4]=2  ← 在 2 相遇
-返回 2 ✔
+  slow=nums[3]=2, fast=nums[4]=2  ← meet at 2
+return 2 ✔
 ```
 
 ### Complexity

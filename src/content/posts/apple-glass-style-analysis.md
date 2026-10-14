@@ -63,11 +63,11 @@ Apple's glass effect is essentially a **three-layer overlay of visual informatio
 
 ```
 ┌──────────────────┐
-│  前景内容层（文字/图标）  │ ← 清晰锐利
+│  Foreground content layer (text/icons)  │ ← crisp and sharp
 ├──────────────────┤
-│  玻璃表层（半透明 + 饱和度） │ ← 材质本体
+│  Glass surface layer (semi-transparent + saturation) │ ← the material itself
 ├──────────────────┤
-│  模糊后的背景层         │ ← GPU 采样
+│  Blurred background layer         │ ← GPU sampling
 └──────────────────┘
 ```
 

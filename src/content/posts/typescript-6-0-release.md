@@ -275,14 +275,14 @@ After upgrading, most projects need **two configuration adjustments immediately*
 ### 6.3 Recommended Migration Path
 
 ```
-现有项目
-  ├── 升级至 TypeScript 6.0
-  ├── 处理 strict 默认开启带来的新错误
-  ├── 显式设置 types、rootDir
-  ├── 逐一消除弃用警告
-  ├── 配置新的 module/target 默认值
-  ├── （可选）启用 --stableTypeOrdering tests 7.0 compatibility
-  └── 准备迎接 TypeScript 7.0 Go 编译器
+Existing projects
+  ├── Upgrade to TypeScript 6.0
+  ├── Handle new errors caused by strict being enabled by default
+  ├── Explicitly set types, rootDir
+  ├── Eliminate deprecation warnings one by one
+  ├── Configure the new module/target defaults
+  ├── (Optional) Enable --stableTypeOrdering tests 7.0 compatibility
+  └── Prepare for the TypeScript 7.0 Go compiler
 ```
 
 ### 6.4 Incremental Migration in Large Projects
@@ -321,15 +321,15 @@ TypeScript 7.0 will be a **complete compiler rewrite**—not an incremental impr
 TypeScript's Go rewrite is not just a performance upgrade; it also marks a **systems-programming-language-ification** trend in the JavaScript toolchain:
 
 ```
-工具链演进趋势：
-JavaScript → TypeScript（自举）→ Go/Rust/Zig（系统语言）
+Toolchain evolution trends:
+JavaScript → TypeScript (self-hosted) → Go/Rust/Zig (systems languages)
 
-已完成 / 进行中：
-✅ esbuild（Go）    — 极速打包器
-✅ Rolldown（Rust） — Vite 8 底层
-✅ Oxc（Rust）      — 高性能解析器
-✅ Turbopack（Rust）— Next.js 打包
-🔄 TypeScript（Go） — 编译器 7.0
+Completed / in progress:
+✅ esbuild (Go)    — extremely fast bundler
+✅ Rolldown (Rust) — Vite 8 underlying layer
+✅ Oxc (Rust)      — high-performance parser
+✅ Turbopack (Rust)— Next.js bundling
+🔄 TypeScript (Go) — compiler 7.0
 ```
 
 This trend means that frontend engineering is shifting from "good enough" to "native performance," and the developer experience will see a qualitative leap.

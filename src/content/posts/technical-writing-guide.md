@@ -44,20 +44,20 @@ Mix them into a single README, and you get a Frankenstein like "a section of tut
 Most technical documentation's table of contents looks like this, because it was copied from the code module tree:
 
 ```
-第一章 概述
-第二章 核心模块
-  2.1 Client 类
-  2.2 Config 类
-  2.3 Plugin 接口
+Chapter 1 Overview
+Chapter 2 Core Modules
+  2.1 Client Class
+  2.2 Config Class
+  2.3 Plugin Interface
 ```
 
 The reader's question is "I want to upload a file," not "what is the Client class." The table of contents should be organized around **tasks**:
 
 ```
-- 安装与初始化
-- 上传你的第一个文件
-- 处理上传进度
-- 上传大文件时如何分片
+- Installation and initialization
+- Upload your first file
+- Handle upload progress
+- How to chunk when uploading large files
 ```
 
 A simple self-check method: read each heading. If it can't answer "I want to do X," it needs to change.

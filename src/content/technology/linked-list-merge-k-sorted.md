@@ -12,8 +12,8 @@ draft: false
 Given an array of linked lists, each linked list is already sorted in **ascending** order. Merge all the linked lists into one **ascending** linked list and return the head of the merged linked list.
 
 ```
-输入：lists = [1→4→5, 1→3→4, 2→6]
-输出：1→1→2→3→4→4→5→6
+Input: lists = [1→4→5, 1→3→4, 2→6]
+Output: 1→1→2→3→4→4→5→6
 ```
 
 ## Solution Approach
@@ -305,22 +305,22 @@ function mergeKLists(lists) {
 ## Divide and Conquer Illustration
 
 ```
-初始 K=6 个链表：
+Initial K=6 linked lists:
 L0  L1  L2  L3  L4  L5
 
-interval=1 (步长为1)：
-合并 L0+L1 → L0'
-合并 L2+L3 → L2'
-合并 L4+L5 → L4'
+interval=1 (step size is 1):
+Merge L0+L1 → L0'
+Merge L2+L3 → L2'
+Merge L4+L5 → L4'
 
-interval=2 (步长为2)：
-合并 L0'+L2' → L0''
-合并 L4' 独自留下
+interval=2 (step size is 2):
+Merge L0'+L2' → L0''
+L4' is left alone
 
-interval=4 (步长为4)：
-合并 L0''+L4' → 最终结果
+interval=4 (step size is 4):
+Merge L0''+L4' → final result
 
-总共 log₂6 ≈ 3 轮合并
+A total of log₂6 ≈ 3 rounds of merging
 ```
 
 ## Complexity Analysis

@@ -56,8 +56,8 @@ The Apifox desktop client is built on the **Electron framework** and has the fol
 
 ```
 URL: https://cdn.apifox.com/www/assets/js/apifox-app-event-tracking.min.js
-正常大小: 约 34KB
-恶意大小: 约 77KB
+Normal size: about 34KB
+Malicious size: about 77KB
 ```
 
 The attacker appended approximately **42KB** of highly obfuscated malicious code to the end of the SDK code originally used for event tracking.
@@ -65,7 +65,7 @@ The attacker appended approximately **42KB** of highly obfuscated malicious code
 #### CDN Information
 
 ```
-cdn.apifox.com → CNAME → qiniudns.com（七牛云 CDN）
+cdn.apifox.com → CNAME → qiniudns.com (Qiniu Cloud CDN)
 ```
 
 Regarding where the poisoning occurred, there are currently two possibilities:
@@ -176,10 +176,10 @@ All stolen data is packaged, encrypted using **AES-256-GCM**, and then exfiltrat
 The attacker's goal is not photos or documents on personal computers, but the "keys" in developers' hands that lead to their organizations' core assets:
 
 ```
-开发者电脑 → SSH密钥 → 生产服务器
-           → Git Token → 代码仓库
-           → 云密钥 → 云基础设施
-           → 数据库密码 → 敏感数据
+Developer computer → SSH key → Production server
+           → Git Token → Code repository
+           → Cloud key → Cloud infrastructure
+           → Database password → Sensitive data
 ```
 
 Developers' computers thus become excellent springboards for attackers to **move laterally** and **penetrate corporate intranets**.
@@ -228,8 +228,8 @@ grep -arlE "rl_mc|rl_headers" ~/.config/apifox/Local\ Storage/leveldb
 This is the most direct and effective way to stop the attack.
 
 ```
-修复版本：v2.8.19 及以上
-修复方式：废除在线动态加载 JS，改为本地内置打包
+Fixed version: v2.8.19 and above
+Fix method: Abolish online dynamic loading of JS, switch to local built-in packaging
 ```
 
 ### 6.2 Comprehensively Rotate Sensitive Credentials

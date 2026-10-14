@@ -93,8 +93,8 @@ This is the difference between `search("ca")` and `startsWith("ca")`.
 A Trie node usually contains:
 
 ```text
-children: 当前字符到子节点的映射
-isWord:   是否在这里结束一个完整单词
+children: mapping from the current character to child nodes
+isWord:   whether a complete word ends here
 ```
 
 Insertion process:

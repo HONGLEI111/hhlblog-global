@@ -155,7 +155,7 @@ console.log('      判断这些改动是「持续加功能」还是「反复修�
 The first step is to deliberately run it once **without filters**, and you'll immediately understand why a blacklist is needed:
 
 ```
-  分数  提交  复杂度  文件
+  Score  Submissions  Complexity  File
    2574    26      99  src/layouts/Layout.astro ████████████████████████
    2460    10     246  pnpm-lock.yaml ███████████████████████
 ```
@@ -165,9 +165,9 @@ The first step is to deliberately run it once **without filters**, and you'll im
 After adding filter rules, the results become usable:
 
 ```
-热点文件 Top 10（1 year ago 起，分数 = 提交次数 × 分支密度）
+Hotspot Files Top 10 (since 1 year ago, score = commit count × branch density)
 
-  分数  提交  复杂度  文件
+  Score  Commits  Complexity  File
    2574    26      99  src/layouts/Layout.astro ████████████████████████
     483     7      69  src/components/features/ChatWidget.svelte █████
     312    12      26  src/pages/read/[...slug].astro ███
@@ -218,7 +218,7 @@ By the way, this `git log -S` usage is worth remembering: it finds "which commit
 Tools like SonarQube give technical debt a comparable number, centered on the **Technical Debt Ratio**:
 
 ```
-技术债比率 = 修复所有问题的成本 / 从零重写整个项目的成本 × 100%
+Technical debt ratio = cost to fix all issues / cost to rewrite the entire project from scratch × 100%
 ```
 
 SonarSource's [metric definition documentation](https://docs.sonarsource.com/sonarqube-community-build/user-guide/code-metrics/metrics-definition) explains the relevant measurement criteria. The Maintainability Rating (`sqale_rating`) is graded by this ratio, with default ranges roughly: A ≤ 5%, B ≤ 10%, C ≤ 20%, D ≤ 50%, E > 50% (thresholds are configurable globally; it originates from the SQALE method, which predates these tools).

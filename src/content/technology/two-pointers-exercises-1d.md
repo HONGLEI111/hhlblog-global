@@ -47,11 +47,11 @@ Since the array's length cannot be changed in some languages, the result must be
 **Example:**
 
 ```text
-输入：nums = [1,1,2]
-输出：2, nums = [1,2,_]
+Input: nums = [1,1,2]
+Output: 2, nums = [1,2,_]
 
-输入：nums = [0,0,1,1,1,2,2,3,3,4]
-输出：5, nums = [0,1,2,3,4,_,_,_,_,_]
+Input: nums = [0,0,1,1,1,2,2,3,3,4]
+Output: 5, nums = [0,1,2,3,4,_,_,_,_,_]
 ```
 
 **Constraints:** `1 <= nums.length <= 3 * 10^4`, `-100 <= nums[i] <= 100`, `nums` is sorted in non-decreasing order.
@@ -75,22 +75,22 @@ When the loop ends, `slow` is the index of the last element of the result, and t
 Taking `nums = [0,0,1,1,1,2,2,3,3,4]` as an example:
 
 ```text
-下标   0  1  2  3  4  5  6  7  8  9
-nums   0  0  1  1  1  2  2  3  3  4
-       ↑  ↑
-     slow fast
+Index   0  1  2  3  4  5  6  7  8  9
+nums    0  0  1  1  1  2  2  3  3  4
+        ↑  ↑
+      slow fast
 
-fast=1: nums[1]=0 == nums[0]=0  → 重复，跳过
+fast=1: nums[1]=0 == nums[0]=0  → duplicate, skip
 fast=2: nums[2]=1 != nums[0]=0  → slow=1, nums[1]=1
-fast=3: nums[3]=1 == nums[1]=1  → 跳过
-fast=4: nums[4]=1 == nums[1]=1  → 跳过
+fast=3: nums[3]=1 == nums[1]=1  → skip
+fast=4: nums[4]=1 == nums[1]=1  → skip
 fast=5: nums[5]=2 != nums[1]=1  → slow=2, nums[2]=2
-fast=6: nums[6]=2 == nums[2]=2  → 跳过
+fast=6: nums[6]=2 == nums[2]=2  → skip
 fast=7: nums[7]=3 != nums[2]=2  → slow=3, nums[3]=3
-fast=8: nums[8]=3 == nums[3]=3  → 跳过
+fast=8: nums[8]=3 == nums[3]=3  → skip
 fast=9: nums[9]=4 != nums[3]=3  → slow=4, nums[4]=4
 
-返回 slow + 1 = 5 → nums 前五位 [0,1,2,3,4] ✔
+Return slow + 1 = 5 → the first five positions of nums are [0,1,2,3,4] ✔
 ```
 
 ### Code Implementation
@@ -191,17 +191,17 @@ Given a string `s`, return `true` if it is a palindrome; otherwise, return `fals
 **Example:**
 
 ```text
-输入：s = "A man, a plan, a canal: Panama"
-输出：true
-解释："amanaplanacanalpanama" 是回文串
+Input: s = "A man, a plan, a canal: Panama"
+Output: true
+Explanation: "amanaplanacanalpanama" is a palindrome
 
-输入：s = "race a car"
-输出：false
-解释："raceacar" 不是回文串
+Input: s = "race a car"
+Output: false
+Explanation: "raceacar" is not a palindrome
 
-输入：s = " "
-输出：true
-解释：移除非字母数字字符后得到空字符串 ""，空字符串正着反着读都一样
+Input: s = " "
+Output: true
+Explanation: After removing non-alphanumeric characters, an empty string "" is obtained, and an empty string reads the same forwards and backwards
 ```
 
 **Constraints:** `1 <= s.length <= 2 * 10^5`, `s` consists only of printable ASCII characters.
@@ -220,16 +220,16 @@ Only one pass is needed, and no new string needs to be constructed.
 s = "A man, a plan, a canal: Panama"
      i                           j
 
-i='A', j='a' → 转小写都是 'a'，相等 → i++, j--
+i='A', j='a' → both lowercase to 'a', equal → i++, j--
 
-i 前进时跳过 ' '、',' → 'm'；j 回退时跳过 'l'、'a' 等 …… 逐对比较
+When i advances, skip ' ', ',' → 'm'; when j moves back, skip 'l', 'a', etc. …… compare pair by pair
 ……
 
-最终 i >= j，全部对称 → true ✔
+Finally i >= j, all symmetric → true ✔
 
-反例 "race a car"：
-i='r', j='r' 相等 → i='a', j='a' 相等 → i='c', j='c' 相等
-→ i='e' 跳过空格,j='a' → 'e' != 'a' → false ✘
+Counterexample "race a car":
+i='r', j='r' equal → i='a', j='a' equal → i='c', j='c' equal
+→ i='e' skip space, j='a' → 'e' != 'a' → false ✘
 ```
 
 ### Code Implementation
@@ -328,11 +328,11 @@ You must solve this problem without using the library's built-in `sort` function
 **Example:**
 
 ```text
-输入：nums = [2,0,2,1,1,0]
-输出：[0,0,1,1,2,2]
+Input: nums = [2,0,2,1,1,0]
+Output: [0,0,1,1,2,2]
 
-输入：nums = [2,0,1]
-输出：[0,1,2]
+Input: nums = [2,0,1]
+Output: [0,1,2]
 ```
 
 **Constraints:** `n == nums.length`, `1 <= n <= 300`, `nums[i]` is `0`, `1`, or `2`.
@@ -344,10 +344,10 @@ You must solve this problem without using the library's built-in `sort` function
 There are only three possible values, so no real sorting is needed—just **partition the elements into three regions**. Use three pointers to maintain three zones:
 
 ```text
-[0, p0)  全是 0        p0：下一个 0 该放的位置
-[p0, i)  全是 1        i ：当前正在检查的位置
-[i, p2]  还没处理      p2：下一个 2 该放的位置
-(p2, n)  全是 2
+[0, p0)  all 0s        p0: the position where the next 0 should go
+[p0, i)  all 1s        i : the position currently being checked
+[i, p2]  not yet processed      p2: the position where the next 2 should go
+(p2, n)  all 2s
 ```
 
 At each step, look at `nums[i]` (the leftmost element of the "unprocessed region"):
@@ -363,20 +363,20 @@ When `i > p2`, the unprocessed region is empty and sorting is complete.
 Using `nums = [2,0,2,1,1,0]` as an example:
 
 ```text
-初始：p0=0  i=0                    p2=5
+Initial: p0=0  i=0                    p2=5
 nums   [2, 0, 2, 1, 1, 0]
 
-i=0: nums[0]=2 → 和 nums[5]=0 交换 → p2=4
+i=0: nums[0]=2 → swap with nums[5]=0 → p2=4
 nums   [0, 0, 2, 1, 1, 2]
-i=0: nums[0]=0 → 和 nums[0] 交换（原地） → p0=1, i=1
+i=0: nums[0]=0 → swap with nums[0] (in place) → p0=1, i=1
 nums   [0, 0, 2, 1, 1, 2]
-i=1: nums[1]=0 → 和 nums[1] 交换（原地） → p0=2, i=2
+i=1: nums[1]=0 → swap with nums[1] (in place) → p0=2, i=2
 nums   [0, 0, 2, 1, 1, 2]
-i=2: nums[2]=2 → 和 nums[4]=1 交换 → p2=3（i 不动！）
+i=2: nums[2]=2 → swap with nums[4]=1 → p2=3 (i does not move!)
 nums   [0, 0, 1, 1, 2, 2]
 i=2: nums[2]=1 → i=3
 i=3: nums[3]=1 → i=4
-i=4 > p2=3 → 结束 ✔
+i=4 > p2=3 → end ✔
 ```
 
 ### Code Implementation
@@ -486,11 +486,11 @@ Please **merge** `nums2` into `nums1` so that the merged array is also arranged 
 **Example:**
 
 ```text
-输入：nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
-输出：[1,2,2,3,5,6]
+Input: nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
+Output: [1,2,2,3,5,6]
 
-输入：nums1 = [1], m = 1, nums2 = [], n = 0
-输出：[1]
+Input: nums1 = [1], m = 1, nums2 = [], n = 0
+Output: [1]
 ```
 
 **Constraints:** `nums1.length == m + n`, `nums2.length == n`, `0 <= m, n <= 200`.
@@ -510,15 +510,15 @@ But notice that the last `n` positions of `nums1` are already empty! So reverse 
 nums1 = [1,2,3,0,0,0]  m=3      nums2 = [2,5,6]  n=3
           p1=2   tail=5                    p2=2
 
-比较 nums1[2]=3 与 nums2[2]=6 → 6 大 → nums1[5]=6, p2=1, tail=4
+Compare nums1[2]=3 with nums2[2]=6 → 6 is larger → nums1[5]=6, p2=1, tail=4
           [1,2,3,0,0,6]
-比较 3 与 nums2[1]=5 → 5 大 → nums1[4]=5, p2=0, tail=3
+Compare 3 with nums2[1]=5 → 5 is larger → nums1[4]=5, p2=0, tail=3
           [1,2,3,0,5,6]
-比较 3 与 nums2[0]=2 → 3 大 → nums1[3]=3, p1=1, tail=2
+Compare 3 with nums2[0]=2 → 3 is larger → nums1[3]=3, p1=1, tail=2
           [1,2,3,3,5,6]
-比较 nums1[1]=2 与 2 → 相等，取 nums2 → nums1[2]=2, p2=-1, tail=1
+Compare nums1[1]=2 with 2 → equal, take nums2 → nums1[2]=2, p2=-1, tail=1
           [1,2,2,3,5,6]
-p2 < 0 → 结束，nums1 前 m+n 位就是答案 ✔
+p2 < 0 → end, the first m+n positions of nums1 are the answer ✔
 ```
 
 ### Code Implementation
@@ -607,12 +607,12 @@ Given an integer array `nums` sorted in **non-decreasing order**, return a new a
 **Example:**
 
 ```text
-输入：nums = [-4,-1,0,3,10]
-输出：[0,1,9,16,100]
-解释：平方后得到 [16,1,0,9,100]，排序后为 [0,1,9,16,100]
+Input: nums = [-4,-1,0,3,10]
+Output: [0,1,9,16,100]
+Explanation: After squaring, we get [16,1,0,9,100], and after sorting, it becomes [0,1,9,16,100]
 
-输入：nums = [-7,-3,2,3,11]
-输出：[4,9,9,49,121]
+Input: nums = [-7,-3,2,3,11]
+Output: [4,9,9,49,121]
 ```
 
 **Constraints:** `1 <= nums.length <= 10^4`, `-10^4 <= nums[i] <= 10^4`, `nums` is sorted in non-decreasing order.
@@ -632,16 +632,16 @@ Therefore, we can generate the result **from largest to smallest**: use two poin
 ```text
 nums = [-4,-1,0,3,10]             res = [ , , , , ]
         i          j
-        16   vs   100   → 100 大 → res[4]=100, j=3
+        16   vs   100   → 100 is larger → res[4]=100, j=3
 [-4,-1,0,3,10]                    res = [ , , , ,100]
   i     j
-   16  vs  9         → 16 大  → res[3]=16,  i=1
+   16  vs  9         → 16 is larger  → res[3]=16,  i=1
 [-4,-1,0,3,10]                    res = [ , , ,16,100]
      i  j
-    1  vs  9         → 9 大   → res[2]=9,   j=2
+    1  vs  9         → 9 is larger   → res[2]=9,   j=2
 [-4,-1,0,3,10]                    res = [ , ,9,16,100]
      i=j
-    0  vs  0         → i == j，取 0 → res[0]=0
+    0  vs  0         → i == j, take 0 → res[0]=0
 
 res = [0,1,9,16,100] ✔
 ```

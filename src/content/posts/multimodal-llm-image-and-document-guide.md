@@ -16,7 +16,7 @@ This article breaks "multimodality" down into three problems that can be control
 Multimodal models don't look at an image as a whole; they slice it into a grid of **visual patches**: each 28×28-pixel square counts as one token. So the token count of an image is a clean multiplication:
 
 ```
-tokens = ⌈宽 / 28⌉ × ⌈高 / 28⌉
+tokens = ⌈width / 28⌉ × ⌈height / 28⌉
 ```
 
 A 200×200 icon is ⌈200/28⌉² = 64 tokens, practically free; a 1000×1000 image is 36×36 = 1296 tokens; and a 1920×1080 screenshot first gets proportionally scaled so its long edge is within 1568 (1456×819), then sliced into 52×30 = 1560 tokens.

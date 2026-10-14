@@ -18,7 +18,7 @@ The **Offline-First** design philosophy holds that: applications should assume "
 The Service Worker runs in a separate thread, completely decoupled from the page, with its own lifecycle:
 
 ```
-install → waiting → activate → fetch（拦截请求）
+install → waiting → activate → fetch (intercept request)
 ```
 
 Three key events form its skeleton:

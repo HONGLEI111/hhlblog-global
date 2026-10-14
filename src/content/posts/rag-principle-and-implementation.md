@@ -24,7 +24,7 @@ The RAG workflow can be divided into four steps:
 
 ```
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  1. 文档处理  │ -> │  2. 向量检索  │ -> │  3. 上下文增强 │ -> │  4. 生成回答  │
+│  1. Document Processing  │ -> │  2. Vector Retrieval  │ -> │  3. Context Augmentation │ -> │  4. Generate Answer  │
 │  (Chunking)  │    │  (Retrieval) │    │ (Augmentation)│    │ (Generation) │
 └──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
 ```
@@ -58,13 +58,13 @@ The user's question is likewise embedded as a vector, and then the most similar 
 The retrieved relevant text chunks are concatenated before the user's original question and sent to the LLM together. A typical Prompt template:
 
 ```
-你是一个知识助手。请根据以下参考资料回答用户问题。
-如果你无法从参考资料中找到答案，请如实说明。
+You are a knowledge assistant. Please answer the user's question based on the following reference materials.
+If you cannot find the answer in the reference materials, please state so honestly.
 
-参考资料：
+Reference materials:
 {retrieved_chunks}
 
-用户问题：{user_query}
+User question: {user_query}
 ```
 ## Building a Minimal RAG System from Scratch
 

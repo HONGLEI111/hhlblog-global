@@ -126,7 +126,7 @@ The formal standard for this format is **ECMA-426** (1st edition, December 2024)
 How does the output get associated with the map? Two ways:
 
 ```
-SourceMap: /static/js/app.9f2c1a.js.map      ← HTTP 响应头
+SourceMap: /static/js/app.9f2c1a.js.map      ← HTTP response header
 //# sourceMappingURL=app.9f2c1a.js.map       ← the magic comment in the source
 ```
 

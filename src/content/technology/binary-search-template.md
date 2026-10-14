@@ -27,15 +27,15 @@ This article first converges all three search variants into a single skeleton, t
 Let's look at the skeleton first. The problem it solves is: **find the position of the "first element that satisfies a condition" on `[left, right)`**.
 
 ```text
-/* 二分查找通用骨架：左闭右开区间 [left, right) */
-left = 0, right = n                  /* ① 右端取 n，不是 n - 1 */
-while (left < right):                /* 区间里还有元素，就继续二分 */
-    mid = left + (right - left) / 2  /* ② 防溢出的中点写法 */
-    if (check(a[mid])):              /* ③ 判断条件 —— 每道题不一样 */
-        right = mid                  /*    mid 可能是答案，保留它 */
+/* Generic binary search skeleton: half-open interval [left, right) */
+left = 0, right = n                  /* ① The right endpoint is n, not n - 1 */
+while (left < right):                /* As long as there are still elements in the interval, keep bisecting */
+    mid = left + (right - left) / 2  /* ② Overflow-safe way to compute the midpoint */
+    if (check(a[mid])):              /* ③ The predicate — different for every problem */
+        right = mid                  /*    mid may be the answer, keep it */
     else:
-        left = mid + 1               /*    mid 一定不是答案，排除它 */
-return left                          /* ④ 返回 left，取值落在 [0, n] */
+        left = mid + 1               /*    mid is definitely not the answer, exclude it */
+return left                          /* ④ Return left, whose value lies in [0, n] */
 ```
 
 Inside the entire loop, only three spots require thought:
@@ -70,9 +70,9 @@ In other words, **the `>=` version (hereafter `lowerBound`) and the `>` version 
 Remember these two conversions first. The three templates that follow are all just a wrapper layered on top of them:
 
 ```text
-搜索左边界(第一个 == target) = lowerBound(target)          + 校验 a[i] == target
-搜索右边界(最后一个 == target) = upperBound(target) - 1      + 校验 a[i] == target
-搜索插入位置                 = lowerBound(target)          （不校验，直接返回）
+Search left boundary (first == target) = lowerBound(target)          + verify a[i] == target
+Search right boundary (last == target) = upperBound(target) - 1      + verify a[i] == target
+Search insertion position                 = lowerBound(target)          (no verification, return directly)
 ```
 
 ---
@@ -281,8 +281,8 @@ The most reliable approach isn't "binary search from right to left," but rather 
 nums:   1  2  2  2  3
 index:  0  1  2  3  4
                     ^
-      upperBound(2) = 4          （第一个 > 2）
-      upperBound(2) - 1 = 3      （最后一个 <= 2，也就是 2 的右边界）
+      upperBound(2) = 4          (the first > 2)
+      upperBound(2) - 1 = 3      (the last <= 2, that is, the right boundary of 2)
 ```
 
 :::code-tabs{default="cpp"}
@@ -454,14 +454,14 @@ Given an integer array `nums` sorted in ascending order, and a target value `tar
 **Example:**
 
 ```text
-输入：nums = [5,7,7,8,8,10], target = 8
-输出：[3,4]
+Input: nums = [5,7,7,8,8,10], target = 8
+Output: [3,4]
 
-输入：nums = [5,7,7,8,8,10], target = 6
-输出：[-1,-1]
+Input: nums = [5,7,7,8,8,10], target = 6
+Output: [-1,-1]
 
-输入：nums = [], target = 0
-输出：[-1,-1]
+Input: nums = [], target = 0
+Output: [-1,-1]
 ```
 
 **Constraints:** `0 <= nums.length <= 10^5`, `-10^9 <= nums[i] <= 10^9`. O(log n) time complexity is required.

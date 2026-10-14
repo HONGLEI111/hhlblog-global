@@ -18,9 +18,9 @@ const label = count === 1 ? `${count} file` : `${count} files`;
 It is correct in English. **It is precisely because it is correct that it can pass tests, code review, and production all the way through**. Now put it into the other three languages and take a look (`Intl.PluralRules`'s actual measured output, Node 26 / ICU 78.3):
 
 ```text
-zh-CN 需要 1 种形式：0/1/2/5/21 全部落在 other
-ru-RU 需要 4 种形式：1→one  2→few  5→many  21→one
-ar-EG 需要 6 种形式：0→zero  1→one  2→two  5→few  21→many
+zh-CN requires 1 form: 0/1/2/5/21 all fall under other
+ru-RU requires 4 forms: 1→one  2→few  5→many  21→one
+ar-EG requires 6 forms: 0→zero  1→one  2→two  5→few  21→many
 ```
 
 In other words: **Russian uses three different endings for 1, 2, and 5, and Arabic's 0 and 1 are not even the "N things" sentence pattern at all** (Arabic uses standalone wording for zero/one/two). And the `count === 1 ? A : B` structure can express at most two forms. This is not "the translation was done poorly," but rather **the code simply does not have enough slots for the translation to fill**—no matter how skilled the translator is, given this if, they can only produce two forms.
@@ -61,10 +61,10 @@ Actual output:
 ```text
 en-US  1,234,567.891
 de-DE  1.234.567,891
-fr-FR  1 234 567,891          ← 分隔符是 U+202F 窄不换行空格，不是普通空格
+fr-FR  1 234 567,891          ← the separator is U+202F narrow no-break space, not a regular space
 zh-CN  1,234,567.891
-hi-IN  12,34,567.891          ← 印度是 2 位分组，最后才是 3 位
-ar-EG  ١٬٢٣٤٬٥٦٧٫٨٩١          ← 阿拉伯-印度数字，从右往左的书写方向
+hi-IN  12,34,567.891          ← India uses 2-digit grouping, and only the last group has 3 digits
+ar-EG  ١٬٢٣٤٬٥٦٧٫٨٩١          ← Arabic-Indic digits, right-to-left writing direction
 ```
 
 Four counterintuitive points, each of which can cause a bug on its own:
@@ -75,7 +75,7 @@ Four counterintuitive points, each of which can cause a bug on its own:
 
    ```text
    U+200F U+0661 U+066C U+0662 ... U+00A0 U+0055 U+0053 U+0024
-   ↑ 开头就是 RLM（从右到左标记）        ↑ 这里是不换行空格 U+00A0
+   ↑ It starts with RLM (right-to-left mark)        ↑ Here is a non-breaking space U+00A0
    ```
 
    `U+200F` is RLM, `U+00A0` is a non-breaking space—**neither is an ordinary character**. And if you stuff these Arabic-Indic digits into `input.value` and read them back for computation, you'll get `NaN`: in practice, `Number("١٢٬٣٤٥")` and `parseInt("١٢٬٣٤٥", 10)` **both return `NaN`**. When passing numbers across locales, **always pass the raw numeric value, never the formatted string**.
@@ -114,9 +114,9 @@ for (const loc of ["en-US", "zh-CN", "ja-JP", "de-DE"]) {
 
 ```text
 en-US  10K        | 1.2M      | 123M
-zh-CN  9999       | 123万     | 1.2亿
-ja-JP  9999       | 123万     | 1.2億
-de-DE  9999       | 1,2 Mio.  | 123 Mio.
+zh-CN  9999       | 1.23 million     | 120 million
+ja-JP  9999       | 1.23 million     | 120 million
+de-DE  9999       | 1.2 million  | 123 million
 ```
 
 Chinese and Japanese counting units advance by 10⁴ (万, 亿), so `zh-CN` at 9999 is **not abbreviated**, and only at 10000 does it become `1万`; English, by contrast, abbreviates at 9999 into `10K`. In `de-DE`'s `1,2 Mio.`, even the decimal point becomes a comma.
@@ -244,7 +244,7 @@ function makeT(locale, { strict = true } = {}) {
 Running it, the actual output of the same sentence "the shopping cart has N items" in four languages:
 
 ```text
-zh-CN  购物车里有 0 件商品  |  购物车里有 1 件商品  |  购物车里有 2 件商品  |  购物车里有 5 件商品  |  购物车里有 21 件商品
+zh-CN  0 items in the cart  |  1 item in the cart  |  2 items in the cart  |  5 items in the cart  |  21 items in the cart
 en-US  0 items in your cart  |  1 item in your cart  |  2 items in your cart  |  5 items in your cart  |  21 items in your cart
 ru-RU  В корзине 0 товаров  |  В корзине 1 товар  |  В корзине 2 товара  |  В корзине 5 товаров  |  В корзине 21 товар
 ar-EG  السلة فارغة  |  عنصر واحد في السلة  |  عنصران في السلة  |  ٥ عناصر في السلة  |  ٢١ عنصرًا في السلة
@@ -263,8 +263,8 @@ NaN items in your cart
 **A `NaN` mixed into the user interface is ten times harder to track down than an exception**—it might go live for a long time before a user screenshots it and complains. So the last line of the version above is a hard validation `if (!(k in params)) throw`. In internationalization code, **"silent degradation" is the most dangerous design choice**:
 
 ```text
-抛错 -> [i18n] missing key "cart.total" for locale "zh-CN"
-抛错 -> [i18n] key "cart.items" 需要参数 "count"
+Throw error -> [i18n] missing key "cart.total" for locale "zh-CN"
+Throw error -> [i18n] key "cart.items" requires parameter "count"
 ```
 
 As for "whether to throw in production," the answer is **throw in development, degrade + report in production**: during development nobody wants to dig through logs looking for `⟦cart.total⟧`, and in production it's not worth a blank screen over a key with a missing translation. But this degradation must **simultaneously trigger a monitoring alert**, otherwise it's just silent failure.
@@ -284,9 +284,9 @@ cities.sort(new Intl.Collator("zh-CN", { collation: "stroke" }).compare);
 Actual test:
 
 ```text
-默认（码点）      : 上海 北京 深圳 西安 重庆 长沙
-Collator + pinyin : 北京 重庆 上海 深圳 西安 长沙     ← 拼音序
-Collator + stroke : 上海 北京 长沙 西安 重庆 深圳     ← 笔画序
+Default (code point)      : 上海 北京 深圳 西安 重庆 长沙
+Collator + pinyin : 北京 重庆 上海 深圳 西安 长沙     ← Pinyin order
+Collator + stroke : 上海 北京 长沙 西安 重庆 深圳     ← Stroke order
 ```
 
 The code point order result `上海 北京 深圳 西安 重庆 长沙` is meaningless to humans—it's sorted by Unicode encoding values. **Any user-facing Chinese list sorting must use `Intl.Collator`.**
@@ -444,7 +444,7 @@ The cost is a lower cache hit rate (one copy per language). The details of this 
 Back to the timezone problem from Section 3. The classic symptom in SSR scenarios is a line in the console:
 
 ```text
-Warning: Text content did not match. Server: "2026年9月28日 14:30:00" Client: "2026年9月28日 22:30:00"
+Warning: Text content did not match. Server: "September 28, 2026 14:30:00" Client: "September 28, 2026 22:30:00"
 ```
 
 Three sources, ordered by frequency of occurrence:
@@ -580,10 +580,10 @@ const samples = [
 Output:
 
 ```text
-SUSPECT  <button>保存</button>
+SUSPECT <button>Save</button>
 ok       const msg = t("post.save")
 ok       <p>Showing {count} results</p>
-SUSPECT  <title>我的博客</title>
+SUSPECT  <title>My Blog</title>
 ```
 
 The regex above is just a simplified demo version (a real implementation should use AST tools, such as a custom ESLint rule working with JSX's `JSXText` nodes, or an off-the-shelf plugin like `eslint-plugin-i18next`). **The key isn't how accurate the regex is—it's whether there's an automated line of defense at all**—relying purely on manual review will definitely miss things.

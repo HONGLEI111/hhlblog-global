@@ -248,12 +248,12 @@ Code Tabs remembers your most recently selected language preference via the brow
 ## Syntax Reference
 
 ```
-:::code-tabs{default="语言标识"}
-​```language identifier title="display name"
+:::code-tabs{default="language identifier"}
+```language identifier title="display name"
 code content
 ​```
 
-​```another language title="display name"
+```another language title="display name"
 code content
 ​```
 :::

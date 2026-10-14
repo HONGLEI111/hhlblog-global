@@ -64,7 +64,7 @@ Below is a real output, with line breaks and indentation added for readability (
 2:"static/chunks/client.js"
 3:I["$1",["$2"],"Button"]
 0:["$","div",null,{"children":[
-     ["$","h1",null,{"children":"标题"}],
+     ["$","h1",null,{"children":"Title"}],
      ["$","$L3",null,{"label":"hi"}]
    ]}]
 ```

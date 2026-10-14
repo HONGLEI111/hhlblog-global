@@ -22,13 +22,13 @@ Before diving in, let's understand the core architecture of MCP:
 ```
 ┌──────────────┐     MCP Protocol     ┌──────────────┐
 │  MCP Client  │ ◄──────────────────► │  MCP Server  │
-│  (Claude)    │    (stdio / SSE)     │  (你的代码)   │
+│  (Claude)    │    (stdio / SSE)     │  (your code) │
 └──────────────┘                      └──────────────┘
                                            │
                                       ┌────┴────┐
-                                      │  Tools  │  ← LLM 可调用的函数
-                                      │Resources│  ← LLM 可读取的数据
-                                      │ Prompts │  ← 预置提示模板
+                                      │  Tools  │  ← Functions the LLM can call
+                                      │Resources│  ← Data the LLM can read
+                                      │ Prompts │  ← Preset prompt templates
                                       └─────────┘
 ```
 

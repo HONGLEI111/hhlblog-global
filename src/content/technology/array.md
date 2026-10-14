@@ -66,9 +66,9 @@ So random access is O(1).
 If we want to insert `15` at index 1, the original `20、30、40` all need to shift backward:
 
 ```text
-插入前: 10 20 30 40
-移动后: 10 _  20 30 40
-插入后: 10 15 20 30 40
+Before insertion: 10 20 30 40
+After shifting: 10 _  20 30 40
+After insertion: 10 15 20 30 40
 ```
 
 The cost of shifting elements depends on the length of the tail, so middle insertion is O(n) in the worst case.
@@ -78,8 +78,8 @@ The cost of shifting elements depends on the length of the tail, so middle inser
 Arrays are also commonly used in the "read-write pointer" model: one pointer scans the original array, and another pointer maintains the write position.
 
 ```text
-read  -> 扫描每个元素
-write -> 指向下一个有效元素位置
+read  -> scan each element
+write -> point to the next valid element position
 ```
 
 This type of technique can optimize many "filter, deduplicate, compress" problems from extra O(n) space to O(1) extra space.

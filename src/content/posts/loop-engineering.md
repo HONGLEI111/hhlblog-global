@@ -110,12 +110,12 @@ Every pitfall you've stepped into and every convention you've summarized settles
 Based on **MCP (Model Context Protocol)**, Agents can connect to external tools:
 
 ```
-Agent ←→ MCP Server ←→ 外部系统
-                           ├── GitHub API（读 Issue、开 PR）
-                           ├── Slack（发通知、接收指令）
-                           ├── 数据库（查询数据、验证结果）
-                           ├── CI/CD（触发构建、读取日志）
-                           └── Linear / Jira（更新工单状态）
+Agent ←→ MCP Server ←→ External Systems
+                           ├── GitHub API (read Issues, open PRs)
+                           ├── Slack (send notifications, receive commands)
+                           ├── Database (query data, validate results)
+                           ├── CI/CD (trigger builds, read logs)
+                           └── Linear / Jira (update ticket status)
 ```
 
 Without Connectors, an Agent is just "talking to itself in a sandbox." With Connectors, it can truly affect the outside world — opening PRs, updating tickets, notifying the team.
@@ -151,17 +151,17 @@ The Memory layer can be implemented very simply:
 
 ```markdown
 # state.md
-## 当前状态
-- 最后运行: 2026-06-16 09:00 UTC
-- 进行中: fix-login-timeout（PR #42 等待 Review）
+## Current Status
+- Last run: 2026-06-16 09:00 UTC
+- In progress: fix-login-timeout (PR #42 awaiting review)
 
-## 已完成
-- [x] 修复 API 超时重试逻辑 — #41 已合并
-- [x] 更新依赖版本 — #40 已合并
+## Completed
+- [x] Fix API timeout retry logic — #41 merged
+- [x] Update dependency versions — #40 merged
 
-## 待处理
-- [ ] 排查 CI 偶发失败 — 已分配 Worktree ci-flaky-test
-- [ ] 升级 Node.js 到 v26 — 等待 LTS
+## Pending
+- [ ] Investigate intermittent CI failures — assigned Worktree ci-flaky-test
+- [ ] Upgrade Node.js to v26 — awaiting LTS
 ```
 
 Osmani emphasizes: **"Behind every successful Loop, there's a set of quietly working state files."** State files are the Loop's "short-term memory," and Skills are the Loop's "long-term memory."
@@ -173,26 +173,26 @@ Osmani emphasizes: **"Behind every successful Loop, there's a set of quietly wor
 Stringing the six components together, a typical CI auto-fix Loop looks like this:
 
 ```
-08:00  定时任务自动触发
-08:01  分诊 Agent 扫描：
-         - 昨夜 CI 有 3 个失败
-         - GitHub 上有 2 个新 Open Issue
-         - 昨日合并的 PR 有 1 个回归
-08:05  写入状态文件 state.md
-08:06  对每个值得处理的问题开独立 Worktree
-08:07  Worktree A — Maker Agent 起草修复方案
-       Worktree B — Maker Agent 起草修复方案
-       Worktree C — Maker Agent 起草修复方案
-08:15  三个修复方案均提交到各自分支
-08:16  Checker Agent 对照 SKILL.md 规范审查三个方案
-08:25  方案 A 通过 → 自动开 PR
-       方案 B 被驳回 → 退回 Maker Agent 重写
-       方案 C 通过 → 自动开 PR，更新对应 Issue
-08:30  处理不了的标记为 need-human-triage
-08:31  更新状态文件，记录进度
-08:32  发送 Slack 摘要通知团队
+08:00  Scheduled task triggers automatically
+08:01  Triage Agent scans:
+         - 3 CI failures last night
+         - 2 new Open Issues on GitHub
+         - 1 regression in PRs merged yesterday
+08:05  Write to state file state.md
+08:06  Open a separate Worktree for each issue worth handling
+08:07  Worktree A — Maker Agent drafts a fix plan
+       Worktree B — Maker Agent drafts a fix plan
+       Worktree C — Maker Agent drafts a fix plan
+08:15  All three fix plans are submitted to their respective branches
+08:16  Checker Agent reviews the three plans against the SKILL.md spec
+08:25  Plan A passes → automatically open PR
+       Plan B is rejected → sent back to Maker Agent for rewrite
+       Plan C passes → automatically open PR, update the corresponding Issue
+08:30  Those that cannot be handled are marked as need-human-triage
+08:31  Update the state file, record progress
+08:32  Send a Slack summary to notify the team
 
-第二天从状态文件继续。
+The next day continues from the state file.
 ```
 
 **The developer doesn't type a single character throughout.** Your job is to:
@@ -238,11 +238,11 @@ A Checker Agent can reduce omissions, but it cannot replace human judgment. Secu
 This is a key concept proposed by Osmani, more hidden and more dangerous than technical debt.
 
 ```
-Loop 生成代码的速度
+Loop's speed of generating code
          >
-你理解代码的速度
+Your speed of understanding code
          =
-理解债务在累积
+Comprehension debt is accumulating
 ```
 
 When a Loop produces tens of thousands of lines of code every day, while your comprehension speed is constant, **comprehension debt will grow exponentially**. One day, you will face a system whose workings you have no idea about.

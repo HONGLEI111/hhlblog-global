@@ -12,13 +12,13 @@ draft: false
 Given the head node `head` of a singly linked list, return the **middle node** of the linked list. If there are two middle nodes (the linked list length is even), return the **second** middle node.
 
 ```
-输入：head = 1→2→3→4→5
-输出：3→4→5
-解释：节点 3 是中间节点
+Input: head = 1→2→3→4→5
+Output: 3→4→5
+Explanation: Node 3 is the middle node
 
-输入：head = 1→2→3→4→5→6
-输出：4→5→6
-解释：有两个中间节点（3 和 4），返回第二个即节点 4
+Input: head = 1→2→3→4→5→6
+Output: 4→5→6
+Explanation: There are two middle nodes (3 and 4), return the second one, i.e., node 4
 ```
 
 ## Solution Approach
@@ -136,7 +136,7 @@ function middleNode(head) {
 ### Odd length: n = 5
 
 ```
-初始：     slow            slow              slow
+Initial:   slow            slow              slow
            fast            fast              fast
            ↓               ↓                 ↓
            1 → 2 → 3 → 4 → 5
@@ -145,14 +145,14 @@ function middleNode(head) {
 Step 0:    slow=1, fast=1
 Step 1:    slow=2, fast=3
 Step 2:    slow=3, fast=5
-Step 3:    fast.next==null → 退出循环
-           返回 slow=3（中点）✓
+Step 3:    fast.next==null → exit loop
+           return slow=3 (middle point) ✓
 ```
 
 ### Even length: n = 6
 
 ```
-初始：     slow            slow              slow
+Initial:   slow            slow              slow
            fast            fast              fast
            ↓               ↓                 ↓
            1 → 2 → 3 → 4 → 5 → 6 → null
@@ -161,8 +161,8 @@ Step 3:    fast.next==null → 退出循环
 Step 0:    slow=1, fast=1
 Step 1:    slow=2, fast=3
 Step 2:    slow=3, fast=5
-Step 3:    slow=4, fast=null → 退出循环
-           返回 slow=4（第二个中间节点）✓
+Step 3:    slow=4, fast=null → exit loop
+           return slow=4 (the second middle node) ✓
 ```
 
 ## Complexity Analysis
@@ -178,10 +178,10 @@ Fast and slow pointers are one of the most commonly used techniques in linked li
 
 ```text
 while (fast && fast->next) {
-    slow = slow->next;       // 慢指针走一步
-    fast = fast->next->next; // 快指针走两步
+    slow = slow->next;       // slow pointer moves one step
+    fast = fast->next->next; // fast pointer moves two steps
 }
-// 此时 slow 指向中点
+// at this point slow points to the midpoint
 ```
 
 This pattern is also used to solve:

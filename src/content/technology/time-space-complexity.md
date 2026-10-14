@@ -75,15 +75,15 @@ T(n) = 200                =>  O(1)
 ## Detailed Algorithm Steps
 
 ```
-算法：AnalyzeComplexity(code)
-输入：一段代码或算法
-输出：时间复杂度和空间复杂度
+Algorithm: AnalyzeComplexity(code)
+Input: A piece of code or an algorithm
+Output: Time complexity and space complexity
 
-1. 明确输入规模 n 表示什么
-2. 找出随 n 增长而重复执行的语句
-3. 计算循环、递归或数据结构操作次数
-4. 保留增长最快的项，忽略常数和低阶项
-5. 统计额外申请的空间，不把输入本身算入额外空间
+1. Clarify what the input size n represents
+2. Identify the statements that are repeatedly executed as n grows
+3. Count the number of loop, recursive, or data structure operations
+4. Keep the fastest-growing term, ignore constants and lower-order terms
+5. Count the additionally allocated space; do not count the input itself as additional space
 ```
 
 **Common complexity comparison**:

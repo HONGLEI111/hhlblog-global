@@ -53,10 +53,10 @@ git commit -m "fix(cache): 修复并发下 ETag 校验竞态导致 304 返回过
 The body is used to explain **why** the change is being made, rather than restating the "what" that's already visible in the diff. For example:
 
 ```
-feat(payment): 支持微信支付渠道
+feat(payment): support WeChat Pay channel
 
-原先只接入了支付宝，接入微信需要统一的支付网关抽象。
-将渠道差异封装在 PaymentAdapter 接口后，后续新增渠道只需实现一个类。
+Previously only Alipay was integrated; integrating WeChat requires a unified payment gateway abstraction.
+After encapsulating channel differences behind the PaymentAdapter interface, adding new channels later only requires implementing one class.
 
 Refs: #1234
 ```
@@ -122,17 +122,17 @@ git rebase -i main
 This opens an editor listing all commits on that branch:
 
 ```
-pick 3f2a1c1 feat: 完成用户资料页骨架
-pick 9b8c2d2 wip: 头像上传调试中
-pick 5e1d3a3 fix: 修复上传后刷新不显示的问题
+pick 3f2a1c1 feat: complete user profile page skeleton
+pick 9b8c2d2 wip: debugging avatar upload
+pick 5e1d3a3 fix: fix issue where refresh after upload does not display
 ```
 
 Change the `pick` in front of the commits you want to combine to `squash` (or the shorthand `s`), and they will be squashed into the previous commit:
 
 ```
-pick 3f2a1c1 feat: 完成用户资料页骨架
-squash 9b8c2d2 wip: 头像上传调试中
-squash 5e1d3a3 fix: 修复上传后刷新不显示的问题
+pick 3f2a1c1 feat: complete user profile page skeleton
+squash 9b8c2d2 wip: debugging avatar upload
+squash 5e1d3a3 fix: fix issue where refresh after upload does not display
 ```
 
 After saving, Git will ask you to combine the commit messages of the three, ultimately producing one clean commit.

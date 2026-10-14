@@ -192,7 +192,7 @@ Cache observability lives almost entirely in `INFO`, and the first thing to do i
 INFO stats
 keyspace_hits:  94230
 keyspace_misses: 5770
-→ 命中率 = 94230 / (94230 + 5770) ≈ 94.2%
+→ hit rate = 94230 / (94230 + 5770) ≈ 94.2%
 ```
 
 Note that `EXISTS` counts a missing key as a miss too—so code that uses `EXISTS` for existence checks will drag this number down, so keep that in mind when reading the metric. When the hit rate is below expectations, compare against two fields:

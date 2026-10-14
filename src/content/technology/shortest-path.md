@@ -58,19 +58,19 @@ Dijkstra relies on the greedy property that "the current shortest node will not 
 ## Detailed Algorithm Steps
 
 ```
-算法：Dijkstra(graph, start)
-输入：非负权图 graph，起点 start
-输出：start 到每个节点的最短距离
+Algorithm: Dijkstra(graph, start)
+Input: non-negative weight graph graph, starting point start
+Output: shortest distance from start to each node
 
-1. dist 全部初始化为 Infinity，dist[start] = 0
-2. 将 [start, 0] 加入优先队列
-3. while 队列不为空：
-4.     取出距离最小的节点 u
-5.     如果该距离已过期，跳过
-6.     遍历 u 的所有边 u -> v, 权重 w：
-7.         如果 dist[u] + w < dist[v]：
-8.             更新 dist[v] 并加入队列
-9. 返回 dist
+1. Initialize all dist to Infinity, dist[start] = 0
+2. Add [start, 0] to the priority queue
+3. while the queue is not empty:
+4.     Extract the node u with the smallest distance
+5.     If that distance is already stale, skip
+6.     Traverse all edges u -> v of u, with weight w:
+7.         If dist[u] + w < dist[v]:
+8.             Update dist[v] and add it to the queue
+9. Return dist
 ```
 
 **Complexity analysis**:

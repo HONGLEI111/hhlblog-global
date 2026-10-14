@@ -61,18 +61,18 @@ If an edge `u -> v` means "u must be completed before v can be completed," then 
 ## Detailed Algorithm Steps
 
 ```
-算法：TopologicalSort(n, edges)
-输入：节点数 n，依赖边 edges
-输出：拓扑序；有环时返回空数组
+Algorithm: TopologicalSort(n, edges)
+Input: number of nodes n, dependency edges edges
+Output: topological order; returns an empty array if there is a cycle
 
-1. 构建邻接表 graph 和入度数组 indegree
-2. 将所有 indegree 为 0 的节点入队
-3. while 队列不为空：
-4.     node 出队并加入结果
-5.     遍历 node 的邻居 next：
+1. Build adjacency list graph and indegree array indegree
+2. Enqueue all nodes with indegree 0
+3. while the queue is not empty:
+4.     dequeue node and add it to the result
+5.     iterate over node's neighbor next:
 6.         indegree[next] -= 1
-7.         如果 indegree[next] == 0，入队
-8. 如果结果长度为 n，返回结果；否则说明有环
+7.         if indegree[next] == 0, enqueue
+8. If the result length is n, return the result; otherwise it means there is a cycle
 ```
 
 **Complexity analysis**:

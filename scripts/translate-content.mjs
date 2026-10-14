@@ -214,7 +214,7 @@ export const MARK_SHAPE = `${MARK_OPEN}0${MARK_CLOSE}`;
  *          are still protected from translation, but a dropped one is reported
  *          and tolerated instead of failing the whole article.
  */
-export function maskProtected(text) {
+export function maskProtected(text, { maskHtmlTags = true } = {}) {
 	const blocks = [];
 	const soft = new Set();
 	const stash = (match, isSoft = false) => {
@@ -232,7 +232,9 @@ export function maskProtected(text) {
 	out = out.replace(/\$\$[\s\S]*?\$\$/g, (m) => stash(m)); // display math
 	out = out.replace(/\$[^$\n]+?\$/g, (m) => stash(m)); // inline math
 	out = out.replace(/!\[\[[^\]]+\]\]/g, (m) => stash(m)); // obsidian embed
-	out = out.replace(/<[^>\n]+>/g, (m) => stash(m)); // html tag
+	// Callers translating template text pass maskHtmlTags:false — there, `<...>`
+	// is a placeholder that must be translated, not markup that must be kept.
+	if (maskHtmlTags) out = out.replace(/<[^>\n]+>/g, (m) => stash(m));
 	// URLs only: the surrounding [text](…) and ![alt](…) stay translatable.
 	out = out.replace(/\]\(\s*<?([^)\s>]+)>?[^)]*\)/g, (m, url) => `](${stash(url)})`);
 	out = out.replace(/^\[\^([^\]]+)\]:/gm, (m) => stash(m)); // footnote marker

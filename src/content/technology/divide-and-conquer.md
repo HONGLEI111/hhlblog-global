@@ -58,15 +58,15 @@ Divide and conquer does not require every step to "merge." Quicksort places the 
 ## Detailed Algorithm Steps
 
 ```
-算法：DivideAndConquer(problem)
-输入：一个问题 problem
-输出：problem 的解
+Algorithm: DivideAndConquer(problem)
+Input: a problem problem
+Output: the solution to problem
 
-1. 如果 problem 足够小，直接求解并返回
-2. 将 problem 拆成若干子问题
-3. 递归求解每个子问题
-4. 将子问题结果合并成原问题结果
-5. 返回合并结果
+1. If problem is small enough, solve it directly and return
+2. Split problem into several subproblems
+3. Recursively solve each subproblem
+4. Merge the subproblem results into the result for the original problem
+5. Return the merged result
 ```
 
 **Complexity analysis**:

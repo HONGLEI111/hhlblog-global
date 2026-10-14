@@ -142,10 +142,10 @@ console.log("sum(0, 5) =", sum(0, 5));              // 15
 Actual output:
 
 ```text
-模块字节数: 104
-前 16 字节: 00 61 73 6d 01 00 00 00 01 07 01 60 02 7f 7f 01
+Module byte count: 104
+First 16 bytes: 00 61 73 6d 01 00 00 00 01 07 01 60 02 7f 7f 01
 add(2, 40) = 42
-线性内存: [ 1, 2, 3, 4, 5 ]
+Linear memory: [ 1, 2, 3, 4, 5 ]
 sum(0, 5) = 15
 ```
 
@@ -160,11 +160,11 @@ Running the code above yourself is more useful than reading ten "Introduction to
 Now to answer the most practical question. Same machine, same Node process, best of five rounds after warm-up, comparing two types of workloads:
 
 ```text
-一次调用算完 200,000 个 i32 的和：
+Summing 200,000 i32 values in one call:
   Wasm sum()      0.12 ms
-  JS  for 循环    0.21 ms
+  JS  for loop    0.21 ms
 
-1,000,000 次「加一」，每加一次都跨一次 JS ↔ Wasm 边界：
+1,000,000 "add one" operations, each one crossing the JS ↔ Wasm boundary:
   Wasm add(a,1)   4.06 ms
   JS  a + 1       1.64 ms
 ```

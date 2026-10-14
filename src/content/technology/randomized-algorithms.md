@@ -51,9 +51,9 @@ Because the `i`-th position is chosen with equal probability from the remaining 
 ## Detailed Algorithm Steps
 
 ```
-算法：FisherYatesShuffle(arr)
-输入：数组 arr
-输出：原地打乱后的数组
+Algorithm: FisherYatesShuffle(arr)
+Input: array arr
+Output: the array shuffled in place
 
 1. for i from arr.length - 1 downto 1:
 2.     j ← random integer in [0, i]

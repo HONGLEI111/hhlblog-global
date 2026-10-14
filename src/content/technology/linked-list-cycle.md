@@ -14,9 +14,9 @@ draft: false
 Given the head node `head` of a singly linked list, determine whether a cycle exists in the linked list. If there is a node in the linked list that can be reached again by continuously following the `next` pointer, then a cycle exists in the linked list.
 
 ```
-输入：head = 3→2→0→-4
+Input: head = 3→2→0→-4
               ↑_______↓
-输出：true
+Output: true
 ```
 
 ### Subproblem 2: Find the Starting Point of the Cycle
@@ -24,10 +24,10 @@ Given the head node `head` of a singly linked list, determine whether a cycle ex
 Building on the previous problem, if a cycle exists, return the **entry node** of the cycle.
 
 ```
-输入：head = 3→2→0→-4
+Input: head = 3→2→0→-4
               ↑_______↓
-输出：节点 2
-解释：环的入口是节点 2
+Output: node 2
+Explanation: the entry of the cycle is node 2
 ```
 
 ## Solution Approach
@@ -211,26 +211,26 @@ function detectCycle(head) {
 ### Phase 1: Cycle Detection
 
 ```
-链表：3 → 2 → 0 → -4
+Linked list: 3 → 2 → 0 → -4
            ↑__________↓
 
 Step 1: slow=3, fast=3
 Step 2: slow=2, fast=0
-Step 3: slow=0, fast=2   ← fast 绕了一圈，套圈 slow
-Step 4: slow=-4, fast=-4 ← 在节点 -4 相遇！有环！
+Step 3: slow=0, fast=2   ← fast has gone all the way around and lapped slow
+Step 4: slow=-4, fast=-4 ← they meet at node -4! There is a cycle!
 ```
 
 ### Phase 2: Find the Cycle Entry
 
 ```
-第一次相遇后：
-  slow 重置到头部 (3)
-  fast 留在相遇点 (-4)
+After the first meeting:
+  slow resets to the head (3)
+  fast stays at the meeting point (-4)
 
-以相同速度前进：
+Advance at the same speed:
 Step 1: slow=2, fast=2
         ↓       ↓
-        两者在节点 2 相遇 → 节点 2 就是环的入口！
+        The two meet at node 2 → node 2 is the entrance to the cycle!
 ```
 
 ## Complexity Analysis

@@ -44,8 +44,8 @@ The commonality of these problems is that they cannot rely on length or index fo
 ### Fast and slow pointers to find the midpoint
 
 ```text
-slow 每次走 1 步
-fast 每次走 2 步
+slow moves 1 step each time
+fast moves 2 steps each time
 ```
 
 When `fast` reaches the tail, `slow` is exactly near the middle.

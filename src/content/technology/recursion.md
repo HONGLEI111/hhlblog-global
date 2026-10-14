@@ -58,15 +58,15 @@ If the termination condition is unreachable, recursion will call indefinitely an
 ## Detailed Algorithm Steps
 
 ```
-算法：RecursiveSolve(problem)
-输入：当前问题 problem
-输出：problem 的答案
+Algorithm: RecursiveSolve(problem)
+Input: current problem problem
+Output: answer to problem
 
-1. 如果 problem 是最小问题，返回已知答案
-2. 将 problem 转化为一个或多个更小的同类问题
-3. 递归求解子问题
-4. 将子问题结果组合成当前问题答案
-5. 返回答案
+1. If problem is the smallest problem, return the known answer
+2. Transform problem into one or more smaller problems of the same kind
+3. Recursively solve the subproblems
+4. Combine the subproblem results into the answer to the current problem
+5. Return the answer
 ```
 
 **Complexity analysis**:

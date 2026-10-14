@@ -64,14 +64,14 @@ The advantage of having one extra slot `prefix[0] = 0` is that intervals startin
 ## Detailed Algorithm Steps
 
 ```
-算法：PrefixSum(nums)
-输入：数组 nums
-输出：可 O(1) 查询区间和的前缀数组
+Algorithm: PrefixSum(nums)
+Input: array nums
+Output: prefix array that allows O(1) range sum queries
 
-1. 创建长度为 nums.length + 1 的数组 prefix，初始为 0
+1. Create an array prefix of length nums.length + 1, initialized to 0
 2. for i from 0 to nums.length - 1:
 3.     prefix[i + 1] ← prefix[i] + nums[i]
-4. 查询 [l, r] 时返回 prefix[r + 1] - prefix[l]
+4. When querying [l, r], return prefix[r + 1] - prefix[l]
 ```
 
 **Complexity analysis**:

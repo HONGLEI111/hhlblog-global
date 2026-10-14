@@ -50,19 +50,19 @@ On each `get` or update of an existing key, move the node to the head of the lis
 ## Detailed Algorithm Steps
 
 ```
-算法：LRUCache.put(key, value)
-输入：键和值
-输出：无
+Algorithm: LRUCache.put(key, value)
+Input: key and value
+Output: none
 
-1. 如果 key 已存在：
-2.     更新节点值
-3.     将节点移动到链表头部
-4.     返回
-5. 创建新节点并加入 Map
-6. 将新节点插入链表头部
-7. 如果容量超限：
-8.     删除链表尾部节点
-9.     从 Map 中删除对应 key
+1. If key already exists:
+2.     Update node value
+3.     Move node to the head of the linked list
+4.     Return
+5. Create a new node and add it to the Map
+6. Insert the new node at the head of the linked list
+7. If capacity is exceeded:
+8.     Delete the tail node of the linked list
+9.     Delete the corresponding key from the Map
 ```
 
 **Complexity analysis**:

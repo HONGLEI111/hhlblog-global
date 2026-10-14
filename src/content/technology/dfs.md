@@ -47,7 +47,7 @@ graph TD
 Starting from node `1`, the preorder DFS visit order might be:
 
 ```text
-1 → 2 → 4 → 回退 → 5 → 回退 → 3 → 6
+1 → 2 → 4 → rollback → 5 → rollback → 3 → 6
 ```
 
 ### Recursive Perspective
@@ -63,16 +63,16 @@ Explicitly maintain a stack, pop the top node each time, and push unvisited neig
 ## Detailed Algorithm Steps
 
 ```
-算法：DFS(node)
-输入：当前节点 node
-输出：遍历或计算结果
+Algorithm: DFS(node)
+Input: current node node
+Output: traversal or computation result
 
-1. 如果 node 为空或已访问，返回
-2. 标记 node 为已访问
-3. 处理当前节点
-4. 遍历 node 的每个邻居 next：
+1. If node is empty or already visited, return
+2. Mark node as visited
+3. Process the current node
+4. Traverse each neighbor next of node:
 5.     DFS(next)
-6. 根据子结果合并并返回
+6. Merge and return based on the sub-results
 ```
 
 **Complexity Analysis**:

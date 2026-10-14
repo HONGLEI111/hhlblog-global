@@ -52,8 +52,8 @@ Many problems are not about finding any occurrence of a target, but about findin
 ```text
 nums:   1  2  2  2  3
 index:  0  1  2  3  4
-左边界:    ^
-右边界:          ^
+Left boundary:    ^
+Right boundary:          ^
 ```
 
 Such problems are better transformed into "find the first position of `>= target`" and "find the first position of `> target`."
@@ -63,9 +63,9 @@ Such problems are better transformed into "find the first position of `>= target
 ## Detailed Algorithm Steps
 
 ```
-算法：LowerBound(nums, target)
-输入：升序数组 nums，目标 target
-输出：第一个 >= target 的位置
+Algorithm: LowerBound(nums, target)
+Input: ascending array nums, target target
+Output: the first position >= target
 
 1. left ← 0, right ← nums.length
 2. while left < right:

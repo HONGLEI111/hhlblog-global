@@ -12,9 +12,9 @@ draft: false
 Given the head node `head` of a singly linked list and a positive integer `k`, return the **`k`th from the end** node in the linked list.
 
 ```
-输入：head = 1→2→3→4→5, k = 2
-输出：4→5
-解释：倒数第 2 个节点是 4
+Input: head = 1→2→3→4→5, k = 2
+Output: 4→5
+Explanation: The 2nd node from the end is 4
 ```
 
 ## Solution Approach
@@ -150,29 +150,29 @@ function findKthFromEnd(head, k) {
 ## Illustrated Walkthrough
 
 ```
-输入：head = 1→2→3→4→5, k = 2
+Input: head = 1→2→3→4→5, k = 2
 
-初始：fast 和 slow 都在头节点
+Initial: fast and slow are both at the head node
         fast
         slow
         ↓
         1 → 2 → 3 → 4 → 5
 
-Step 1: fast 先走 k=2 步
+Step 1: fast moves k=2 steps first
                      fast
                      ↓
         1 → 2 → 3 → 4 → 5
         ↑
         slow
 
-Step 2: slow 和 fast 同步走
+Step 2: slow and fast move in sync
                      fast
                      ↓
         1 → 2 → 3 → 4 → 5 → null
                   ↑
                   slow
 
-当 fast == null 时，slow 指向节点 4（倒数第 2 个节点）
+When fast == null, slow points to node 4 (the 2nd node from the end)
 ```
 
 ## Complexity Analysis

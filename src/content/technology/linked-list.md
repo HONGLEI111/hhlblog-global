@@ -56,10 +56,10 @@ The problem linked lists solve is: when we only know a reference to some node, h
 Insert `X` between `A` and `B`:
 
 ```text
-插入前: A -> B
-步骤一: X -> B
-步骤二: A -> X
-插入后: A -> X -> B
+Before insertion: A -> B
+Step 1: X -> B
+Step 2: A -> X
+After insertion: A -> X -> B
 ```
 
 Order matters: you must first make the new node point to its successor, then make the predecessor point to the new node; otherwise you'll lose the original chain.
@@ -69,8 +69,8 @@ Order matters: you must first make the new node point to its successor, then mak
 Delete `B`:
 
 ```text
-删除前: A -> B -> C
-删除后: A ------> C
+Before deletion: A -> B -> C
+After deletion: A ------> C
 ```
 
 You only need to make `A.next = C`. In languages with garbage collection, `B` will be reclaimed once it's no longer referenced.

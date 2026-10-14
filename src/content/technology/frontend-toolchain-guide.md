@@ -71,13 +71,13 @@ Managing these requires a toolchain. This article will walk you through the core
 ### 3.1 The Difference
 
 ```
-生产依赖（dependencies）：
-  → 用户访问你的网站时必须加载的代码
-  → 例如：react, vue, lodash, axios
+Production dependencies (dependencies):
+  → Code that must be loaded when users visit your website
+  → For example: react, vue, lodash, axios
 
-开发依赖（devDependencies）：
-  → 只在开发阶段发挥作用，打包后不进入最终产物
-  → 例如：vite, webpack, typescript, eslint, prettier, vitest
+Development dependencies (devDependencies):
+  → Only take effect during the development phase, and do not enter the final build output after bundling
+  → For example: vite, webpack, typescript, eslint, prettier, vitest
 ```
 
 ### 3.2 Install Commands
@@ -112,7 +112,7 @@ In production environments (CI/CD or Docker), using `npm install --production` c
 npm uses **Semantic Versioning** (SemVer for short), with the format:
 
 ```
-主版本号.次版本号.修订号
+Major version number.Minor version number.Patch number
  MAJOR . MINOR . PATCH
 ```
 
@@ -172,7 +172,7 @@ node_modules/
 ├── react-dom/
 ├── vite/
 ├── typescript/
-├── ...（数百个包）
+├── ... (hundreds of packages)
 ```
 
 **Important**: `node_modules` **should not be committed to Git**. `.gitignore` should include:
@@ -192,8 +192,8 @@ After team members clone the project, they can run `npm install` to regenerate i
 `package.json` uses **range versions** like `^1.2.3`, meaning that `npm install` at different times may install different versions:
 
 ```
-3月1日安装：react ^19.0.0 → 19.0.0
-5月1日安装：react ^19.0.0 → 19.2.3  ← 不一样！
+Installed on March 1: react ^19.0.0 → 19.0.0
+Installed on May 1: react ^19.0.0 → 19.2.3  ← Not the same!
 ```
 
 This leads to the classic "**it works on my machine**" problem.
@@ -227,13 +227,13 @@ Lock files record the **exact version of every layer of dependencies**, ensuring
 
 ```
 npm (2010)
-  → 第一个 Node.js 包管理器，随 Node.js 一起安装
+  → The first Node.js package manager, installed alongside Node.js
 
 yarn (2016)
-  → Facebook 出品，解决 npm 速度慢和不一致问题
+  → Created by Facebook, solving npm's slowness and inconsistency issues
 
 pnpm (2017)
-  → 磁盘效率最优，严格处理依赖
+  → Best disk efficiency, strict dependency handling
 ```
 
 ### 7.2 Core Comparison
@@ -324,9 +324,9 @@ When executing `npm run build`, npm executes in the order of `prebuild → build
 Browsers cannot directly run `.vue`, `.tsx`, `.scss` files, nor do they support `import` path aliases. The role of build tools is to **transform development code into code that browsers can run**:
 
 ```
-源文件（.tsx / .vue / .scss）
-   ￬ 构建工具（Vite / Webpack）
-最终产物（.js / .css / .html）
+Source files (.tsx / .vue / .scss)
+   ￬ Build tools (Vite / Webpack)
+Final output (.js / .css / .html)
 ```
 
 ### 9.2 Webpack

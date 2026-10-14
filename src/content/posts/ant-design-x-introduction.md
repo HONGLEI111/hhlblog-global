@@ -28,27 +28,27 @@ On April 30, 2026, Ant Design X released version **v2.7.0**, and its ecosystem n
 The core design philosophy of Ant Design X is the **RICH paradigm**, which breaks down AI interaction into four stages:
 
 ```
-RICH 交互流程
-├── R — Role（角色意图）
-│   ├── Welcome 欢迎组件
-│   └── Prompts 提示集
-├── I — Intention（意图唤醒）
-│   ├── Sender 输入框
-│   ├── Attachment 附件
-│   └── Suggestion 快捷建议
-├── C — Conversation（会话沟通）
-│   ├── Bubble 对话气泡
-│   ├── Conversations 会话列表
-│   └── Notification 通知
-└── H — Hybrid UI（混合界面）
-    ├── Think 思考过程
-    ├── ThoughtChain 思维链
-    ├── Actions 操作栏
-    ├── FileCard 文件卡片
-    ├── Sources 引用来源
-    ├── Mermaid 图表渲染
-    ├── Folder 文件树
-    └── CodeHighlighter 代码高亮
+RICH interaction flow
+├── R — Role (role intent)
+│   ├── Welcome welcome component
+│   └── Prompts prompt set
+├── I — Intention (intent awakening)
+│   ├── Sender input box
+│   ├── Attachment attachment
+│   └── Suggestion quick suggestion
+├── C — Conversation (conversation communication)
+│   ├── Bubble conversation bubble
+│   ├── Conversations conversation list
+│   └── Notification notification
+└── H — Hybrid UI (hybrid interface)
+    ├── Think thinking process
+    ├── ThoughtChain thought chain
+    ├── Actions action bar
+    ├── FileCard file card
+    ├── Sources cited sources
+    ├── Mermaid diagram rendering
+    ├── Folder file tree
+    └── CodeHighlighter code highlighting
 ```
 
 RICH is not a linear process, but rather **composable interaction units**. You can use components from a single stage independently, or combine them into a complete AI application.

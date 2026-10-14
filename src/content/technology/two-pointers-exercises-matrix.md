@@ -36,18 +36,18 @@ The diagonal here refers to the line going **from top-left to bottom-right**, i.
 **Example:**
 
 ```text
-输入：mat = [[3,3,1,1],
+Input: mat = [[3,3,1,1],
              [2,2,1,2],
              [1,1,1,2]]
-输出：     [[1,1,1,1],
+Output:     [[1,1,1,1],
              [1,2,2,2],
              [1,2,3,3]]
 
-输入：mat = [[1,1,1,1],
+Input: mat = [[1,1,1,1],
              [1,1,1,1],
              [1,1,1,1],
              [1,1,1,1]]
-输出：     [[1,1,1,1],
+Output:     [[1,1,1,1],
              [1,1,1,1],
              [1,1,1,1],
              [1,1,1,1]]
@@ -88,15 +88,15 @@ mat = [[3, 3, 1, 1],        i-j = [[ 0, -1, -2, -3],
        [2, 2, 1, 2],                [ 1,  0, -1, -2],
        [1, 1, 1, 2]]                [ 2,  1,  0, -1]]
 
-按 i-j 分组：
-  0: (0,0)=3, (1,1)=2, (2,2)=1   → 排序 [1,2,3]
- -1: (0,1)=3, (1,2)=1, (2,3)=2   → 排序 [1,2,3]
- -2: (0,2)=1, (1,3)=2            → 排序 [1,2]
- -3: (0,3)=1                     → 排序 [1]
-  1: (1,0)=2, (2,1)=1            → 排序 [1,2]
-  2: (2,0)=1                     → 排序 [1]
+Group by i-j:
+  0: (0,0)=3, (1,1)=2, (2,2)=1   → sort [1,2,3]
+ -1: (0,1)=3, (1,2)=1, (2,3)=2   → sort [1,2,3]
+ -2: (0,2)=1, (1,3)=2            → sort [1,2]
+ -3: (0,3)=1                     → sort [1]
+  1: (1,0)=2, (2,1)=1            → sort [1,2]
+  2: (2,0)=1                     → sort [1]
 
-写回后：
+After writing back:
 [[1, 1, 1, 1],
  [1, 2, 2, 2],
  [1, 2, 3, 3]]  ✔
@@ -246,25 +246,25 @@ Return the final 2D grid obtained after `k` migration operations.
 **Example:**
 
 ```text
-输入：grid = [[1,2,3],
+Input: grid = [[1,2,3],
               [4,5,6],
               [7,8,9]], k = 1
-输出：     [[9,1,2],
+Output:     [[9,1,2],
               [3,4,5],
               [6,7,8]]
 
-输入：grid = [[3,8,1,9],
+Input: grid = [[3,8,1,9],
               [19,7,2,5],
               [4,6,11,10],
               [12,0,21,13]], k = 4
-输出：     [[12,0,21,13],
+Output:     [[12,0,21,13],
               [3,8,1,9],
               [19,7,2,5],
               [4,6,11,10]]
-         （每个元素正好移动一整行，等价于整体下移一行）
+         (Each element moves exactly one full row, equivalent to shifting the whole thing down by one row)
 
-输入：grid = [[1,2,3],[4,5,6],[7,8,9]], k = 9
-输出：[[1,2,3],[4,5,6],[7,8,9]]   （9 次正好绕回原样）
+Input: grid = [[1,2,3],[4,5,6],[7,8,9]], k = 9
+Output: [[1,2,3],[4,5,6],[7,8,9]]   (9 times wraps exactly back to the original)
 ```
 
 **Constraints:** `1 <= m, n <= 50`, `-1000 <= grid[i][j] <= 1000`, `0 <= k <= 100`.
@@ -274,7 +274,7 @@ Return the final 2D grid obtained after `k` migration operations.
 The "snake-like wrap-around" rule of the matrix sounds convoluted, but once you flatten the 2D grid into a 1D array using **row-major order** by index `p = i * n + j`, everything becomes simple:
 
 ```text
-grid = [[1,2,3],        展平 →  [1,2,3,4,5,6,7,8,9]
+grid = [[1,2,3],        flatten →  [1,2,3,4,5,6,7,8,9]
         [4,5,6],
         [7,8,9]]
 ```
@@ -294,16 +294,16 @@ Note that `k` can first be taken modulo `m * n`: after `m * n` migrations, all e
 ```text
 grid = [[1,2,3],[4,5,6],[7,8,9]]   k = 1
 
-展平： 下标  0  1  2  3  4  5  6  7  8
-       值    1  2  3  4  5  6  7  8  9
+Flatten: index  0  1  2  3  4  5  6  7  8
+       value    1  2  3  4  5  6  7  8  9
 
-每个元素 q = (p + 1) % 9：
+Each element q = (p + 1) % 9:
   1(0) → 1    2(1) → 2    3(2) → 3
   4(3) → 4    5(4) → 5    6(5) → 6
-  7(6) → 7    8(7) → 8    9(8) → 0   ← 9 绕回开头
+  7(6) → 7    8(7) → 8    9(8) → 0   ← 9 wraps back to the beginning
 
-新的一维： 9  1  2  3  4  5  6  7  8
-按每行 3 个切分：
+The new 1D array: 9  1  2  3  4  5  6  7  8
+Split into groups of 3 per row:
 [[9,1,2],
  [3,4,5],
  [6,7,8]]  ✔
@@ -320,10 +320,10 @@ grid = [[1,2,3],[4,5,6],[7,8,9]]   k = 1
 Each reversal uses left and right pointers converging toward the middle and swapping. Verify with `[1..9]、k = 3`:
 
 ```text
-原始     1 2 3 4 5 6 7 8 9
-反转全部 9 8 7 6 5 4 3 2 1
-反转前3  7 8 9 6 5 4 3 2 1
-反转其余 7 8 9 1 2 3 4 5 6   ✔ 正好是右移 3 位
+Original     1 2 3 4 5 6 7 8 9
+Reverse all 9 8 7 6 5 4 3 2 1
+Reverse first 3  7 8 9 6 5 4 3 2 1
+Reverse the rest 7 8 9 1 2 3 4 5 6   ✔ exactly a right rotation by 3
 ```
 
 As long as you're willing to treat the 2D matrix as a 1D array at the index level (`p ↔ (p / n, p % n)`), this algorithm can be applied in-place, reducing extra space to O(1).
@@ -442,16 +442,16 @@ The transpose of a matrix is obtained by flipping the matrix over its main diago
 **Example:**
 
 ```text
-输入：matrix = [[1,2,3],
+Input: matrix = [[1,2,3],
                 [4,5,6],
                 [7,8,9]]
-输出：         [[1,4,7],
+Output:        [[1,4,7],
                 [2,5,8],
                 [3,6,9]]
 
-输入：matrix = [[1,2,3],
+Input: matrix = [[1,2,3],
                 [4,5,6]]
-输出：         [[1,4],
+Output:        [[1,4],
                 [2,5],
                 [3,6]]
 ```
@@ -473,11 +473,11 @@ The original matrix is `m × n`, and after transposing it becomes `n × m`: the 
 Why must we cut it in half? The table below illustrates the problem: if both `i` and `j` run over the entire matrix, each symmetric pair gets swapped **twice**, which amounts to no swap at all.
 
 ```text
-只走上三角 (i < j)              i、j 都跑满
-  (0,1) (0,2)                    每个 (i,j) 都被访问一次
-  (1,2)                          (0,1) 换一次 → (1,0) 又换一次 → 还原
+Only traverse the upper triangle (i < j)             i and j both run through the full range
+  (0,1) (0,2)                    each (i,j) is visited once
+  (1,2)                          (0,1) swapped once → (1,0) swapped again → restored
 
-访问次数：   3 对                 访问次数：9 个格子，实际交换 4 对（重复）
+Number of visits:   3 pairs                 Number of visits: 9 cells, actually 4 pairs swapped (duplicates)
 ```
 
 ### Process Walkthrough
@@ -498,11 +498,11 @@ In-place transpose of a square matrix:
 
 ```text
 [1, 2, 3]                [1, 4, 7]
-[4, 5, 6]   ──上三角交换──► [2, 5, 8]
+[4, 5, 6]   ──upper triangle swap──► [2, 5, 8]
 [7, 8, 9]                [3, 6, 9]
 
-交换的 3 对：(0,1)↔(1,0)、(0,2)↔(2,0)、(1,2)↔(2,1)
-对角线 (0,0)、(1,1)、(2,2) 不动 ✔
+3 pairs swapped: (0,1)↔(1,0), (0,2)↔(2,0), (1,2)↔(2,1)
+Diagonal (0,0), (1,1), (2,2) stay unchanged ✔
 ```
 
 ### Code Implementation
@@ -609,15 +609,15 @@ Write a function to find the longest common prefix among an array of strings. If
 **Example:**
 
 ```text
-输入：strs = ["flower","flow","flight"]
-输出："fl"
+Input: strs = ["flower","flow","flight"]
+Output: "fl"
 
-输入：strs = ["dog","racecar","car"]
-输出：""
-解释：输入不存在公共前缀。
+Input: strs = ["dog","racecar","car"]
+Output: ""
+Explanation: There is no common prefix in the input.
 
-输入：strs = ["a"]
-输出："a"
+Input: strs = ["a"]
+Output: "a"
 ```
 
 **Constraints:** `1 <= strs.length <= 200`, `0 <= strs[i].length <= 200`, `strs[i]` consist only of lowercase English letters.
@@ -641,13 +641,13 @@ The rules are:
 
 ```text
 strs = ["flower", "flow", "flight"]
-                  ↑ 基准串
+                  ↑ baseline string
 
-j=0: strs[1][0]='f'='f'  strs[2][0]='f'='f'  → 全通过
-j=1: strs[1][1]='l'='l'  strs[2][1]='l'='l'  → 全通过
-j=2: strs[1][2]='o'='o'  strs[2][2]='i'!='o' → 冲突！
+j=0: strs[1][0]='f'='f'  strs[2][0]='f'='f'  → all pass
+j=1: strs[1][1]='l'='l'  strs[2][1]='l'='l'  → all pass
+j=2: strs[1][2]='o'='o'  strs[2][2]='i'!='o' → conflict!
 
-返回 strs[0] 的前 2 个字符 = "fl" ✔
+return the first 2 characters of strs[0] = "fl" ✔
 ```
 
 Counter-example `["dog","racecar","car"]`: when `j=0`, `'a' != 'd'`, immediately return `""` ✔

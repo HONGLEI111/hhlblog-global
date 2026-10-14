@@ -65,16 +65,16 @@ The Temporal API completely solves these problems. In Node.js 26, **it is fully 
 
 ```
 Temporal
-├── PlainDate          — 纯日期（无时间、无时区）
-├── PlainTime          — 纯时间（无日期、无时区）
-├── PlainDateTime      — 日期 + 时间（无时区）
-├── PlainYearMonth     — 年 + 月
-├── PlainMonthDay      — 月 + 日
-├── ZonedDateTime      — 日期 + 时间 + 时区（完整表示）
-├── Instant            — 绝对时间点（纳秒精度，自 Unix epoch 起）
-├── Duration           — 时间段（年/月/周/天/时/分/秒/毫秒/微秒/纳秒）
-├── TimeZone           — 时区标识
-└── Calendar           — 日历系统
+├── PlainDate          — Plain date (no time, no time zone)
+├── PlainTime          — Plain time (no date, no time zone)
+├── PlainDateTime      — Date + time (no time zone)
+├── PlainYearMonth     — Year + month
+├── PlainMonthDay      — Month + day
+├── ZonedDateTime      — Date + time + time zone (complete representation)
+├── Instant            — Absolute point in time (nanosecond precision, since Unix epoch)
+├── Duration           — Time duration (years/months/weeks/days/hours/minutes/seconds/milliseconds/microseconds/nanoseconds)
+├── TimeZone           — Time zone identifier
+└── Calendar           — Calendar system
 ```
 
 ### 3.3 Practical Usage Comparison
@@ -255,10 +255,10 @@ Thanks to optimizations in V8 14.6, async/await operation performance has improv
 Starting from Node.js 27, a **three-phase** release model will be adopted:
 
 ```
-Alpha（6个月）     →  Current（6个月）    →  LTS（30个月）
-   10月 ~ 3月           4月 ~ 10月              共计 2.5 年
-   破坏性变更允许        稳定化阶段             安全修复
-   灵活发布节奏         禁止破坏性变更          长期支持
+Alpha (6 months)     →  Current (6 months)    →  LTS (30 months)
+   Oct ~ Mar           Apr ~ Oct              total 2.5 years
+   Breaking changes allowed        Stabilization phase             Security fixes
+   Flexible release cadence         Breaking changes prohibited          Long-term support
 ```
 
 ### 9.2 Node.js 27 Alpha Coming Soon
@@ -308,20 +308,20 @@ node --version  # v26.0.0
 ### 10.2 Upgrade Checklist
 
 ```
-Node.js 26 升级检查清单
-├── ☐ 运行 npx npm-check-updates 检查依赖兼容性
-├── ☐ 检查原生 C++ 插件是否兼容 NODE_MODULE_VERSION 147
-├── ☐ 搜索 writeHeader() 替换为 writeHead()
-├── ☐ 检查是否直接 import 'undici'（需查 Undici 8 changelog）
-├── ☐ 移除 --experimental-transform-types flag
-├── ☐ 检查 crypto 旧 API 使用情况（DEP0182）
-├── ☐ 验证 GCC 编译环境 ≥ 13.2（源码编译场景）
-├── ☐ 将旧 Date 操作逐步迁移至 Temporal API
-├── ☐ 在 CI 中加入 Node.js 26 测试矩阵
-└── ☐ 短期：Node.js 24（活跃 LTS，最保守选择）
-    中期：Node.js 26（10月进入 LTS，特性最先进）
-    紧急：Node.js 22（维护 LTS，迁移窗口充裕）
-    立即迁移：Node.js 20（已于 2026年4月30日 EOL！）
+Node.js 26 Upgrade Checklist
+├── ☐ Run npx npm-check-updates to check dependency compatibility
+├── ☐ Check whether native C++ addons are compatible with NODE_MODULE_VERSION 147
+├── ☐ Search for writeHeader() to replace with writeHead()
+├── ☐ Check whether 'undici' is imported directly (need to check the Undici 8 changelog)
+├── ☐ Remove the --experimental-transform-types flag
+├── ☐ Check usage of old crypto APIs (DEP0182)
+├── ☐ Verify the GCC compilation environment is ≥ 13.2 (for source compilation scenarios)
+├── ☐ Gradually migrate old Date operations to the Temporal API
+├── ☐ Add a Node.js 26 test matrix to CI
+└── ☐ Short term: Node.js 24 (active LTS, the most conservative choice)
+    Medium term: Node.js 26 (enters LTS in October, most advanced features)
+    Urgent: Node.js 22 (maintenance LTS, ample migration window)
+    Migrate immediately: Node.js 20 (already EOL as of April 30, 2026!)
 ```
 
 ### 10.3 Quick Reference of Release Line Status

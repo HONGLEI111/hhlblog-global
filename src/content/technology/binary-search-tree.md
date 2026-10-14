@@ -14,7 +14,7 @@ A binary search tree (BST) is a data structure that adds a sorting constraint on
 The core property of a BST is:
 
 ```text
-左子树所有值 < 当前节点值 < 右子树所有值
+All values in the left subtree < current node value < all values in the right subtree
 ```
 
 If the tree stays balanced, the complexity of operations is close to O(log n); if it degenerates into a linked list, the complexity becomes O(n).
@@ -43,9 +43,9 @@ Example:
 Path for searching `6`:
 
 ```text
-6 < 8  -> 去左边
-6 > 3  -> 去右边
-6 = 6  -> 找到
+6 < 8  -> go left
+6 > 3  -> go right
+6 = 6  -> found
 ```
 
 BST problems usually revolve around four things:
@@ -78,7 +78,7 @@ This is why a BST is better suited for searching than an ordinary binary tree.
 The in-order traversal of a BST is always in ascending order:
 
 ```text
-左 -> 根 -> 右
+Left -> root -> right
 1, 3, 6, 8, 10, 14
 ```
 

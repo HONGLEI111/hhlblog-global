@@ -31,8 +31,8 @@ A binary tree node contains three parts:
 
 ```text
 value
-left  -> 左子树
-right -> 右子树
+left  -> left subtree
+right -> right subtree
 ```
 
 Example:

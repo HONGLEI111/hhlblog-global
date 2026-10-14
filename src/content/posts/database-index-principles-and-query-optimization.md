@@ -121,10 +121,10 @@ WHERE user_id = 1 AND status = 'paid' AND amount > 100
   -> SEARCH ... (user_id=? AND status=? AND amount>?)
 
 WHERE status = 'paid'                      --Skip the leftmost column
-  -> SEARCH orders USING COVERING INDEX idx_status (status=?)   ← 走了另一条索引
+  -> SEARCH orders USING COVERING INDEX idx_status (status=?)   ← took a different index
 
 WHERE amount > 100
-  -> SCAN orders USING COVERING INDEX idx_user_status_amount    ← 注意这句
+  -> SCAN orders USING COVERING INDEX idx_user_status_amount    ← note this line
 ```
 
 The last one is particularly worth staring at: it's not "using the index for lookup," but **scanning the entire index**. The index is smaller than the table, so scanning the index is still cheaper than scanning the table, but it's still O(n). **`SEARCH` (tree lookup) and `SCAN ... USING INDEX` (full index scan) are two completely different things**—be sure to distinguish them when reading execution plans. This is also where many people mistakenly believe "the index took effect."
@@ -135,10 +135,10 @@ This is the most easily misunderstood point. Compare these two queries that diff
 
 ```text
 WHERE user_id = 1 AND status > 'paid' AND amount = 500
-  -> SEARCH ... (user_id=? AND status>?)              ← amount 不在查找键里
+  -> SEARCH ... (user_id=? AND status>?)              ← amount is not in the lookup key
 
 WHERE user_id = 1 AND status = 'paid' AND amount = 500
-  -> SEARCH ... (user_id=? AND status=? AND amount=?)  ← 三列都用上了
+  -> SEARCH ... (user_id=? AND status=? AND amount=?)  ← all three columns are used
 ```
 
 The reason lies in the fact that B+ tree positioning relies on "order": `status > 'paid'` hits a **range**, and within that range `amount` is not ordered, so it cannot be used to further narrow the lookup. At this point `amount = 500` can only degrade to a row-by-row filter condition (residual filter; InnoDB pushes this filtering down to the index layer, i.e., index condition pushdown, saving some table lookups, but **not reducing the number of rows that need to be checked**).
@@ -159,7 +159,7 @@ SELECT user_id, amount FROM orders WHERE user_id = 12345
 
 SELECT user_id, amount, note FROM orders WHERE user_id = 12345
   -> SEARCH orders USING INDEX ix_user_amount (user_id=?)            0.0041 ms
-                                                       ↑ 少了 COVERING，需要回表
+                                                       ↑ missing COVERING, requires table lookup
 ```
 
 In the microbenchmark on this in-memory database, the table lookup was only about 1.6 times more expensive—but this is precisely **an illusion flattened out by memory**: an in-memory database has no random disk I/O, and the essential cost of a table lookup is "random access by primary key/physical location." On real storage, this gap is often on the order of dozens of times, which is also why "put all the columns the query needs into the index" has become one of the most effective optimization techniques.
@@ -234,11 +234,11 @@ Under the premise of `user_id = 1`, when the index is `(user_id, status, amount)
 
 ```text
 ORDER BY status
-  -> SEARCH ... (user_id=?)                        ← 无额外排序
+  -> SEARCH ... (user_id=?)                        ← no additional sorting
 
 ORDER BY amount
   -> SEARCH ... (user_id=?)
-  -> USE TEMP B-TREE FOR ORDER BY                  ← 多了一次排序
+  -> USE TEMP B-TREE FOR ORDER BY                  ← one extra sort
 
 ORDER BY created_at
   -> SEARCH ... (user_id=?)

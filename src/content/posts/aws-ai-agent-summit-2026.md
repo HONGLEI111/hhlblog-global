@@ -131,20 +131,20 @@ It demonstrated orchestrating Agents by dragging and dropping on a visual canvas
 This session sorted out the runtime workflow of an Agent (note that this is not a linear structure, but a **tree structure**):
 
 ```
-用户输入 (Chatbox)
+User input (Chatbox)
     │
     ▼
-AgentCore Runtime（执行环境）
+AgentCore Runtime (execution environment)
     │
     ▼
-Customer Support Agent（主程序）
+Customer Support Agent (main program)
     │
-    ├── AgentCore Memory —— 管理长期/短期记忆
-    ├── AgentCore Observability —— 观察与记录决策过程
-    ├── AgentCore Evaluation —— 对决策结果进行评估
-    ├── AgentCore Gateway —— 调用 MCP 等外部工具
-    ├── AgentCore Identity —— 身份鉴权
-    └── AgentCore Policy —— 访问控制
+    ├── AgentCore Memory —— manage long-term/short-term memory
+    ├── AgentCore Observability —— observe and record the decision-making process
+    ├── AgentCore Evaluation —— evaluate decision outcomes
+    ├── AgentCore Gateway —— call external tools such as MCP
+    ├── AgentCore Identity —— identity authentication
+    └── AgentCore Policy —— access control
 ```
 
 A tree structure means that the modules are not called serially, but triggered in parallel or conditionally according to the scenario—closer to the actual way humans handle problems.

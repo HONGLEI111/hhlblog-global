@@ -12,11 +12,11 @@ draft: false
 Given the head nodes `headA` and `headB` of two singly linked lists, determine whether they **intersect** (i.e., some node is shared by both linked lists). If they intersect, return the **intersection node**; otherwise, return `null`.
 
 ```
-输入：headA = 4→1→8→4→5
+Input: headA = 4→1→8→4→5
       headB = 5→6→1→8→4→5
                     ↑
-                    交点
-输出：节点 8
+                    intersection
+Output: node 8
 ```
 
 The two linked lists meet at node 8, after which they share the 4→5 portion.
@@ -146,32 +146,32 @@ function getIntersectionNode(headA, headB) {
 ### Case with an intersection
 
 ```
-链表A：  a1 → a2
+Linked list A:  a1 → a2
                  ↘
                    c1 → c2 → c3
                  ↗
-链表B：  b1 → b2 → b3
+Linked list B:  b1 → b2 → b3
 ```
 
 ```
-pA 路径：a1 → a2 → c1 → c2 → c3 → b1 → b2 → b3 → ★c1
-pB 路径：b1 → b2 → b3 → c1 → c2 → c3 → a1 → a2 → ★c1
+pA path: a1 → a2 → c1 → c2 → c3 → b1 → b2 → b3 → ★c1
+pB path: b1 → b2 → b3 → c1 → c2 → c3 → a1 → a2 → ★c1
 
-★ 处两指针相遇，c1 就是交点 ✓
+At ★ the two pointers meet, so c1 is the intersection point ✓
 ```
 
 ### Case without an intersection
 
 ```
-链表A：  1 → 2 → 3
-链表B：  4 → 5
+Linked list A:  1 → 2 → 3
+Linked list B:  4 → 5
 ```
 
 ```
-pA 路径：1 → 2 → 3 → 4 → 5 → null
-pB 路径：4 → 5 → 1 → 2 → 3 → null
+pA path: 1 → 2 → 3 → 4 → 5 → null
+pB path: 4 → 5 → 1 → 2 → 3 → null
 
-★ 两指针同时到达 null ✓
+★ Both pointers reach null at the same time ✓
 ```
 
 ## Complexity Analysis

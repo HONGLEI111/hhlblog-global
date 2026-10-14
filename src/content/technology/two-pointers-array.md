@@ -60,17 +60,17 @@ The premise for this movement to work is that the array is sorted, so after movi
 ## Detailed Algorithm Steps
 
 ```
-算法：TwoPointers(nums, target)
-输入：有序数组 nums，目标 target
-输出：满足条件的两个位置
+Algorithm: TwoPointers(nums, target)
+Input: sorted array nums, target target
+Output: the two positions that satisfy the condition
 
 1. left ← 0, right ← nums.length - 1
 2. while left < right:
 3.     sum ← nums[left] + nums[right]
-4.     if sum == target，返回答案
-5.     if sum < target，left ← left + 1
+4.     if sum == target, return the answer
+5.     if sum < target, left ← left + 1
 6.     else right ← right - 1
-7. 返回未找到
+7. return not found
 ```
 
 **Complexity analysis**:

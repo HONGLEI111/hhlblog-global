@@ -58,17 +58,17 @@ Rolldown is a project initiated by Vite creator Evan You, with the goal of **rew
 ### 3.2 Rolldown's Technical Advantages
 
 ```
-Rolldown 架构
-├── Rust 核心引擎
-│   ├── 快速解析
-│   ├── 高效转换
-│   └── 优化打包
-├── Rollup 插件兼容层
-│   ├── 插件 API 映射
-│   └── 钩子系统适配
-└── Vite 集成
-    ├── 开发服务器
-    └── 生产构建
+Rolldown Architecture
+├── Rust Core Engine
+│   ├── Fast Parsing
+│   ├── Efficient Transformation
+│   └── Optimized Bundling
+├── Rollup Plugin Compatibility Layer
+│   ├── Plugin API Mapping
+│   └── Hook System Adaptation
+└── Vite Integration
+    ├── Development Server
+    └── Production Build
 ```
 
 **Performance comparison**:

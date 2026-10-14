@@ -88,11 +88,11 @@ The resulting code table:
 ## Detailed Algorithm Steps
 
 ```
-算法：BuildHuffmanTree(freqMap)
-输入：字符→频率的映射表
-输出：霍夫曼树的根节点
+Algorithm: BuildHuffmanTree(freqMap)
+Input: Mapping table from character → frequency
+Output: Root node of the Huffman tree
 
-1. 初始化最小堆 H
+1. Initialize min-heap H
 2. for each (char, freq) in freqMap:
 3.     H.push( new HuffmanNode(char, freq) )
 4. while H.size() > 1:

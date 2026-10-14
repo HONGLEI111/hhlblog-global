@@ -56,7 +56,7 @@ nums = [-2, 0, 3, -5, 2, -1]
 
 sumRange(0, 2) → 1      // -2 + 0 + 3
 sumRange(2, 5) → -1     // 3 + (-5) + 2 + (-1)
-sumRange(0, 5) → -3     // 整个数组
+sumRange(0, 5) → -3     // the entire array
 ```
 
 **Constraints:** `0 <= nums.length <= 10^4`, `sumRange` is called at most `10^4` times.
@@ -94,10 +94,10 @@ index:    0   1   2   3   4   5
 pre:   [ 0, -2, -2,  1, -4, -2, -3 ]
 index:   0   1   2   3   4   5   6
           ↑                       ↑
-      pre[0]=0             pre[6]=整个数组的和
+      pre[0]=0            pre[6]=sum of the entire array
 
 sumRange(2, 5) = pre[6] - pre[2] = -3 - (-2) = -1   ✓
-                  └ 前 6 个 ┘  └ 前 2 个 ┘
+                  └ first 6 ┘  └ first 2 ┘
 ```
 
 ### The Three-Part Template
@@ -105,9 +105,9 @@ sumRange(2, 5) = pre[6] - pre[2] = -3 - (-2) = -1   ✓
 Prefix sum code is always three parts: **build table → query table → (C only) free**.
 
 ```text
-① 建表：pre[0] = 0;  for i in 1..n:  pre[i] = pre[i-1] + nums[i-1]
-② 查询：return pre[right + 1] - pre[left]
-③ 释放：（C 语言）free 掉 pre 和对象本身
+① Build table: pre[0] = 0;  for i in 1..n:  pre[i] = pre[i-1] + nums[i-1]
+② Query: return pre[right + 1] - pre[left]
+③ Free: (C language) free pre and the object itself
 ```
 
 :::code-tabs{default="cpp"}
@@ -202,7 +202,7 @@ matrix = [[3, 0, 1, 4, 2],
           [4, 1, 0, 1, 7],
           [1, 0, 3, 0, 5]]
 
-sumRegion(2, 1, 4, 3) → 8     // 见下方矩形
+sumRegion(2, 1, 4, 3) → 8     // see the rectangle below
 sumRegion(1, 1, 2, 2) → 11
 sumRegion(1, 2, 2, 4) → 12
 ```
@@ -216,7 +216,7 @@ In 1D we allocate one extra position (`pre[0] = 0`); in 2D we **allocate one ext
 Definition:
 
 ```text
-pre[i][j] = 矩阵中左上角 (0,0) 到右下角 (i-1, j-1) 的子矩阵之和
+pre[i][j] = sum of the submatrix in the matrix from the top-left corner (0,0) to the bottom-right corner (i-1, j-1)
 ```
 
 That is, `pre[i][j]` represents the rectangle sum formed by "**the first i rows and the first j columns**." The extra row 0 / column 0 is the 2D version of `pre[0] = 0`—it lets queries that "hug the top or left boundary" avoid special-case handling.
@@ -226,10 +226,10 @@ That is, `pre[i][j]` represents the rectangle sum formed by "**the first i rows 
 The rectangle covered by `pre[i][j]` can be decomposed into three known regions plus the current cell `matrix[i-1][j-1]`:
 
 ```text
-① pre[i-1][j]     正上方的矩形（前 i-1 行、前 j 列）
-② pre[i][j-1]     正左方的矩形（前 i 行、前 j-1 列）
-③ pre[i-1][j-1]   左上角重叠部分 —— 被 ①② 各算了一次，要减掉
-④ matrix[i-1][j-1] 当前格子本身
+① pre[i-1][j]     the rectangle directly above (first i-1 rows, first j columns)
+② pre[i][j-1]     the rectangle directly to the left (first i rows, first j-1 columns)
+③ pre[i-1][j-1]   the overlapping part in the upper-left corner — it is counted once each by ①②, so it must be subtracted
+④ matrix[i-1][j-1] the current cell itself
 
 pre[i][j] = pre[i-1][j] + pre[i][j-1] - pre[i-1][j-1] + matrix[i-1][j-1]
             └────①────┘ └────②────┘ └─────③─────┘ └──────④──────┘
@@ -238,13 +238,13 @@ pre[i][j] = pre[i-1][j] + pre[i][j-1] - pre[i-1][j-1] + matrix[i-1][j-1]
 **Why subtract `pre[i-1][j-1]`?** Both ① and ② cover the top-left block "the first i-1 rows and the first j-1 columns," which gets added twice, so we compensate with one subtraction—this is the **inclusion-exclusion principle**.
 
 ```text
-      前 j-1 列   第 j 列
+      First j-1 columns   j-th column
     ┌──────────┬─────┐
-前  ┌──────────┬─────┐
+First  ┌──────────┬─────┐
 i-1 │    ③     │  ① │
-行  ├──────────┼─────┤
-第  │    ②     │  ④ │
-i行 └──────────┴─────┘
+row  ├──────────┼─────┤
+i-th  │    ②     │  ④ │
+row └──────────┴─────┘
 ```
 
 ### Query: Four Corners, Two Subtractions and One Addition
@@ -253,10 +253,10 @@ The sum of rectangle `(r1, c1) ~ (r2, c2)` is computed using inclusion-exclusion
 
 ```text
 sum(r1, c1, r2, c2)
-  =   pre[r2 + 1][c2 + 1]     /* 大矩形：到右下角 */
-    - pre[r1][c2 + 1]         /* 减：上方多出来的 */
-    - pre[r2 + 1][c1]         /* 减：左方多出来的 */
-    + pre[r1][c1]             /* 加：左上被减了两次，补回来 */
+  =   pre[r2 + 1][c2 + 1]     /* large rectangle: up to the bottom-right corner */
+    - pre[r1][c2 + 1]         /* subtract: the extra part above */
+    - pre[r2 + 1][c1]         /* subtract: the extra part on the left */
+    + pre[r1][c1]             /* add: the top-left was subtracted twice, add it back */
 ```
 
 **Positions of the four corners** (note each is a prefix-sum index after `±1`):
@@ -272,12 +272,12 @@ sum(r1, c1, r2, c2)
    r2  │     │  ▓▓  │  ▓▓▓▓▓  │   ← pre[r2+1][*]
        └─────┴──────┴─────────┘
 
-   大矩形  pre[r2+1][c2+1]
- − 上方条  pre[r1][c2+1]
- − 左方条  pre[r2+1][c1]
- + 左上块  pre[r1][c1]      ← 被减两次，加回来
+   Large rectangle  pre[r2+1][c2+1]
+ − top strip  pre[r1][c2+1]
+ − left strip  pre[r2+1][c1]
+ + top-left block  pre[r1][c1]      ← subtracted twice, add it back
    ─────────────────────────
- = 目标    ▓▓ 格子之和
+ = target   sum of ▓▓ cells
 ```
 
 **Mnemonic: bottom-right `+1`, top-left no addition; what was subtracted twice gets added back once.** That is, at `r2` and `c2` take `+1`, at `r1` and `c1` keep as-is, and the signs from left to right are `+ − − +`.
@@ -414,8 +414,8 @@ The previous two sections went smoothly because the problem wrote its most deman
 Prefix sums are a **compute-once, read-only** structure. If even a single element `nums[i]` in the original array changes, every `pre[i]` from `i` onward is invalidated, and **rebuilding is O(n)**.
 
 ```text
-nums: [ 1, 2, 3, 4, 5 ]        把 nums[0] 改成 100
-pre:  [ 0, 1, 3, 6, 10, 15 ]   →  pre[1..5] 全部要重算，O(n)
+nums: [ 1, 2, 3, 4, 5 ]        Change nums[0] to 100
+pre:  [ 0, 1, 3, 6, 10, 15 ]   → pre[1..5] all need to be recomputed, O(n)
 ```
 
 Therefore:
@@ -442,7 +442,7 @@ The one-dimensional range-sum formula `pre[r+1] - pre[l]` is essentially **using
 | Ordinary multiplication | ❌ | **No** | Once there's a 0 in the array there's no inverse; even without one, watch out for precision |
 
 ```text
-区间最小值 ≠ prefixMin[r+1] - prefixMin[l]     ← 完全错误，前缀 min 减不出来
+Range minimum ≠ prefixMin[r+1] - prefixMin[l]     ← Completely wrong, prefix min cannot be subtracted out
 ```
 
 When you need **range min / max / gcd**, the weapons to switch to are:
@@ -481,8 +481,8 @@ Prefix sums only remember "the cumulative value up to some point," trading for O
 - **Those relying on monotonicity**: prefix sums are monotonic **only when all elements are non-negative**. Once there are negative numbers in the array, `pre` is no longer monotonic, and tricks like "binary search on prefix sums to find the answer" fail on the spot—for example, **subarrays summing to K**: when elements include negatives, you can't rely on two pointers / binary search, and must honestly use a **hash map + prefix sums** to count occurrences (see the [Principles article](/technology/prefix-sum/) for details).
 
 ```text
-nums = [1, -1, 1, -1]     pre = [0, 1, 0, 1, 0]   ← 上下反复，不单调
-nums = [1,  2, 3,  4]     pre = [0, 1, 3, 6, 10]  ← 单调递增
+nums = [1, -1, 1, -1]     pre = [0, 1, 0, 1, 0]   ← alternates up and down, not monotonic
+nums = [1,  2, 3,  4]     pre = [0, 1, 3, 6, 10]  ← monotonically increasing
 ```
 
 ### Limitations summary

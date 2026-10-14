@@ -25,10 +25,10 @@ HTTP/2 solved the application-layer head-of-line blocking problem of HTTP/1.1 th
 However, HTTP/2 still runs on top of TCP, and **TCP is a strictly ordered byte-stream protocol**. This means:
 
 ```
-TCP 连接
-├─ Stream 1: [帧A] ─────────── [帧B] ── ✓
-├─ Stream 2: ── [帧C] ── [帧D] ───────── ✗ （丢失）
-└─ Stream 3: ────────── [帧E] ────────── ⏳ （被阻塞）
+TCP connection
+├─ Stream 1: [Frame A] ─────────── [Frame B] ── ✓
+├─ Stream 2: ── [Frame C] ── [Frame D] ───────── ✗ (lost)
+└─ Stream 3: ────────── [Frame E] ────────── ⏳ (blocked)
 ```
 
 If a TCP packet from Stream 2 is lost, TCP must wait for its retransmission to succeed. During this period, **all data from Stream 1 and Stream 3 cannot be processed by the upper layers**, even if their data has already arrived completely. This is **transport-layer head-of-line blocking (TCP Head-of-Line Blocking)**.
@@ -55,20 +55,20 @@ QUIC (Quick UDP Internet Connections) was originally designed by Google, announc
 QUIC merges the transport handshake and the TLS 1.3 encryption handshake into a single round trip:
 
 ```
-传统 TCP + TLS 1.3:
-  客户端 ──SYN──────────────→ 服务端
-  客户端 ←──SYN-ACK─────────→ 服务端  (1-RTT)
-  客户端 ──ClientHello──────→ 服务端
-  客户端 ←──ServerHello+Done→ 服务端  (2-RTT)
-  客户端 ──HTTP Request─────→          (3-RTT 才发送数据)
+Traditional TCP + TLS 1.3:
+  Client ──SYN──────────────→ Server
+  Client ←──SYN-ACK─────────→ Server  (1-RTT)
+  Client ──ClientHello──────→ Server
+  Client ←──ServerHello+Done→ Server  (2-RTT)
+  Client ──HTTP Request─────→          (data sent only at 3-RTT)
 
 QUIC:
-  客户端 ──ClientHello──────→ 服务端
-  客户端 ←──ServerHello────── 服务端  (1-RTT)
-  客户端 ──HTTP Request─────→          (1-RTT 即可发送数据)
+  Client ──ClientHello──────→ Server
+  Client ←──ServerHello────── Server  (1-RTT)
+  Client ──HTTP Request─────→          (data can be sent at 1-RTT)
 
-QUIC 0-RTT（恢复连接）:
-  客户端 ──0-RTT 数据───────→          (0-RTT！)
+QUIC 0-RTT (connection resumption):
+  Client ──0-RTT data───────→          (0-RTT!)
 ```
 
 Below is an example of creating a QUIC server with Node.js (based on Node.js's built-in `node:quic` module):
@@ -116,10 +116,10 @@ HTTP/3 (RFC 9114) is an HTTP protocol mapping that runs on top of QUIC. It inher
 HTTP/3 maps each request-response pair to a QUIC Stream. Streams are **completely independent** of each other—packet loss in a single Stream only affects that Stream itself and does not block other Streams:
 
 ```
-QUIC 连接
-├─ Stream 1（请求A）: [帧1] ── [帧2] ── ✓
-├─ Stream 2（请求B）: [帧3] ── [帧4] ── ✗ 丢包，等待重传
-└─ Stream 3（请求C）: [帧5] ── [帧6] ── ✓ 不受影响！
+QUIC connection
+├─ Stream 1 (Request A): [Frame 1] ── [Frame 2] ── ✓
+├─ Stream 2 (Request B): [Frame 3] ── [Frame 4] ── ✗ packet loss, waiting for retransmission
+└─ Stream 3 (Request C): [Frame 5] ── [Frame 6] ── ✓ unaffected!
 ```
 
 ### 2. QPACK Header Compression
@@ -127,13 +127,13 @@ QUIC 连接
 HTTP/2 uses HPACK for header compression, but HPACK relies on TCP's ordered delivery to maintain encoding table synchronization. HTTP/3 redesigned **QPACK**, which uses two independent unidirectional streams to manage the dynamic table, allowing the encoding table to be updated without blocking request processing.
 
 ```text
-QPACK 的双向表同步：
+QPACK's bidirectional table synchronization:
 ┌─────────────────────────┐
-│  编码器流 (单向)         │  ← 发送表更新指令
+│  Encoder stream (unidirectional) │  ← Send table update instructions
 ├─────────────────────────┤
-│  解码器流 (单向)         │  ← 确认表更新已接收
+│  Decoder stream (unidirectional) │  ← Acknowledge that table updates have been received
 └─────────────────────────┘
-  请求流 / 响应流 (双向)    ← 携带压缩后的头部
+  Request stream / Response stream (bidirectional)   ← Carry compressed headers
 ```
 
 ### 3. Connection Migration
@@ -141,10 +141,10 @@ QPACK 的双向表同步：
 QUIC uses a **Connection ID** rather than a four-tuple (source IP, source port, destination IP, destination port) to identify a connection. This means that when a client switches from Wi-Fi to a cellular network, the connection **will not be interrupted**:
 
 ```
-Wi-Fi 网络 (192.168.1.100) ─────── Connection ID: 0xABCD
-         ↓ 网络切换
-蜂窝网络 (10.0.0.55)    ─────── 仍是 Connection ID: 0xABCD
-                                 服务端无缝识别！
+Wi-Fi network (192.168.1.100) ─────── Connection ID: 0xABCD
+        ↓ Network switch
+Cellular network (10.0.0.55)    ─────── Still Connection ID: 0xABCD
+                                 Server seamlessly identifies!
 ```
 
 This is the most significant experience improvement in mobile scenarios—video calls and real-time applications no longer disconnect due to network switching.

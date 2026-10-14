@@ -79,10 +79,10 @@ The outer loop controls rows, and the inner loop controls columns.
 When you need to move from one cell to an adjacent cell, you can handle it uniformly with a direction array:
 
 ```text
-上: (-1,  0)
-下: ( 1,  0)
-左: ( 0, -1)
-右: ( 0,  1)
+Up: (-1,  0)
+Down: ( 1,  0)
+Left: ( 0, -1)
+Right: ( 0,  1)
 ```
 
 Starting from `(r, c)`, the next position is:

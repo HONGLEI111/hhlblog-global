@@ -233,7 +233,10 @@ ${JSON.stringify(items)}`;
 const countCjk = (list) => list.filter((t) => CJK.test(t)).length;
 
 async function translateProseBlock(content) {
-	const { text, blocks, soft } = maskProtected(content);
+	// maskHtmlTags:false — inside a pseudocode / template block, `<...>` is a
+	// placeholder that must be translated, not markup that must be preserved.
+	// Masking it made the model drop lines that consisted only of placeholders.
+	const { text, blocks, soft } = maskProtected(content, { maskHtmlTags: false });
 	const expected = [...blocks.keys()];
 	const prompt = `Translate the following block from Simplified Chinese to English. It is a pseudocode / transcript / diagram block from a technical article, not executable code.
 

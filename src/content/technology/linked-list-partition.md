@@ -12,10 +12,10 @@ draft: false
 Given a linked list and a specific value `x`, **rearrange** the linked list so that all nodes **less than `x`** appear before nodes **greater than or equal to `x`**. At the same time, preserve the **original relative order** of the nodes within each of the two parts.
 
 ```
-输入：head = 1→4→3→2→5→2, x = 3
-输出：1→2→2→4→3→5
-解释：小于 3 的：1, 2, 2（保持原序）
-      大于等于 3 的：4, 3, 5（保持原序）
+Input: head = 1→4→3→2→5→2, x = 3
+Output: 1→2→2→4→3→5
+Explanation: Less than 3: 1, 2, 2 (preserve original order)
+      Greater than or equal to 3: 4, 3, 5 (preserve original order)
 ```
 
 ## Solution Approach
@@ -161,38 +161,38 @@ function partition(head, x) {
 ## Illustrated Process
 
 ```
-输入：head = 1→4→3→2→5→2, x = 3
+Input: head = 1→4→3→2→5→2, x = 3
 
-初始状态：
+Initial state:
 smallDummy → ?
 largeDummy → ?
 
-Step 1: curr=1, 1<3 → 归入 small
+Step 1: curr=1, 1<3 → put into small
 smallDummy → 1
 largeDummy → ?
 
-Step 2: curr=4, 4≥3 → 归入 large
+Step 2: curr=4, 4≥3 → put into large
 smallDummy → 1
 largeDummy → 4
 
-Step 3: curr=3, 3≥3 → 归入 large
+Step 3: curr=3, 3≥3 → put into large
 smallDummy → 1
 largeDummy → 4→3
 
-Step 4: curr=2, 2<3 → 归入 small
+Step 4: curr=2, 2<3 → put into small
 smallDummy → 1→2
 largeDummy → 4→3
 
-Step 5: curr=5, 5≥3 → 归入 large
+Step 5: curr=5, 5≥3 → put into large
 smallDummy → 1→2
 largeDummy → 4→3→5
 
-Step 6: curr=2, 2<3 → 归入 small
+Step 6: curr=2, 2<3 → put into small
 smallDummy → 1→2→2
 largeDummy → 4→3→5
 
-拼接并断开 large 末尾：
-结果：1→2→2→4→3→5
+Concatenate and break the end of large:
+Result: 1→2→2→4→3→5
 ```
 
 ## Complexity Analysis

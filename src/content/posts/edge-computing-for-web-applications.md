@@ -14,8 +14,8 @@ Most articles about edge computing start with "fast," but the more accurate star
 The lower bound on a network request isn't bandwidth—it's the speed of light. The straight-line distance from Beijing to Virginia is about 11,000 kilometers, and the actual fiber route is even longer. Light travels through fiber at roughly 200,000 km/s. A rough estimate: about 60–75 ms one way, and once you add a TCP + TLS handshake plus request-response, **the physical floor is already around 150 ms**—and that latency has nothing to do with how fast the server is or how well the code is written.
 
 ```text
-用户（北京）  ──75ms──▶  源站（弗吉尼亚） ──75ms──▶  用户
-                  合计 ≈ 150ms，还没算上应用处理时间
+User (Beijing)  ──75ms──▶  Origin server (Virginia) ──75ms──▶  User
+                  Total ≈ 150ms, not even counting application processing time
 ```
 
 Move that same logic to a node a few hundred kilometers from the user, and the math drops to single-digit milliseconds. That's the one thing edge computing is really trying to solve: **shortening the physical round-trip distance**, not making the CPU faster.

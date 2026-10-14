@@ -52,23 +52,23 @@ nums[i] = diff[0] + diff[1] + ... + diff[i]
 Adding `delta` to **every element** in the range `[left, right]` is equivalent to performing two point updates on `diff`:
 
 ```text
-diff[left]     += delta        /* 从 left 开始，整体抬高 delta */
-diff[right + 1] -= delta       /* 从 right+1 开始，把抬高撤销 */
+diff[left]     += delta        /* Starting from left, raise everything by delta */
+diff[right + 1] -= delta       /* Starting from right+1, undo the raise */
 ```
 
 The monotone-looking `diff` might be hard to grasp, but it becomes intuitive when drawn out. Taking `nums = [1, 2, 3, 4, 5]` and adding `2` to `[1, 3]` as an example:
 
 ```text
 nums:   1   2   3   4   5
-diff:   1   1   1   1   1        ← 原差分
+diff:   1   1   1   1   1        ← original difference
 
-在 left=1 加 2：
+Add 2 at left=1:
 diff:   1   3   1   1   1
-在 right+1=4 减 2：
-diff:   1   3   1   1  -1        ← 只改了两位
+Subtract 2 at right+1=4:
+diff:   1   3   1   1  -1        ← only two positions changed
 
-前缀和还原：
-nums:   1   4   5   6   5        ← 下标 1..3 全部 +2，其余不变  ✓
+Restore by prefix sum:
+nums:   1   4   5   6   5        ← indices 1..3 all +2, the rest unchanged  ✓
 ```
 
 The principle in one sentence: **a difference array records the "rate of change."** Adding a step at `left` raises all prefix sums from `left` onward; then subtracting the same step at `right+1` restores things after `right`. Between the two steps is exactly `[left, right]`.
@@ -78,12 +78,12 @@ The principle in one sentence: **a difference array records the "rate of change.
 Difference array problems always have three stages, **regardless of which problem, the structure is fixed**:
 
 ```text
-① 打点：对每个操作 [left, right, delta]：
+① Marking: for each operation [left, right, delta]:
             diff[left]     += delta
             diff[right+1]  -= delta
-② 还原：running = 0
+② Restore: running = 0
         for i in 0..n-1:  running += diff[i];  ans[i] = running
-③ 判/取：需要全局判断的（如拼车是否超载），在 ② 里边扫边判
+③ Check/Retrieve: for those requiring a global check (such as whether carpooling is overloaded), check while scanning in ②
 ```
 
 The reason `diff` has length **`n + 1`** is precisely for the `right + 1` in stage ① — when `right == n - 1`, it falls at index `n`, and the extra slot catches it exactly, **so you never need to write `if (right + 1 < n)`**. This slot doesn't participate in the accumulation in stage ②; it's purely a "trash bin."
@@ -112,7 +112,7 @@ Given an all-zero array of length `length`, and several operations `updates[i] =
 length = 5
 updates = [[1, 3, 2], [2, 4, 3], [0, 2, -2]]
 
-结果 = [-2, 0, 3, 5, 3]
+result = [-2, 0, 3, 5, 3]
 ```
 
 **Constraints:** `0 <= length <= 10^5`, `0 <= updates.length <= 10^4`.
@@ -213,7 +213,7 @@ There are `n` flights, numbered **from 1 to n**. Given booking records `bookings
 
 ```text
 bookings = [[1, 2, 10], [2, 3, 20], [2, 5, 25]], n = 5
-结果 = [10, 55, 45, 25, 25]
+result = [10, 55, 45, 25, 25]
 ```
 
 **Constraints:** `1 <= n <= 2 · 10^4`, the numbering range of `bookings[i]` is `1 <= first <= last <= n`.
@@ -230,17 +230,17 @@ Let's verify point 2: `[1, 2, 10]` means flights 1 and 2 each get 10 added. Usin
 ```text
 bookings = [[1,2,10], [2,3,20], [2,5,25]], n = 5
 
-打点（0-indexed，diff 长度 n+1 = 6）：
-  下标:    0     1     2     3     4     5
+Marking points (0-indexed, diff length n+1 = 6):
+  index:   0     1     2     3     4     5
   [1,2]   +10         -10
   [2,3]         +20         -20
-  [2,5]         +25                     -25   ← 撤销点落在下标 5（垃圾桶位）
+  [2,5]         +25                     -25   ← the undo point falls at index 5 (trash slot)
   ───────────────────────────────────────────
   diff:    10    45   -10   -20     0   -25
 
-只对下标 0..4 做前缀和：
+Take the prefix sum only over indices 0..4:
   10 → 55 → 45 → 25 → 25
-结果 = [10, 55, 45, 25, 25]   ✓
+Result = [10, 55, 45, 25, 25]   ✓
 ```
 
 Note that `last = 5` of the last booking equals `n`, and the cancellation point `diff[5]` falls exactly on **the extra slot** (the trash bin position)—it doesn't participate in the output, it only ensures that "no one after flight 5 gets anything." This also confirms why `diff` needs to be allocated with size `n + 1`.
@@ -336,7 +336,7 @@ A car has a **capacity of `capacity`** and can only drive in one direction. Give
 
 ```text
 trips = [[2,1,5], [3,3,7]], capacity = 4      → false
-   // 站点 3 到 5 之间，车上同时有 2 + 3 = 5 人 > 4
+   // Between stations 3 and 5, there are 2 + 3 = 5 people on the vehicle at the same time > 4
 
 trips = [[2,1,5], [3,3,7]], capacity = 5      → true
 ```
@@ -354,15 +354,15 @@ So the second part of the template (restoration) needs to be changed to **accumu
 ```text
 trips = [[2,1,5], [3,3,7]], capacity = 4
 
-diff（站点 0..1000）：
+diff (stops 0..1000):
   diff[1] += 2 ; diff[5] -= 2
   diff[3] += 3 ; diff[7] -= 3
 
-逐站累加（只看非零处）：
-  站点  0   1   2   3   4   5   6   7
+Accumulate stop by stop (only look at nonzero positions):
+  stop  0   1   2   3   4   5   6   7
   diff  0  +2   0  +3   0  -2   0  -3
-  在车  0   2   2   5   5   3   3   0
-                └─── 峰值 5 > 4，false ───┘
+  onboard  0   2   2   5   5   3   3   0
+                └─── peak 5 > 4, false ───┘
 ```
 
 :::code-tabs{default="cpp"}
@@ -470,16 +470,16 @@ The previous three problems were "one-dimensional, offline, add-only." This sect
 One dimension is "range add, mark two endpoints"; two dimensions is "**submatrix add, mark four corners**." To add `v` to an entire rectangular region `(r1, c1) ~ (r2, c2)` of a matrix (all four corners inclusive):
 
 ```text
-diff[r1][c1]         += v      /* 从左上角开始，整个右下区域抬高 */
-diff[r1][c2 + 1]     -= v      /* 撤销：右边界之后 */
-diff[r2 + 1][c1]     -= v      /* 撤销：下边界之后 */
-diff[r2 + 1][c2 + 1] += v      /* 补回：右下角被减了两次，加回来 */
+diff[r1][c1]         += v      /* Starting from the top-left corner, raise the entire bottom-right region */
+diff[r1][c2 + 1]     -= v      /* Undo: after the right boundary */
+diff[r2 + 1][c1]     -= v      /* Undo: after the bottom boundary */
+diff[r2 + 1][c2 + 1] += v      /* Add back: the bottom-right corner was subtracted twice, add it back */
 ```
 
 Does this look familiar? **The sign order at the four corners, `+ − − +`, is the same set as the inclusion-exclusion formula for [2D prefix sum queries](/technology/prefix-sum/).** This is no coincidence—**2D prefix sum and 2D difference are inverse operations of each other**:
 
 ```text
-打点（用差分记录变化）  ── 二维前缀和 ──▶  还原出真正的矩阵
+Marking points (using differences to record changes)  ── 2D prefix sum ──▶  Reconstruct the actual matrix
 ```
 
 To restore, perform a **2D prefix sum** on `diff` (accumulate in place):
@@ -487,10 +487,10 @@ To restore, perform a **2D prefix sum** on `diff` (accumulate in place):
 ```text
 for i in 0..m-1:
     for j in 0..n-1:
-        if i > 0:      diff[i][j] += diff[i-1][j]        /* 上方 */
-        if j > 0:      diff[i][j] += diff[i][j-1]        /* 左方 */
-        if i>0 && j>0: diff[i][j] -= diff[i-1][j-1]      /* 左上被加两次 */
-        /* 此时 diff[i][j] 就是最终矩阵在 (i, j) 的值 */
+        if i > 0:      diff[i][j] += diff[i-1][j]        /* above */
+        if j > 0:      diff[i][j] += diff[i][j-1]        /* left */
+        if i>0 && j>0: diff[i][j] -= diff[i-1][j-1]      /* top-left was added twice */
+        /* at this point diff[i][j] is the value of the final matrix at (i, j) */
 ```
 
 A typical problem is **LeetCode 2536. Increment Submatrices by One** (add 1 to the submatrix of each query). C++ skeleton:

@@ -26,15 +26,15 @@ This question seems simple, but the answer determines a website's **performance,
 ### 2.1 Workflow
 
  ```
-浏览器请求 URL
+Browser requests URL
   ￬
-服务器返回几乎空的 HTML（只有一个 <div id="root"></div>）
+Server returns an almost empty HTML (only one <div id="root"></div>)
   ￬
-浏览器下载 JS Bundle
+Browser downloads JS Bundle
   ￬
-JS 执行，生成 HTML 并插入页面
+JS executes, generates HTML and inserts it into the page
   ￬
-✅ 页面可交互
+✅ Page is interactive
 ```
 
 ### 2.2 A Typical CSR Page
@@ -77,17 +77,17 @@ What the browser receives is an **empty shell**; the actual page content is dyna
 ### 3.1 Workflow
 
  ```
-浏览器请求 URL
+Browser requests URL
   ￬
-服务器执行 JS / 渲染组件
+Server executes JS / renders components
   ￬
-服务器生成完整 HTML（含数据）
+Server generates complete HTML (including data)
   ￬
-浏览器接收完整 HTML → 直接渲染
+Browser receives complete HTML → renders directly
   ￬
-JS 「水合」（hydration），页面变为可交互
+JS "hydration", page becomes interactive
   ￬
-✅ 页面可交互
+✅ Page is interactive
 ```
 
 ### 3.2 A Simple SSR Example (Node.js)
@@ -119,9 +119,9 @@ The HTML the user receives **already contains the complete content**; they can s
 The HTML returned by SSR is **static** — buttons are visible, but clicking does nothing. The browser needs to load JS and "attach" event listeners to the existing DOM. This process is called **Hydration**.
 
  ```
-服务端渲染的 HTML（干巴巴的页面）
-  + JS 加载 + 事件绑定
-  = 可交互的页面（「活」了）
+Server-rendered HTML (a dry, bare page)
+  + JS loading + event binding
+  = an interactive page (it's "alive")
 ```
 
 ### 3.4 Pros and Cons
@@ -146,19 +146,19 @@ The HTML returned by SSR is **static** — buttons are visible, but clicking doe
 ### 4.1 Workflow
 
  ```
-构建时：
-  读取数据（Markdown / API / CMS）
+At build time:
+  Read data (Markdown / API / CMS)
     ￬
-  预渲染所有页面为纯 HTML
+  Pre-render all pages into pure HTML
     ￬
-  输出静态文件到 dist/
+  Output static files to dist/
 
-请求时：
-  浏览器请求 URL
+At request time:
+  Browser requests URL
     ￬
-  CDN / 静态服务器直接返回预生成的 HTML
+  CDN / static server directly returns the pre-generated HTML
     ￬
-  ✅ 极速响应
+  ✅ Extremely fast response
 ```
 
 ### 4.2 How SSG Works
@@ -215,11 +215,11 @@ export async function getStaticProps({ params }) {
 Real projects rarely use only one rendering mode. Modern frameworks such as **Next.js, Nuxt, and Astro** support mixed usage:
 
  ```
-同一个项目里：
-  /about       → SSG（内容不变）
-  /blog/[slug] → SSG（文章在构建时生成）
-  /dashboard   → CSR（登入后的个人面板）
-  /search?q=   → SSR（搜索结果因人而异）
+Within the same project:
+  /about       → SSG (content does not change)
+  /blog/[slug] → SSG (articles are generated at build time)
+  /dashboard   → CSR (personal dashboard after logging in)
+  /search?q=   → SSR (search results vary from person to person)
 ```
 
 ### Next.js Rendering Strategies
@@ -263,13 +263,13 @@ const posts = await getAllPosts();
 A simple decision flow:
 
  ```
-内容会频繁变化吗？
-  ├── 是 → 需要实时数据 + SEO？
-  │        ├── 是 → SSR
-  │        └── 否 → CSR
-  └── 否 → SEO 重要吗？
-           ├── 是 → SSG
-           └── 否 → CSR 或 SSG 都行
+Will the content change frequently?
+  ├── Yes → Need real-time data + SEO?
+  │        ├── Yes → SSR
+  │        └── No → CSR
+  └── No → Is SEO important?
+           ├── Yes → SSG
+           └── No → Either CSR or SSG works
 ```
 
 Or start from the **page type**:

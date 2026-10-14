@@ -58,15 +58,15 @@ The difficulty of dynamic programming usually lies not in the code, but in refor
 ## Detailed Algorithm Steps
 
 ```
-算法：SolveDP(problem)
-输入：可拆分的问题
-输出：最优值、方案数或可行性
+Algorithm: SolveDP(problem)
+Input: A decomposable problem
+Output: Optimal value, number of solutions, or feasibility
 
-1. 定义状态：dp[i] 或 dp[i][j] 表示什么
-2. 写出转移方程：当前状态从哪些旧状态来
-3. 初始化边界状态：空数组、第一行、第一列等
-4. 确定遍历顺序：保证依赖状态已计算
-5. 返回答案：dp[n]、dp[m][n] 或表中最大值
+1. Define the state: what dp[i] or dp[i][j] represents
+2. Write the transition equation: which previous states the current state comes from
+3. Initialize boundary states: empty array, first row, first column, etc.
+4. Determine the traversal order: ensure dependent states have already been computed
+5. Return the answer: dp[n], dp[m][n], or the maximum value in the table
 ```
 
 **Complexity Analysis**:

@@ -46,9 +46,9 @@ Given an integer array `nums` and an integer `k`, determine whether there exist 
 **Example:**
 
 ```text
-输入：nums = [1,2,3,1], k = 3        输出：true    （下标 0 和 3，距离 3）
-输入：nums = [1,0,1,1], k = 1        输出：true    （下标 2 和 3，距离 1）
-输入：nums = [1,2,3,1,2,3], k = 2    输出：false
+Input: nums = [1,2,3,1], k = 3        Output: true    (indices 0 and 3, distance 3)
+Input: nums = [1,0,1,1], k = 1        Output: true    (indices 2 and 3, distance 1)
+Input: nums = [1,2,3,1,2,3], k = 2    Output: false
 ```
 
 **Constraints:** `1 <= nums.length <= 10^5`, `-10^9 <= nums[i] <= 10^9`, `0 <= k <= 10^5`.
@@ -72,24 +72,24 @@ Filling in the template step by step: ② when adding, "look up the table + over
 Taking `nums = [1,0,1,1]` and `k = 1` as an example (the table stores "value → latest index"):
 
 ```text
-下标  0  1  2  3
+Subscript  0  1  2  3
 nums  1  0  1  1
 ```
 
 ```text
-i=0  v=1  表里没有 1        → 记下 {1: 0}
-i=1  v=0  表里没有 0        → 记下 {1: 0, 0: 1}
-i=2  v=1  表里有 1，j=0     → 距离 2 - 0 = 2 > k=1 → 不算，覆盖成 {1: 2}
-i=3  v=1  表里有 1，j=2     → 距离 3 - 2 = 1 ≤ k=1 → 返回 true ✔
+i=0  v=1  not in the table        → record {1: 0}
+i=1  v=0  not in the table        → record {1: 0, 0: 1}
+i=2  v=1  1 is in the table, j=0     → distance 2 - 0 = 2 > k=1 → not counted, overwrite to {1: 2}
+i=3  v=1  1 is in the table, j=2     → distance 3 - 2 = 1 ≤ k=1 → return true ✔
 ```
 
 Now look at another example that returns `false`: `nums = [1,2,3,1,2,3]`, `k = 2`:
 
 ```text
-i=3  v=1  表里 {1: 0}  → 距离 3 > 2 → 覆盖成 {1: 3}
-i=4  v=2  表里 {2: 1}  → 距离 3 > 2 → 覆盖成 {2: 4}
-i=5  v=3  表里 {3: 2}  → 距离 3 > 2 → 覆盖成 {3: 5}
-扫完也没有一对距离 ≤ 2 的相同值 → 返回 false ✔
+i=3  v=1  in the table {1: 0}  → distance 3 > 2 → overwrite as {1: 3}
+i=4  v=2  in the table {2: 1}  → distance 3 > 2 → overwrite as {2: 4}
+i=5  v=3  in the table {3: 2}  → distance 3 > 2 → overwrite as {3: 5}
+After scanning through, there is still no pair of identical values with distance ≤ 2 → return false ✔
 ```
 
 Note the round for `i=3`: `1` appeared at index 0, and the distance condition was not satisfied, so **the old record is discarded**. Even if `1` appears again later, the comparison is with index 3 rather than index 0—this is exactly what "the old record automatically leaves the window" means.
@@ -204,10 +204,10 @@ Given an integer array `nums` and two integers `indexDiff` and `valueDiff`, find
 **Example:**
 
 ```text
-输入：nums = [1,2,3,1], k = 3, t = 0        输出：true    （下标 0 和 3，值都是 1）
-输入：nums = [1,5,9,1,5,9], k = 2, t = 3    输出：false
-输入：nums = [-3,3], k = 2, t = 4           输出：false
-输入：nums = [-2147483648, 2147483647], k = 1, t = 0   输出：false
+Input: nums = [1,2,3,1], k = 3, t = 0        Output: true    (indices 0 and 3, both values are 1)
+Input: nums = [1,5,9,1,5,9], k = 2, t = 3    Output: false
+Input: nums = [-3,3], k = 2, t = 4           Output: false
+Input: nums = [-2147483648, 2147483647], k = 1, t = 0   Output: false
 ```
 
 **Constraints:** The current statement is `2 <= nums.length <= 10^5`, `-10^9 <= nums[i] <= 10^9`, `1 <= k <= nums.length`, `0 <= t <= 10^9`; the earlier statement is `1 <= nums.length <= 2 * 10^4`, `-2^31 <= nums[i] <= 2^31 - 1`, `0 <= k <= 10^4`, `0 <= t <= 2^31 - 1` (the last example above comes from that version). The code below considers the union of both for boundaries: values uniformly use 64 bits, negatives use floor division, and the hash table is sized according to the upper bound of array length 10^5.
@@ -232,26 +232,26 @@ There is a pitfall here: **integer division in C / C++ truncates toward zero, no
 Taking `nums = [1,5,9,1,5,9]`, `k = 2`, `t = 3` as an example, with bucket width `w = t + 1 = 4`:
 
 ```text
-下标    0   1   2   3   4   5
+Index    0   1   2   3   4   5
 nums    1   5   9   1   5   9
-桶号    0   1   2   0   1   2      （桶号 = floor(值 / 4)）
+Bucket no.    0   1   2   0   1   2      (Bucket no. = floor(value / 4))
 ```
 
 ```text
-i=0  v=1  桶号 0 → 桶 0、-1、1 都空 → 写入「桶0 = 1（下标 0）」
-i=1  v=5  桶号 1 → 左邻桶 0 里是 1：5 - 1 = 4 > 3，不成 → 写入「桶1 = 5（下标 1）」
-i=2  v=9  桶号 2 → 左邻桶 1 里是 5：9 - 5 = 4 > 3，不成 → 写入「桶2 = 9（下标 2）」
-                  i - k = 0 ≥ 0 → 删掉 nums[0] = 1 所在的桶 0
-i=3  v=1  桶号 0 → 桶 0 已经被删了（那个元素距离 3 > k = 2，本该删）
-                  左邻桶 -1 空，右邻桶 1 里是 5：4 > 3，不成 → 写入「桶0 = 1（下标 3）」
-                  i - k = 1 → 删掉 nums[1] = 5 所在的桶 1
-i=4  v=5  桶号 1 → 桶 1 已被删；左邻桶 0 里是 1（下标 3）：4 > 3，不成
-                  右邻桶 2 里是 9：4 > 3，不成 → 写入「桶1 = 5（下标 4）」
-                  i - k = 2 → 删掉 nums[2] = 9 所在的桶 2
-i=5  v=9  桶号 2 → 桶 2 已被删（那个 9 在下标 2，距离 3 > 2）
-                  左邻桶 1 里是 5：4 > 3，不成 → 写入「桶2 = 9（下标 5）」
+i=0  v=1  bucket number 0 → buckets 0, -1, 1 are all empty → write "bucket0 = 1 (index 0)"
+i=1  v=5  bucket number 1 → the left neighboring bucket 0 contains 1: 5 - 1 = 4 > 3, no match → write "bucket1 = 5 (index 1)"
+i=2  v=9  bucket number 2 → the left neighboring bucket 1 contains 5: 9 - 5 = 4 > 3, no match → write "bucket2 = 9 (index 2)"
+                  i - k = 0 ≥ 0 → delete bucket 0 where nums[0] = 1 is located
+i=3  v=1  bucket number 0 → bucket 0 has already been deleted (that element's distance 3 > k = 2, it should have been deleted)
+                  left neighboring bucket -1 is empty, right neighboring bucket 1 contains 5: 4 > 3, no match → write "bucket0 = 1 (index 3)"
+                  i - k = 1 → delete bucket 1 where nums[1] = 5 is located
+i=4  v=5  bucket number 1 → bucket 1 has already been deleted; left neighboring bucket 0 contains 1 (index 3): 4 > 3, no match
+                  right neighboring bucket 2 contains 9: 4 > 3, no match → write "bucket1 = 5 (index 4)"
+                  i - k = 2 → delete bucket 2 where nums[2] = 9 is located
+i=5  v=9  bucket number 2 → bucket 2 has already been deleted (that 9 is at index 2, distance 3 > 2)
+                  left neighboring bucket 1 contains 5: 4 > 3, no match → write "bucket2 = 9 (index 5)"
 
-扫完没有命中 → 返回 false ✔
+Finished scanning with no hit → return false ✔
 ```
 
 Pay special attention to `i=5`: **the 9 at index 2 is exactly equal to the current value**. If you forget to delete expired buckets, this will falsely report `true` — but their index distance is 3, which exceeds `k = 2`. The sliding window's "exit" action is no trivial matter in this problem.
@@ -439,12 +439,12 @@ You are given an integer array `nums` and an integer `x`. In one operation, you 
 **Example:**
 
 ```text
-输入：nums = [1,1,4,2,3], x = 5
-输出：2
-解释：移除后两个元素 [2,3]，2 + 3 = 5，共 2 次操作。
+Input: nums = [1,1,4,2,3], x = 5
+Output: 2
+Explanation: After removing the last two elements [2,3], 2 + 3 = 5, for a total of 2 operations.
 
-输入：nums = [5,6,7,8,9], x = 4        输出：-1
-输入：nums = [3,2,20,1,1,3], x = 10    输出：5   （移除后三个 + 前两个）
+Input: nums = [5,6,7,8,9], x = 4        Output: -1
+Input: nums = [3,2,20,1,1,3], x = 10    Output: 5   (remove the last three + the first two)
 ```
 
 **Constraints:** `1 <= nums.length <= 10^5`, `1 <= nums[i] <= 10^4`, `1 <= x <= 10^9`.
@@ -458,7 +458,7 @@ Deleting elements from both ends looks like "two pointers closing in toward the 
 Let the total sum of the array be `total`. The sum of deleted elements must equal `x`, which is equivalent to:
 
 ```text
-留下的那一段和 = total - x
+The remaining segment and 0 = total - x
 ```
 
 And minimizing the number of operations is equivalent to **maximizing the length of the segment left behind**. So the problem becomes a standard variable-length window problem:
@@ -475,23 +475,23 @@ Two edge cases need to be handled first: when `total < x`, no matter how you del
 Taking `nums = [1,1,4,2,3]`, `x = 5` as an example: `total = 11`, `target = 11 - 5 = 6`.
 
 ```text
-下标  0  1  2  3  4
+Subscript  0  1  2  3  4
 nums  1  1  4  2  3
 ```
 
 ```text
-right=1：窗口 [0,1)=[1]，sum=1        ≠ 6
-right=2：窗口 [0,2)=[1,1]，sum=2      ≠ 6
-right=3：窗口 [0,3)=[1,1,4]，sum=6    = 6 → best = 3（这一段最长 3）
-right=4：窗口 [0,4)=[1,1,4,2]，sum=8  > 6 ← 收缩
-  ├ 移出 1 → sum=7，窗口 [1,4)=[1,4,2]，仍 > 6
-  ├ 移出 1 → sum=6，窗口 [2,4)=[4,2]，停止收缩
-  └ sum = 6 但长度 2 < 3，不更新 best
-right=5：窗口 [2,5)=[4,2,3]，sum=9    > 6 ← 收缩
-  ├ 移出 4 → sum=5，窗口 [3,5)=[2,3]，停止收缩
-  └ sum = 5 ≠ 6，不记录
+right=1: window [0,1)=[1], sum=1        ≠ 6
+right=2: window [0,2)=[1,1], sum=2      ≠ 6
+right=3: window [0,3)=[1,1,4], sum=6    = 6 → best = 3 (this segment is at most 3)
+right=4: window [0,4)=[1,1,4,2], sum=8  > 6 ← shrink
+  ├ remove 1 → sum=7, window [1,4)=[1,4,2], still > 6
+  ├ remove 1 → sum=6, window [2,4)=[4,2], stop shrinking
+  └ sum = 6 but length 2 < 3, do not update best
+right=5: window [2,5)=[4,2,3], sum=9    > 6 ← shrink
+  ├ remove 4 → sum=5, window [3,5)=[2,3], stop shrinking
+  └ sum = 5 ≠ 6, do not record
 
-best = 3 → 最少操作数 = 5 - 3 = 2 ✔（删掉后两个元素 [2,3]）
+best = 3 → minimum number of operations = 5 - 3 = 2 ✔ (delete the last two elements [2,3])
 ```
 
 Cross-check with the problem statement: the retained `[1,1,4]` has sum 6, and what's deleted is the last two elements `[2,3]`, with sum 5 = `x`, two operations ✔.
@@ -612,9 +612,9 @@ Given a string `s` and an integer `k`, find the longest substring of `s` such th
 **Example:**
 
 ```text
-输入：s = "aaabb", k = 3     输出：3    （最长子串 "aaa"）
-输入：s = "ababbc", k = 2    输出：5    （最长子串 "ababb"，'a' 出现 2 次、'b' 出现 3 次）
-输入：s = "abc", k = 2       输出：0
+Input: s = "aaabb", k = 3     Output: 3    (longest substring "aaa")
+Input: s = "ababbc", k = 2    Output: 5    (longest substring "ababb", 'a' appears 2 times, 'b' appears 3 times)
+Input: s = "abc", k = 2       Output: 0
 ```
 
 **Constraints:** `1 <= s.length <= 10^4`, `s` consists only of lowercase English letters, `1 <= k <= 10^5`.
@@ -638,24 +638,24 @@ The template's four blanks: ② when adding `c`, `cnt[c]++`; if `c` is newly app
 Taking the round with `s = "ababbc"`, `k = 2`, `types = 2` as an example:
 
 ```text
-下标  0  1  2  3  4  5
+Index  0  1  2  3  4  5
 s     a  b  a  b  b  c
 ```
 
 ```text
-right=1：窗口 [0,1)=a       cnt[a]=1  distinct=1  reached=0
-right=2：窗口 [0,2)=ab      cnt[a]=1 cnt[b]=1  distinct=2  reached=0
-right=3：窗口 [0,3)=aba     cnt[a]=2 ← 恰好到 k，reached=1   distinct=2
-right=4：窗口 [0,4)=abab    cnt[b]=2 ← 恰好到 k，reached=2
-         distinct == types 且 reached == types → 窗口 [0,4) 每种字符都 ≥ 2 个 → best = 4
-right=5：窗口 [0,5)=ababb   cnt[b]=3  distinct=2  reached=2 → best = 5
-right=6：窗口 [0,6)=ababbc  cnt[c]=1 → distinct=3 > types=2 ← 收缩
-  ├ 移出 s[0]='a'：cnt[a] 从 2 掉到 1，`cnt[d]-- == k` 成立 → reached=1；cnt[a] ≠ 0 → distinct 仍为 3
-  ├ 移出 s[1]='b'：cnt[b] 从 3 掉到 2，`cnt[d]-- == k` 不成立（3 ≠ 2）→ reached 不变；cnt[b] ≠ 0 → distinct 仍为 3
-  ├ 移出 s[2]='a'：cnt[a] 从 1 掉到 0 → distinct=2，停止收缩
-  └ 窗口 [3,6)="bbc"：distinct=2 = types，但 reached=1 ≠ 2（'c' 只有 1 个）→ 不记录
+right=1: window [0,1)=a       cnt[a]=1  distinct=1  reached=0
+right=2: window [0,2)=ab      cnt[a]=1 cnt[b]=1  distinct=2  reached=0
+right=3: window [0,3)=aba     cnt[a]=2 ← exactly reaches k, reached=1   distinct=2
+right=4: window [0,4)=abab    cnt[b]=2 ← exactly reaches k, reached=2
+         distinct == types and reached == types → window [0,4) every character appears ≥ 2 times → best = 4
+right=5: window [0,5)=ababb   cnt[b]=3  distinct=2  reached=2 → best = 5
+right=6: window [0,6)=ababbc  cnt[c]=1 → distinct=3 > types=2 ← shrink
+  ├ remove s[0]='a': cnt[a] drops from 2 to 1, `cnt[d]-- == k` holds → reached=1; cnt[a] ≠ 0 → distinct is still 3
+  ├ remove s[1]='b': cnt[b] drops from 3 to 2, `cnt[d]-- == k` does not hold (3 ≠ 2) → reached unchanged; cnt[b] ≠ 0 → distinct is still 3
+  ├ remove s[2]='a': cnt[a] drops from 1 to 0 → distinct=2, stop shrinking
+  └ window [3,6)="bbc": distinct=2 = types, but reached=1 ≠ 2 ('c' appears only 1 time) → do not record
 
-这一轮的最好结果 best = 5 ✔（types 取 1 时也能得到 2，取 3 时不行——'c' 只有 1 个）
+The best result for this round is best = 5 ✔ (when types is 1 it can also get 2, but when types is 3 it cannot—'c' appears only 1 time)
 ```
 
 Note the two removals in the `right=6` round: whether `reached` should be decremented is judged by "was this character's count exactly `k` **before** removal" (written as `cnt[d]-- == k`, compare first then decrement). Because dropping from `k` to `k - 1` counts as falling out of compliance, while dropping from `k + 1` to `k` is still compliant.
@@ -786,11 +786,11 @@ function longestSubstring(s, k) {
 ## Comparison Table of the Four Problems
 
 ```text
-题目                            正面做不了滑窗的原因                  变形
-219 存在重复元素 II             判断条件是「值相等」而不是「计数」     换成哈希表「值 → 最新下标」
-220 存在重复元素 III            「值相差 ≤ t」是区间查询              按值域分桶，桶宽 t+1
-1658 将 x 减到 0 的最小操作数    两端删元素是两个自由度                 反向转化：留下的一段连续子数组
-395 至少有 K 个重复字符的最长子串 条件没有单调性，收缩条件写不出来        枚举「窗口里有几种字符」这个维度
+Problem                        Reason sliding window can't be done directly   Transformation
+219 Contains Duplicate II              The condition is "equal values" rather than "count"   Switch to a hash map "value → latest index"
+220 Contains Duplicate III             "Value difference ≤ t" is a range query              Bucket by value range, bucket width t+1
+1658 Minimum Operations to Reduce X to Zero    Deleting elements from both ends has two degrees of freedom   Reverse transformation: the remaining contiguous subarray
+395 Longest Substring with At Least K Repeating Characters   The condition has no monotonicity, so the shrink condition can't be written   Enumerate the dimension "how many distinct characters are in the window"
 ```
 
 The four problems can be summarized in three sentences:

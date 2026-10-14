@@ -25,9 +25,9 @@ In a RAG (Retrieval-Augmented Generation) architecture, the vector database is a
 A **vector** is essentially an array of floating-point numbers, such as `[0.12, -0.83, 0.45, ...]`. **Embedding** is the process of "turning content into a vector," and its core idea is: **content with similar semantics is also close together in vector space**.
 
 ```
-"猫"        → [0.92, 0.11, -0.03, ...]
-"猫咪"      → [0.89, 0.15, -0.01, ...]   ← 与"猫"很近
-"汽车引擎"   → [-0.41, 0.78, 0.62, ...]   ← 与"猫"很远
+"cat"        → [0.92, 0.11, -0.03, ...]
+"kitty"      → [0.89, 0.15, -0.01, ...]   ← very close to "cat"
+"car engine"   → [-0.41, 0.78, 0.62, ...]   ← very far from "cat"
 ```
 
 Real production environments typically use Transformer models for Embedding, such as OpenAI's `text-embedding-3-small`, BAAI's open-source model `bge-*`, Sentence-Transformers' `all-MiniLM-L6-v2`, and so on. These models can capture deep semantic relationships, not just keyword overlap.

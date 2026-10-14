@@ -43,11 +43,11 @@ diff:  1  1  1  1  1
 Add `2` to the range `[1, 3]`:
 
 ```text
-diff[1] += 2   从下标 1 开始整体抬高
-diff[4] -= 2   从下标 4 开始取消影响
+diff[1] += 2   Raise the entire suffix starting from index 1
+diff[4] -= 2   Cancel the effect starting from index 4
 
 diff: 1  3  1  1 -1
-前缀还原: 1  4  5  6  5
+Prefix restoration: 1  4  5  6  5
 ```
 
 ```mermaid
@@ -64,17 +64,17 @@ graph LR
 ## Detailed Algorithm Steps
 
 ```
-算法：DifferenceArray(nums, updates)
-输入：原数组 nums，多次区间修改 updates
-输出：最终数组
+Algorithm: DifferenceArray(nums, updates)
+Input: original array nums, multiple range updates updates
+Output: final array
 
-1. 构建 diff，其中 diff[0] = nums[0]
+1. Build diff, where diff[0] = nums[0]
 2. for i from 1 to n - 1:
 3.     diff[i] = nums[i] - nums[i - 1]
-4. 对每个操作 [left, right, delta]:
+4. For each operation [left, right, delta]:
 5.     diff[left] += delta
 6.     if right + 1 < n: diff[right + 1] -= delta
-7. 对 diff 做前缀和，还原最终数组
+7. Compute the prefix sum of diff to reconstruct the final array
 ```
 
 **Complexity analysis**:

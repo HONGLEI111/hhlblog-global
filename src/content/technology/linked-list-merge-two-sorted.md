@@ -12,8 +12,8 @@ draft: false
 Merge two **ascending** linked lists `list1` and `list2` into a new **ascending** linked list, and return the head node of the merged linked list. The new linked list is formed by concatenating all the nodes of the two input linked lists.
 
 ```
-输入：list1 = 1→2→4, list2 = 1→3→4
-输出：1→1→2→3→4→4
+Input: list1 = 1→2→4, list2 = 1→3→4
+Output: 1→1→2→3→4→4
 ```
 
 ## Solution Approach
@@ -145,30 +145,30 @@ function mergeTwoLists(list1, list2) {
 ## Illustrated Process
 
 ```
-初始状态：
+Initial state:
 list1:  1 → 2 → 4
 list2:  1 → 3 → 4
 dummy: [ ] → ?
 
-Step 1: 比较 1 和 1 → 取 list1 的 1
+Step 1: Compare 1 and 1 → take 1 from list1
 dummy → 1(list1)  tail=1
 
-Step 2: 比较 2 和 1 → 取 list2 的 1
+Step 2: Compare 2 and 1 → take 1 from list2
 dummy → 1 → 1(list2)  tail=1(list2)
 
-Step 3: 比较 2 和 3 → 取 list1 的 2
+Step 3: Compare 2 and 3 → take 2 from list1
 dummy → 1 → 1 → 2(list1)  tail=2
 
-Step 4: 比较 4 和 3 → 取 list2 的 3
+Step 4: Compare 4 and 3 → take 3 from list2
 dummy → 1 → 1 → 2 → 3(list2)  tail=3
 
-Step 5: 比较 4 和 4 → 取 list1 的 4
+Step 5: Compare 4 and 4 → take 4 from list1
 dummy → 1 → 1 → 2 → 3 → 4(list1)  tail=4
 
-Step 6: list1 为空，接上 list2 剩余部分
+Step 6: list1 is empty, append the remaining part of list2
 dummy → 1 → 1 → 2 → 3 → 4 → 4(list2)
 
-结果：1→1→2→3→4→4
+Result: 1→1→2→3→4→4
 ```
 
 ## Complexity Analysis

@@ -14,8 +14,8 @@ Reversing a singly linked list is the "foundation" of linked-list algorithm prob
 The essence of reversal is just one sentence: **reverse the direction of every `next` pointer**.
 
 ```text
-反转前：1 → 2 → 3 → 4 → null
-反转后：4 → 3 → 2 → 1 → null
+Before reversal: 1 → 2 → 3 → 4 → null
+After reversal: 4 → 3 → 2 → 1 → null
 ```
 
 Centered on the core concept of "reversal," this article walks through four classic problems in increasing order of difficulty:
@@ -73,17 +73,17 @@ class ListNode {
 The iterative solution uses three pointers `prev`, `curr`, `next`, repeating four steps each round:
 
 ```text
-初始：prev = null, curr = head
+Initial: prev = null, curr = head
 
 null   1 → 2 → 3 → 4 → null
  ^     ^
 prev  curr
 
-每一轮：
-  1. next = curr.next   // 先保存后继，防止断链
-  2. curr.next = prev   // 当前节点反向指向
-  3. prev = curr        // prev 前移
-  4. curr = next        // curr 前移
+Each round:
+  1. next = curr.next   // First save the successor to prevent breaking the chain
+  2. curr.next = prev   // The current node points backward
+  3. prev = curr        // prev moves forward
+  4. curr = next        // curr moves forward
 ```
 
 The loop ends when `curr` reaches `null`, at which point `prev` points exactly to the new head node after reversal.
@@ -96,16 +96,16 @@ The essence of the recursive solution is "**reverse the rest first, then handle 
 
 ```text
 reverseList(1→2→3→4)
-  = 先递归反转后面的：reverseList(2→3→4)  →  4→3→2
-    再让「2」指向「1」：head.next.next = head
-    最后断开「1」的旧指向：head.next = null
+  = First recursively reverse the rest: reverseList(2→3→4)  →  4→3→2
+    Then make "2" point to "1": head.next.next = head
+    Finally break "1"'s old pointer: head.next = null
 ```
 
 The core is just two lines:
 
 ```text
-head.next.next = head   // 让后继节点反向指向自己
-head.next = null        // 断开原来的正向指向
+head.next.next = head   // Make the successor node point back to itself
+head.next = null        // Break the original forward pointer
 ```
 
 The **base case** of the recursion is when `head` is null or `head.next` is null (only one node left, no reversal needed), in which case `head` is returned directly.
@@ -119,8 +119,8 @@ The **base case** of the recursion is when `head` is null or `head.next` is null
 **Approach (recursive)**: First reverse the sub-list starting from `head.next`, then make `head.next` point to `head`, and finally disconnect `head.next`.
 
 ```text
-输入：1 → 2 → 3 → 4 → 5 → null
-输出：5 → 4 → 3 → 2 → 1 → null
+Input: 1 → 2 → 3 → 4 → 5 → null
+Output: 5 → 4 → 3 → 2 → 1 → null
 ```
 
 ### 2. Reverse the First N Nodes
@@ -128,9 +128,9 @@ The **base case** of the recursion is when `head` is null or `head.next` is null
 **Approach (iterative)**: Reverse only the first `n` nodes; after reversal, connect the **original head node** (now the tail of the reversed segment) to the remaining list.
 
 ```text
-反转前：1 → 2 → 3 → 4 → 5 → null，n = 3
-反转后：3 → 2 → 1 → 4 → 5 → null
-                          └─ 剩余部分原样保留
+Before reversal: 1 → 2 → 3 → 4 → 5 → null, n = 3
+After reversal: 3 → 2 → 1 → 4 → 5 → null
+                          └─ The remaining part is kept as is
 ```
 
 **Approach (recursive)**: Almost identical to "reverse the entire list," with the only difference being that after reversal, the tail node must connect to the **`n+1`-th node**. To achieve this, a successor pointer `successor` is introduced, recording "the successor of the n-th node" when recursing to `n == 1`, and on backtracking, pointing the tail node's `next` to it.
@@ -142,9 +142,9 @@ The **base case** of the recursion is when `head` is null or `head.next` is null
 **Approach (iterative)**: Use a **dummy head node** to locate the predecessor `pre` of `left`, then perform "head-insertion" reversal on the segment `[left, right]`—each time detach `curr.next` and insert it after `pre`, for a total of `right - left` iterations.
 
 ```text
-输入：1 → 2 → 3 → 4 → 5，left = 2, right = 4
-输出：1 → 4 → 3 → 2 → 5
-           └─ [2,3,4] 被反转 ─┘
+Input: 1 → 2 → 3 → 4 → 5, left = 2, right = 4
+Output: 1 → 4 → 3 → 2 → 5
+           └─ [2,3,4] is reversed ─┘
 ```
 
 **Approach (recursive)**: Recursively reduce the problem size. When `left == 1`, range reversal degenerates to "reverse the first `right`"; otherwise, keep moving the head pointer forward, decrementing both `left` and `right` by 1 while recursing deeper, and reconnect the current head on the way back.
@@ -159,9 +159,9 @@ The **base case** of the recursion is when `head` is null or `head.next` is null
 **Approach (recursive)**: First check whether the remaining nodes number at least `k`; if not, return as-is; if so, reverse the first `k` (reusing "reverse the first N"), then recursively process the remainder and reconnect.
 
 ```text
-输入：1 → 2 → 3 → 4 → 5，k = 2
-输出：2 → 1 → 4 → 3 → 5
-      └ 反转 ┘ └ 反转 ┘ └ 不足 k 个，原样 ┘
+Input: 1 → 2 → 3 → 4 → 5, k = 2
+Output: 2 → 1 → 4 → 3 → 5
+      └ reverse ┘ └ reverse ┘ └ fewer than k, keep as is ┘
 ```
 ## Code Implementation
 

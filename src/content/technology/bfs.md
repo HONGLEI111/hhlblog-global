@@ -58,20 +58,20 @@ As soon as the target is encountered for the first time, the current step count 
 ## Detailed Algorithm Steps
 
 ```
-算法：BFS(start, target)
-输入：起点 start，目标 target
-输出：最少步数；不可达时返回 -1
+Algorithm: BFS(start, target)
+Input: start point start, target target
+Output: minimum number of steps; return -1 if unreachable
 
 1. queue ← [start]
 2. visited ← {start}
 3. step ← 0
-4. while queue 不为空：
+4. while queue is not empty:
 5.     size ← queue.length
-6.     重复 size 次：
-7.         cur ← queue 出队
-8.         如果 cur 是 target，返回 step
-9.         遍历 cur 的邻居 next：
-10.            如果 next 未访问：标记并入队
+6.     repeat size times:
+7.         cur ← queue dequeue
+8.         if cur is target, return step
+9.         iterate over cur's neighbors next:
+10.            if next is unvisited: mark and enqueue
 11.    step ← step + 1
 12. return -1
 ```

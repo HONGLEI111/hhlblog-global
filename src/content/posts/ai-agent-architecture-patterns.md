@@ -44,11 +44,11 @@ ReAct is a classic paradigm proposed by Yao et al. in 2022. Its idea can be summ
 Its core contribution is defining a clear **output protocol** for the Agent:
 
 ```
-Thought: 我需要先搜索一下相关信息
-Action: search[ReAct 论文]
-Observation: 搜索结果：……
-Thought: 搜索结果提到了「推理与行动交替」，我可以用这个来回答
-Final Answer: ReAct 是一种……
+Thought: I need to search for relevant information first
+Action: search[ReAct paper]
+Observation: Search results: ...
+Thought: The search results mention "alternating reasoning and acting," which I can use to answer
+Final Answer: ReAct is a ...
 ```
 
 This protocol looks simple, but it solves the first two problems of the naive implementation: the format is fixed and parseable, and there's a clear `Final Answer` stop signal. Below is a minimal runnable implementation:
@@ -100,7 +100,7 @@ ReAct's advantages are that it's **intuitive, controllable, and interpretable**�
 To address ReAct's "lack of global planning," Plan-and-Execute splits the task into two phases: **first use a Planner to generate a complete plan, then have an Executor carry it out step by step.**
 
 ```
-任务 → [Planner 生成步骤列表] → [Executor 依次执行] → 汇总结果
+Task → [Planner generates step list] → [Executor executes in sequence] → aggregate results
 ```
 
 The core code is as follows:

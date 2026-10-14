@@ -95,7 +95,7 @@ claude update
 **Code Review**
 
 ```
-> 审查当前分支的改动，重点关注安全问题
+> Review the changes on the current branch, focusing on security issues
 ```
 
 Claude will read `git diff`, analyze the code changes, and point out potential security risks.
@@ -103,7 +103,7 @@ Claude will read `git diff`, analyze the code changes, and point out potential s
 **Bug Fixing**
 
 ```
-> 用户反馈登录后页面白屏，帮我排查原因
+> User reports a blank page after login; help me troubleshoot the cause
 ```
 
 Claude will search for relevant files, inspect component logic, locate the problem, and fix it directly.
@@ -111,7 +111,7 @@ Claude will search for relevant files, inspect component logic, locate the probl
 **Feature Development**
 
 ```
-> 在 API 中添加一个获取用户收藏列表的接口，包含分页
+> Add an API endpoint to retrieve a user's favorites list, including pagination
 ```
 
 Claude will analyze the existing route structure and generate route definitions, controller logic, and database queries.
@@ -125,21 +125,21 @@ Claude will analyze the existing route structure and generate route definitions,
 Create `CLAUDE.md` in the project root directory to tell Claude key information about the project:
 
 ```markdown
-# 项目名称
+# Project Name
 
-## 技术栈
-- 前端：React 18 + TypeScript + Tailwind
-- 后端：Go + PostgreSQL
-- 部署：Docker + K8s
+## Tech Stack
+- Frontend: React 18 + TypeScript + Tailwind
+- Backend: Go + PostgreSQL
+- Deployment: Docker + K8s
 
-## 代码规范
-- 使用 Prettier 格式化，单引号，无分号
-- 组件命名使用 PascalCase
-- API 路由使用 kebab-case
+## Code Standards
+- Use Prettier for formatting, single quotes, no semicolons
+- Use PascalCase for component naming
+- Use kebab-case for API routes
 
-## 注意事项
-- 不要直接修改生成的代码文件
-- 测试使用 Vitest，不要用 Jest
+## Notes
+- Do not directly modify generated code files
+- Use Vitest for testing, do not use Jest
 ```
 
 With this file in place, Claude will automatically load it on every startup, reducing repeated explanations.

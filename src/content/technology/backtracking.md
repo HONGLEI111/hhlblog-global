@@ -59,19 +59,19 @@ If all paths are viewed as a tree, backtracking is "walking all the way down one
 ## Detailed Algorithm Steps
 
 ```
-算法：Backtrack(path, choices)
-输入：当前路径 path，可选集合 choices
-输出：所有满足条件的解
+Algorithm: Backtrack(path, choices)
+Input: current path path, set of choices choices
+Output: all solutions that satisfy the conditions
 
-1. 如果 path 已满足结束条件：
-2.     复制 path 到结果集
-3.     返回
-4. 遍历 choices 中的每个 choice：
-5.     如果 choice 不满足约束，跳过
-6.     将 choice 加入 path
-7.     更新选择状态
+1. If path already satisfies the termination condition:
+2.     Copy path to the result set
+3.     Return
+4. Iterate over each choice in choices:
+5.     If choice does not satisfy the constraints, skip
+6.     Add choice to path
+7.     Update the selection state
 8.     Backtrack(path, nextChoices)
-9.     撤销 choice 和状态更新
+9.     Undo choice and state update
 ```
 
 **Complexity Analysis**:

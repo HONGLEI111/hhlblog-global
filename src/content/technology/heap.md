@@ -50,7 +50,7 @@ A heap is a complete binary tree that can be stored compactly in an array:
     / \   /
    7   9 8
 
-数组: [1, 3, 5, 7, 9, 8]
+Array: [1, 3, 5, 7, 9, 8]
 ```
 
 Array index relationships:

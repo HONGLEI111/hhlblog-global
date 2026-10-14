@@ -38,21 +38,21 @@ React Server Components are a special type of component that **runs only on the 
 ### 2.3 Component Type Classification
 
 ```
-React 组件类型
-├── Server Component（服务端组件）
-│   ├── 运行环境：服务器 / 边缘节点
-│   ├── 能力：数据获取、服务端资源访问
-│   └── 限制：不能使用 useState/useEffect
+React Component Types
+├── Server Component
+│   ├── Runtime environment: server / edge nodes
+│   ├── Capabilities: data fetching, server-side resource access
+│   └── Limitations: cannot use useState/useEffect
 │
-├── Client Component（客户端组件）
-│   ├── 运行环境：浏览器
-│   ├── 能力：状态管理、交互逻辑
-│   └── 要求：顶部声明 "use client"
+├── Client Component
+│   ├── Runtime environment: browser
+│   ├── Capabilities: state management, interaction logic
+│   └── Requirement: declare "use client" at the top
 │
-└── Shared Component（共享组件）
-    ├── 运行环境：双端均可
-    ├── 能力：无状态 UI 渲染
-    └── 限制：遵守双端约束
+└── Shared Component
+    ├── Runtime environment: both sides
+    ├── Capabilities: stateless UI rendering
+    └── Limitations: comply with both-side constraints
 ```
 
 ---

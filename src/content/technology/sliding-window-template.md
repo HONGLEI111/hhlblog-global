@@ -26,22 +26,22 @@ This article first distills a template from four real problems (Minimum Window S
 ## Template Overview
 
 ```text
-/* 滑动窗口通用骨架：变长窗口，窗口表示为左闭右开区间 [left, right) */
+/* Generic sliding window skeleton: variable-length window, window represented as the left-closed right-open interval [left, right) */
 left = 0, right = 0
-初始化窗口状态（need / win / valid 等）与答案变量
+Initialize window state (need / win / valid, etc.) and answer variable
 
-while (right < n):                    /* right 还没走到尽头，就继续扩张 */
-    c = s[right]                      /* ① 即将进入窗口的字符 */
-    right++                           /*    区间变成 [left, right)，c 已入窗 */
-    更新窗口状态(c)                    /* ② 加入一个字符后要维护哪些数据 */
+while (right < n):                    /* right hasn't reached the end yet, so keep expanding */
+    c = s[right]                      /* ① the character about to enter the window */
+    right++                           /*    the interval becomes [left, right), c has entered the window */
+    Update window state(c)            /* ② what data to maintain after adding a character */
 
-    while (窗口需要收缩):              /* ③ 收缩条件 —— 每道题不一样 */
-        更新答案（可选）                /* ④ 更新时机 —— 每道题不一样，可分两派 */
-        d = s[left]                   /*    即将离开窗口的字符 */
-        left++                        /*    区间变成 [left+1, right) */
-        更新窗口状态(d)                 /* ⑤ 移出一个字符后要维护哪些数据 */
+    while (window needs to shrink):   /* ③ shrink condition —— differs for each problem */
+        Update answer (optional)      /* ④ update timing —— differs for each problem, can be split into two schools */
+        d = s[left]                   /*    the character about to leave the window */
+        left++                        /*    the interval becomes [left+1, right) */
+        Update window state(d)        /* ⑤ what data to maintain after removing a character */
 
-返回答案
+Return answer
 ```
 
 In the skeleton, only three "fill-in-the-blank" spots are problem-specific: **③ the shrink condition**, **④ where to update the answer**, and **the state maintained in ② and ⑤**. The order of operations for ①②⑤ is fixed and doesn't need to be re-derived each time.
@@ -86,8 +86,8 @@ The way to decide is to ask yourself: **Is the window's "valid state" reached af
 Representative problems: Minimum Window Substring (already covers `t`), Permutation in String / Find All Anagrams (length has reached `|s1|`).
 
 ```text
-while (valid == need.size())      // 窗口已经覆盖目标，继续扩张只会变长
-while (right - left >= len1)      // 窗口长度已经达到模式串长度，再长就不可能是排列
+while (valid == need.size())      // The window already covers the target; continuing to expand would only make it longer
+while (right - left >= len1)      // The window length has already reached the pattern string length; any longer cannot be a permutation
 ```
 
 The window in these problems is "**the bigger, the easier to satisfy**": the wider the window, the more chances to cover the target characters. So once satisfied, it means "the current right boundary doesn't need to go further; we only need to consider whether the left boundary can tighten a bit more," and shrinking begins immediately.
@@ -99,7 +99,7 @@ The latter two conditions `right - left >= len1` are essentially a **fixed-lengt
 Representative problem: Longest Substring Without Repeating Characters.
 
 ```text
-while (win[c] > 1)                // 新加入的 c 在窗口里重复了，必须缩到不重复
+while (win[c] > 1)                // the newly added c is duplicated in the window, must shrink until no duplicates
 ```
 
 The window in these problems is "**the smaller, the easier to satisfy**": the narrower the window, the less likely a duplicate appears. So after expanding, you first check whether it violates the condition, and once it does, shrink all the way until it's valid again.
@@ -159,12 +159,12 @@ Note: For duplicate characters in `t`, the count of that character in the substr
 **Example:**
 
 ```text
-输入：s = "ADOBECODEBANC", t = "ABC"
-输出："BANC"
-解释：最小覆盖子串 "BANC" 包含来自字符串 t 的 'A'、'B' 和 'C'。
+Input: s = "ADOBECODEBANC", t = "ABC"
+Output: "BANC"
+Explanation: The minimum window substring "BANC" contains 'A', 'B', and 'C' from string t.
 
-输入：s = "a", t = "a"     输出："a"
-输入：s = "a", t = "aa"    输出：""
+Input: s = "a", t = "a"     Output: "a"
+Input: s = "a", t = "aa"    Output: ""
 ```
 
 **Constraints:** `1 <= m, n <= 10^5` (`m == s.length`, `n == t.length`), `s` and `t` consist of uppercase and lowercase English letters, and the test cases guarantee a unique answer.
@@ -185,23 +185,23 @@ Using `s = "ADOBECODEBANC"` and `t = "ABC"` as an example (`need: A=1, B=1, C=1`
 s = A D O B E C O D E B A N C
     0 1 2 3 4 5 6 7 8 9 10 11 12
 
-加入 A → valid = 1
-加入 B → valid = 2
-加入 C → valid = 3   ← 窗口 [0,6) = "ADOBEC" 已覆盖 t，进入收缩循环
-  ├ 先记录答案：[0,6) 长度 6 → minLen = 6（暂定 "ADOBEC"）
-  └ 再移出 s[0]='A' → A 不再达标 → valid = 2 → 退出收缩
+Add A → valid = 1
+Add B → valid = 2
+Add C → valid = 3   ← window [0,6) = "ADOBEC" already covers t, enter the shrink loop
+  ├ First record the answer: [0,6) length 6 → minLen = 6 (tentatively "ADOBEC")
+  └ Then remove s[0]='A' → A no longer meets the requirement → valid = 2 → exit shrink
 
-…… right 继续扩张到 11（窗口 [1,11)），A 重新达标 → valid = 3
-   收缩循环里长度依次是 10、9、8、7、6，都不比 6 更优，所以都不更新答案
+…… right continues expanding to 11 (window [1,11)), A meets the requirement again → valid = 3
+   In the shrink loop the lengths are 10, 9, 8, 7, 6 in order, none better than 6, so the answer is not updated
 
-加入 C（下标 12）→ valid = 3，窗口 [6,13) = "ODEBANC" 长度 7
-  ├ 长度 7 > 6，不更新
-  ├ 移出 O（不在 t 中，valid 不变）→ 窗口 [7,13) = "DEBANC" 长度 6，仍不更优
-  ├ 再移出 D → 窗口 [8,13) = "EBANC" 长度 5 → 刷新 minLen = 5
-  ├ 移出 E → 窗口 [9,13) = "BANC" 长度 4 → 刷新 minLen = 4
-  └ 移出 B → B 不再达标 → valid = 2 → 退出收缩
+Add C (index 12) → valid = 3, window [6,13) = "ODEBANC" length 7
+  ├ Length 7 > 6, do not update
+  ├ Remove O (not in t, valid unchanged) → window [7,13) = "DEBANC" length 6, still not better
+  ├ Remove D again → window [8,13) = "EBANC" length 5 → refresh minLen = 5
+  ├ Remove E → window [9,13) = "BANC" length 4 → refresh minLen = 4
+  └ Remove B → B no longer meets the requirement → valid = 2 → exit shrink
 
-答案 "BANC" ✔
+Answer "BANC" ✔
 ```
 
 Note a detail in the second step: in window `[3,11) = "BECODEBA"`, `B` appears twice, `win[B] = 2 > need[B] = 1`. At this point, after removing one `B`, `win[B]` drops to 1 and **still meets the requirement**, so `valid` should not change. The code checks `win[d] == need[d]` (not meeting the requirement only after removal) rather than `win[d] <= need[d]`, precisely to handle this case.
@@ -367,10 +367,10 @@ Given two strings `s1` and `s2`, write a function to determine whether `s2` cont
 **Example:**
 
 ```text
-输入：s1 = "ab", s2 = "eidbaooo"      输出：true
-解释：s2 包含 s1 的排列之一 ("ba")
+Input: s1 = "ab", s2 = "eidbaooo"      Output: true
+Explanation: s2 contains one permutation of s1 ("ba")
 
-输入：s1 = "ab", s2 = "eidboaoo"      输出：false
+Input: s1 = "ab", s2 = "eidboaoo"      Output: false
 ```
 
 **Constraints:** `1 <= s1.length, s2.length <= 10^4`, `s1` and `s2` consist of lowercase English letters only.
@@ -391,12 +391,12 @@ Taking `s1 = "ab"` and `s2 = "eidbaooo"` as an example:
 s2 = e i d b a o o o
      0 1 2 3 4 5 6 7      s1 = "ab" → need: a=1, b=1, kinds=2
 
-加入 e → 窗口 [0,1)="e"  valid=0
-加入 i → 窗口 [0,2)="ei" valid=0
-  长度 2 已达 |s1| → 检查 valid(0) != 2 → 未命中，移出 'e' → 窗口 [1,2)
-加入 d → 窗口 [1,3)="id" valid=0 → 检查未命中，移出 'i' → 窗口 [2,3)
-加入 b → 窗口 [2,4)="db" valid=1 → 检查未命中，移出 'd' → 窗口 [3,4)
-加入 a → 窗口 [3,5)="ba" valid=2 → 检查 valid == kinds 命中 → 返回 true ✔
+Add e → window [0,1)="e"  valid=0
+Add i → window [0,2)="ei" valid=0
+  length 2 has reached |s1| → check valid(0) != 2 → no hit, remove 'e' → window [1,2)
+Add d → window [1,3)="id" valid=0 → check no hit, remove 'i' → window [2,3)
+Add b → window [2,4)="db" valid=1 → check no hit, remove 'd' → window [3,4)
+Add a → window [3,5)="ba" valid=2 → check valid == kinds hit → return true ✔
 ```
 
 The window length is strictly pinned to 2 by `right - left >= s1.size()`, so each round checks a window of "exactly length `|s1|`" — this is precisely the fixed-length window approach.
@@ -538,14 +538,14 @@ An anagram is a string formed by rearranging the same letters (including identic
 **Example:**
 
 ```text
-输入：s = "cbaebabacd", p = "abc"
-输出：[0,6]
-解释：
-起始索引等于 0 的子串是 "cba"，它是 "abc" 的异位词。
-起始索引等于 6 的子串是 "bac"，它是 "abc" 的异位词。
+Input: s = "cbaebabacd", p = "abc"
+Output: [0,6]
+Explanation:
+The substring with starting index equal to 0 is "cba", which is an anagram of "abc".
+The substring with starting index equal to 6 is "bac", which is an anagram of "abc".
 
-输入：s = "abab", p = "ab"
-输出：[0,1,2]
+Input: s = "abab", p = "ab"
+Output: [0,1,2]
 ```
 
 **Constraints:** `1 <= s.length, p.length <= 3 * 10^4`, `s`, and `p` consist of lowercase English letters only.
@@ -568,18 +568,18 @@ Using `s = "cbaebabacd"` and `p = "abc"` as an example (`need: a=1, b=1, c=1`, `
 s = c b a e b a b a c d
     0 1 2 3 4 5 6 7 8 9
 
-窗口长度恒为 3（right - left >= 3 就收缩），逐个检查：
+The window length is always 3 (shrink when right - left >= 3), check one by one:
 
-窗口 [0,3) = "cba" → valid=3 → 收集 left=0 ✔
-窗口 [1,4) = "bae" → 'e' 不属于 p，valid < 3 → 跳过
-窗口 [2,5) = "aeb" → 跳过
-窗口 [3,6) = "eba" → 跳过
-窗口 [4,7) = "bab" → b 超额，valid < 3 → 跳过
-窗口 [5,8) = "aba" → 跳过
-窗口 [6,9) = "bac" → valid=3 → 收集 left=6 ✔
-窗口 [7,10) = "acd" → 跳过
+Window [0,3) = "cba" → valid=3 → collect left=0 ✔
+Window [1,4) = "bae" → 'e' does not belong to p, valid < 3 → skip
+Window [2,5) = "aeb" → skip
+Window [3,6) = "eba" → skip
+Window [4,7) = "bab" → b exceeds the limit, valid < 3 → skip
+Window [5,8) = "aba" → skip
+Window [6,9) = "bac" → valid=3 → collect left=6 ✔
+Window [7,10) = "acd" → skip
 
-返回 [0, 6] ✔
+Return [0, 6] ✔
 ```
 
 ### Code Implementation
@@ -723,15 +723,15 @@ Given a string `s`, find the length of the **longest substring** that does not c
 **Example:**
 
 ```text
-输入：s = "abcabcbb"    输出：3
-解释：因为无重复字符的最长子串是 "abc"，所以其长度为 3。
+Input: s = "abcabcbb"    Output: 3
+Explanation: Because the longest substring without repeating characters is "abc", its length is 3.
 
-输入：s = "bbbbb"       输出：1
-解释：因为无重复字符的最长子串是 "b"，所以其长度为 1。
+Input: s = "bbbbb"       Output: 1
+Explanation: Because the longest substring without repeating characters is "b", its length is 1.
 
-输入：s = "pwwkew"      输出：3
-解释：因为无重复字符的最长子串是 "wke"，所以其长度为 3。
-     注意答案必须是子串，"pwke" 是子序列而非子串。
+Input: s = "pwwkew"      Output: 3
+Explanation: Because the longest substring without repeating characters is "wke", its length is 3.
+     Note that the answer must be a substring; "pwke" is a subsequence, not a substring.
 ```
 
 **Constraints:** `0 <= s.length <= 5 * 10^4`, `s` consists of English letters, digits, symbols, and spaces.
@@ -756,20 +756,20 @@ Taking `s = "abcabcbb"` as an example:
 s = a b c a b c b b
     0 1 2 3 4 5 6 7
 
-加入 a（下标 0）→ 窗口 [0,1) = "a"     无违规 → best = 1
-加入 b（下标 1）→ 窗口 [0,2) = "ab"    无违规 → best = 2
-加入 c（下标 2）→ 窗口 [0,3) = "abc"   无违规 → best = 3
-加入 a（下标 3）→ 窗口 [0,4) = "abca"  a 出现 2 次 → 移出 'a' → 窗口 [1,4) = "bca" 长度 3，不更优
-加入 b（下标 4）→ 窗口 [1,5) = "bcab"  b 出现 2 次 → 移出 'b' → 窗口 [2,5) = "cab" 长度 3，不更优
-加入 c（下标 5）→ 窗口 [2,6) = "cabc"  c 出现 2 次 → 移出 'c' → 窗口 [3,6) = "abc" 长度 3，不更优
-加入 b（下标 6）→ 窗口 [3,7) = "abcb"  b 出现 2 次
-   → 移出 'a' → 窗口 [4,7) = "bcb"，b 仍重复
-   → 移出 'b' → 窗口 [5,7) = "cb"  长度 2，不更优
-加入 b（下标 7）→ 窗口 [5,8) = "cbb"  b 出现 2 次
-   → 移出 'c' → 窗口 [6,8) = "bb"，b 仍重复
-   → 移出 'b' → 窗口 [7,8) = "b"   长度 1，不更优
+Add a (index 0) → window [0,1) = "a"     no violation → best = 1
+Add b (index 1) → window [0,2) = "ab"    no violation → best = 2
+Add c (index 2) → window [0,3) = "abc"   no violation → best = 3
+Add a (index 3) → window [0,4) = "abca"  a appears 2 times → remove 'a' → window [1,4) = "bca" length 3, not better
+Add b (index 4) → window [1,5) = "bcab"  b appears 2 times → remove 'b' → window [2,5) = "cab" length 3, not better
+Add c (index 5) → window [2,6) = "cabc"  c appears 2 times → remove 'c' → window [3,6) = "abc" length 3, not better
+Add b (index 6) → window [3,7) = "abcb"  b appears 2 times
+   → remove 'a' → window [4,7) = "bcb", b still repeats
+   → remove 'b' → window [5,7) = "cb"  length 2, not better
+Add b (index 7) → window [5,8) = "cbb"  b appears 2 times
+   → remove 'c' → window [6,8) = "bb", b still repeats
+   → remove 'b' → window [7,8) = "b"   length 1, not better
 
-答案 = 3 ✔
+Answer = 3 ✔
 ```
 
 The `c` in `while (win[c] > 1)` is always **the character just added**: within the window, only it can become duplicated due to the new addition; all other characters were duplicate-free at the end of the previous round. So the shrink target is very clear — squeeze out the extra `c`.

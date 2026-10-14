@@ -33,13 +33,13 @@ This is the most commonly used and most secure flow, because it guarantees that 
 ### Sequence
 
 ```
-用户 ──① 点击「用 GitHub 登录」──▶ 客户端(你的后端)
-用户 ◀──② 302 重定向到 GitHub 授权页── 客户端
-用户 ──③ 输入账号密码、点授权──▶ GitHub 授权服务器
-用户 ◀──④ 302 重定向回回调地址，URL 带 ?code=xxxx── GitHub
-客户端 ──⑤ 后端用 code + client_secret 换取 token──▶ GitHub
-客户端 ◀──⑥ 返回 access_token + refresh_token── GitHub
-客户端 ──⑦ 携带 access_token 请求 API──▶ GitHub API
+User ──① Clicks "Sign in with GitHub" ──▶ Client (your backend)
+User ◀──② 302 redirect to GitHub authorization page── Client
+User ──③ Enters username and password, clicks authorize──▶ GitHub authorization server
+User ◀──④ 302 redirect back to callback address, URL carries ?code=xxxx── GitHub
+Client ──⑤ Backend exchanges code + client_secret for token──▶ GitHub
+Client ◀──⑥ Returns access_token + refresh_token── GitHub
+Client ──⑦ Requests API with access_token──▶ GitHub API
 ```
 
 ① The frontend directs the user to the authorization endpoint:

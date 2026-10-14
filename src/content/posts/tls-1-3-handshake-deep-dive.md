@@ -31,19 +31,19 @@ The handshake is the "negotiation" process of step 1.
 First, let's look at the TLS 1.2 handshake flow to understand what exactly TLS 1.3 optimized:
 
 ```
-客户端                    服务端
+Client                     Server
   │  ── ClientHello ──────→  │
   │  ←─ ServerHello ───────  │
   │  ←─ Certificate ───────  │
-  │  ←─ ServerHelloDone ───  │   (第 1 个 RTT)
+  │  ←─ ServerHelloDone ───  │   (1st RTT)
   │                          │
   │  ── ClientKeyExchange ─→ │
   │  ── [ChangeCipherSpec] ─→│
   │  ── Finished ──────────→ │
   │  ←─ [ChangeCipherSpec] ─ │
-  │  ←─ Finished ──────────  │   (第 2 个 RTT)
+  │  ←─ Finished ──────────  │   (2nd RTT)
   │                          │
-  │  ── 应用数据 ──────────→ │   (第 3 个 RTT 才能发数据)
+  │  ── Application Data ──→ │   (data can only be sent at the 3rd RTT)
 ```
 
 A full TLS 1.2 handshake requires **2 RTTs**, plus 1 RTT for the TCP three-way handshake, meaning users actually have to wait **3 RTTs** before sending the first HTTP request. On high-latency networks (such as mobile networks with 100ms latency), the handshake alone wastes 300ms.
@@ -55,16 +55,16 @@ Worse still, TLS 1.2 supports a whole pile of outdated and dangerous algorithms�
 The TLS 1.3 handshake has been streamlined into the following:
 
 ```
-客户端                    服务端
-  │  ── ClientHello ──────→ │   (携带 key_share 猜测)
-  │  ←─ ServerHello ───────  │   (选定算法，返回 key_share)
+Client                    Server
+  │  ── ClientHello ──────→ │   (carries key_share guess)
+  │  ←─ ServerHello ───────  │   (selects algorithm, returns key_share)
   │  ←─ {EncryptedExtensions}│
   │  ←─ {Certificate} ─────  │
   │  ←─ {CertificateVerify}─ │
-  │  ←─ {Finished} ────────  │   (第 1 个 RTT)
+  │  ←─ {Finished} ────────  │   (1st RTT)
   │                          │
   │  ── {Finished} ────────→ │
-  │  ── 应用数据 ──────────→ │   (第 1 个 RTT 即可发数据!)
+  │  ── Application Data ──→ │   (can send data at the 1st RTT!)
 ```
 
 Note the curly braces `{}`: after ServerHello, **all of the server's messages are already encrypted**. This is a key improvement of TLS 1.3—the handshake itself exposes as little plaintext as possible.
@@ -82,11 +82,11 @@ This is the core trick behind 1-RTT. The client directly includes its guessed ke
 ```
 ClientHello:
   cipher_suites: [TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384, ...]
-  key_share:     (X25519, 客户端的临时公钥)   ← 提前猜！
+  key_share:     (X25519, client's ephemeral public key)   ← guessed in advance!
 
 ServerHello:
   cipher_suite:  TLS_AES_128_GCM_SHA256
-  key_share:     (X25519, 服务端的临时公钥)   ← 直接响应
+  key_share:     (X25519, server's ephemeral public key)   ← responds directly
 ```
 
 If the client guesses the algorithm correctly, both sides can immediately compute the shared key, saving a round trip. If the guess is wrong, the server sends a `HelloRetryRequest` to let the client retry—this is an extremely rare case.
@@ -137,7 +137,7 @@ The `-msg` parameter prints the hexadecimal contents of each handshake message f
 >>> TLS 1.3, Handshake [length 0231], ClientHello
 <<< TLS 1.3, Handshake [length 007a], ServerHello
 <<< TLS 1.3, ChangeCipherSpec [length 0001]
-<<< TLS 1.3, Application Data [length 00ea]   ← 加密后的握手消息
+<<< TLS 1.3, Application Data [length 00ea]   ← encrypted handshake message
 ```
 
 Key observation: **What immediately follows ServerHello is not a plaintext Certificate, but encrypted Application Data**. This is precisely the evidence that TLS 1.3 stuffs the certificate and signature entirely into the encrypted channel.
@@ -199,8 +199,8 @@ curl --tlsv1.3 -k https://localhost:8443
 If the client and server have handshaked before, TLS 1.3 also supports an **even more extreme 0-RTT**—the client directly includes application data in the first round trip:
 
 ```
-客户端 ── ClientHello + 0-RTT 应用数据 ──────→ 服务端
-客户端 ←── ServerHello + {Finished} ────────── 服务端
+Client ── ClientHello + 0-RTT application data ──────→ Server
+Client ←── ServerHello + {Finished} ────────── Server
 ```
 
 0-RTT relies on a "pre-shared key" (PSK, i.e., the key saved from the previous session), and is suitable for scenarios that require extremely low latency. But it has a well-known security cost: **0-RTT data cannot be guaranteed to be replay-proof**. An attacker can intercept and replay 0-RTT requests. Therefore, 0-RTT should only be used for **idempotent** requests (such as GET), and must never be used for operations with side effects such as transfers or placing orders.

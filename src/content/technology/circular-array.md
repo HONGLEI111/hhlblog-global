@@ -47,10 +47,10 @@ This is the problem that a circular array solves: using a fixed array to impleme
 A circular array usually maintains three states:
 
 ```text
-capacity: 固定容量
-head:     下一个读取位置
-tail:     下一个写入位置
-size:     当前元素数量
+capacity: fixed capacity
+head:     next read position
+tail:     next write position
+size:     current number of elements
 ```
 
 ### Writing Elements

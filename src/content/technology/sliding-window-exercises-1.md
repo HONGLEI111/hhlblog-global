@@ -43,12 +43,12 @@ Given an array `nums` of `n` **positive integers** and a positive integer `targe
 **Example:**
 
 ```text
-输入：target = 7, nums = [2,3,1,2,4,3]
-输出：2
-解释：子数组 [4,3] 是该条件下的长度最小的子数组。
+Input: target = 7, nums = [2,3,1,2,4,3]
+Output: 2
+Explanation: The subarray [4,3] is the minimum-length subarray under this condition.
 
-输入：target = 4, nums = [1,4,4]          输出：1
-输入：target = 11, nums = [1,1,1,1,1,1,1,1]  输出：0
+Input: target = 4, nums = [1,4,4]          Output: 1
+Input: target = 11, nums = [1,1,1,1,1,1,1,1]  Output: 0
 ```
 
 **Constraints:** `1 <= target <= 10^9`, `1 <= nums.length <= 10^5`, `1 <= nums[i] <= 10^4`.
@@ -67,27 +67,27 @@ Fill in the four blanks following the template: ② when adding, `sum += nums[ri
 Using `target = 7`, `nums = [2,3,1,2,4,3]` as an example:
 
 ```text
-下标   0  1  2  3  4  5
+Subscript   0  1  2  3  4  5
 nums   2  3  1  2  4  3
 ```
 
 ```text
-扩张到 right=1，窗口 [0,1)=[2]，sum=2   → 不够，不收缩
-扩张到 right=2，窗口 [0,2)=[2,3]，sum=5 → 不够，不收缩
-扩张到 right=3，窗口 [0,3)=[2,3,1]，sum=6 → 不够，不收缩
-扩张到 right=4，窗口 [0,4)=[2,3,1,2]，sum=10 ≥ 7 ← 进入收缩循环
-  ├ 先记录：[0,4) 长度 4 → best = 4
-  ├ 移出 2 → sum=8，窗口 [1,4) 长度 3 → best = 3
-  ├ 移出 3 → sum=5，停止收缩，窗口 [2,4)=[1,2]
-扩张到 right=5，窗口 [2,5)=[1,2,4]，sum=9 ≥ 7 ← 再次进入收缩循环
-  ├ 先记录：[2,5) 长度 3，不比 3 更优
-  ├ 移出 1 → sum=8，窗口 [3,5) 长度 2 → best = 2
-  ├ 移出 2 → sum=6，停止收缩，窗口 [4,5)=[4]
-扩张到 right=6，窗口 [4,6)=[4,3]，sum=9 ≥ 7
-  ├ 先记录：[4,6) 长度 2，不比 2 更优
-  └ 移出 4 → sum=5，停止收缩
+Expand to right=1, window [0,1)=[2], sum=2   → not enough, do not shrink
+Expand to right=2, window [0,2)=[2,3], sum=5 → not enough, do not shrink
+Expand to right=3, window [0,3)=[2,3,1], sum=6 → not enough, do not shrink
+Expand to right=4, window [0,4)=[2,3,1,2], sum=10 ≥ 7 ← enter shrink loop
+  ├ First record: [0,4) length 4 → best = 4
+  ├ Remove 2 → sum=8, window [1,4) length 3 → best = 3
+  ├ Remove 3 → sum=5, stop shrinking, window [2,4)=[1,2]
+Expand to right=5, window [2,5)=[1,2,4], sum=9 ≥ 7 ← enter shrink loop again
+  ├ First record: [2,5) length 3, not better than 3
+  ├ Remove 1 → sum=8, window [3,5) length 2 → best = 2
+  ├ Remove 2 → sum=6, stop shrinking, window [4,5)=[4]
+Expand to right=6, window [4,6)=[4,3], sum=9 ≥ 7
+  ├ First record: [4,6) length 2, not better than 2
+  └ Remove 4 → sum=5, stop shrinking
 
-答案 2 ✔（子数组 [4,3]）
+Answer 2 ✔ (subarray [4,3])
 ```
 
 Note two things: `left` will never exceed `right` (the window is always valid); and **each round of shrinking must record first, then remove** — reversing the order will record a window whose "sum is already less than `target`," giving a length that is too small and actually invalid. On this problem, the length obtained for this reason happens to be the same, so it's easy to get away with it; a different dataset will expose the bug (see pitfall 4 below).
@@ -191,13 +191,13 @@ Given an integer array `nums` and an integer `k`, return the number of contiguou
 **Example:**
 
 ```text
-输入：nums = [10,5,2,6], k = 100
-输出：8
-解释：8 个乘积小于 100 的子数组分别为：
-      [10]、[5]、[2]、[6]、[10,5]、[5,2]、[2,6]、[5,2,6]。
-      注意 [10,5,2] 的乘积是 100，不小于 100，不算。
+Input: nums = [10,5,2,6], k = 100
+Output: 8
+Explanation: The 8 subarrays whose product is less than 100 are:
+      [10], [5], [2], [6], [10,5], [5,2], [2,6], [5,2,6].
+      Note that the product of [10,5,2] is 100, which is not less than 100, so it does not count.
 
-输入：nums = [1,2,3], k = 0   输出：0
+Input: nums = [1,2,3], k = 0   Output: 0
 ```
 
 **Constraints:** `1 <= nums.length <= 3 * 10^4`, `1 <= nums[i] <= 1000`, `0 <= k <= 10^6`.
@@ -218,22 +218,22 @@ So the four blanks: ② `prod *= nums[right]`; ③ the shrink condition is `prod
 Taking `nums = [10,5,2,6]`, `k = 100` as an example:
 
 ```text
-下标   0   1  2  3
+Subscript   0   1  2  3
 nums   10  5  2  6
 ```
 
 ```text
-加入 10 → prod=10   < 100，窗口 [0,1)
-          以 nums[0] 结尾的合法子数组：1 - 0 = 1 个 → [10]          累计 1
-加入 5  → prod=50   < 100，窗口 [0,2)
-          以 nums[1] 结尾：2 - 0 = 2 个 → [5]、[10,5]                累计 3
-加入 2  → prod=100  ≥ 100 ← 违规，收缩
-          移出 10 → prod=10，窗口 [1,3)，1 < 2
-          以 nums[2] 结尾：3 - 1 = 2 个 → [2]、[5,2]                 累计 5
-加入 6  → prod=60   < 100，窗口 [1,4)
-          以 nums[3] 结尾：4 - 1 = 3 个 → [6]、[2,6]、[5,2,6]        累计 8
+Add 10 → prod=10   < 100, window [0,1)
+          valid subarrays ending at nums[0]: 1 - 0 = 1 → [10]          cumulative 1
+Add 5  → prod=50   < 100, window [0,2)
+          ending at nums[1]: 2 - 0 = 2 → [5], [10,5]                cumulative 3
+Add 2  → prod=100  ≥ 100 ← violation, shrink
+          remove 10 → prod=10, window [1,3), 1 < 2
+          ending at nums[2]: 3 - 1 = 2 → [2], [5,2]                 cumulative 5
+Add 6  → prod=60   < 100, window [1,4)
+          ending at nums[3]: 4 - 1 = 3 → [6], [2,6], [5,2,6]        cumulative 8
 
-答案 8 ✔
+Answer 8 ✔
 ```
 
 Note the round with `prod = 100`: the problem requires **strictly less than** `k`, so `prod >= k` must shrink; after shrinking to `prod = 10`, the window is `[5,2]`, and the monotonic decrease of `prod` guarantees that "shrinking further only makes it smaller," so no solutions are missed.
@@ -329,13 +329,13 @@ Given a binary array `nums` and an integer `k`, assuming at most `k` `0` can be 
 **Example:**
 
 ```text
-输入：nums = [1,1,1,0,0,0,1,1,1,1,0], k = 2
-输出：6
-解释：把下标 3、4 的两个 0 翻转成 1，得到 [1,1,1,1,1,1,0,1,1,1,1,0]，前 6 位是连续的 1；
-      把下标 5、10 两个 0 翻转则是后 6 位连续为 1。
+Input: nums = [1,1,1,0,0,0,1,1,1,1,0], k = 2
+Output: 6
+Explanation: Flip the two 0s at indices 3 and 4 to 1, yielding [1,1,1,1,1,1,0,1,1,1,1,0], where the first 6 positions are consecutive 1s;
+      flipping the two 0s at indices 5 and 10 instead makes the last 6 positions consecutive 1s.
 
-输入：nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], k = 3
-输出：10
+Input: nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], k = 3
+Output: 10
 ```
 
 **Constraints:** `1 <= nums.length <= 10^5`, `nums[i]` is either `0` or `1`, `0 <= k <= nums.length`.
@@ -358,26 +358,26 @@ This problem is the cleanest example of "shrink on violation": the violation met
 Taking `nums = [1,1,1,0,0,0,1,1,1,1,0]`, `k = 2` as an example:
 
 ```text
-下标  0  1  2  3  4  5  6  7  8  9  10
+Index  0  1  2  3  4  5  6  7  8  9  10
 nums  1  1  1  0  0  0  1  1  1  1  0
 ```
 
 ```text
-right=3：窗口 [0,4)=1110，zeros=1 ≤ 2 → best = 4
-right=4：窗口 [0,5)=11100，zeros=2 ≤ 2 → best = 5
-right=5：窗口 [0,6)=111000，zeros=3 > 2 ← 违规，收缩
-  ├ 移出 1（下标 0）→ zeros 仍为 3
-  ├ 移出 1（下标 1）→ 仍为 3
-  ├ 移出 1（下标 2）→ 仍为 3
-  ├ 移出 0（下标 3）→ zeros=2，停止收缩，窗口 [4,6)=00，长度 2
-  └ 收缩后才记录：长度 2，不更新 best（best 还是 5）
-right=6：窗口 [4,7)=001，zeros=2 → 长度 3
-right=7：长度 4      right=8：长度 5      right=9：长度 6 → best = 6
-right=10：窗口 [4,11)=0011110，zeros=3 > 2 ← 违规，收缩
-  ├ 移出 0（下标 4）→ zeros=2，停止收缩，窗口 [5,11)
-  └ 长度 5，不更新 best
+right=3: window [0,4)=1110, zeros=1 ≤ 2 → best = 4
+right=4: window [0,5)=11100, zeros=2 ≤ 2 → best = 5
+right=5: window [0,6)=111000, zeros=3 > 2 ← violation, shrink
+  ├ remove 1 (index 0) → zeros still 3
+  ├ remove 1 (index 1) → still 3
+  ├ remove 1 (index 2) → still 3
+  ├ remove 0 (index 3) → zeros=2, stop shrinking, window [4,6)=00, length 2
+  └ record only after shrinking: length 2, do not update best (best is still 5)
+right=6: window [4,7)=001, zeros=2 → length 3
+right=7: length 4      right=8: length 5      right=9: length 6 → best = 6
+right=10: window [4,11)=0011110, zeros=3 > 2 ← violation, shrink
+  ├ remove 0 (index 4) → zeros=2, stop shrinking, window [5,11)
+  └ length 5, do not update best
 
-答案 6 ✔
+answer 6 ✔
 ```
 
 Look clearly at the relationship between ③ and ④: **a violating window can never contribute to the score**. The purpose of the shrink loop is to repair the window back to `zeros <= k`, and only after it is repaired do we measure its length.
@@ -479,9 +479,9 @@ You are given a string `s` and an integer `k`. You can choose any character in t
 **Example:**
 
 ```text
-输入：s = "ABAB", k = 2     输出：4
-输入：s = "AABABBA", k = 1  输出：4
-解释：把中间的 'A' 替换为 'B'，得到 "AABBBBA"，其中子串 "BBBB" 有最长重复字母，长度为 4。
+Input: s = "ABAB", k = 2     Output: 4
+Input: s = "AABABBA", k = 1  Output: 4
+Explanation: Replace the middle 'A' with 'B' to get "AABBBBA", in which the substring "BBBB" has the longest repeating letter, with length 4.
 ```
 
 **Constraints:** `1 <= s.length <= 10^5`, `s` consists only of uppercase English letters, `0 <= k <= s.length`.
@@ -506,30 +506,30 @@ There is a **key detail** here: `maxCnt` is only updated when a character is add
 Taking `s = "AABABBA"`, `k = 1` as an example:
 
 ```text
-下标  0  1  2  3  4  5  6
+Subscript  0  1  2  3  4  5  6
 s     A  A  B  A  B  B  A
 ```
 
 ```text
-加入下标 0 的 A：[0,1)=A，cnt[A]=1，maxCnt=1
-  长度 1 - 1 = 0 ≤ 1 → 不需要替换 → 窗口长度 1
-加入下标 1 的 A：[0,2)=AA，cnt[A]=2，maxCnt=2
-  2 - 2 = 0 ≤ 1 → 长度 2
-加入下标 2 的 B：[0,3)=AAB，cnt[B]=1，maxCnt 仍为 2
-  3 - 2 = 1 ≤ 1 → 长度 3（把 B 改成 A）
-加入下标 3 的 A：[0,4)=AABA，cnt[A]=3，maxCnt=3
-  4 - 3 = 1 ≤ 1 → 长度 4（把 B 改成 A）      best = 4
-加入下标 4 的 B：[0,5)=AABAB，cnt[B]=2，maxCnt 仍为 3
-  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[A]-- → cnt[A]=2, window [1,5)=ABAB, length 4
-  4 - 3 = 1 ≤ 1 → 长度 4，不更新 best
-加入下标 5 的 B：[1,6)=ABABB，cnt[B]=3，maxCnt 仍为 3
-  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[A]-- → cnt[A]=1, window [2,6)=BABB, length 4
-  4 - 3 = 1 ≤ 1 → 长度 4，不更新 best
-加入下标 6 的 A：[2,7)=BABBA，cnt[A]=2，maxCnt 仍为 3
-  5 - 3 = 2 > 1 ← 违规，缩一格：cnt[B]-- → cnt[B]=2, window [3,7)=ABBA, length 4
-  4 - 3 = 1 ≤ 1 → 长度 4，不更新 best
+Add A at index 0: [0,1)=A, cnt[A]=1, maxCnt=1
+  length 1 - 1 = 0 ≤ 1 → no replacement needed → window length 1
+Add A at index 1: [0,2)=AA, cnt[A]=2, maxCnt=2
+  2 - 2 = 0 ≤ 1 → length 2
+Add B at index 2: [0,3)=AAB, cnt[B]=1, maxCnt still 2
+  3 - 2 = 1 ≤ 1 → length 3 (change B to A)
+Add A at index 3: [0,4)=AABA, cnt[A]=3, maxCnt=3
+  4 - 3 = 1 ≤ 1 → length 4 (change B to A)      best = 4
+Add B at index 4: [0,5)=AABAB, cnt[B]=2, maxCnt still 3
+  5 - 3 = 2 > 1 ← violation, shrink by one: cnt[A]-- → cnt[A]=2, window [1,5)=ABAB, length 4
+  4 - 3 = 1 ≤ 1 → length 4, do not update best
+Add B at index 5: [1,6)=ABABB, cnt[B]=3, maxCnt still 3
+  5 - 3 = 2 > 1 ← violation, shrink by one: cnt[A]-- → cnt[A]=1, window [2,6)=BABB, length 4
+  4 - 3 = 1 ≤ 1 → length 4, do not update best
+Add A at index 6: [2,7)=BABBA, cnt[A]=2, maxCnt still 3
+  5 - 3 = 2 > 1 ← violation, shrink by one: cnt[B]-- → cnt[B]=2, window [3,7)=ABBA, length 4
+  4 - 3 = 1 ≤ 1 → length 4, do not update best
 
-答案 4 ✔
+Answer 4 ✔
 ```
 
 Note that in the last three rounds, `maxCnt = 3` is already **no longer the true maximum frequency of the current window** (in `[3,7)`, `A` and `B` each appear 2 times), but the window length is held steady at 4, and `best` also stops at 4—and 4 is indeed the correct answer.
@@ -634,11 +634,11 @@ function characterReplacement(s, k) {
 ## Comparison Table of the Four Problems
 
 ```text
-题目                          ② 加入时维护               ③ 收缩条件                 ④ 更新结果           流派
-209  长度最小的子数组        sum += nums[right]        sum >= target              收缩循环内、移出前    满足就缩
-713  乘积小于 K 的子数组      prod *= nums[right]       prod >= k                  收缩循环后            违规就缩
-1004 最大连续 1 的个数 III    zeros += nums[right]==0   zeros > k                  收缩循环后            违规就缩
-424  替换后的最长重复字符      cnt[c]++、更新 maxCnt     right-left-maxCnt > k      收缩循环后            违规就缩
+Problem                     ② Maintain on add            ③ Shrink condition          ④ Update result        Style
+209  Minimum Size Subarray Sum  sum += nums[right]        sum >= target               Inside shrink loop, before removal    Shrink while satisfied
+713  Subarray Product Less Than K  prod *= nums[right]       prod >= k                   After shrink loop      Shrink when violated
+1004 Max Consecutive Ones III    zeros += nums[right]==0   zeros > k                   After shrink loop      Shrink when violated
+424  Longest Repeating Character Replacement  cnt[c]++, update maxCnt     right-left-maxCnt > k       After shrink loop      Shrink when violated
 ```
 
 Three sentences to summarize:

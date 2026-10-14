@@ -202,17 +202,17 @@ node analyze-cpu-profile.mjs CPU.*.cpuprofile parseQuery
 The output looks like this (values fluctuate by machine, paths simplified):
 
 ```
-采样 157 次，总耗时 337.0ms
+Sampled 157 times, total elapsed 337.0ms
 
-自身耗时 Top 15（真正在烧 CPU 的函数）：
-     164.1ms    106 次  parseQuery  @ app.mjs:16
-      84.1ms     26 次  parseQuery  @ app.mjs:16
-      62.3ms      0 次  (program)  @ :0
-      10.3ms      8 次  (anonymous)  @ app.mjs:25
-       1.1ms      1 次  next  @ app.mjs:8
-      …（其余为 Node 内部模块的启动开销，此处省略）
+Top 15 self time (functions actually burning CPU):
+     164.1ms    106 times  parseQuery  @ app.mjs:16
+      84.1ms     26 times  parseQuery  @ app.mjs:16
+      62.3ms      0 times  (program)  @ :0
+      10.3ms      8 times  (anonymous)  @ app.mjs:25
+       1.1ms      1 times  next  @ app.mjs:8
+      …(the rest is startup overhead of Node internal modules, omitted here)
 
-调用路径（总耗时 164.1ms）：
+Call path (total elapsed 164.1ms):
      337.0ms  (root)  @ :0
      172.5ms  (anonymous)  @ app.mjs:1
      172.5ms  handle  @ app.mjs:6

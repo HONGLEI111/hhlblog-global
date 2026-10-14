@@ -57,19 +57,19 @@ The reason sliding window is O(n) is that each element is added by the right poi
 ## Detailed Algorithm Steps
 
 ```
-算法：VariableSlidingWindow(nums)
-输入：数组或字符串 nums
-输出：满足条件的最优窗口
+Algorithm: VariableSlidingWindow(nums)
+Input: array or string nums
+Output: the optimal window that satisfies the condition
 
 1. left ← 0
-2. 初始化窗口状态 window
+2. Initialize the window state window
 3. for right from 0 to nums.length - 1:
-4.     将 nums[right] 加入 window
-5.     while window 不满足约束：
-6.         将 nums[left] 移出 window
+4.     Add nums[right] to window
+5.     while window does not satisfy the constraint:
+6.         Remove nums[left] from window
 7.         left ← left + 1
-8.     用当前窗口更新答案
-9. 返回答案
+8.     Update the answer with the current window
+9. Return the answer
 ```
 
 **Complexity Analysis**:

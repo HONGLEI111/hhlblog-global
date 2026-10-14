@@ -22,7 +22,7 @@ DNS (Domain Name System) is essentially a **globally distributed key-value datab
 Domain names are read from right to left, forming an inverted tree:
 
 ```
-                    . (根域)
+                    . (root domain)
                  /     |     \
              com      org     cn
             /   \             |
@@ -42,12 +42,12 @@ Each level doesn't store all records of the level below it—it only stores a po
 Suppose you type `www.example.com` into your browser. What happens behind the scenes, in order, is:
 
 ```
-浏览器缓存 → 操作系统缓存(hosts + stub resolver)
-    → 递归解析器(通常是运营商 DNS 或 8.8.8.8)
-        → 根服务器：「.com 归这些 NS 管」
-        → .com TLD 服务器：「example.com 归这些 NS 管」
-        → example.com 权威服务器：「www 的 A 记录是 93.184.216.34」
-    ← 逐层返回并缓存
+Browser cache → OS cache (hosts + stub resolver)
+    → Recursive resolver (usually ISP DNS or 8.8.8.8)
+        → Root server: "`.com` is managed by these NS"
+        → .com TLD server: "`example.com` is managed by these NS"
+        → example.com authoritative server: "the A record for `www` is 93.184.216.34"
+    ← Returned and cached layer by layer
 ```
 
 There's an easily confused concept here: **recursive query vs. iterative query**.
@@ -77,10 +77,10 @@ Every DNS record carries a TTL (Time To Live) in seconds, telling downstream "ho
 For a DNS change to truly take effect across the internet, you need to wait for **all** cache layers along the chain to expire:
 
 ```
-权威服务器(立即生效)
-  → 递归解析器缓存(等 TTL)
-    → 操作系统缓存(等 TTL)
-      → 浏览器缓存(Chrome 默认约 60s，且不总是尊重 TTL)
+Authoritative server (takes effect immediately)
+  → Recursive resolver cache (wait for TTL)
+    → OS cache (wait for TTL)
+      → Browser cache (Chrome defaults to about 60s, and does not always respect TTL)
 ```
 
 So the correct switching approach is: **lower the TTL to 60 seconds 24–48 hours in advance, and after the switch is complete and observed to be stable, set it back to 3600**. Many people only remember to change the TTL on the day of the switch—by then the old high TTL has already been cached out, and it's too late.
@@ -107,7 +107,7 @@ Pay attention to three key points in the output:
 ```
 ;; ANSWER SECTION:
 example.com.    3600    IN    A    93.184.216.34
-                 ↑ 剩余 TTL，每次查询递减说明命中了缓存
+                 ↑ remaining TTL; decreasing on each query indicates a cache hit
 
 ;; SERVER: 8.8.8.8#53      ← the resolver that actually answered
 ;; flags: qr rd ra;        ← ra means the server supports recursion

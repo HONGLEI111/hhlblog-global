@@ -64,7 +64,7 @@ Many newcomers get stuck on "non-standard submissions." Most projects follow the
 ```
 <type>(<scope>): <subject>
 
-<body 可选，解释 why，而非 what>
+<body optional, explain why, not what>
 ```
 
 Write commit messages that explain "why you did this," not "what you did"—the latter is obvious from the diff, while the former is the information needed during review.
@@ -72,19 +72,19 @@ Write commit messages that explain "why you did this," not "what you did"—the 
 The PR description is equally important. A clear structure can significantly increase the probability of being merged:
 
 ```markdown
-## 背景
+## Background
 
-这个 issue 是什么问题？复现条件是什么？
+What is the problem in this issue? What are the reproduction conditions?
 
-## 改动
+## Changes
 
-- 做了什么、为什么这么做
-- 是否引入破坏性变更
+- What was done, and why it was done this way
+- Whether any breaking changes were introduced
 
-## 测试
+## Testing
 
-- 跑了哪些测试命令
-- 手动验证了哪些场景
+- Which test commands were run
+- Which scenarios were manually verified
 
 Closes #123
 ```

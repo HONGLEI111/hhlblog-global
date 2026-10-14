@@ -49,9 +49,9 @@ The different traversal results are as follows:
 The essence of traversal is: every node passes through three key positions.
 
 ```text
-进入节点前
-处理完左子树后
-处理完右子树后
+Before entering the node
+After finishing the left subtree
+After finishing the right subtree
 ```
 
 Whichever position you place the "visit current node" statement in, you get the corresponding traversal.

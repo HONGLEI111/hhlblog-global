@@ -31,7 +31,7 @@ The initialization wizard will ask you a few questions:
 ✔ Would you like to use TypeScript?     Yes
 ✔ Would you like to use ESLint?         Yes
 ✔ Would you like to use Tailwind CSS?   Yes
-✔ Would you like to use App Router?     Yes（推荐）
+✔ Would you like to use App Router?     Yes (recommended)
 ```
 
 After starting, visit `http://localhost:3000`, and your first Next.js project is up and running.
@@ -85,7 +85,7 @@ app/
 ├── blog/page.tsx             → /blog
 ├── blog/[slug]/page.tsx      → /blog/hello, /blog/world
 └── dashboard/
-    ├── layout.tsx            → dashboard 共享布局
+    ├── layout.tsx            → dashboard shared layout
     ├── page.tsx              → /dashboard
     └── settings/page.tsx     → /dashboard/settings
 ```

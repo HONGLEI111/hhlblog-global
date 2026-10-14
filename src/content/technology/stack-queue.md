@@ -43,7 +43,7 @@ If a problem cares about "the most recently added element," you usually think of
 ```text
 push 1 -> [1]
 push 2 -> [1, 2]
-pop    -> [1]，返回 2
+pop    -> [1], returns 2
 ```
 
 A stack operates only on the same end, so both push and pop are O(1).
@@ -53,7 +53,7 @@ A stack operates only on the same end, so both push and pop are O(1).
 ```text
 enqueue 1 -> [1]
 enqueue 2 -> [1, 2]
-dequeue   -> [2]，返回 1
+dequeue   -> [2], returns 1
 ```
 
 A queue enters from the tail and leaves from the head. Using a JavaScript array directly with `shift` will shift elements, so a better implementation is to maintain a head pointer.
@@ -63,10 +63,10 @@ A queue enters from the tail and leaves from the head. Using a JavaScript array 
 Monotonic stacks and monotonic queues remove, during insertion, elements that can no longer become the answer:
 
 ```text
-保持从大到小：
-入队 3: [3]
-入队 1: [3, 1]
-入队 2: [3, 2]  // 1 被移除
+Keep from largest to smallest:
+Enqueue 3: [3]
+Enqueue 1: [3, 1]
+Enqueue 2: [3, 2]  // 1 is removed
 ```
 
 This kind of structure optimizes many problems of "find the first greater value to the left/right" to O(n).

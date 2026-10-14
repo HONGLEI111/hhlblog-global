@@ -50,7 +50,7 @@ This code runs. But as pages get more and more complex, you'll notice a few pain
 Whether it's React or Vue, all modern frontend frameworks share the same core idea:
 
 ```
-数据（State） → 框架自动 → 界面（UI）
+Data (State) → Framework automatically → Interface (UI)
 ```
 
 You only need to care about **what the data is**, and the framework handles turning data into the interface. When data changes, the framework automatically updates the interface — you never have to manually `createElement`, `appendChild`, `remove` again.
