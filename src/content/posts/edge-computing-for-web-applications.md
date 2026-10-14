@@ -88,15 +88,15 @@ This Worker is only 190 lines, but every line responds to that list of limits ab
 
 ```ts
 // Exact-match CORS allowlist. Do NOT use prefix matching here: an origin such
-// as "https://www.hehonglei.cn.evil.com" must never pass the check.
+// as "https://www.example.com.evil.com" must never pass the check.
 const ALLOWED_ORIGINS = new Set([
-  'https://www.hehonglei.cn',
-  'https://hehonglei.cn',
+  'https://www.example.com',
+  'https://example.com',
   'http://localhost:4321',
 ]);
 ```
 
-Many people would use `origin.startsWith('https://www.hehonglei.cn')` to write the check. This comment explains why you can't: a domain like `https://www.hehonglei.cn.evil.com` also starts with it, and the browser's control over the `Origin` header is entirely in the attacker's hands. Using `Set` for an exact-equality match is the only safe way to write it.
+Many people would use `origin.startsWith('https://www.example.com')` to write the check. This comment explains why you can't: a domain like `https://www.example.com.evil.com` also starts with it, and the browser's control over the `Origin` header is entirely in the attacker's hands. Using `Set` for an exact-equality match is the only safe way to write it.
 
 ### 5.2 Rate Limiting with the Cache API: Because There's No Memory to Use
 

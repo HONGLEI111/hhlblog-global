@@ -1,0 +1,18 @@
+# Normalize line endings to LF in the repository and in every checkout.
+#
+# Without this, `core.autocrlf=true` (the Git for Windows default) checks files
+# out as CRLF while Biome and Prettier-style tooling expect LF, so `biome ci`
+# fails locally and then passes on Linux CI — a difference that looks like a
+# code defect and is not one. Declaring it here makes the two agree.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.avif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary

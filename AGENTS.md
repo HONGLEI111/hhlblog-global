@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues and specs live in this repo's GitHub Issues on `HONGLEI111/HHLBlog`, driven by the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues and specs live in this repo's GitHub Issues on `HONGLEI111/hhlblog-global`, driven by the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

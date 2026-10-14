@@ -31,7 +31,7 @@ The audit results were shocking—the most serious issue was this table:
 | Theme CSS | About 251KB | Loaded on every page | Risk of duplicate inclusion |
 | Total JS per page | **About 700KB** | — | Poor experience on mobile 4G |
 
-> The table above reflects the situation at the time of the audit. The Mermaid item later went further: after switching to build-time rendering into inline SVG, the diagram runtime **no longer enters the browser at all**, see [Diagram System Notes](https://github.com/HONGLEI111/HHLBlog/blob/main/docs/diagrams.md).
+> The table above reflects the situation at the time of the audit. The Mermaid item later went further: after switching to build-time rendering into inline SVG, the diagram runtime **no longer enters the browser at all**, see [Diagram System Notes](https://github.com/HONGLEI111/hhlblog-global/blob/main/docs/diagrams.md).
 
 There were also two functional findings:
 

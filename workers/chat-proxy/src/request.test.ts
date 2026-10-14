@@ -68,13 +68,13 @@ describe("resolveContext", () => {
 });
 
 describe("resolveGrounding", () => {
-	const origin = "https://ai-api.hehonglei.com";
+	const origin = "https://chat-proxy.example.com";
 
 	it("keeps only article paths on the proxy's own origin", () => {
 		const snippets = resolveGrounding(
 			[
-				{ url: "https://ai-api.hehonglei.com/posts/a/", title: "A", excerpt: "e" },
-				{ url: "https://ai-api.hehonglei.com/tags/js/", title: "tag", excerpt: "e" },
+				{ url: "https://chat-proxy.example.com/posts/a/", title: "A", excerpt: "e" },
+				{ url: "https://chat-proxy.example.com/tags/js/", title: "tag", excerpt: "e" },
 				{ url: "https://evil.com/posts/b/", title: "B", excerpt: "e" },
 			],
 			origin,

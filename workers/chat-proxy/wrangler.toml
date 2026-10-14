@@ -3,5 +3,13 @@ main = "src/index.ts"
 compatibility_date = "2025-05-15"
 
 [vars]
-# 部署后运行: wrangler secret put DEEPSEEK_API_KEY
-# 或在 Cloudflare Dashboard 中设置
+# Comma-separated, exact-match origins allowed to call this proxy.
+#
+# This is deliberately empty here: a fork must not inherit someone else's
+# domain, and the worker falls back to http://localhost:4321 when it is unset.
+# Set it per deployment, e.g. in the Cloudflare dashboard or with:
+#   wrangler deploy --var ALLOWED_ORIGINS:"https://www.example.com"
+#
+# The API key is a secret, never a var:
+#   wrangler secret put DEEPSEEK_API_KEY
+ALLOWED_ORIGINS = ""
