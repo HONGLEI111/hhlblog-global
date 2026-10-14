@@ -92,7 +92,7 @@ socket.on('session', (session) => {
   session.on('stream', (stream) => {
     //Handle HTTP/3 request streams
     stream.on('data', (chunk) => {
-      console.log('收到请求:', chunk.toString());
+      console.log('Received request:', chunk.toString());
     });
 
     stream.end(
@@ -104,7 +104,7 @@ socket.on('session', (session) => {
   });
 });
 
-console.log('QUIC 服务端监听在端口 4433');
+console.log('QUIC server listening on port 4433');
 ```
 
 ## Core Improvements of HTTP/3

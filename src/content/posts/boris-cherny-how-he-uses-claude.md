@@ -56,7 +56,7 @@ Loop is a cron-based scheduled agent orchestration mechanism. Boris has deployed
 
 ```bash
 #Check CI status every 30 minutes and fix failing tests
-/loop 30m 检查最近的 CI 运行结果，如果存在 flaky test，自动修复并提 PR
+/loop 30m check the latest CI run; if there is a flaky test, fix it and open a PR
 ```
 
 ### 3.3 Plan First, Then Execute

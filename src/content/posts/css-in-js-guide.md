@@ -46,7 +46,7 @@ const Button = styled.button`
 `
 
 //When in use
-<Button primary>提交</Button>
+<Button primary>Submit</Button>
 ```
 
 #### Emotion (CSS Prop Approach)
@@ -64,7 +64,7 @@ const buttonStyle = css`
 function App() {
   return (
     <button css={buttonStyle}>
-      点击我
+      Click me
     </button>
   )
 }
@@ -132,7 +132,7 @@ function App() {
         }
       })}
     >
-      提交
+      Submit
     </button>
   )
 }

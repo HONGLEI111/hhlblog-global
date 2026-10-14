@@ -43,7 +43,7 @@ A heap sacrifices full ordering and only guarantees that the top of the heap is 
 
 A heap is a complete binary tree that can be stored compactly in an array:
 
- ```text
+```text
         1
       /   \
      3     5
@@ -55,7 +55,7 @@ Array: [1, 3, 5, 7, 9, 8]
 
 Array index relationships:
 
- ```text
+```text
 parent(i) = Math.floor((i - 1) / 2)
 left(i)   = 2 * i + 1
 right(i)  = 2 * i + 2
@@ -92,7 +92,7 @@ Min-heap pop:
 
 ## TypeScript Implementation
 
- ```typescript
+```typescript
 class MinHeap<T> {
   private readonly data: T[] = [];
 
@@ -156,7 +156,7 @@ class MinHeap<T> {
 
 ### TopK Example
 
- ```typescript
+```typescript
 function topK(nums: number[], k: number): number[] {
   const heap = new MinHeap<number>((a, b) => a - b);
 
@@ -185,7 +185,7 @@ Here a min-heap is used to keep the largest k numbers, and the top of the heap i
 
 Many business scenarios do not directly care about the "heap" but about "the task with the highest priority executes first." In this case, the heap can be encapsulated as a priority queue:
 
- ```typescript
+```typescript
 const queue = new MinHeap<{ priority: number; task: string }>(
   (a, b) => a.priority - b.priority,
 );
@@ -220,7 +220,7 @@ Using a comparison function as a constructor parameter allows the same heap impl
 
 ## Summary
 
- ```mermaid
+```mermaid
 graph LR
     A[Array representation of a complete binary tree] --> B[Sift up to maintain heap order]
     B --> C[Sift down to maintain heap order]

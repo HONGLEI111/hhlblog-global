@@ -30,24 +30,24 @@ Each of the three has its own role, and none can be missing. Once you understand
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的第一个网页</title>
+    <title>My First Webpage</title>
 </head>
 <body>
     <header>
-        <h1>欢迎来到我的网站</h1>
+        <h1>Welcome to my website</h1>
         <nav>
-            <a href="/">首页</a>
-            <a href="/about">关于</a>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
         </nav>
     </header>
     <main>
         <article>
-            <h2>文章标题</h2>
-            <p>这是一段正文内容。</p>
+            <h2>Article Title</h2>
+            <p>This is a paragraph of body text.</p>
         </article>
     </main>
     <footer>
-        <p>&copy; 2026 我的网站</p>
+        <p>&copy; 2026 My Website</p>
     </footer>
 </body>
 </html>
@@ -73,12 +73,12 @@ Semantic HTML means using the right tags to describe the right content, rather t
 ```html
 <!-- ❌ Not recommended: all divs -->
 <div class="header">
-  <div class="title">标题</div>
+  <div class="title">Title</div>
 </div>
 
 <!-- ✅ Recommended: use semantic tags -->
 <header>
-  <h1>标题</h1>
+  <h1>Title</h1>
 </header>
 ```
 
@@ -217,7 +217,7 @@ const body = document.body;
 button.addEventListener('click', () => {
     body.classList.toggle('dark-mode');
     const isDark = body.classList.contains('dark-mode');
-    button.textContent = isDark ? '☀️ 浅色模式' : '🌙 深色模式';
+    button.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
 });
 ```
 
@@ -234,7 +234,7 @@ count += 1;
 const API_URL = 'https://api.example.com';
 
 // var: legacy syntax, has hoisting issues, not recommended
-var oldWay = '不要这样写';
+var oldWay = 'Do not write it like this';
 ```
 
 #### Data Types
@@ -258,8 +258,8 @@ const el = document.querySelector('.card');
 const els = document.querySelectorAll('.card');
 
 // Modify content
-el.textContent = '新文本';
-el.innerHTML = '<strong>加粗文本</strong>';
+el.textContent = 'New text';
+el.innerHTML = '<strong>Bold text</strong>';
 
 // Modify styles
 el.style.backgroundColor = '#f0f0f0';
@@ -268,7 +268,7 @@ el.classList.remove('hidden');
 
 // Create and insert elements
 const newDiv = document.createElement('div');
-newDiv.textContent = '我是新元素';
+newDiv.textContent = 'I am a new element';
 document.body.appendChild(newDiv);
 ```
 
@@ -288,7 +288,7 @@ async function fetchData() {
         const data = await res.json();
         console.log(data);
     } catch (err) {
-        console.error('请求失败:', err);
+        console.error('Request failed:', err);
     }
 }
 ```
@@ -303,7 +303,7 @@ A real front-end page is a collaborative work of HTML, CSS, and JavaScript:
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>三件套协作示例</title>
+    <title>Trio collaboration example</title>
     <!-- CSS -->
     <style>
         body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -315,7 +315,7 @@ A real front-end page is a collaborative work of HTML, CSS, and JavaScript:
     </style>
 </head>
 <body>
-    <h1>计数器</h1>
+    <h1>Counter</h1>
     <!-- HTML: structure -->
     <div class="counter">
         <button class="minus" onclick="decrement()">-</button>

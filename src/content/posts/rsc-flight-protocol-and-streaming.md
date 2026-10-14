@@ -106,7 +106,7 @@ A few real fragments:
 {"dollar":"$$100 dollars"}   // Client receives "$100 dollars"
 
 // Symbol.for('my.symbol')
-{"sym":"$a"}   加上   a:"$Smy.symbol"
+{"sym":"$a"}   plus   a:"$Smy.symbol"
 ```
 
 ### Binary lines
@@ -219,13 +219,13 @@ Look at an example with Suspense: a slow component (`await` a Promise that resol
 ```jsonc
 // ① Send the shell first: chunk 0 arrives immediately, the slow component's position is a lazy placeholder
 0:["$","div",null,{"children":[
-     ["$","h1",null,{"children":"快速标题"}],
+     ["$","h1",null,{"children":"Quick title"}],
      ["$","$5",null,{"fallback":["$","p",null,{"children":"loading..."}],
                      "children":"$L6"}]     // ← Slot: points to chunk 6
    ]}]
 
 // ② ...1 second passes, only then does the server fill in chunk 6
-6:["$","p",null,{"children":"服务端慢数据"}]
+6:["$","p",null,{"children":"Server slow data"}]
 ```
 
 The key is **`"children":"$L6"`**: in the shell, this position is first written as a "lazy reference pointing to chunk 6." Once the client gets the shell, it can immediately render the title and fallback — no need to wait for the slow component at all. When chunk 6 arrives, React swaps the fallback for the real content.
@@ -238,7 +238,7 @@ Promises go through the same mechanism, with the prefix `$@`:
 0:["$","div",null,{"children":[
      ["$","p",null,{"children":["promise:","$@1"]}]
    ]}]
-1:"异步值"
+1:"Async value"
 ```
 
 The Promise is replaced in its original line by its **resolved value**. If the Promise is rejected, an error line appears:

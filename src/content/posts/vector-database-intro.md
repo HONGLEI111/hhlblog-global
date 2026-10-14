@@ -46,7 +46,7 @@ Measures the angle between the **directions** of two vectors, with a range of `[
 import numpy as np
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    """余弦相似度 = 点积 / (模长之积)"""
+    """Cosine similarity = dot product / (product of magnitudes)"""
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 ```
 
@@ -71,8 +71,8 @@ import numpy as np
 
 def simple_embed(text: str, dim: int = 128) -> np.ndarray:
     """
-    简易 Embedding：用字符级 n-gram 哈希生成向量，无需外部 API。
-    仅用于教学演示，真实项目请替换为 Transformer Embedding 模型。
+    Simple Embedding: generate vectors using character-level n-gram hashing, no external API needed.
+    For teaching demonstration only; replace with a Transformer Embedding model in real projects.
     """
     vec = np.zeros(dim, dtype=np.float32)
     text = text.lower()
@@ -89,7 +89,7 @@ def simple_embed(text: str, dim: int = 128) -> np.ndarray:
 
 
 class MiniVectorDB:
-    """最小向量数据库：暴力检索 top-k 相似向量"""
+    """Minimal vector database: brute-force retrieval of top-k similar vectors"""
 
     def __init__(self, dim: int = 128):
         self.dim = dim
@@ -101,7 +101,7 @@ class MiniVectorDB:
         self.docs.append({"id": doc_id, "text": text})
 
     def search(self, query: str, top_k: int = 3) -> list[tuple]:
-        """返回 (doc_id, 相似度分数, 文本) 列表，按相似度降序"""
+        """Returns a list of (doc_id, similarity score, text), sorted by similarity in descending order"""
         q = simple_embed(query, self.dim)
         #Vectors are already normalized, so the dot product is the cosine similarity
         scores = [float(np.dot(q, v)) for v in self.vectors]
@@ -114,14 +114,14 @@ class MiniVectorDB:
 
 if __name__ == "__main__":
     db = MiniVectorDB()
-    db.add("cat", "猫是一种常见的宠物，性格独立")
-    db.add("dog", "狗是人类忠诚的朋友，喜欢外出散步")
-    db.add("car", "汽车的发动机需要定期保养和更换机油")
+    db.add("cat", "Cats are common pets with independent personalities")
+    db.add("dog", "Dogs are loyal friends to humans and love going out for walks")
+    db.add("car", "A car's engine needs regular maintenance and oil changes")
 
-    for q in ["小猫咪", "遛狗", "发动机故障"]:
-        print(f"\n查询：{q}")
+    for q in ["kitten", "walk the dog", "engine failure"]:
+        print(f"\nQuery: {q}")
         for doc_id, score, text in db.search(q, top_k=2):
-            print(f"  [{doc_id}] 相似度 {score:.3f} | {text}")
+            print(f"  [{doc_id}] similarity {score:.3f} | {text}")
 ```
 
 After running it, you'll see that "kitten" best matches `cat`, "walking the dog" best matches `dog`, and "engine failure" best matches `car`. This is the basic closed loop of vector retrieval: **content → vector → similarity ranking → top-k**.
@@ -172,21 +172,21 @@ collection = client.get_or_create_collection(
 collection.add(
     ids=["1", "2", "3", "4"],
     documents=[
-        "如何申请退货？请在订单详情页点击申请退款。",
-        "包裹什么时候发货？一般在付款后 24 小时内发出。",
-        "怎样修改收货地址？在订单未发货前可以自助修改。",
-        "优惠券在哪里领取？首页活动专区每天 10 点发放。",
+        "How do I request a return? Please click request refund on the order details page.",
+        "When will the package ship? It usually ships within 24 hours after payment.",
+        "How do I change the shipping address? You can change it yourself before the order ships.",
+        "Where do I get coupons? They are released daily at 10 AM in the homepage promotions section.",
     ],
 )
 
 #Semantic search: relevant documents can be matched even with no keyword overlap
 results = collection.query(
-    query_texts=["我想退款，怎么操作？"],
+    query_texts=["I want a refund, how do I do that?"],
     n_results=2,
 )
 
 for doc, distance in zip(results["documents"][0], results["distances"][0]):
-    print(f"[距离 {distance:.3f}] {doc}")
+    print(f"[distance {distance:.3f}] {doc}")
 ```
 
 Note that ChromaDB's `query` returns **distance** by default (smaller means more similar), not a similarity score—different databases may define "score" differently, so always check the documentation first.

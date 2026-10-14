@@ -32,12 +32,12 @@ const client = new Anthropic();
 const tools = [
   {
     name: "get_weather",
-    description: "查询指定城市的实时天气",
+    description: "Query real-time weather for a specified city",
     input_schema: {
       type: "object",
       properties: {
-        city: { type: "string", description: "城市名，如“北京”或“Shanghai”" },
-        unit: { type: "string", enum: ["celsius", "fahrenheit"], description: "温度单位" },
+        city: { type: "string", description: "City name, such as “Beijing” or “Shanghai”" },
+        unit: { type: "string", enum: ["celsius", "fahrenheit"], description: "Temperature unit" },
       },
       required: ["city"],
     },
@@ -99,7 +99,7 @@ async function executeTool(name: string, input: any) {
     const data = await fetchWeatherApi(city, unit); //Call the real weather service
     return data;
   }
-  throw new Error(`未知工具: ${name}`);
+  throw new Error(`Unknown tool: ${name}`);
 }
 ```
 

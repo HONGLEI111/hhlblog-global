@@ -77,7 +77,7 @@ The core contradiction is: **the server, when sending the HTML, doesn't know wha
           /img/cover-1440.jpg 1440w"
   sizes="(min-width: 1024px) 720px, 100vw"
   width="1440" height="960"
-  alt="示例封面"
+  alt="Sample cover"
   loading="lazy"
   decoding="async"
 >
@@ -113,7 +113,7 @@ Manually maintaining `sizes` is obviously fragile. Newer browsers provide `sizes
 
 ```html
 <img src="thumb.jpg" srcset="thumb-240.jpg 240w, thumb-480.jpg 480w"
-     sizes="auto, 100vw" loading="lazy" alt="缩略图">
+     sizes="auto, 100vw" loading="lazy" alt="Thumbnail">
 ```
 
 Two limitations you must remember:
@@ -159,7 +159,7 @@ Therefore the recommended approach is `sizes="auto, 100vw"`—put `auto` first, 
   <img
     src="/img/hero-wide-1920.jpg"
     width="1920" height="1080"
-    alt="首页主视觉"
+    alt="Homepage hero"
     fetchpriority="high"
     decoding="async">
 </picture>
@@ -197,7 +197,7 @@ In practice the dividing line is usually clear: **use eager for the above-the-fo
 At any given moment the browser has many resources to download, and `fetchpriority` lets you state your intent explicitly:
 
 ```html
-<img src="/img/hero-1920.jpg" fetchpriority="high" alt="首页主视觉">
+<img src="/img/hero-1920.jpg" fetchpriority="high" alt="Homepage hero">
 ```
 
 - `fetchpriority="high"` is used on the **LCP image**, and the effect is usually more direct than any JS-level scheduling;
@@ -231,7 +231,7 @@ An image has a height of 0 before it finishes loading, then suddenly expands onc
 The solution itself is extremely simple: **let the browser know how much space the image will occupy before it finishes downloading**.
 
 ```html
-<img src="/img/cover.jpg" width="1440" height="960" alt="封面">
+<img src="/img/cover.jpg" width="1440" height="960" alt="Cover">
 ```
 
 As long as you write both `width` and `height`, the browser can compute the aspect ratio and reserve the space before the image arrives. These two values **don't need to match the actual display size**; they're only used to derive the ratio.

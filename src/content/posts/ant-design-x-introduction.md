@@ -83,7 +83,7 @@ import { Bubble } from '@ant-design/x';
 <Bubble
   placement="start"
   avatar={{ icon: <RobotOutlined /> }}
-  content="你好，我是 AI 助手"
+  content="Hello, I'm an AI assistant"
 />
 ```
 
@@ -96,7 +96,7 @@ import { Sender } from '@ant-design/x';
 
 <Sender
   onSubmit={(value) => console.log(value)}
-  placeholder="输入你的问题..."
+  placeholder="Type your question..."
 />
 ```
 
@@ -109,9 +109,9 @@ import { ThoughtChain } from '@ant-design/x';
 
 <ThoughtChain
   items={[
-    { title: '分析问题', description: '识别关键词...', status: 'success' },
-    { title: '检索知识库', description: '匹配到 3 条相关文档', status: 'success' },
-    { title: '生成回答', status: 'pending' },
+    { title: 'Analyze the question', description: 'Identify keywords...', status: 'success' },
+    { title: 'Search the knowledge base', description: 'Matched 3 related documents', status: 'success' },
+    { title: 'Generate answer', status: 'pending' },
   ]}
 />
 ```
@@ -125,8 +125,8 @@ import { Sources } from '@ant-design/x';
 
 <Sources
   items={[
-    { title: 'React 官方文档', url: 'https://react.dev' },
-    { title: 'Ant Design X 文档', url: 'https://x.ant.design' },
+    { title: 'React official documentation', url: 'https://react.dev' },
+    { title: 'Ant Design X documentation', url: 'https://x.ant.design' },
   ]}
 />
 ```

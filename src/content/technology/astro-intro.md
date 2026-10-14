@@ -27,7 +27,7 @@ This approach made Astro an instant hit—it won first place in "Frontend Satisf
 
 Traditional React/Vue single-page applications:
 
- ```
+```
 The entire page = one giant JS application
 ├── Navigation bar (requires interactivity)
 ├── Article content (purely static text)
@@ -40,7 +40,7 @@ To load this page, the browser has to download **the entire application's JS**, 
 
 ### 2.2 Astro's Answer
 
- ```
+```
 Whole page = pure HTML (default)
 ├── Navbar          → pure HTML (zero JS)
 ├── Article content → pure HTML (zero JS)
@@ -57,7 +57,7 @@ This is **islands architecture**: pages are static HTML by default, and only the
 
 ### 3.1 Initialization
 
- ```bash
+```bash
 # npm
 npm create astro@latest my-site
 
@@ -67,7 +67,7 @@ pnpm create astro@latest my-site
 
 The initialization wizard:
 
- ```
+```
 ✔ How would you like to start?                  → Empty
 ✔ Do you plan to write TypeScript?              → Yes
 ✔ How strict should TypeScript be?              → Strict
@@ -77,7 +77,7 @@ The initialization wizard:
 
 Start the dev server:
 
- ```bash
+```bash
 cd my-site
 pnpm dev
 ```
@@ -86,7 +86,7 @@ Visit `http://localhost:4321`, and your first Astro site is up and running.
 
 ### 3.2 Project Structure
 
- ```
+```
 my-site/
 ├── astro.config.mjs      # Astro config file
 ├── src/
@@ -111,16 +111,16 @@ my-site/
 
 A `.astro` file consists of two parts: the **component script** (runs on the server) and the **template** (outputs HTML).
 
- ```astro
+```astro
 ---
 // Component script (fence): runs on the server/at build time
 // Can import other components, call APIs, query databases
 const name = "Astro";
-const items = ["SSG", "岛屿架构", "多框架"];
+const items = ["SSG", "Island Architecture", "Multi-framework"];
 ---
 
-<!-- 模板部分：直接输出 HTML -->
-<h1>你好，{name}！</h1>    <!-- { } 内嵌 JS 表达式 -->
+<!-- Template section: output HTML directly -->
+<h1>Hello, {name}!</h1>    <!-- Inline JS expressions inside { } -->
 
 <ul>
     {items.map(item => <li>{item}</li>)}
@@ -131,7 +131,7 @@ const items = ["SSG", "岛屿架构", "多框架"];
 
 ### 4.2 Props and Slots
 
- ```astro
+```astro
 ---
 // components/Card.astro
 export interface Props {
@@ -145,7 +145,7 @@ const { title, subtitle } = Astro.props;
 <div class="card">
     <h2>{title}</h2>
     {subtitle && <p class="subtitle">{subtitle}</p>}
-    <!-- 插槽：父组件可以插入内容 -->
+    <!-- Slots: parent components can insert content -->
     <slot />
 </div>
 
@@ -166,13 +166,13 @@ const { title, subtitle } = Astro.props;
 
 Using this component:
 
- ```astro
+```astro
 ---
 import Card from '../components/Card.astro';
 ---
 
-<Card title="Astro 入门" subtitle="从零开始">
-    <p>这是一段插入到 slot 中的内容。</p>
+<Card title="Getting Started with Astro" subtitle="From Scratch">
+    <p>This is some content inserted into the slot.</p>
 </Card>
 ```
 
@@ -180,13 +180,13 @@ import Card from '../components/Card.astro';
 
 Astro's `<style>` tag is **scoped by default**—styles only apply to the current component and don't leak into other parts of the page. This is a built-in capability; you don't need CSS Modules or styled-components.
 
- ```astro
-<!-- 这个 h1 样式只影响本组件 -->
+```astro
+<!-- This h1 style only affects this component -->
 <style>
     h1 { color: red; }
 </style>
 
-<!-- 如果需要全局样式 -->
+<!-- If you need global styles -->
 <style is:global>
     :root {
         --primary: #3b82f6;
@@ -202,7 +202,7 @@ For content-centric sites like blogs and documentation sites, Astro provides **c
 
 ### 5.1 Defining a Collection
 
- ```typescript
+```typescript
 // src/content/config.ts
 import { defineCollection, z } from 'astro:content';
 
@@ -224,7 +224,7 @@ export const collections = {
 
 ### 5.2 Writing Content
 
- ```markdown
+```markdown
 ---
 # src/content/blog/hello-world.md
 title: Hello World
@@ -237,7 +237,7 @@ This is my first Astro blog post.
 
 ### 5.3 Querying and Rendering
 
- ```astro
+```astro
 ---
 // src/pages/blog/index.astro
 import { getCollection } from 'astro:content';
@@ -250,7 +250,7 @@ const posts = await getCollection('blog', ({ data }) => {
 posts.sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 ---
 
-<h1>博客</h1>
+<h1>Blog</h1>
 <ul>
     {posts.map(post => (
         <li>
@@ -289,17 +289,17 @@ import VueTodoList from '../components/VueTodoList.vue';
 import SvelteChart from '../components/SvelteChart.svelte';
 ---
 
-<!-- 静态内容，Astro 直接渲染为 HTML -->
-<h1>多框架演示</h1>
-<p>下面的组件来自不同的框架：</p>
+<!-- Static content, Astro renders it directly to HTML -->
+<h1>Multi-framework Demo</h1>
+<p>The components below come from different frameworks:</p>
 
-<!-- React 组件 -->
+<!-- React component -->
 <ReactCounter client:load />
 
-<!-- Vue 组件 -->
+<!-- Vue component -->
 <VueTodoList client:visible />
 
-<!-- Svelte 组件 -->
+<!-- Svelte component -->
 <SvelteChart client:idle />
 ```
 
@@ -316,7 +316,7 @@ Every framework component needs a `client:*` directive to determine when to load
 | `client:only` | Skip SSR, client-side rendering only | Components that depend on browser APIs |
 
 ```astro
-<!-- 示例：在不同时机加载不同组件 -->
+<!-- Example: loading different components at different times -->
 <MobileMenu client:media="(max-width: 768px)" />
 <SearchDialog client:idle />
 <CommentSection client:visible />
@@ -336,8 +336,8 @@ Astro is SSG by default (generates pure HTML at build time). If you need SSR (dy
 export const prerender = false;
 ---
 
-<!-- 这个页面在每次请求时动态渲染 -->
-<h1>当前时间：{new Date().toLocaleTimeString()}</h1>
+<!-- This page renders dynamically on every request -->
+<h1>Current time: {new Date().toLocaleTimeString()}</h1>
 ```
 
 Or enable it globally in `astro.config.mjs`:

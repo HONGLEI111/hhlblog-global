@@ -113,7 +113,7 @@ import { readFileSync } from 'node:fs';
 
 const [file, keyword] = process.argv.slice(2);
 if (!file) {
-  console.error('用法: node analyze-cpu-profile.mjs <*.cpuprofile> [函数名关键字]');
+  console.error('Usage: node analyze-cpu-profile.mjs <*.cpuprofile> [function name keyword]');
   process.exit(1);
 }
 
@@ -166,11 +166,11 @@ const top = [...selfTime.entries()]
   .sort((a, b) => b.self - a.self)
   .slice(0, 15);
 
-console.log(`采样 ${profile.samples.length} 次，总耗时 ${ms(totalTime.get(profile.nodes[0].id))}ms\n`);
-console.log('自身耗时 Top 15（真正在烧 CPU 的函数）：');
+console.log(`Sampled ${profile.samples.length} times, total time ${ms(totalTime.get(profile.nodes[0].id))}ms\n`);
+console.log('Top 15 by self time (the functions actually burning CPU):');
 for (const { node, self } of top) {
   const f = node.callFrame;
-  console.log(`  ${ms(self).padStart(8)}ms  ${(node.hitCount ?? 0).toString().padStart(5)} 次  ${f.functionName || '(anonymous)'}  @ ${shortUrl(f.url)}:${f.lineNumber + 1}`);
+  console.log(`  ${ms(self).padStart(8)}ms  ${(node.hitCount ?? 0).toString().padStart(5)} times  ${f.functionName || '(anonymous)'}  @ ${shortUrl(f.url)}:${f.lineNumber + 1}`);
 }
 
 // To find out "who called this function," walk back up through parentOf all the way to the root
@@ -183,7 +183,7 @@ if (keyword) {
   for (const { id, total } of hits) {
     const path = [];
     for (let cur = id; cur !== undefined; cur = parentOf.get(cur)) path.unshift(cur);
-    console.log(`\n调用路径（总耗时 ${ms(total)}ms）：`);
+    console.log(`\nCall path (total time ${ms(total)}ms):`);
     for (const cur of path) {
       const f = byId.get(cur).callFrame;
       console.log(`  ${ms(totalTime.get(cur)).padStart(8)}ms  ${f.functionName || '(anonymous)'}  @ ${shortUrl(f.url)}:${f.lineNumber + 1}`);

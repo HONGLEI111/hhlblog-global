@@ -21,8 +21,8 @@ const magicNumber = 42;
 ```
 
 ```python
-// 此处逻辑来源于产品经理的"小需求"
-// 如有疑问，请联系 PM（已离职）
+// The logic here comes from the product manager's "Small requirement"
+// If you have any questions, please contact the PM (no longer with the company)
 apply_discount_logic()
 ```
 

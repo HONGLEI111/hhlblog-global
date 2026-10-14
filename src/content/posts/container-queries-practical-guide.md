@@ -67,9 +67,9 @@ The following example uses no media queries at all, yet lets the card "stack ver
 <div class="card">
   <img class="card-cover" src="cover.jpg" alt="" />
   <div class="card-body">
-    <h3>CSS 容器查询</h3>
-    <p>组件根据自身宽度自适应布局，与视口无关。</p>
-    <button>了解详情</button>
+    <h3>CSS container queries</h3>
+    <p>Components adapt their layout to their own width, independent of the viewport.</p>
+    <button>Learn more</button>
   </div>
 </div>
 ```

@@ -53,7 +53,7 @@ decision = client.decide(
     state=ticket_text,
     questions={
         "urgency":     {"type": "score",  "scale": [0, 4]},
-        "category":    {"type": "choice", "options": ["账单", "故障", "咨询", "投诉"]},
+        "category":    {"type": "choice", "options": ["Billing", "Fault", "Inquiry", "Complaint"]},
         "need_human":  {"type": "noul"},
     },
 )
@@ -64,7 +64,7 @@ The returned result looks roughly like this:
 ```json
 {
   "urgency":    { "value": 3.0, "confidence": 0.91 },
-  "category":   { "choice": "故障", "distribution": { "账单": 0.02, "故障": 0.88, "咨询": 0.07, "投诉": 0.03 }, "confidence": 0.88 },
+  "category":   { "choice": "Fault", "distribution": { "Billing": 0.02, "Fault": 0.88, "Inquiry": 0.07, "Complaint": 0.03 }, "confidence": 0.88 },
   "need_human": { "probability": 0.62, "confidence": 0.79 },
   "latency_ms": 118,
   "model": "jev-1.13.0"

@@ -186,7 +186,7 @@ setup:
     mise install
     pnpm install --frozen-lockfile
     cp -n .env.example .env || true
-    @echo "✅ 环境就绪，运行 just dev"
+    @echo "✅ Environment ready, run just dev"
 ```
 
 The onboarding process for a new colleague goes from "dig through docs + ask people" to two commands:
@@ -252,7 +252,7 @@ done < <(find "$DOTFILES/shell" "$DOTFILES/git" -type f -print0)
 mise install
 curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
-echo "🎉 完成，重启 shell 生效"
+echo "🎉 Done, restart the shell for it to take effect"
 ```
 
 ## Conclusion

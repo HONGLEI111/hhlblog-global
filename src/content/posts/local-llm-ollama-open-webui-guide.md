@@ -77,9 +77,9 @@ PARAMETER num_ctx 8192
 PARAMETER top_p 0.9
 
 # System prompt, determines the model's default persona
-SYSTEM """你是一位严谨的代码审查助手。
-你会指出问题所在，并给出可直接替换的修改建议。
-不要赘述显而易见的正确代码。"""
+SYSTEM """You are a rigorous code review assistant.
+You point out where the problems are and give directly applicable fix suggestions.
+Do not belabor obviously correct code."""
 ```
 
 Then build and run:
@@ -108,7 +108,7 @@ client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
 resp = client.chat.completions.create(
     model="llama3.1:8b",
-    messages=[{"role": "user", "content": "用一句话解释什么是量化"}],
+    messages=[{"role": "user", "content": "Explain what quantization is in one sentence"}],
     temperature=0.3,
 )
 print(resp.choices[0].message.content)
@@ -119,7 +119,7 @@ If you don't want to install an SDK, the native interface is more direct with cu
 ```bash
 curl http://localhost:11434/api/chat -d '{
   "model": "llama3.1:8b",
-  "messages": [{"role": "user", "content": "你好"}],
+  "messages": [{"role": "user", "content": "Hello"}],
   "stream": false
 }'
 ```

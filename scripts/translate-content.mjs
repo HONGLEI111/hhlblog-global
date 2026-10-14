@@ -47,9 +47,17 @@ const API_KEY = process.env.DEEPSEEK_API_KEY;
 const MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
 const ENDPOINT = "https://api.deepseek.com/chat/completions";
 
-/** Chinese/CJK ideographs plus CJK punctuation — used for the "is this done?" test. */
+/**
+ * CJK ideographs, kana and the punctuation that goes with them — used for the
+ * "is this done?" test.
+ *
+ * The upper bound stops at U+FF60 on purpose: U+FF61–FFEF is halfwidth katakana,
+ * halfwidth Hangul and symbols, and it contains the box/arrow glyphs (U+FFE8–FFEE,
+ * e.g. ￬) that ASCII diagrams are drawn with. Counting those as Chinese made the
+ * prose pass "translate" pure diagrams.
+ */
 export const CJK =
-	/[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]/;
+	/[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff01-\uff60]/;
 
 const MAX_CHUNK_CHARS = 5000;
 const MAX_ATTEMPTS = 3;

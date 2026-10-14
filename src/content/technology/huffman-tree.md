@@ -256,7 +256,7 @@ function encode(text: string, codes: Map<string, string>): string {
   for (const ch of text) {
     const code = codes.get(ch);
     if (code === undefined) {
-      throw new Error(`字符 '${ch}' 不在编码表中`);
+      throw new Error(`Character '${ch}' is not in the encoding table`);
     }
     result += code;
   }
@@ -277,7 +277,7 @@ function decode(bits: string, root: HuffmanNode): string {
   }
 
   if (node !== root) {
-    throw new Error('解码失败：编码序列不完整');
+    throw new Error('Decoding failed: incomplete encoded sequence');
   }
 
   return result;
@@ -295,7 +295,7 @@ const freqMap = new Map<string, number>();
 for (const ch of text) {
   freqMap.set(ch, (freqMap.get(ch) || 0) + 1);
 }
-console.log('频率表:', freqMap);
+console.log('Frequency table:', freqMap);
 // Map { 'A' => 5, 'B' => 2, 'R' => 2, 'C' => 1, 'D' => 1 }
 
 //2. Build the Huffman tree
@@ -303,21 +303,21 @@ const root = buildHuffmanTree(freqMap);
 
 //3. Generate the code table
 const codes = generateCodes(root);
-console.log('编码表:', codes);
+console.log('Encoding table:', codes);
 // Map { 'A' => '0', 'B' => '10', 'R' => '11', 'C' => '100', 'D' => '101' }
 
 //4. Encode
 const encoded = encode(text, codes);
-console.log('编码结果:', encoded);
-console.log('编码长度:', encoded.length, 'bits');
+console.log('Encoding result:', encoded);
+console.log('Encoding length:', encoded.length, 'bits');
 //Encoded result: 010110010011001011010
 //Encoded length: 21 bits
 //Original ASCII: 11 × 8 = 88 bits → compressed to 23.9%
 
 //5. Decode and verify
 const decoded = decode(encoded, root);
-console.log('解码结果:', decoded);
-console.log('验证通过:', decoded === text);
+console.log('Decoding result:', decoded);
+console.log('Verification passed:', decoded === text);
 //Decoded result: ABRACADABRA
 //Verification passed: true
 ```

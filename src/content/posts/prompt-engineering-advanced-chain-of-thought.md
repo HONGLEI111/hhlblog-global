@@ -27,7 +27,7 @@ async function zeroShot(review: string) {
     messages: [
       {
         role: "user",
-        content: `判断下面这条评论的情感是正面、负面还是中性，只回答一个词。\n\n评论：${review}`,
+        content: `Determine whether the sentiment of the following comment is positive, negative, or neutral. Answer with only one word.\n\nComment: ${review}`,
       },
     ],
   });
@@ -45,16 +45,16 @@ The essence of few-shot is not "teaching the model to do the task," but **using 
 
 ```typescript
 const examples = [
-  { input: "屏幕碎了，但客服态度不错", output: { sentiment: "mixed", reason: "产品问题但服务补偿" } },
-  { input: "物流慢了三天", output: { sentiment: "negative", reason: "交付体验低于预期" } },
-  { input: "一切正常，没什么好说的", output: { sentiment: "neutral", reason: "无明确倾向" } },
+  { input: "Screen is cracked, but customer service attitude was good", output: { sentiment: "mixed", reason: "Product issue but service compensation" } },
+  { input: "Logistics was three days late", output: { sentiment: "negative", reason: "Delivery experience below expectations" } },
+  { input: "Everything was normal, nothing much to say", output: { sentiment: "neutral", reason: "No clear preference" } },
 ];
 
 function buildFewShotPrompt(review: string) {
   const shots = examples
-    .map((e) => `评论：${e.input}\n结果：${JSON.stringify(e.output)}`)
+    .map((e) => `Comment: ${e.input}\nResult: ${JSON.stringify(e.output)}`)
     .join("\n\n");
-  return `${shots}\n\n评论：${review}\n结果：`;
+  return `${shots}\n\nComment: ${review}\nResult:`;
 }
 ```
 
@@ -81,8 +81,8 @@ async function cotAnswer(question: string) {
       {
         role: "user",
         content:
-          `请逐步分析下面的问题，先写出推理过程，最后用一行「答案：X」给出最终结果。\n\n` +
-          `问题：${question}`,
+          `Analyze the following question step by step. First write out your reasoning, then give the final result on one line as "Answer: X".\n\n` +
+          `Question: ${question}`,
       },
     ],
   });
@@ -100,7 +100,7 @@ A single chain of thought can still go down the wrong path. The **self-consisten
 
 ```typescript
 function extractAnswer(text: string): string {
-  const m = text.match(/答案[:：]\s*(.+)/);
+  const m = text.match(/(?:答案|Answer)[:：]\s*(.+)/);
   return m ? m[1].trim() : text.trim();
 }
 
@@ -126,12 +126,12 @@ Two implementation points: **temperature must be greater than 0** (when `tempera
 No matter how strong CoT is, it only happens "inside the model's head"—it cannot query a database or run code. ReAct (Yao et al., 2022) weaves reasoning and action into a loop: the model first `Thought` (reasoning), then `Action` (calls a tool), gets `Observation` (the result), then continues to the next round until it gives `Answer`.
 
 ```typescript
-const system = `你可以使用工具：search(q)、calculator(expr)。
-每轮严格按如下格式输出，一次只输出一轮：
-Thought: <你的推理>
-Action: <工具名>(<参数>)
-当信息足够时，用：
-Answer: <最终答案>`;
+const system = `You may use the tools: search(q), calculator(expr).
+Output strictly in the following format each turn, one turn at a time:
+Thought: <Your reasoning>
+Action: <Tool name>(<Parameters>)
+When you have enough information, use:
+Answer: <Final answer>`;
 ```
 
 In real engineering, rather than hand-writing text parsing, it's better to directly use Function Calling as introduced in the previous article—it lets the model return call intentions as structured JSON, which is far more robust than string matching. The value of ReAct lies in the **paradigm**: reasoning is no longer a one-off "think it through, then answer," but "look things up while thinking, and think while looking things up."

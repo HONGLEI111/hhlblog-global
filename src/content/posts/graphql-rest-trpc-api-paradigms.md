@@ -35,7 +35,7 @@ Accept: application/json
 ```json
 {
   "id": 42,
-  "title": "API 设计范式对比",
+  "title": "API design paradigm comparison",
   "body": "...",
   "authorId": 7
 }

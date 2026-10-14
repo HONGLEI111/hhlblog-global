@@ -25,7 +25,7 @@ This question seems simple, but the answer determines a website's **performance,
 
 ### 2.1 Workflow
 
- ```
+```
 Browser requests URL
   ￬
 Server returns an almost empty HTML (only one <div id="root"></div>)
@@ -39,7 +39,7 @@ JS executes, generates HTML and inserts it into the page
 
 ### 2.2 A Typical CSR Page
 
- ```html
+```html
 <!-- HTML returned by the server -->
 <!DOCTYPE html>
 <html>
@@ -76,7 +76,7 @@ What the browser receives is an **empty shell**; the actual page content is dyna
 
 ### 3.1 Workflow
 
- ```
+```
 Browser requests URL
   ￬
 Server executes JS / renders components
@@ -92,7 +92,7 @@ JS "hydration", page becomes interactive
 
 ### 3.2 A Simple SSR Example (Node.js)
 
- ```javascript
+```javascript
 import { renderToString } from 'react-dom/server';
 
 app.get('/article/:id', async (req, res) => {
@@ -118,7 +118,7 @@ The HTML the user receives **already contains the complete content**; they can s
 
 The HTML returned by SSR is **static** — buttons are visible, but clicking does nothing. The browser needs to load JS and "attach" event listeners to the existing DOM. This process is called **Hydration**.
 
- ```
+```
 Server-rendered HTML (a dry, bare page)
   + JS loading + event binding
   = an interactive page (it's "alive")
@@ -145,7 +145,7 @@ Server-rendered HTML (a dry, bare page)
 
 ### 4.1 Workflow
 
- ```
+```
 At build time:
   Read data (Markdown / API / CMS)
     ￬
@@ -163,7 +163,7 @@ At request time:
 
 ### 4.2 How SSG Works
 
- ```javascript
+```javascript
 // Runs at build time, generates static HTML
 export async function getStaticPaths() {
     const posts = await getAllPosts();
@@ -214,7 +214,7 @@ export async function getStaticProps({ params }) {
 
 Real projects rarely use only one rendering mode. Modern frameworks such as **Next.js, Nuxt, and Astro** support mixed usage:
 
- ```
+```
 Within the same project:
   /about       → SSG (content does not change)
   /blog/[slug] → SSG (articles are generated at build time)
@@ -224,10 +224,10 @@ Within the same project:
 
 ### Next.js Rendering Strategies
 
- ```jsx
+```jsx
 // SSG: default behavior, generated at build time
 export default function AboutPage() {
-    return <div>关于我们</div>;
+    return <div>About Us</div>;
 }
 
 // SSR: regenerated on every request
@@ -241,17 +241,17 @@ export const revalidate = 3600; // Regenerate every 3600 seconds (1 hour)
 
 Astro defaults to SSG but supports "interactive islands" within pages:
 
- ```astro
+```astro
 ---
 // This part runs at build time
 const posts = await getAllPosts();
 ---
 
-<!-- 静态内容，直接输出 HTML -->
-<h1>我的博客</h1>
+<!-- Static content, output HTML directly -->
+<h1>My Blog</h1>
 {posts.map(post => <article>{post.title}</article>)}
 
-<!-- 「岛屿」：这个组件在客户端渲染，保持交互能力 -->
+<!-- "Island": this component renders on the client, preserving interactivity -->
 <LikeButton client:load />
 <CommentSection client:visible />
 ```
@@ -262,7 +262,7 @@ const posts = await getAllPosts();
 
 A simple decision flow:
 
- ```
+```
 Will the content change frequently?
   ├── Yes → Need real-time data + SEO?
   │        ├── Yes → SSR

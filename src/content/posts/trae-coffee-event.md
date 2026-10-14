@@ -51,7 +51,7 @@ Trae comes with mainstream AI models like Doubao LLM, DeepSeek, and Claude built
 #Supports cross-file context awareness
 
 def fibonacci(n: int) -> int:
-    """Trae 可以帮你一键生成这个函数的文档和测试"""
+    """Trae can help you generate documentation and tests for this function with one click"""
     if n <= 1:
         return n
     return fibonacci(n - 1) + fibonacci(n - 2)

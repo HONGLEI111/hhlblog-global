@@ -35,7 +35,7 @@ Given a starting point and state transition rules, search for the target state i
 
 BFS expands outward layer by layer like ripples in water:
 
- ```mermaid
+```mermaid
 graph TD
     S[Start step=0] --> A[First layer step=1]
     S --> B[First layer step=1]

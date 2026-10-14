@@ -50,7 +50,7 @@ function Counter() {
   const doubled = createMemo(() => count() * 2)
 
   createEffect(() => {
-    console.log(`count 变为 ${count()}, doubled 变为 ${doubled()}`)
+    console.log(`count becomes ${count()}, doubled becomes ${doubled()}`)
   })
 
   return (
@@ -198,8 +198,8 @@ Problem: Every time `todos` changes, all components consuming `TodoContext` re-r
 import { signal, computed } from '@preact/signals-core'
 
 const todos = signal([
-  { id: 1, text: '学习 Signal', done: false },
-  { id: 2, text: '写博客文章', done: false }
+  { id: 1, text: 'Learning Signal', done: false },
+  { id: 2, text: 'Writing blog posts', done: false }
 ])
 
 const doneCount = computed(() => todos.value.filter(t => t.done).length)
@@ -241,7 +241,7 @@ const doubled = new Signal.Computed(() => counter.get() * 2)
 
 // Watch for changes
 const watcher = new Signal.subtle.Watcher(() => {
-  console.log('变化了')
+  console.log('Changed')
 })
 ```
 

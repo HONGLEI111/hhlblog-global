@@ -72,7 +72,7 @@ async function PostsPage() {
 
   return (
     <main>
-      <h1>最新文章</h1>
+      <h1>Latest Articles</h1>
       {/* Server Components pass data directly to Client Components */}
       <PostsList posts={posts} />
       {/* Client-side interactive component */}
@@ -104,9 +104,9 @@ export function CreatePostForm() {
       <input 
         value={title}
         onChange={(e) => setTitle(e.title.value)}
-        placeholder="文章标题"
+        placeholder="Article Title"
       />
-      <button type="submit">发布</button>
+      <button type="submit">Publish</button>
     </form>
   );
 }
@@ -166,7 +166,7 @@ export default function ContactPage() {
     <form action={submitContactForm}>
       <input name="email" type="email" required />
       <textarea name="message" required />
-      <button type="submit">发送</button>
+      <button type="submit">Send</button>
     </form>
   );
 }
@@ -190,9 +190,9 @@ function ContactForm() {
     <form action={formAction}>
       <input name="email" type="email" required />
       <textarea name="message" required />
-      <button type="submit">发送</button>
-      {state?.success && <p>发送成功！</p>}
-      {state?.error && <p>发送失败：{state.error}</p>}
+      <button type="submit">Send</button>
+      {state?.success && <p>Sent successfully!</p>}
+      {state?.error && <p>Send failed: {state.error}</p>}
     </form>
   );
 }
@@ -210,7 +210,7 @@ function SubmitButton() {
   
   return (
     <button type="submit" disabled={pending}>
-      {pending ? '发送中...' : '发送'}
+      {pending ? 'Sending...' : 'Send'}
     </button>
   );
 }

@@ -76,7 +76,7 @@ Four counterintuitive points, each of which can cause a bug on its own:
    ```text
    U+200F U+0661 U+066C U+0662 ... U+00A0 U+0055 U+0053 U+0024
    ↑ It starts with RLM (right-to-left mark)        ↑ Here is a non-breaking space U+00A0
-   ```
+```
 
    `U+200F` is RLM, `U+00A0` is a non-breaking space—**neither is an ordinary character**. And if you stuff these Arabic-Indic digits into `input.value` and read them back for computation, you'll get `NaN`: in practice, `Number("١٢٬٣٤٥")` and `parseInt("١٢٬٣٤٥", 10)` **both return `NaN`**. When passing numbers across locales, **always pass the raw numeric value, never the formatted string**.
 4. **`zh-CN`'s currency is not "¥"**. See the next point.
@@ -158,8 +158,8 @@ new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" }).format(-1, "day");  //
 new Intl.RelativeTimeFormat("en",    { numeric: "auto" }).format(-1, "day");  // "yesterday"
 new Intl.RelativeTimeFormat("ru",    { numeric: "auto" }).format(3, "hour");  // "через 3 часа"
 
-// List joining (note that Chinese uses "、" and "和", English uses commas + and, Japanese adds no conjunction)
-new Intl.ListFormat("zh-CN", { type: "conjunction" }).format(["A", "B", "C"]); // "A、B和C"
+// List joining (note that Chinese uses "、" and "and", English uses commas + and, Japanese adds no conjunction)
+new Intl.ListFormat("zh-CN", { type: "conjunction" }).format(["A", "B", "C"]); // "A, B, and C"
 new Intl.ListFormat("en",    { type: "conjunction" }).format(["A", "B", "C"]); // "A, B, and C"
 new Intl.ListFormat("ja",    { type: "conjunction" }).format(["A", "B", "C"]); // "A, B, C"
 
@@ -210,7 +210,7 @@ Once you know the rules, the implementation isn't complicated. This 40-line `t()
 
 ```js
 const CATALOG = {
-  "zh-CN": { "cart.items": { other: "购物车里有 {count} 件商品" } },
+  "zh-CN": { "cart.items": { other: "There are {count} items in the shopping cart" } },
   "en-US": { "cart.items": { one:   "{count} item in your cart",
                              other: "{count} items in your cart" } },
   "ru-RU": { "cart.items": { one:   "В корзине {count} товар",
@@ -234,7 +234,7 @@ function makeT(locale, { strict = true } = {}) {
       ? entry
       : (entry[pr.select(params.count)] ?? entry.other);
     return template.replace(/\{(\w+)\}/g, (_, k) => {
-      if (!(k in params)) throw new Error(`[i18n] key "${key}" 需要参数 "${k}"`);
+      if (!(k in params)) throw new Error(`[i18n] key "${key}" requires parameter "${k}"`);
       return k === "count" ? nf.format(params[k]) : String(params[k]);
     });
   };
@@ -275,7 +275,7 @@ As for "whether to throw in production," the answer is **throw in development, d
 When `Array.prototype.sort()` is not passed a comparison function, it sorts by **UTF-16 code units**. For Chinese, this is essentially random:
 
 ```js
-const cities = ["重庆", "北京", "上海", "西安", "长沙", "深圳"];
+const cities = ["Chongqing", "Beijing", "Shanghai", "Xi'an", "Changsha", "Shenzhen"];
 cities.sort();                                                 // Code point order
 cities.sort(new Intl.Collator("zh-CN", { collation: "pinyin" }).compare);
 cities.sort(new Intl.Collator("zh-CN", { collation: "stroke" }).compare);
@@ -321,7 +321,7 @@ For requirements like "limit to 100 characters," using `String.length` is wrong.
 
 ```js
 const seg = new Intl.Segmenter("zh-CN", { granularity: "word" });
-const words = [...seg.segment("Hello 世界！i18n 的 grapheme 里还有 emoji")]
+const words = [...seg.segment("Hello world! The graphemes of i18n also include emoji")]
   .filter(s => s.isWordLike).map(s => s.segment);
 // 8 words: Hello / 世界 / i18n / 的 / grapheme / 里 / 还有 / emoji
 ```
@@ -508,7 +508,7 @@ This attribute directly affects the rendering result. **The same Unicode code po
 On pages with mixed languages, you also need to annotate local content separately:
 
 ```html
-<p>这个 API 叫 <span lang="en">Server Components</span>，中文一般译作「服务端组件」。</p>
+<p>This API is called <span lang="en">Server Components</span>, which is generally translated into Chinese as "Server Components".</p>
 ```
 
 The accompanying CSS is the `:lang()` pseudo-class, which lets you specify different font stacks for different languages—this also relates to [Web Font Loading Optimization](/posts/web-font-loading-optimization): **Chinese fonts are often several MB in size, so you must do subset splitting by `unicode-range`** to prevent English pages from downloading Chinese font files.
@@ -570,10 +570,10 @@ const CJK = /[一-鿿]/;
 const TEXT_NODE = />\s*[^<>{}\s][^<>{}]*\s*</;   // simplified version: >text<
 
 const samples = [
-  `  <button>保存</button>`,
+  `  <button>Save</button>`,
   `  const msg = t("post.save")`,
   `  <p>Showing {count} results</p>`,
-  `  <title>我的博客</title>`,
+  `  <title>My Blog</title>`,
 ];
 ```
 

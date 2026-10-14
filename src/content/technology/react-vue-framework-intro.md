@@ -25,7 +25,7 @@ button.addEventListener('click', () => {
     li.textContent = text;
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = '删除';
+    delBtn.textContent = 'Delete';
     delBtn.addEventListener('click', () => li.remove());
 
     li.appendChild(delBtn);
@@ -99,14 +99,14 @@ function TodoList() {
             <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="输入待办事项"
+                placeholder="Enter a todo item"
             />
-            <button onClick={addTodo}>添加</button>
+            <button onClick={addTodo}>Add</button>
             <ul>
                 {todos.map(todo => (
                     <li key={todo.id}>
                         {todo.text}
-                        <button onClick={() => removeTodo(todo.id)}>删除</button>
+                        <button onClick={() => removeTodo(todo.id)}>Delete</button>
                     </li>
                 ))}
             </ul>
@@ -152,14 +152,14 @@ Vue uses **template syntax**, treating HTML as the natural carrier for templates
     <div>
         <input
             v-model="text"
-            placeholder="输入待办事项"
+            placeholder="Enter a todo item"
             @keyup.enter="addTodo"
         />
-        <button @click="addTodo">添加</button>
+        <button @click="addTodo">Add</button>
         <ul>
             <li v-for="todo in todos" :key="todo.id">
                 {{ todo.text }}
-                <button @click="removeTodo(todo.id)">删除</button>
+                <button @click="removeTodo(todo.id)">Delete</button>
             </li>
         </ul>
     </div>

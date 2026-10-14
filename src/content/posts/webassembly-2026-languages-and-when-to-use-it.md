@@ -126,8 +126,8 @@ const module = Uint8Array.from([
 Hand it to Node to run (Node has V8's Wasm engine built in, no extra dependencies needed):
 
 ```js
-console.log("模块字节数:", module.length);
-console.log("前 16 字节:", [...module.slice(0, 16)].map((b) => b.toString(16).padStart(2, "0")).join(" "));
+console.log("Module byte count:", module.length);
+console.log("First 16 bytes:", [...module.slice(0, 16)].map((b) => b.toString(16).padStart(2, "0")).join(" "));
 
 const { instance } = await WebAssembly.instantiate(module);
 const { add, sum, mem } = instance.exports;

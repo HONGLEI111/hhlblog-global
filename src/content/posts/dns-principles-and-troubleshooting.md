@@ -169,7 +169,9 @@ const RESOLVERS = {
 };
 
 async function diagnose(domain) {
-  console.log(`\n=== 诊断 ${domain} ===\n`);
+  console.log(`
+=== Diagnosing ${domain} ===
+`);
 
   // 1. Query the authoritative server
   const base = new Resolver();
@@ -177,9 +179,9 @@ async function diagnose(domain) {
   let authNS = [];
   try {
     authNS = await base.resolveNs(domain);
-    console.log(`权威服务器: ${authNS.join(', ')}`);
+    console.log(`Authoritative servers: ${authNS.join(', ')}`);
   } catch (err) {
-    console.log(`NS 查询失败: ${err.code}`);
+    console.log(`NS query failed: ${err.code}`);
   }
 
   // 2. Cross-compare across multiple resolvers to check for consistency
@@ -201,9 +203,9 @@ async function diagnose(domain) {
   // 3. Determine whether resolution inconsistencies exist
   const unique = new Set(results.values());
   if (unique.size > 1) {
-    console.log('\n⚠️  各解析器返回结果不一致，可能是缓存未同步或分区解析');
+    console.log('\n⚠️  Parser results are inconsistent; the cache may be out of sync or partitions may be parsed separately');
   } else if (unique.size === 1) {
-    console.log('\n✓ 各解析器结果一致');
+    console.log('\n✓ Parser results are consistent');
   }
 }
 

@@ -130,7 +130,7 @@ Safari 27 adds the `<model>` HTML element, allowing interactive 3D models to be 
   auto-rotate
   ar
 >
-  <p>您的浏览器不支持 3D 模型显示，请升级 Safari 27</p>
+  <p>Your browser does not support 3D model display, please upgrade to Safari 27</p>
 </model>
 ```
 
@@ -158,7 +158,7 @@ model.playAnimation('idle');
 
 // Listen to loading state
 model.addEventListener('load', () => {
-  console.log('模型已加载，三角形数量：', model.triangleCount);
+  console.log('Model loaded, triangle count:', model.triangleCount);
 });
 
 // Programmatically control the camera

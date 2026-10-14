@@ -110,15 +110,15 @@ collection = chroma_client.get_or_create_collection(
 # ============================================================
 def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> list[str]:
     """
-    简单的固定大小分块，带重叠区域以保持上下文连续性。
+    Simple fixed-size chunking with overlap to maintain context continuity.
     
     Args:
-        text: 输入文本
-        chunk_size: 每块的字符数
-        overlap: 相邻块之间的重叠字符数
+        text: Input text
+        chunk_size: Number of characters per chunk
+        overlap: Number of overlapping characters between adjacent chunks
     
     Returns:
-        文本块列表
+        List of text chunks
     """
     chunks = []
     start = 0
@@ -135,10 +135,10 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> list[str
 # ============================================================
 def index_documents(documents: list[dict[str, str]]) -> None:
     """
-    将文档列表索引到向量数据库中。
+    Index a list of documents into the vector database.
     
     Args:
-        documents: 文档列表，每个文档包含 "id", "title", "content" 字段
+        documents: List of documents, each containing "id", "title", "content" fields
     """
     for doc in documents:
         chunks = chunk_text(doc["content"])
@@ -153,7 +153,7 @@ def index_documents(documents: list[dict[str, str]]) -> None:
                     "source": doc["id"]
                 }]
             )
-    print(f"已索引 {len(documents)} 篇文档，共 {collection.count()} 个文本块")
+    print(f"Indexed {len(documents)} documents, {collection.count()} text chunks in total")
 
 
 # ============================================================
@@ -161,14 +161,14 @@ def index_documents(documents: list[dict[str, str]]) -> None:
 # ============================================================
 def retrieve(query: str, top_k: int = 3) -> list[str]:
     """
-    检索与查询最相关的文本块。
+    Retrieve the text chunks most relevant to the query.
     
     Args:
-        query: 用户查询
-        top_k: 返回的文本块数量
+        query: User query
+        top_k: Number of text chunks to return
     
     Returns:
-        相关文本块列表
+        List of relevant text chunks
     """
     results = collection.query(
         query_texts=[query],
@@ -181,37 +181,37 @@ def retrieve(query: str, top_k: int = 3) -> list[str]:
 # ============================================================
 # 5. Augmented generation: the complete RAG question-answering workflow
 # ============================================================
-SYSTEM_PROMPT = """你是一个知识助手。请严格根据以下参考资料回答用户问题。
+SYSTEM_PROMPT = """You are a knowledge assistant. Please answer the user's question strictly based on the following reference materials.
 
-规则：
-1. 如果参考资料包含答案，请基于资料回答并引用来源
-2. 如果参考资料不足以回答问题，请如实说"我目前的知识库中没有足够的信息来回答这个问题"
-3. 不要编造参考资料中没有的信息
+Rules:
+1. If the reference materials contain the answer, answer based on the materials and cite the source
+2. If the reference materials are insufficient to answer the question, honestly say "My current knowledge base does not contain enough information to answer this question"
+3. Do not fabricate information not present in the reference materials
 
-参考资料：
+Reference materials:
 {context}"""
 
 
 def ask(query: str, top_k: int = 3) -> str:
     """
-    执行完整的 RAG 问答流程。
+    Execute the complete RAG question-answering pipeline.
     
     Args:
-        query: 用户问题
-        top_k: 检索的文本块数量
+        query: User question
+        top_k: Number of text chunks to retrieve
     
     Returns:
-        LLM 生成的回答
+        LLM-generated answer
     """
     # Step 1: Retrieve
     retrieved_chunks = retrieve(query, top_k=top_k)
     
     if not retrieved_chunks:
-        return "未找到相关参考资料，无法回答该问题。"
+        return "No relevant reference materials found; unable to answer this question."
     
     # Step 2: Concatenate context
     context = "\n\n---\n\n".join(
-        f"[来源 {i+1}]\n{chunk}"
+        f"[Source {i+1}]\n{chunk}"
         for i, chunk in enumerate(retrieved_chunks)
     )
     
@@ -237,39 +237,39 @@ if __name__ == "__main__":
     documents = [
         {
             "id": "python_history",
-            "title": "Python 语言简史",
+            "title": "A Brief History of the Python Language",
             "content": """
-Python 由 Guido van Rossum 于 1989 年圣诞节期间开始开发，1991 年发布第一个公开版本。
-Python 的设计哲学强调代码的可读性，使用显著的空白缩进来划分代码块。
-Python 2.0 于 2000 年发布，引入了垃圾回收和 Unicode 支持。
-Python 3.0 于 2008 年发布，是一个不向后兼容的大版本更新。
-Python 3.0 的主要变化包括 print 从语句变为函数、所有字符串默认使用 Unicode 等。
-截至 2026 年，Python 3.14 是最新的稳定版本。
-Python 被广泛应用于 Web 开发（Django、FastAPI）、数据科学（NumPy、Pandas）和 AI/机器学习（PyTorch、TensorFlow）等领域。
+Python was started by Guido van Rossum during Christmas 1989, and the first public version was released in 1991.
+Python's design philosophy emphasizes code readability, using significant whitespace indentation to delimit code blocks.
+Python 2.0 was released in 2000, introducing garbage collection and Unicode support.
+Python 3.0 was released in 2008 as a major backward-incompatible release.
+Major changes in Python 3.0 include print changing from a statement to a function, and all strings using Unicode by default.
+As of 2026, Python 3.14 is the latest stable version.
+Python is widely used in web development (Django, FastAPI), data science (NumPy, Pandas), and AI/machine learning (PyTorch, TensorFlow), among other fields.
             """.strip()
         },
         {
             "id": "rag_overview",
-            "title": "RAG 技术概述",
+            "title": "RAG Technology Overview",
             "content": """
-RAG（Retrieval-Augmented Generation）由 Meta AI（当时为 Facebook AI）在 2020 年首次提出。
-RAG 结合了信息检索和文本生成两种技术，旨在解决大语言模型的两个核心问题：知识时效性和幻觉。
-RAG 的典型架构包括两个阶段：索引阶段和查询阶段。
-索引阶段：将知识库文档分块、Embedding 后存入向量数据库。
-查询阶段：用户问题经 Embedding 后在向量数据库中检索，将检索结果与问题一起发送给 LLM 生成回答。
-RAG 的优势在于：知识可实时更新（无需重新训练模型）、回答可溯源（有明确的引用来源）、成本相对较低。
-常见的 RAG 优化技术包括：HyDE（假设文档嵌入）、Multi-Query Retrieval、Re-ranking、Self-RAG 等。
+RAG (Retrieval-Augmented Generation) was first proposed by Meta AI (then Facebook AI) in 2020.
+RAG combines information retrieval and text generation technologies, aiming to solve two core problems of large language models: knowledge timeliness and hallucination.
+A typical RAG architecture includes two stages: the indexing stage and the query stage.
+Indexing stage: chunk knowledge base documents, embed them, and store them in a vector database.
+Query stage: after the user's question is embedded, retrieve from the vector database, and send the retrieval results together with the question to the LLM to generate an answer.
+The advantages of RAG are: knowledge can be updated in real time (no need to retrain the model), answers are traceable (with explicit citation sources), and costs are relatively low.
+Common RAG optimization techniques include: HyDE (Hypothetical Document Embeddings), Multi-Query Retrieval, Re-ranking, Self-RAG, etc.
             """.strip()
         },
         {
             "id": "vector_db",
-            "title": "向量数据库入门",
+            "title": "Introduction to Vector Databases",
             "content": """
-向量数据库是专门用于存储和检索向量（高维浮点数数组）的数据库系统。
-与传统数据库不同，向量数据库的核心操作是近似最近邻搜索（ANN），即快速找到与查询向量最相似的 K 个向量。
-常用的向量数据库包括：ChromaDB（轻量级，适合原型开发）、Pinecone（全托管云服务）、Weaviate（开源，支持混合搜索）、Milvus（高性能，适合大规模生产环境）、Qdrant（Rust 编写，性能优异）。
-选择向量数据库时需要考虑的因素：数据规模、查询延迟要求、是否需要过滤搜索、运维成本等。
-对于原型和小规模应用，ChromaDB 通常是最合适的选择；对于生产环境的大规模应用，Milvus 和 Pinecone 是更成熟的选择。
+A vector database is a database system specifically designed for storing and retrieving vectors (high-dimensional floating-point arrays).
+Unlike traditional databases, the core operation of a vector database is approximate nearest neighbor search (ANN), i.e., quickly finding the K vectors most similar to a query vector.
+Commonly used vector databases include: ChromaDB (lightweight, suitable for prototyping), Pinecone (fully managed cloud service), Weaviate (open source, supports hybrid search), Milvus (high performance, suitable for large-scale production environments), Qdrant (written in Rust, excellent performance).
+Factors to consider when choosing a vector database: data scale, query latency requirements, whether filtered search is needed, operational costs, etc.
+For prototypes and small-scale applications, ChromaDB is usually the most suitable choice; for large-scale production applications, Milvus and Pinecone are more mature choices.
             """.strip()
         }
     ]
@@ -279,10 +279,10 @@ RAG 的优势在于：知识可实时更新（无需重新训练模型）、回�
     
     # Test question answering
     test_questions = [
-        "Python 是什么时候创建的？由谁创建的？",
-        "RAG 技术能解决什么问题？",
-        "有哪些常用的向量数据库？",
-        "今天天气怎么样？"  # Content not in the knowledge base
+        "When was Python created? By whom?",
+        "What problems can RAG technology solve?",
+        "What are some commonly used vector databases?",
+        "What's the weather like today?"  # Content not in the knowledge base
     ]
     
     for q in test_questions:

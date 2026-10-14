@@ -29,12 +29,12 @@ As long as you don't abuse `<div>`, you get 80% of accessibility for free.
 
 ```html
 <!-- ❌ Anti-pattern: screen readers only see a pile of text -->
-<div class="btn" onclick="submit()">提交</div>
-<div class="link" onclick="go()">查看详情</div>
+<div class="btn" onclick="submit()">Submit</div>
+<div class="link" onclick="go()">View details</div>
 
 <!-- ✅ Correct approach: semantics, focus, and keyboard events all come for free -->
-<button type="submit">提交</button>
-<a href="/detail">查看详情</a>
+<button type="submit">Submit</button>
+<a href="/detail">View details</a>
 ```
 
 A rule of thumb: **if you've written `onclick`, `tabindex="0"`, `role="button"`, and keyboard event listeners for a `div`, you're essentially hand-writing a `<button>`—just use it directly.**
@@ -43,12 +43,12 @@ The same applies to page structure:
 
 ```html
 <body>
-  <a class="skip-link" href="#main">跳到主要内容</a>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header>
-    <nav aria-label="主导航">...</nav>
+    <nav aria-label="Main navigation">...</nav>
   </header>
   <main id="main">
-    <h1>文章标题</h1>
+    <h1>Article title</h1>
     <!-- Don't skip heading levels: h1 → h2 → h3 -->
   </main>
   <footer>...</footer>
@@ -111,7 +111,7 @@ The beauty of `:focus-visible` is that mouse clicks don't trigger the outline, b
 
 ```html
 <div role="status" aria-live="polite" class="sr-only">
-  已保存 3 项更改
+  Saved 3 changes
 </div>
 <!-- Use aria-live="assertive" for urgent errors; it interrupts the current announcement, so use with caution -->
 ```
@@ -138,12 +138,12 @@ The first rule of ARIA is: **if you can express the semantics with native HTML e
 
 ```html
 <!-- ❌ ARIA misuse: having a role but not implementing the behavior makes things worse -->
-<div role="checkbox" aria-checked="false">同意条款</div>
+<div role="checkbox" aria-checked="false">Agree to terms</div>
 
 <!-- ✅ Native elements: both behavior and semantics are correct -->
 <label>
   <input type="checkbox" name="terms" />
-  同意条款
+  Agree to terms
 </label>
 ```
 
@@ -160,7 +160,7 @@ One high-frequency detail that's almost always overlooked is the "icon button":
 <button><svg aria-hidden="true">...</svg></button>
 
 <!-- ✅ Provide an accessible name while hiding decorative icons from AT -->
-<button aria-label="关闭对话框">
+<button aria-label="Close dialog">
   <svg aria-hidden="true" focusable="false">...</svg>
 </button>
 ```
@@ -178,7 +178,7 @@ One high-frequency detail that's almost always overlooked is the "icon button":
 <!-- ✅ Color + icon + text, triple redundancy -->
 <input aria-invalid="true" aria-describedby="email-error" />
 <p id="email-error" class="error">
-  <span aria-hidden="true">⚠</span> 邮箱格式不正确，请检查是否缺少 @
+  <span aria-hidden="true">⚠</span> Email address is not valid — check for a missing @
 </p>
 ```
 
@@ -207,7 +207,7 @@ Forms are where interaction is the most complex and where a11y issues are most l
 ```html
 <form novalidate>
   <div class="field">
-    <label for="email">邮箱地址</label>
+    <label for="email">Email address</label>
     <input
       id="email"
       name="email"
@@ -216,10 +216,10 @@ Forms are where interaction is the most complex and where a11y issues are most l
       aria-describedby="email-hint email-error"
       aria-invalid="false"
     />
-    <p id="email-hint" class="hint">用于接收登录验证码，不会对外公开</p>
+    <p id="email-hint" class="hint">Used to receive login verification codes, will not be made public</p>
     <p id="email-error" class="error" role="alert" hidden></p>
   </div>
-  <button type="submit">注册</button>
+  <button type="submit">Register</button>
 </form>
 ```
 
@@ -235,8 +235,8 @@ form.addEventListener('submit', (e) => {
     error.textContent = el.validity.valid
       ? ''
       : el.validity.valueMissing
-        ? '此项为必填，请输入邮箱地址'
-        : '邮箱格式不正确，应形如 name@example.com';
+        ? 'This field is required, please enter your email address'
+        : 'Invalid email format, should look like name@example.com';
   });
 
   firstInvalid?.focus();
@@ -260,7 +260,7 @@ Integrating into E2E only takes a few lines:
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
-test('首页无可访问性违规', async ({ page }) => {
+test('No accessibility violations on the home page', async ({ page }) => {
   await page.goto('/');
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])

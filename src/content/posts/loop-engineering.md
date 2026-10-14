@@ -126,11 +126,11 @@ This is the most easily underestimated yet most important design pattern in Loop
 
 ```javascript
 // Incorrect design: one Agent produces and reviews its own work
-const result = await agent("修复这个 Bug，然后审查自己的修复");
+const result = await agent("Fix this bug, then review your own fix");
 
 // Correct design: separation of Maker and Checker
-const fix = await agent("修复这个 Bug", { role: "maker" });
-const review = await agent(`审查这个修复：${fix.diff}`, { role: "checker" });
+const fix = await agent("Fix this bug", { role: "maker" });
+const review = await agent(`Review this fix: ${fix.diff}`, { role: "checker" });
 ```
 
 Why separate them?

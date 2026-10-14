@@ -159,7 +159,7 @@ for (const file of files) {
   }
 }
 
-console.log(failed ? `\n${failed} 个代码块有语法错误` : '✓ 所有文档代码块语法正确');
+console.log(failed ? `\n${failed} code blocks have syntax errors` : '✓ All documentation code blocks have correct syntax');
 process.exit(failed ? 1 : 0);
 ```
 

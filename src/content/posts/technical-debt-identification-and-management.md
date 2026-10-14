@@ -135,21 +135,21 @@ const rows = [...churn.entries()]
   .slice(0, topN);
 
 if (rows.length === 0) {
-  console.log(`过去「${since}」没有可分析的文件`);
+  console.log(`No analyzable files in the past "${since}"`);
   process.exit(0);
 }
 
 const max = rows[0].score;
 const bar = (v) => '█'.repeat(Math.max(1, Math.round((v / max) * 24)));
-console.log(`热点文件 Top ${topN}（${since} 起，分数 = 提交次数 × 分支密度）\n`);
-console.log('  分数  提交  复杂度  文件');
+console.log(`Hot files Top ${topN} (since ${since}, score = commit count × branch density)\n`);
+console.log('  Score  Commits  Complexity  File');
 for (const r of rows) {
   console.log(
     `  ${String(r.score).padStart(5)}  ${String(r.commits).padStart(4)}  ${String(r.complexity).padStart(6)}  ${r.path} ${bar(r.score)}`,
   );
 }
-console.log('\n提示：分数高 ≠ 必须重构。先读它最近几个月的提交消息，');
-console.log('      判断这些改动是「持续加功能」还是「反复修同一类 bug」——后者才是高息债务。');
+console.log('\nTip: a high score ≠ must refactor. First read its commit messages from the last few months,');
+console.log('      and judge whether these changes are "continuously adding features" or "repeatedly fixing the same kind of bug"—the latter is high-interest debt.');
 ```
 
 The first step is to deliberately run it once **without filters**, and you'll immediately understand why a blacklist is needed:

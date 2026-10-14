@@ -25,7 +25,7 @@ def naive_agent(task: str) -> str:
         response = llm(task)          #Ask the model
         action = parse_action(response) #Parse out the action
         result = execute(action)        #Execute the action
-        task += f"\n结果: {result}"     #Feed the result back in
+        task += f"\nResult: {result}"     #Feed the result back in
     return task
 ```
 
@@ -58,20 +58,20 @@ This protocol looks simple, but it solves the first two problems of the naive im
 import re
 
 def llm(prompt: str) -> str:
-    """LLM 抽象接口，替换为你使用的任何模型 API。"""
+    """LLM abstraction interface, replace with any model API you use."""
     raise NotImplementedError
 
 TOOLS = {
-    "search": lambda q: f"关于「{q}」的搜索结果：……",
+    "search": lambda q: f"Search results for “{q}”: …",
     "calculator": lambda expr: str(eval(expr)),
 }
 
 SYSTEM = (
-    "你是一个可以调用工具的 Agent，严格按以下格式输出：\n"
-    "Thought: <你的推理>\n"
-    "Action: <工具名>[<参数>]\n"
-    "当你能给出最终答案时输出：\n"
-    "Final Answer: <答案>"
+    "You are an Agent that can call tools. Strictly output in the following format:\n"
+    "Thought: <your reasoning>\n"
+    "Action: <tool name>[<parameters>]\n"
+    "When you can give the final answer, output:\n"
+    "Final Answer: <answer>"
 )
 
 def run_react(question: str, max_steps: int = 6) -> str:
@@ -90,7 +90,7 @@ def run_react(question: str, max_steps: int = 6) -> str:
         if "Final Answer:" in raw:
             return raw.split("Final Answer:", 1)[1].strip()
 
-    return "达到最大步数仍未得出答案"
+    return "Reached the maximum number of steps without arriving at an answer"
 ```
 
 ReAct's advantages are that it's **intuitive, controllable, and interpretable**—the Thought at each step leaves behind a reasoning trace, making debugging easy. Its drawbacks are also obvious: **each step requires regenerating the full context**, so token consumption is high; and its planning ability for long-chain tasks is weak, making it prone to "taking one step and seeing what happens next" and drifting away from the goal.
@@ -110,16 +110,16 @@ The core code is as follows:
 def plan_and_execute(task: str) -> str:
     #Phase one: planning
     plan = llm(
-        "请把下面的任务拆解为若干可执行的步骤，"
-        "每一步以 '- [ ] 步骤描述' 列出：\n\n"
-        f"任务：{task}"
+        "Please break down the following task into several executable steps,"
+        "List each step as '- [ ] step description':\n\n"
+        f"Task: {task}"
     )
     steps = re.findall(r"- \[ \]\s*(.+)", plan)
 
     #Phase two: execute one by one, each step can see the results of previous steps
-    context = f"任务：{task}\n计划：\n{plan}\n\n"
+    context = f"Task: {task}\nPlan:\n{plan}\n\n"
     for i, step in enumerate(steps, 1):
-        context += f"\n正在执行第 {i} 步：{step}\n执行结果："
+        context += f"\nExecuting step {i}: {step}\nExecution result:"
         context += llm(context)
     return context
 ```
@@ -139,11 +139,11 @@ def reflexion(task: str, max_attempts: int = 3) -> str:
     for _ in range(max_attempts):
         result = run_react(task)  #Reuse the ReAct executor from earlier
         feedback = llm(
-            f"任务：{task}\n本次结果：{result}\n"
-            f"历史反思：{reflection or '无'}\n"
-            "请评估该结果是否达成目标，并给出具体改进建议。"
+            f"Task: {task}\nCurrent result: {result}\n"
+            f"History reflection: {reflection or 'None'}\n"
+            "Please evaluate whether the result achieves the goal and provide specific suggestions for improvement."
         )
-        if "达成" in feedback or "成功" in feedback:
+        if "Achieved" in feedback or "Success" in feedback:
             return result
         reflection = feedback  #Write the reflection into the context of the next attempt
     return result

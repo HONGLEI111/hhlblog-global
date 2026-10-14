@@ -76,7 +76,7 @@ async function networkFirst(request) {
   } catch (err) {
     const cached = await cache.match(request);
     if (cached) return cached;
-    return new Response('网络不可用，且无缓存', { status: 503 });
+    return new Response('Network unavailable, and no cache', { status: 503 });
   }
 }
 ```

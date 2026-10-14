@@ -40,11 +40,11 @@ The standard contribution workflow on GitHub is "fork first, then submit a PR." 
 
 ```bash
 # 1. Click Fork on the GitHub web page, then use git clone to pull it to your local machine
-git clone https://github.com/<你的用户名>/<项目名>.git
-cd <项目名>
+git clone https://github.com/<your username>/<project name>.git
+cd <project name>
 
 # 2. Add the upstream repository as a remote to make later syncing easier
-git remote add upstream https://github.com/<原作者>/<项目名>.git
+git remote add upstream https://github.com/<original author>/<project name>.git
 
 # 3. Always branch off the latest main
 git fetch upstream
@@ -104,7 +104,7 @@ How to handle review feedback:
 ```bash
 # Keep making changes on the same branch and force-push to update the PR
 git add .
-git commit -m "fix: 根据 review 意见拆分函数"
+git commit -m "fix: split function based on review feedback"
 git push --force-with-lease
 ```
 

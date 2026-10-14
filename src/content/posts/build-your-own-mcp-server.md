@@ -88,7 +88,7 @@ server = Server("my-first-mcp-server")
 
 @server.tool()
 async def get_current_time() -> str:
-    """获取当前系统时间"""
+    """Get the current system time"""
     from datetime import datetime
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -168,23 +168,23 @@ server = Server("weather-mcp-server")
 
 # Simulated weather data (replace with real API calls in actual projects)
 WEATHER_DATA = {
-    "北京": {"temp": 32, "humidity": 65, "condition": "晴"},
-    "上海": {"temp": 35, "humidity": 70, "condition": "多云"},
-    "深圳": {"temp": 30, "humidity": 80, "condition": "雷阵雨"},
-    "东京": {"temp": 28, "humidity": 60, "condition": "阴"},
+    "Beijing": {"temp": 32, "humidity": 65, "condition": "Sunny"},
+    "Shanghai": {"temp": 35, "humidity": 70, "condition": "Cloudy"},
+    "Shenzhen": {"temp": 30, "humidity": 80, "condition": "Thunderstorms"},
+    "Tokyo": {"temp": 28, "humidity": 60, "condition": "Overcast"},
 }
 
 @server.tool()
 async def get_weather(city: str, unit: Optional[str] = "celsius") -> str:
-    """查询指定城市的天气信息。
+    """Query weather information for a specified city.
 
     Args:
-        city: 城市名称，如 "北京"、"上海"、"深圳"
-        unit: 温度单位，celsius（摄氏度）或 fahrenheit（华氏度）
+        city: City name, such as "Beijing", "Shanghai", "Shenzhen"
+        unit: Temperature unit, celsius or fahrenheit
     """
     data = WEATHER_DATA.get(city)
     if not data:
-        return f"未找到城市「{city}」的天气数据。支持的城市：{', '.join(WEATHER_DATA.keys())}"
+        return f"No weather data for “{city}”. Supported cities: {', '.join(WEATHER_DATA.keys())}"
 
     temp = data["temp"]
     if unit == "fahrenheit":
@@ -194,37 +194,37 @@ async def get_weather(city: str, unit: Optional[str] = "celsius") -> str:
         unit_str = "°C"
 
     return (
-        f"🌍 {city} 天气报告\n"
+        f"🌍 Weather report for {city}\n"
         f"━━━━━━━━━━━━━━\n"
-        f"🌡️  温度：{temp:.1f}{unit_str}\n"
-        f"💧 湿度：{data['humidity']}%\n"
-        f"☁️  天气：{data['condition']}\n"
+        f"🌡️  Temperature: {temp:.1f}{unit_str}\n"
+        f"💧 Humidity: {data['humidity']}%\n"
+        f"☁️  Weather: {data['condition']}\n"
     )
 
 
 @server.tool()
 async def compare_weather(city_a: str, city_b: str) -> str:
-    """比较两个城市的天气情况。
+    """Compare the weather conditions of two cities.
 
     Args:
-        city_a: 第一个城市名称
-        city_b: 第二个城市名称
+        city_a: Name of the first city
+        city_b: Name of the second city
     """
     data_a = WEATHER_DATA.get(city_a)
     data_b = WEATHER_DATA.get(city_b)
 
     if not data_a or not data_b:
         missing = city_a if not data_a else city_b
-        return f"未找到城市「{missing}」的天气数据"
+        return f"No weather data for “{missing}”"
 
-    comparison = f"📊 天气对比：{city_a} vs {city_b}\n"
+    comparison = f"📊 Weather comparison: {city_a} vs {city_b}\n"
     comparison += f"━━━━━━━━━━━━━━━━━━━━\n"
-    comparison += f"🌡️   {city_a}：{data_a['temp']}°C  |  {city_b}：{data_b['temp']}°C\n"
-    comparison += f"💧 {city_a}：{data_a['humidity']}%  |  {city_b}：{data_b['humidity']}%\n"
-    comparison += f"☁️  {city_a}：{data_a['condition']}  |  {city_b}：{data_b['condition']}\n"
+    comparison += f"🌡️   {city_a}: {data_a['temp']}°C  |  {city_b}: {data_b['temp']}°C\n"
+    comparison += f"💧 {city_a}: {data_a['humidity']}%  |  {city_b}: {data_b['humidity']}%\n"
+    comparison += f"☁️  {city_a}: {data_a['condition']}  |  {city_b}: {data_b['condition']}\n"
 
     cooler = city_a if data_a['temp'] < data_b['temp'] else city_b
-    comparison += f"\n💡 {cooler} 更凉快，适合出门！"
+    comparison += f"\n💡 {cooler} is cooler, great for going out!"
 
     return comparison
 
@@ -267,18 +267,18 @@ server = Server("docs-mcp-server")
 
 @server.resource("docs://readme")
 async def get_readme() -> str:
-    """项目的 README 文档"""
+    """Project README documentation"""
     return open("README.md", "r").read()
 
 @server.resource("docs://api/{endpoint}")
 async def get_api_doc(endpoint: str) -> str:
-    """获取指定 API 端点的文档"""
+    """Get documentation for a specified API endpoint"""
     docs = {
-        "auth": "POST /api/auth - 用户认证接口...",
-        "users": "GET /api/users - 获取用户列表...",
-        "weather": "GET /api/weather - 查询天气数据...",
+        "auth": "POST /api/auth - User authentication endpoint...",
+        "users": "GET /api/users - Get user list...",
+        "weather": "GET /api/weather - Query weather data...",
     }
-    return docs.get(endpoint, f"未找到端点「{endpoint}」的文档")
+    return docs.get(endpoint, f"No documentation for endpoint “{endpoint}”")
 
 async def main():
     async with stdio_server() as (read_stream, write_stream):
@@ -317,21 +317,21 @@ The LLM may pass strange parameters when calling tools. Do proper boundary check
 ```python
 @server.tool()
 async def query_database(sql: str) -> str:
-    """在只读副本上执行 SQL 查询"""
+    """Execute SQL queries on a read-only replica"""
     # Security check: only allow SELECT
     if not sql.strip().upper().startswith("SELECT"):
-        return "❌ 错误：仅允许 SELECT 查询"
+        return "❌ Error: Only SELECT queries are allowed"
     # Security check: prohibit dangerous keywords
     dangerous = ["DROP", "DELETE", "INSERT", "UPDATE", "ALTER"]
     for keyword in dangerous:
         if keyword in sql.upper():
-            return f"❌ 错误：查询包含禁止的关键字 {keyword}"
+            return f"❌ Error: Query contains forbidden keyword {keyword}"
 
     try:
         result = execute_readonly_query(sql)
         return format_table(result)
     except Exception as e:
-        return f"❌ 查询失败：{str(e)}"
+        return f"❌ Query failed: {str(e)}"
 ```
 
 ### 7.3 Tool Descriptions Should Be Specific
@@ -352,7 +352,7 @@ import os
 
 @server.tool()
 async def search_knowledge_base(query: str) -> str:
-    """搜索公司内部知识库"""
+    """Search the company's internal knowledge base"""
     api_key = os.environ["KB_API_KEY"]
     base_url = os.environ.get("KB_BASE_URL", "https://kb.internal.example.com")
     # ... call API
@@ -386,14 +386,14 @@ from server import get_weather
 
 @pytest.mark.asyncio
 async def test_get_weather_beijing():
-    result = await get_weather("北京")
+    result = await get_weather("Beijing")
     assert "32" in result
     assert "°C" in result
 
 @pytest.mark.asyncio
 async def test_get_weather_unknown_city():
-    result = await get_weather("火星")
-    assert "未找到" in result
+    result = await get_weather("Mars")
+    assert "Not found" in result
 ```
 
 Once the tool logic is decoupled from the MCP protocol layer, testing becomes as simple as testing ordinary Python functions.

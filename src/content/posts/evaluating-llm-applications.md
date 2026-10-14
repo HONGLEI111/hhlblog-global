@@ -141,7 +141,7 @@ Usage and interpretation:
 
 ```ts
 const result = await runEval(myJudge, pairs);
-console.log(`A 胜率 ${(result.winRate * 100).toFixed(1)}%  ` +
+console.log(`A win rate ${(result.winRate * 100).toFixed(1)}%  ` +
   `95% CI [${(result.ci95[0] * 100).toFixed(1)}, ${(result.ci95[1] * 100).toFixed(1)}]`);
 // Only when the interval lies entirely above 0.5 can we claim A is truly better; otherwise keep adding samples.
 ```

@@ -146,7 +146,7 @@ async function ensureFont(family, source) {
     await face.load(); // Explicitly trigger loading
     document.body.classList.add('font-ready');
   } catch (e) {
-    console.error('字体加载失败，回退到系统字体', e);
+    console.error('Font failed to load, falling back to system font', e);
   }
 }
 

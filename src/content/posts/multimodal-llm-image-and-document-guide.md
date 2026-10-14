@@ -75,7 +75,7 @@ const imageBlock = {
 // ① Do the math before sending the request: estimating images as text by base64 byte count will severely overestimate
 const count = await client.messages.countTokens({
   model: MODEL,
-  messages: [{ role: "user", content: [imageBlock, { type: "text", text: "读取仪表盘" }] }],
+  messages: [{ role: "user", content: [imageBlock, { type: "text", text: "Read dashboard" }] }],
 });
 console.log(`${count.input_tokens} tokens ≈ $${((count.input_tokens / 1e6) * 4).toFixed(4)}`);
 
@@ -83,10 +83,10 @@ console.log(`${count.input_tokens} tokens ≈ $${((count.input_tokens / 1e6) * 4
 const response = await client.messages.create({
   model: MODEL,
   max_tokens: 16000,
-  system: `你是把监控截图转成结构化数据的解析器。只输出一个 JSON 对象，不要任何解释、不要 markdown 代码块。
-字段：title(string)、errors(number)、alerts(数组，元素为 {metric: string, value: string})。
-截图里看不清或未出现的字段填 null，禁止根据常识推断或编造数值。`,
-  messages: [{ role: "user", content: [imageBlock, { type: "text", text: "解析这张仪表盘截图。" }] }],
+  system: `You are a parser that converts monitoring screenshots into structured data. Output only a single JSON object, with no explanation and no markdown code block.
+Fields: title(string), errors(number), alerts(array, elements are {metric: string, value: string}).
+For fields that are unclear or absent in the screenshot, fill in null; do not infer or fabricate values based on common sense.`,
+  messages: [{ role: "user", content: [imageBlock, { type: "text", text: "Parse this dashboard screenshot." }] }],
 });
 
 const text = response.content
@@ -116,10 +116,10 @@ const res = await client.messages.create({
       {
         type: "document",
         source: { type: "base64", media_type: "application/pdf", data: pdfData },
-        title: "2026 半年报",
+        title: "2026 Semiannual Report",
         citations: { enabled: true }, // When enabled, returns locatable citations
       },
-      { type: "text", text: "Q3 营收同比增速是多少？给出来源页码。" },
+      { type: "text", text: "What is the Q3 year-over-year revenue growth rate? Give the source page number." },
     ],
   }],
 });
@@ -129,7 +129,7 @@ for (const block of res.content) {
   console.log(block.text);
   for (const c of block.citations ?? []) {
     if (c.type === "page_location") {
-      console.log(`→ 第 ${c.start_page_number}-${c.end_page_number} 页`);
+      console.log(`→ Pages ${c.start_page_number}-${c.end_page_number}`);
     }
   }
 }

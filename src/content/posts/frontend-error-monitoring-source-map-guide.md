@@ -113,7 +113,7 @@ A Source Map is itself a JSON, and the v3 format doesn't have many fields:
   "version": 3,
   "file": "app.9f2c1a.js",
   "sources": ["src/report.ts"],
-  "sourcesContent": ["// 原封不动的源码……"],
+  "sourcesContent": ["// Source code untouched..."],
   "names": ["report"],
   "mappings": "AAAA,IAAM,KAAK;..."
 }

@@ -168,8 +168,8 @@ const options = {
 };
 
 const server = tls.createServer(options, (socket) => {
-  console.log('客户端已连接，协议版本:', socket.getProtocol());
-  console.log('协商的密码套件:', socket.getCipher());
+  console.log('Client connected, protocol version:', socket.getProtocol());
+  console.log('Negotiated cipher suite:', socket.getCipher());
 
   socket.on('data', () => {
     socket.end(
@@ -182,7 +182,7 @@ const server = tls.createServer(options, (socket) => {
 });
 
 server.listen(8443, () => {
-  console.log('TLS 1.3 服务端监听在 https://localhost:8443');
+  console.log('TLS 1.3 server listening on https://localhost:8443');
 });
 ```
 

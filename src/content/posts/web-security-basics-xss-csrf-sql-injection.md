@@ -23,7 +23,7 @@ The server echoes request parameters back to the page as-is, without escaping. A
 
 ```html
 <!-- Server-side template, directly echoes the q parameter -->
-<div>搜索结果：<?php echo $_GET['q']; ?></div>
+<div>Search results:<?php echo $_GET['q']; ?></div>
 ```
 
 The attacker constructs a link like this and sends it to the victim:
@@ -55,7 +55,7 @@ This type of vulnerability doesn't go through the server; it happens purely on t
 ```js
 // Read from the URL hash and render directly, dangerous
 const user = location.hash.slice(1);
-document.getElementById('welcome').innerHTML = `欢迎，${user}`;
+document.getElementById('welcome').innerHTML = `Welcome, ${user}`;
 ```
 
 Visiting `https://example.com/#<img src=x onerror=alert(1)>` triggers the script. DOM-based XSS is particularly stealthy because it bypasses the server-side WAF—the malicious data never leaves the browser.

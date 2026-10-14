@@ -211,7 +211,7 @@ function bellmanFord(edges: [number, number, number][], n: number, start: number
 
   for (const [from, to, weight] of edges) {
     if (dist[from] !== Infinity && dist[from] + weight < dist[to]) {
-      throw new Error('存在负权环');
+      throw new Error('Negative weight cycle exists');
     }
   }
 

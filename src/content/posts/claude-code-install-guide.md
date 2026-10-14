@@ -153,7 +153,7 @@ By default, Claude Code requests confirmation for sensitive operations (such as 
 Claude also supports piped input, suitable for scripting scenarios:
 
 ```bash
-cat error.log | claude "分析这些日志，找出关键错误"
+cat error.log | claude "Analyze these logs and identify the key errors"
 ```
 
 ### 4.4 Session Management

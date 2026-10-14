@@ -102,7 +102,7 @@ Note the round for `i=3`: `1` appeared at index 0, and the distance condition wa
 #include <limits.h>
 
 /* value → index of its most recent occurrence. Open addressing + linear probing, keep only the latest index for each value,
-   所以整张表只写不删，不需要墓碑。 */
+   so the whole table is write-only, with no deletions and no need for tombstones. */
 #define CAP (1u << 18)                       /* power of two: & (CAP-1) instead of modulo */
 #define EMPTY LLONG_MIN
 
@@ -199,7 +199,7 @@ function containsNearbyDuplicate(nums, k) {
 
 Given an integer array `nums` and two integers `indexDiff` and `valueDiff`, find an index pair `(i, j)` that satisfies the following conditions: `i != j`, `abs(i - j) <= indexDiff`, `abs(nums[i] - nums[j]) <= valueDiff`. Return `true` if it exists.
 
-> **About parameter names**: This problem has had two versions of the statement on LeetCode — the current statement (`220. 存在重复元素 III`) writes the two parameters as `indexDiff` (index distance upper bound) and `valueDiff` (value difference upper bound), while the earlier statement wrote them as `k` and `t`, with different value upper bounds as well. The two differ only in naming; the meaning and solution are completely identical. Below we uniformly use the shorter `k` and `t`.
+> **About parameter names**: This problem has had two versions of the statement on LeetCode — the current statement (`220. Contains Duplicate III`) writes the two parameters as `indexDiff` (index distance upper bound) and `valueDiff` (value difference upper bound), while the earlier statement wrote them as `k` and `t`, with different value upper bounds as well. The two differ only in naming; the meaning and solution are completely identical. Below we uniformly use the shorter `k` and `t`.
 
 **Example:**
 
@@ -266,8 +266,8 @@ Let's verify Example 1 again: when `nums = [1,2,3,1], k = 3, t = 0` with bucket 
 #include <stdlib.h>
 
 /* bucket number → the value of the element in that bucket. Bucket width w = t+1, any two numbers in the same bucket differ by ≤ t,
-   所以每个桶最多只需要留一个元素（要是有两个，早就返回 true 了）。
-   元素滑出窗口时要删掉它所在的桶，所以这里用墓碑标记删除。 */
+   so each bucket only ever needs to keep one element (two would already have returned true).
+   when an element slides out of the window its bucket must be removed, which is why deletions are marked with a tombstone. */
 #define CAP3 (1u << 18)                      /* at most k+1 buckets in the window, 2^18 leaves plenty of margin */
 #define EMPTY3 (1LL << 62)
 #define TOMB3  (1LL << 61)
@@ -464,7 +464,7 @@ The remaining segment and 0 = total - x
 And minimizing the number of operations is equivalent to **maximizing the length of the segment left behind**. So the problem becomes a standard variable-length window problem:
 
 - In `nums`, which is all positive numbers, find the **longest subarray whose sum equals exactly** `total - x`;
-- Answer = `n - 这个长度`.
+- Answer = `n - this length`.
 
 The window state is `sum`. On ② adding, `sum += nums[right]`; ③ the shrink condition is `sum > target` (shrink when it exceeds); ④ after shrinking, check `sum == target` and record the length; ⑤ `sum -= nums[left]`.
 
@@ -506,7 +506,7 @@ int minOperations(int *nums, int numsSize, int x) {
     if (total < x) return -1;
 
     /* sum of elements removed from both ends = x, equivalent to "the middle segment left behind has sum = total - x";
-       操作数最少 = 中间这一段最长。 */
+       the fewest operations means the longest such middle segment. */
     long long target = total - x;
     long long sum = 0;
     int left = 0, right = 0, best = -1;

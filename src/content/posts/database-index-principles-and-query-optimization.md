@@ -52,7 +52,7 @@ con = sqlite3.connect(":memory:")
 cur = con.cursor()
 cur.execute("""
 CREATE TABLE orders (
-  id INTEGER PRIMARY KEY,   -- SQLite 中即 rowid，相当于聚簇索引
+  id INTEGER PRIMARY KEY,   -- In SQLite this is the rowid, equivalent to a clustered index
   user_id INTEGER NOT NULL, status TEXT NOT NULL,
   amount INTEGER NOT NULL, created_at TEXT NOT NULL, note TEXT)
 """)

@@ -126,7 +126,7 @@ After the malicious code is activated:
 2. **Generate unique identifier**:
    ```
    SHA-256(mac + cpu + hostname + user + os)
-   ```
+```
 
 3. **Connect to C2 server**:
    Send a request to `apifox.it.com` to retrieve the second-stage malicious payload.

@@ -34,7 +34,7 @@ Point 2 is the only thing `og:*` and `JSON-LD` have in common: they both require
 The Open Graph protocol ([ogp.me](https://ogp.me/)) defines only **four required properties**:
 
 ```html
-<meta property="og:title" content="文章标题" />
+<meta property="og:title" content="Article title" />
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://example.com/og/cover.jpg" />
 <meta property="og:url" content="https://example.com/posts/foo" />
@@ -52,7 +52,7 @@ The rest—`og:description`, `og:site_name`, `og:locale`—are **recommended but
 <meta property="og:image" content="https://example.com/og/cover.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="示例封面：一张带标题图的蓝色卡片" />
+<meta property="og:image:alt" content="Sample cover: a blue card with a title image" />
 ```
 
 Declaring width and height serves to **save consumers from fetching the image again just to measure it**. This isn't a micro-optimization—card rendering typically has a timeout, and one fewer network round-trip could be the difference between an "image card" and a degraded "title + description only" form.
@@ -102,12 +102,12 @@ Open Graph consumes **raster images**. SVG is essentially unsupported, and WebP 
 Twitter Card tags look a lot like Open Graph, but there's one difference that's easy to overlook:
 
 ```html
-<meta property="og:title" content="文章标题" />
+<meta property="og:title" content="Article title" />
 
 <!--Note this is name, not property -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="文章标题" />
-<meta name="twitter:description" content="一行摘要" />
+<meta name="twitter:title" content="Article title" />
+<meta name="twitter:description" content="One-line summary" />
 <meta name="twitter:image" content="https://example.com/og/cover.jpg" />
 ```
 
@@ -228,7 +228,7 @@ import { Buffer } from 'node:buffer'
 
 const url = process.argv[2]
 if (!url) {
-  console.error('用法: node scripts/check-og.mjs <页面 URL>')
+  console.error('Usage: node scripts/check-og.mjs <page URL>')
   process.exit(2)
 }
 
@@ -265,7 +265,7 @@ async function measure(src) {
     }
     i += 2 + buf.readUInt16BE(i + 2)
   }
-  throw new Error('不是 PNG 或 JPEG')
+  throw new Error('Not PNG or JPEG')
 }
 
 const meta = parseMeta(html.slice(0, html.indexOf('</head>')))
@@ -274,13 +274,13 @@ const check = (ok, msg) => { if (!ok) fails.push(msg) }
 
 //1. Four required attributes
 for (const key of ['og:title', 'og:type', 'og:image', 'og:url']) {
-  check(meta.has(key), `缺少必填属性 ${key}`)
+  check(meta.has(key), `Missing required property ${key}`)
 }
 
 //2. Image and page URLs must be absolute
 for (const key of ['og:image', 'og:url']) {
   const value = meta.get(key)
-  if (value) check(/^https?:\/\//.test(value), `${key} 不是绝对 URL: ${value}`)
+  if (value) check(/^https?:\/\//.test(value), `${key} is not an absolute URL: ${value}`)
 }
 
 //3. The declared width and height must match the image's actual width and height
@@ -289,9 +289,9 @@ if (src && /^https?:/.test(src)) {
   const real = await measure(src)
   const w = meta.get('og:image:width')
   const h = meta.get('og:image:height')
-  if (w) check(Number(w) === real.width, `声明宽 ${w}，实测 ${real.width}`)
-  if (h) check(Number(h) === real.height, `声明高 ${h}，实测 ${real.height}`)
-  console.log(`og:image 实测 ${real.width}×${real.height}（声明 ${w ?? '—'}×${h ?? '—'}）`)
+  if (w) check(Number(w) === real.width, `Declared width ${w}, measured ${real.width}`)
+  if (h) check(Number(h) === real.height, `Declared height ${h}, measured ${real.height}`)
+  console.log(`og:image measured ${real.width}×${real.height} (declared ${w ?? '—'}×${h ?? '—'})`)
 }
 
 //4. The JSON-LD must be parseable and have all fields present
@@ -299,18 +299,18 @@ const ld = html.match(
   /<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/i,
 )?.[1]
 if (!ld) {
-  fails.push('页面里没有 JSON-LD')
+  fails.push('No JSON-LD in the page')
 } else {
   try {
     const data = JSON.parse(ld)
     const nodes = data['@graph'] ?? [data]
     const post = nodes.find((n) => /Article|BlogPosting/.test(n['@type'] ?? ''))
-    check(!!post, 'JSON-LD 里没有 Article/BlogPosting')
+    check(!!post, 'No Article/BlogPosting in the JSON-LD')
     for (const key of ['headline', 'datePublished', 'author', 'image']) {
-      check(post && post[key], `JSON-LD 缺少 ${key}`)
+      check(post && post[key], `JSON-LD missing ${key}`)
     }
   } catch (err) {
-    fails.push(`JSON-LD 不是合法 JSON：${err.message}`)
+    fails.push(`JSON-LD is not valid JSON: ${err.message}`)
   }
 }
 
@@ -318,7 +318,7 @@ if (fails.length) {
   for (const f of fails) console.error(`✗ ${f}`)
   process.exit(1)
 }
-console.log('✓ Open Graph 与结构化数据检查通过')
+console.log('✓ Open Graph and structured data checks passed')
 ```
 
 Item 3 is the most valuable part of the entire script. It turns all the earlier "should be consistent in theory" assumptions into a **real measurement**—you don't have to trust anyone's memory (including your own) about image dimensions.

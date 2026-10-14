@@ -131,9 +131,9 @@ The semantics here are worth unpacking: when closing, `display` flipping from `b
 Putting the four layers together gives you a complete popover driven by toggling a single class name:
 
 ```html
-<div class="toast" id="toast">已保存到草稿箱</div>
+<div class="toast" id="toast">Saved to drafts</div>
 <button onclick="document.getElementById('toast').classList.toggle('is-open')">
-  切换 Toast
+  Toggle Toast
 </button>
 ```
 

@@ -32,7 +32,7 @@ What's more ironic is that even with all this complexity, **it still can't 100% 
 Almost every front-end developer has fallen into this trap. You just want to use regex to extract the content inside `<div>` tags:
 
 ```javascript
-const html = '<div>第一层 <div>嵌套内容</div></div>'
+const html = '<div>First layer <div>Nested content</div></div>'
 const match = html.match(/<div>(.*)<\/div>/)
 console.log(match[1]) // "First layer <div> nested content" — unexpected!
 ```

@@ -47,7 +47,7 @@ Common values for `type`:
 A good commit message looks like this:
 
 ```bash
-git commit -m "fix(cache): 修复并发下 ETag 校验竞态导致 304 返回过期内容"
+git commit -m "fix(cache): fix race condition in ETag validation under concurrency causing 304 to return stale content"
 ```
 
 The body is used to explain **why** the change is being made, rather than restating the "what" that's already visible in the diff. For example:
@@ -110,7 +110,7 @@ Taking GitHub as an example, when merging a PR, choose **Squash and merge**, and
 ```bash
 git checkout main
 git merge --squash feature/awesome
-git commit -m "feat(user): 新增用户资料页与头像上传"
+git commit -m "feat(user): add user profile page and avatar upload"
 ```
 
 If you want more fine-grained control (keeping one or two independent commits, rewriting a certain commit message), use interactive rebase:

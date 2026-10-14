@@ -40,7 +40,7 @@ Metrics are cheap on the premise of **few dimensions**. They're cheap not becaus
 High-cardinality incidents in PostgreSQL almost always look like this:
 
 ```js
-// ❌ Disaster写法
+// ❌ Disaster approach
 const httpDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   labelNames: ['method', 'url', 'user_id', 'request_id'],
@@ -56,7 +56,7 @@ Do the math on how many time series this metric will produce: `method`(5) × `ur
 // ✅ Correct approach: route template instead of raw URL, keeping only bounded dimensions
 const httpDuration = new client.Histogram({
   name: 'http_server_request_duration_seconds',
-  help: 'HTTP 请求耗时（秒）',
+  help: 'HTTP request duration (seconds)',
   labelNames: ['method', 'route', 'status_code'], // route looks like /users/:id
   buckets: [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
 });
@@ -111,7 +111,7 @@ There's also a trap that takes effect silently: the environment variable `OTEL_T
 The problem with logs was never "nothing was recorded," but "it was recorded and still can't be used." A line assembled from concatenated strings:
 
 ```js
-console.log(`订单 ${orderId} 创建成功，耗时 ${ms}ms`);
+console.log(`Order ${orderId} created successfully, took ${ms}ms`);
 ```
 
 This log line can only be `grep`—it can't be `count by`, can't be `group by`, and can't jump to any trace.

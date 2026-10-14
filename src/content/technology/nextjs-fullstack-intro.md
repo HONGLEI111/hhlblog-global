@@ -151,7 +151,7 @@ export default function LikeButton() {
 
     return (
         <button onClick={() => setLikes(likes + 1)}>
-            ❤️ {likes} 赞
+            ❤️ {likes} likes
         </button>
     );
 }
@@ -228,7 +228,7 @@ export default async function UsersPage() {
     return (
         <table>
             <thead>
-                <tr><th>姓名</th><th>邮箱</th></tr>
+                <tr><th>Name</th><th>Email</th></tr>
             </thead>
             <tbody>
                 {users.map(user => (
@@ -281,7 +281,7 @@ export async function GET(
 
     if (!post) {
         return NextResponse.json(
-            { error: '文章不存在' },
+            { error: 'Article not found' },
             { status: 404 }
         );
     }
@@ -329,9 +329,9 @@ import { createPost } from '@/app/actions';
 export default function NewPostPage() {
     return (
         <form action={createPost}>
-            <input name="title" placeholder="标题" required />
-            <textarea name="content" placeholder="内容" required />
-            <button type="submit">发布</button>
+            <input name="title" placeholder="Title" required />
+            <textarea name="content" placeholder="Content" required />
+            <button type="submit">Publish</button>
         </form>
     );
 }
@@ -346,7 +346,7 @@ Next.js supports choosing rendering strategies at the page level:
 ```tsx
 //1. SSG (default) — generated at build time, never changes
 export default function AboutPage() {
-    return <div>关于我们</div>;
+    return <div>About Us</div>;
 }
 
 //2. ISR — generated at build time, refreshed on a schedule

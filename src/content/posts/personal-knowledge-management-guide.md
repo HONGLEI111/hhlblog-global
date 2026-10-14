@@ -66,7 +66,7 @@ ARCHIVE="$NOTES_DIR/1-archive"
 
 new() {
   mkdir -p "$INBOX"
-  local slug="${1:?用法: pkm new <英文slug>}"
+  local slug="${1:?Usage: pkm new <english-slug>}"
   local today
   today=$(date +%Y-%m-%d)
   local file="$INBOX/${today}-${slug}.md"
@@ -79,15 +79,15 @@ status: inbox
 ---
 
 ## Background
-为什么觉得这条信息有用？
+Why do you find this information useful?
 
 ## Key points
-用自己的话复述核心内容。
+Restate the core content in your own words.
 
 ## Next steps
-下次什么场景会用到它？
+In what scenario will you use it next time?
 EOF
-  echo "已创建: $file"
+  echo "Created: $file"
 }
 
 review() {
@@ -101,7 +101,7 @@ archive() {
   for f in "$INBOX"/*.md; do
     if grep -q 'status: done' "$f"; then
       mv "$f" "$ARCHIVE/"
-      echo "已归档: $(basename "$f")"
+      echo "Archived: $(basename "$f")"
     fi
   done
 }
