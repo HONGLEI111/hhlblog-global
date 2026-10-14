@@ -1,32 +1,30 @@
 ---
-title: CSS in JS 技术详解：从 styled-components 到 Panda CSS
+title: 'CSS in JS Explained: From styled-components to Panda CSS'
 published: 2026-05-26
-description: '深入探讨 CSS in JS 技术的发展历程、核心方案对比（styled-components、Emotion、Vanilla Extract、Panda CSS），以及编译时零运行时方案的优势与选型建议'
+description: A deep dive into the evolution of CSS in JS, comparing core approaches like styled-components, Emotion, Vanilla Extract, and Panda CSS, along with the advantages of zero-runtime compile-time solutions and guidance on choosing the right one.
 image: ''
-tags: [CSS, 前端, React]
-category: '前端'
+tags: [CSS, Frontend, React]
+category: Frontend
 draft: false
-lang: ''
 ---
+## What Is CSS in JS
 
-## 什么是 CSS in JS
+CSS in JS is a technical approach that involves writing CSS styles within JavaScript/TypeScript files. It allows developers to leverage the power of JavaScript to manage styles, enabling dynamic styling, theme switching, style isolation, and other features. Since Facebook's Christopher Chedeau introduced this concept at the NationJS conference in 2014, CSS in JS has become one of the mainstream choices in modern frontend development.
 
-CSS in JS 是一种将 CSS 样式编写在 JavaScript/TypeScript 文件中的技术方案。它允许开发者利用 JavaScript 的能力来管理样式，实现动态样式、主题切换、样式隔离等功能。自 2014 年 Facebook 的 Christopher Chedeau 在 NationJS 大会上提出这一概念以来，CSS in JS 已经成为现代前端开发的主流选择之一。
+## Evolution
 
-## 发展历程
+### First Generation: Runtime Approaches
 
-### 第一代：运行时方案
+The earliest CSS in JS libraries, such as **styled-components** and **Emotion**, used runtime approaches where styles were injected into the DOM at JavaScript runtime.
 
-最早期的 CSS in JS 库如 **styled-components** 和 **Emotion** 采用运行时方案，样式在 JavaScript 运行时被注入到 DOM 中。
+**Core Characteristics:**
 
-**核心特征：**
+- Styles are computed and injected at JS runtime
+- Styles are defined using template literals or object syntax
+- Support for dynamic styles based on props
+- Automatic handling of browser prefixes and keyframe animations
 
-- 样式在 JS 运行时计算和注入
-- 利用模板字面量或对象语法定义样式
-- 支持基于 props 的动态样式
-- 自动处理浏览器前缀和关键帧动画
-
-#### styled-components 示例
+#### styled-components Example
 
 ```jsx
 import styled from 'styled-components'
@@ -51,7 +49,7 @@ const Button = styled.button`
 <Button primary>提交</Button>
 ```
 
-#### Emotion (CSS Prop 方式)
+#### Emotion (CSS Prop Approach)
 
 ```jsx
 /** @jsxImportSource @emotion/react */
@@ -72,20 +70,20 @@ function App() {
 }
 ```
 
-### 第二代：编译时零运行时方案
+### Second Generation: Compile-Time Zero-Runtime Approaches
 
-随着性能要求的提升，**编译时零运行时** 的 CSS in JS 方案开始兴起。这类方案在构建阶段将样式提取为静态 CSS 文件，运行时不再执行 JavaScript 来生成样式。
+As performance requirements increased, **compile-time zero-runtime** CSS in JS solutions began to emerge. These approaches extract styles into static CSS files at build time, and no JavaScript is executed at runtime to generate styles.
 
-**核心优势：**
+**Core Advantages:**
 
-- 零运行时开销，打包体积更小
-- 样式在构建时提取为 .css 文件
-- 更好的 SSR 和 SSG 支持
-- 接近原生 CSS 的性能表现
+- Zero runtime overhead, smaller bundle size
+- Styles are extracted into .css files at build time
+- Better SSR and SSG support
+- Performance close to native CSS
 
 #### Vanilla Extract
 
-Vanilla Extract 在 TypeScript 中编写类型安全的样式，编译时生成静态 CSS：
+Vanilla Extract lets you write type-safe styles in TypeScript and generates static CSS at compile time:
 
 ```typescript
 // styles.css.ts
@@ -113,7 +111,7 @@ export const primary = style({
 
 #### Panda CSS
 
-Panda CSS 是目前最受欢迎的零运行时方案，提供了完整的类型安全和设计令牌系统：
+Panda CSS is currently the most popular zero-runtime solution, offering full type safety and a design token system:
 
 ```tsx
 import { css } from '../styled-system/css'
@@ -140,7 +138,7 @@ function App() {
 }
 ```
 
-Panda CSS 还可以配置设计令牌（Design Tokens），实现设计系统的一致化管理：
+Panda CSS can also be configured with Design Tokens to achieve consistent management of a design system:
 
 ```typescript
 // panda.config.ts
@@ -163,48 +161,48 @@ export default defineConfig({
 })
 ```
 
-## 主流方案对比
+## Comparison of Mainstream Solutions
 
-| 特性 | styled-components | Emotion | Vanilla Extract | Panda CSS |
+| Feature | styled-components | Emotion | Vanilla Extract | Panda CSS |
 |------|-------------------|---------|-----------------|-----------|
-| 运行方式 | 运行时 | 运行时 | 编译时 | 编译时 |
-| 打包体积 | ~14KB | ~8KB | 0 (运行时) | 0 (运行时) |
-| TypeScript 支持 | 中等 | 中等 | 完善 | 完善 |
-| 动态样式 | props | props / css prop | recipes | recipes / cva |
-| SSR 友好度 | 一般 | 较好 | 优秀 | 优秀 |
-| 学习成本 | 低 | 低 | 中 | 中 |
-| 生态成熟度 | 非常成熟 | 成熟 | 中等 | 快速发展 |
+| Runtime mode | Runtime | Runtime | Compile-time | Compile-time |
+| Bundle size | ~14KB | ~8KB | 0 (runtime) | 0 (runtime) |
+| TypeScript support | Moderate | Moderate | Complete | Complete |
+| Dynamic styles | props | props / css prop | recipes | recipes / cva |
+| SSR friendliness | Average | Good | Excellent | Excellent |
+| Learning curve | Low | Low | Medium | Medium |
+| Ecosystem maturity | Very mature | Mature | Medium | Rapidly growing |
 
-## 零运行时方案为什么更优
+## Why Zero-Runtime Approaches Are Better
 
-### 1. 性能提升
+### 1. Performance Improvement
 
-传统的运行时 CSS in JS 在组件渲染时需要计算样式哈希、插入样式标签，这些操作会消耗主线程时间。在大型应用中，这些开销会累积成明显的性能瓶颈。
+Traditional runtime CSS in JS requires computing style hashes and inserting style tags during component rendering, and these operations consume main thread time. In large applications, this overhead accumulates into a noticeable performance bottleneck.
 
-零运行时方案将这一过程移到了构建阶段，运行时直接使用预生成的 CSS 类名，配合浏览器的 CSS 解析引擎，性能更优。
+Zero-runtime approaches move this process to the build stage. At runtime, pre-generated CSS class names are used directly, working in conjunction with the browser's CSS parsing engine for better performance.
 
-### 2. 更好的 SSR 支持
+### 2. Better SSR Support
 
-运行时方案在服务端渲染时需要提取样式并注入到 HTML 中，这一过程需要额外的配置和处理。而零运行时方案生成的静态 CSS 文件可以直接通过 `<link>` 标签引入，SSR 的流程更加简洁自然。
+Runtime approaches require extracting styles and injecting them into HTML during server-side rendering, which demands additional configuration and handling. In contrast, the static CSS files generated by zero-runtime approaches can be included directly via `<link>` tags, making the SSR process simpler and more natural.
 
-### 3. 更小的打包体积
+### 3. Smaller Bundle Size
 
-零运行时方案去除了样式运行时的库代码，JavaScript bundle 体积显著减小。对于性能敏感的应用来说，这是一个重要的优势。
+Zero-runtime approaches eliminate the style runtime library code, significantly reducing the JavaScript bundle size. For performance-sensitive applications, this is an important advantage.
 
-### 4. 与 React Server Components 的良好兼容
+### 4. Good Compatibility with React Server Components
 
-React Server Components 在服务端渲染，不支持运行时 CSS in JS。零运行时方案天然兼容 RSC，是构建 Next.js 14+ 应用的理想选择。
+React Server Components render on the server and do not support runtime CSS in JS. Zero-runtime approaches are naturally compatible with RSC, making them the ideal choice for building Next.js 14+ applications.
 
-## 选型建议
+## Selection Recommendations
 
-- **快速迭代的小型项目**：styled-components 或 Emotion 上手快，生态丰富
-- **性能敏感的生产项目**：优先考虑 Vanilla Extract 或 Panda CSS
-- **使用 Next.js 14+ 或 RSC**：选择编译时零运行时方案
-- **需要完整设计系统**：Panda CSS 的设计令牌体系是最佳选择
-- **Tailwind 用户迁移**：Panda CSS 的原子化 CSS 模式更容易上手
+- **Small projects with rapid iteration**: styled-components or Emotion are quick to get started with and have rich ecosystems
+- **Performance-sensitive production projects**: Prioritize Vanilla Extract or Panda CSS
+- **Using Next.js 14+ or RSC**: Choose compile-time zero-runtime approaches
+- **Need a complete design system**: Panda CSS's design token system is the best choice
+- **Tailwind users migrating**: Panda CSS's atomic CSS pattern is easier to pick up
 
-## 总结
+## Summary
 
-CSS in JS 技术正在从运行时方案向编译时零运行时方案演进。如果你的项目对性能有较高要求，或者正在使用 React Server Components，强烈建议选择 Vanilla Extract 或 Panda CSS 这类编译时方案。它们保留了 TypeScript 类型安全和组件化样式的优势，同时消除了运行时的性能开销。
+CSS in JS technology is evolving from runtime approaches to compile-time zero-runtime approaches. If your project has high performance requirements, or if you are using React Server Components, it is strongly recommended to choose compile-time solutions like Vanilla Extract or Panda CSS. They retain the advantages of TypeScript type safety and componentized styles while eliminating runtime performance overhead.
 
-未来，随着浏览器原生 CSS 能力的不断增强（CSS Nesting、CSS Layers、CSS Container Queries），CSS in JS 的方案可能会进一步与平台特性融合，让 Web 样式开发变得更加高效和可控。
+In the future, as browser-native CSS capabilities continue to advance (CSS Nesting, CSS Layers, CSS Container Queries), CSS in JS solutions may further integrate with platform features, making web style development more efficient and controllable.

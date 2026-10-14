@@ -1,17 +1,15 @@
 ---
-title: 前端错误监控实战：从 window.onerror 到 Source Map 还原
+title: 'Frontend Error Monitoring in Practice: From window.onerror to Source Map Recovery'
 published: 2026-10-12
-description: '线上告警只有一行 app.9f2c1a.js:1:48213，而这一行是两百个函数压成的。这篇文章把错误监控拆成捕获、上传、还原三段：window.onerror 的五个参数与资源错误的捕获陷阱、unhandledrejection 里 reason 不一定是 Error、为什么生产环境该用 sourcemap: "hidden"，以及一段能直接跑的脚本，把压缩堆栈还原回源码行列。'
+description: 'A production alert gives you just one line: app.9f2c1a.js:1:48213, and that line is two hundred functions crammed together. This article breaks error monitoring into three stages—capture, upload, and recovery—covering the five parameters of window.onerror and the pitfalls of catching resource errors, why the reason in unhandledrejection isn''t always an Error, why production should use sourcemap: "hidden", and a ready-to-run script that maps a minified stack trace back to source file, line, and column.'
 image: ''
-tags: [错误监控, Source Map, Vite, 可观测性, 前端]
-category: '前端'
+tags: [Error Monitoring, Source Map, Vite, Observability, Frontend]
+category: Frontend
 draft: false
-lang: ''
 ---
+## 1. A production error gives you just one line of gibberish
 
-## 1. 线上报错只给你一行乱码
-
-一个典型的生产告警长这样：
+A typical production alert looks like this:
 
 ```
 TypeError: Cannot read properties of undefined (reading 'id')
@@ -19,19 +17,19 @@ TypeError: Cannot read properties of undefined (reading 'id')
     at HTMLButtonElement.<anonymous> (app.9f2c1a.js:1:52190)
 ```
 
-整个 `app.9f2c1a.js` 只有一行，第 48213 列。函数名是 `r`。这行信息里唯一确定的事情是「有地方炸了」。
+The entire `app.9f2c1a.js` is a single line, at column 48213. The function name is `r`. The only thing certain in this line of information is "something blew up somewhere."
 
-要把它变成「`src/report.ts` 第 87 行，`user.id` 可能是 undefined」，需要三段链路各自打通：
+To turn it into "`src/report.ts` line 87, `user.id` is probably undefined," you need three separate links in the chain to each work:
 
-1. **捕获**——错误发生了，页面怎么知道？
-2. **上报**——知道之后，怎么把现场（版本、环境、用户）带回来？
-3. **还原**——带回来的坐标是压缩后的，怎么换回源码位置？
+1. **Capture** — an error happened; how does the page know?
+2. **Report** — once it knows, how do you bring back the scene (version, environment, user)?
+3. **Restore** — the coordinates you brought back are minified; how do you map them back to source locations?
 
-任何一段断了，链路都等于不存在。而这三段各自都有非常经典的坑。
+If any one link breaks, the whole chain might as well not exist. And each of these three links has its own very classic pitfalls.
 
-## 2. 捕获：window.onerror 的五个参数
+## 2. Capture: the five parameters of window.onerror
 
-最古老的写法是给 `window.onerror` 赋值：
+The oldest approach is to assign to `window.onerror`:
 
 ```js
 // 五个参数，是历史遗留的不对称设计
@@ -41,7 +39,7 @@ window.onerror = (message, source, lineno, colno, error) => {
 };
 ```
 
-`window.onerror`（以及 Worker 里的同名属性）是**唯一一个能接收多个参数的事件处理属性**，其余 handler 都只收一个 event 对象。但更常见的写法是 `addEventListener`：
+`window.onerror` (and the property of the same name in Workers) is **the only event handler property that can receive multiple parameters**; all other handlers receive just a single event object. But the more common approach is `addEventListener`:
 
 ```js
 window.addEventListener('error', (event) => {
@@ -49,11 +47,11 @@ window.addEventListener('error', (event) => {
 });
 ```
 
-两种写法不对称，在同一个项目里混用很容易踩到「有的错误有 stack、有的没有」的幻觉。
+The two approaches are asymmetric, and mixing them in the same project easily leads to the illusion that "some errors have a stack and some don't."
 
-### 它默认收不到资源错误
+### By default it doesn't catch resource errors
 
-`<img>`、`<script>`、`<link>` 加载失败时浏览器同样派发 `error` 事件，但**它们是普通 `Event`，而且不冒泡**——挂在 `window` 上、走冒泡阶段的监听器永远等不到它们。要一起收，就得监听捕获阶段：
+When `<img>`, `<script>`, or `<link>` fail to load, the browser likewise dispatches an `error` event, but **they are ordinary `Event` and do not bubble** — a listener attached to `window` that goes through the bubbling phase will never see them. To catch them too, you have to listen during the capture phase:
 
 ```js
 window.addEventListener('error', (event) => {
@@ -71,21 +69,21 @@ window.addEventListener('error', (event) => {
 }, true); // ← capture: true，两类错误通吃
 ```
 
-判别方式是 `instanceof ErrorEvent`，而不是「`event.error` 存不存在」——后者在跨域脚本场景下是 `null`，会把运行时错误误判成资源错误。
+The way to tell them apart is `instanceof ErrorEvent`, not "whether `event.error` exists" — the latter is `null` in cross-origin script scenarios, which would misclassify runtime errors as resource errors.
 
-### "Script error." 是怎么来的
+### Where "Script error." comes from
 
-如果脚本来自别的域，且没带 `crossorigin` 属性、服务端也没回 CORS 头，浏览器会把错误细节全部抹掉，只留一句 `Script error.`——`message`、`lineno`、`stack` 全是空的。这是防跨域脚本把信息泄露给页面的既定行为。
+If a script comes from another domain and doesn't carry the `crossorigin` attribute, and the server doesn't return CORS headers either, the browser wipes out all error details and leaves only `Script error.` — `message`, `lineno`, `stack` are all empty. This is the established behavior for preventing cross-origin scripts from leaking information to the page.
 
 ```html
 <script src="https://cdn.example.com/vendor.js" crossorigin="anonymous"></script>
 ```
 
-CDN 那边要回 `Access-Control-Allow-Origin`。这一步不做，你收集到的跨域错误等于「确实出错了，但不知道是什么」。
+The CDN side needs to return `Access-Control-Allow-Origin`. If you don't do this step, the cross-origin errors you collect amount to "something did go wrong, but we don't know what."
 
-## 3. Promise 里的错误不在 onerror 里
+## 3. Errors inside Promises aren't in onerror
 
-`Promise` 的 rejection 不经过 `onerror`，走的是 `unhandledrejection`：
+A rejection from `Promise` doesn't go through `onerror`; it goes through `unhandledrejection`:
 
 ```js
 window.addEventListener('unhandledrejection', (event) => {
@@ -100,15 +98,15 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 ```
 
-`PromiseRejectionEvent` 有两个只读属性：`promise`（被 reject 的 Promise）和 `reason`（reject 的原因）。它**不冒泡、但可取消**，`preventDefault()` 会阻止运行时把它打到控制台。
+`PromiseRejectionEvent` has two read-only properties: `promise` (the rejected Promise) and `reason` (the reason for the rejection). It **doesn't bubble, but can be canceled** — `preventDefault()` prevents the runtime from printing it to the console.
 
-还有一个容易忽略的事实：**跨域脚本里产生的 rejection 不会触发这个事件**，原因和 "Script error." 一样——防泄露。所以第三方 SDK 内部自己吞掉的或未处理的 rejection，你大概率收不到，只能要求 SDK 在自己的边界上接住。
+There's another easily overlooked fact: **rejections produced inside cross-origin scripts won't trigger this event**, for the same reason as "Script error." — leak prevention. So rejections that a third-party SDK swallows internally or leaves unhandled are, in all likelihood, ones you won't receive; you can only require the SDK to catch them at its own boundary.
 
-工程上的做法是写一个统一入口，把这几类来源（运行时错误、资源错误、rejection，通常再加上框架的错误边界和 `console.error` 劫持）都 normalize 成同一种 payload，再交给上报层做批量、采样，以及页面卸载时用 `sendBeacon` 兜底——普通 `fetch` 在 `unload` 阶段会被打断。
+The engineering approach is to write a unified entry point that normalizes all these sources (runtime errors, resource errors, rejections, usually plus framework error boundaries and `console.error` hijacking) into the same kind of payload, then hand it to the reporting layer for batching, sampling, and using `sendBeacon` as a fallback when the page unloads — an ordinary `fetch` gets interrupted during the `unload` phase.
 
-## 4. 还原：Source Map 里到底存了什么
+## 4. Restore: what exactly is stored in a Source Map
 
-Source Map 本身是一个 JSON，v3 格式的字段不多：
+A Source Map is itself a JSON, and the v3 format doesn't have many fields:
 
 ```json
 {
@@ -121,33 +119,33 @@ Source Map 本身是一个 JSON，v3 格式的字段不多：
 }
 ```
 
-真正干活的是 `mappings`：一串 base64 VLQ 编码的“段”，每段描述「打包产物的第几列 → 原始文件的第几行第几列」。`sourcesContent` 是可选的，它把源码内联进 map——这样即使原始文件不能通过 URL 访问，也还能还原。
+The part that actually does the work is `mappings`: a string of base64 VLQ-encoded "segments," each describing "column N of the bundled output → line and column of the original file." `sourcesContent` is optional; it inlines the source code into the map — so that even if the original file can't be accessed via URL, it can still be restored.
 
-这份格式的正式标准是 **ECMA-426**（2024 年 12 月第 1 版），更早的 rev3 草案在 `tc39/source-map-spec`。它还定义了 **index map**：用 `sections` 数组、每项带 `offset` 和自己的 map，来表达 `vendor.js + app.js` 这类拼接产物。
+The formal standard for this format is **ECMA-426** (1st edition, December 2024); the earlier rev3 draft is at `tc39/source-map-spec`. It also defines the **index map**: using a `sections` array, each item carrying `offset` and its own map, to express concatenated outputs like `vendor.js + app.js`.
 
-产物怎么关联到 map？两种方式：
+How does the output get associated with the map? Two ways:
 
 ```
 SourceMap: /static/js/app.9f2c1a.js.map      ← HTTP 响应头
 //# sourceMappingURL=app.9f2c1a.js.map       ← 源码里的魔法注释
 ```
 
-注释前缀是 `//#` 而不是最初的 `//@`，因为 `//@` 和 IE 的条件编译指令（`//@cc_on`）撞了。CSS 里对应的是 `/*# sourceMappingURL=... */`。
+The comment prefix is `//#` rather than the original `//@`, because `//@` collided with IE's conditional compilation directive (`//@cc_on`). The CSS equivalent is `/*# sourceMappingURL=... */`.
 
-## 5. 构建配置：生产环境该用 sourcemap: "hidden"
+## 5. Build configuration: production should use sourcemap: "hidden"
 
-`sourceMappingURL` 注释是把双刃剑：浏览器看到它就会去拉 map，DevTools 里能直接看源码——**但任何访客也能照做，你的源码就等于公开了**。
+The `sourceMappingURL` comment is a double-edged sword: when the browser sees it, it goes and fetches the map, and you can view the source directly in DevTools — **but any visitor can do the same, which means your source code is effectively public**.
 
-Vite 的 `build.sourcemap` 有四个取值（默认 `false`）：
+Vite's `build.sourcemap` has four possible values (default `false`):
 
-| 值 | 产物 |
+| Value | Output |
 | --- | --- |
-| `false` | 不生成任何 map |
-| `true` | 生成 `.js.map`，并在产物里写入 `sourceMappingURL` 注释 |
-| `'inline'` | 把 map 作为 data URI 塞进 JS 文件本身 |
-| `'hidden'` | 生成 `.js.map`，但**不写注释** |
+| `false` | Generates no map at all |
+| `true` | Generates `.js.map` and writes a `sourceMappingURL` comment into the output |
+| `'inline'` | Embeds the map as a data URI directly into the JS file itself |
+| `'hidden'` | Generates `.js.map` but **writes no comment** |
 
-生产环境要的是 `'hidden'`：map 照样产出，但浏览器不会主动加载它，源码不对公网可见；监控平台上传完 map 之后，再把 `.map` 从发布产物里删掉。
+What production wants is `'hidden'`: the map is still produced, but the browser won't proactively load it, so the source code isn't visible to the public internet; after the monitoring platform has uploaded the map, delete `.map` from the release artifacts.
 
 ```js
 // vite.config.js
@@ -158,15 +156,14 @@ export default defineConfig({
 });
 ```
 
-`'inline'` 看着最省事，但引入了两个问题：产物体积随源码体积一起增长，而且 map 随 JS 一起发到浏览器——等于把源码一起发了。
+`'inline'` looks like the least hassle, but it introduces two problems: the artifact size grows along with the source code size, and the map is shipped to the browser together with the JS — which amounts to shipping the source code along with it.
 
 :::note
-`build.sourcemap` 只管 JS。CSS 的 map 由 `css.sourcemap` 单独控制，别指望设一个就全都有了。
+`build.sourcemap` only governs JS. The CSS map is controlled separately by `css.sourcemap`; don't expect that setting one gives you everything.
 :::
+## 6. Restoring a minified stack to source locations
 
-## 6. 把压缩堆栈还原成源码位置
-
-用 `@jridgewell/trace-mapping` 可以从 map 里反查原始坐标：
+Use `@jridgewell/trace-mapping` to look up the original coordinates from the map:
 
 ```js
 // restore-stack.mjs
@@ -199,34 +196,34 @@ export function restore(stack) {
 }
 ```
 
-还原上面那条告警，会得到：
+Restoring the alert above gives you:
 
 ```
     at report (src/report.ts:87:12)
     at HTMLButtonElement.<anonymous> (src/user-card.ts:203:9)
 ```
 
-两个必须注意的点：
+Two things you must pay attention to:
 
-1. **行 / 列的 1-based 与 0-based 转换。** `originalPositionFor` 的约定是「行从 1 开始，列从 0 开始」，而 V8 堆栈里的行列都是 1-based。所以列要减 1、行不能减。少减或多减 1，你会落到相邻的 token 上——位置看起来「差不多对」，实际指向的是另一个函数调用，比直接报错更难发现。
-2. **函数名要从 `names` 里取。** 压缩后的 `fn` 常常是 `r`、`n` 这类单字母；map 的每个段里带着原始标识符，`originalPositionFor` 返回的 `pos.name` 就是从 `names` 里查出来的原名，有值时优先用它。
+1. **1-based vs. 0-based conversion for line/column.** `originalPositionFor`'s convention is "lines start at 1, columns start at 0," while both line and column in a V8 stack are 1-based. So subtract 1 from the column, but not from the line. Subtract one too few or one too many and you'll land on an adjacent token—the location looks "roughly right" but actually points to a different function call, which is harder to spot than a plain error.
+2. **Get the function name from `names`.** Minified `fn` is often a single letter like `r` or `n`; each segment in the map carries the original identifier, and the `pos.name` returned by `originalPositionFor` is the original name looked up from `names`—use it when present.
 
 :::note
-本地临时排查也可以直接用 Chrome DevTools：**Sources 面板 → 右键压缩后的文件 → Add source map**，手动挂上 `.map`，效果一样，只是没法批量。
+For quick local debugging you can also just use Chrome DevTools: **Sources panel → right-click the minified file → Add source map**, manually attach `.map`, and the effect is the same—just not batchable.
 :::
 
-## 7. 让还原真正生效的两个细节
+## 7. Two details that make restoration actually work
 
-**上传要早于错误发生。** 监控平台不会回头重新处理旧事件，map 必须在错误上报之前就已经在那边了。
+**Upload must happen before the error occurs.** Monitoring platforms won't go back and reprocess old events; the map must already be there before the error is reported.
 
-**身份要对得上。** 事件携带的 release 与上传时用的 release 不一致，匹配就失败。较新的做法是用 **Debug ID**：构建后先往产物和 map 里注入同一个 ID，再整体上传，然后部署**注入后**的产物。这样匹配不再依赖文件路径和 release 名——CDN 换路径、文件名带 hash 都不影响。
+**The identity must match.** If the release carried by the event doesn't match the release used at upload time, matching fails. The newer approach is to use a **Debug ID**: after building, inject the same ID into both the artifacts and the map, upload them together, then deploy the **post-injection** artifacts. This way matching no longer depends on file paths and release names—CDN path changes and hashed filenames don't matter.
 
 ```bash
 sentry-cli sourcemaps inject ./dist
 sentry-cli sourcemaps upload ./dist   # 然后部署 inject 后的 ./dist，并删掉其中的 .map
 ```
 
-注入之后，压缩文件尾部的注释长这样，顺序是固定的：
+After injection, the comment at the end of the minified file looks like this, in a fixed order:
 
 ```js
 //# debugId=2e5a1c...e1
@@ -234,32 +231,32 @@ sentry-cli sourcemaps upload ./dist   # 然后部署 inject 后的 ./dist，并�
 ```
 
 :::warning
-部分 CDN 的自动压缩功能（例如 Cloudflare 的 Auto-Minify）会剥掉 JS 里的注释，`sourceMappingURL` 和 `debugId` 会一起消失，堆栈就再也还原不出来了。上线后 `curl` 一下产物尾部确认注释还在，比事后排查便宜得多。
+Some CDNs' auto-minify features (e.g., Cloudflare's Auto-Minify) strip comments from JS, so `sourceMappingURL` and `debugId` disappear together and the stack can never be restored again. After going live, `curl` the tail of the artifact to confirm the comment is still there—far cheaper than troubleshooting after the fact.
 :::
 
-## 8. 上线前检查清单
+## 8. Pre-launch checklist
 
-- [ ] 同步错误走 `addEventListener('error', handler, true)`（捕获阶段），运行时错误与资源错误分别处理
-- [ ] `unhandledrejection` 有监听，且对 `reason` 不是 `Error` 的情况做了兜底
-- [ ] 跨域脚本带 `crossorigin="anonymous"`，CDN 返回了 `Access-Control-Allow-Origin`
-- [ ] 生产构建用 `sourcemap: 'hidden'`，`.map` 不发布到公网（或上传后删除）
-- [ ] map 上传早于发版；匹配用 Debug ID，而不是路径 + release
-- [ ] iframe 内的错误单独挂监听——iframe 是独立浏览上下文，父窗口的 `error` 事件收不到它
+- [ ] Sync errors go through `addEventListener('error', handler, true)` (capture phase); runtime errors and resource errors are handled separately
+- [ ] `unhandledrejection` has a listener, and there's a fallback for when `reason` isn't `Error`
+- [ ] Cross-origin scripts carry `crossorigin="anonymous"`, and the CDN returns `Access-Control-Allow-Origin`
+- [ ] Production builds use `sourcemap: 'hidden'`, and `.map` isn't published publicly (or is deleted after upload)
+- [ ] Maps are uploaded before release; matching uses Debug ID, not path + release
+- [ ] Errors inside iframes get their own listener—an iframe is a separate browsing context, and the parent window's `error` event won't catch it
 
-## 结语
+## Conclusion
 
-错误监控的质量由链路里最弱的一环决定：**捕获漏了 Promise，你的错误量就少一大截，图表看着很健康；map 没上传，你的堆栈就只有一行乱码，所有报错看起来都长一样。** 这两件事都不难，难的是把它们当成一个完整链路去验证。
+The quality of error monitoring is determined by the weakest link in the chain: **miss Promise capture and your error count drops sharply, making the charts look perfectly healthy; fail to upload the map and your stack is just a line of gibberish, making every error look the same.** Neither of these is hard; what's hard is validating them as one complete chain.
 
-最有效的验收方式是发一版**故意抛错的测试版本**：页面加载时抛一个同步错误、`Promise.reject` 一个字符串、再引一个 404 的图片，然后从浏览器端一路跟到监控后台，看三条错误是否都到了、堆栈是否能正确定位到 `src/` 里的某一行。跟通一次，后面就稳了。
+The most effective way to verify is to ship a **test version that deliberately throws errors**: throw a sync error on page load, `Promise.reject` a string, and reference a 404 image, then follow it from the browser all the way to the monitoring backend, checking whether all three errors arrive and whether the stack correctly points to a line in `src/`. Get it right once and it'll be solid from then on.
 
 ---
 
-## 参考来源
+## References
 
 - [MDN - Window: error event](https://developer.mozilla.org/en-US/docs/Web/API/Window/error_event)
 - [MDN - Window: unhandledrejection event](https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event)
 - [ECMA-426 Source map format specification](https://tc39.es/ecma426/)
-- [Vite - Build Options（build.sourcemap）](https://vite.dev/config/build-options)
+- [Vite - Build Options (build.sourcemap)](https://vite.dev/config/build-options)
 - [Sentry Docs - JavaScript Source Maps](https://docs.sentry.io/platforms/javascript/sourcemaps/)
 - [Sentry Docs - Troubleshooting Source Maps](https://docs.sentry.io/platforms/javascript/sourcemaps/troubleshooting_js/)
 - [npm - @jridgewell/trace-mapping](https://www.npmjs.com/package/@jridgewell/trace-mapping)

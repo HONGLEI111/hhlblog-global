@@ -1,19 +1,17 @@
 ---
-title: CSS 容器查询实战：让组件根据自身尺寸响应式布局
+title: 'CSS Container Queries in Practice: Making Components Responsive to Their Own Size'
 published: 2026-08-31
-description: '告别「只能看视口」的媒体查询——用 container-type 与 @container 让卡片、侧边栏等组件根据自身容器宽度自适应，附完整代码示例与常见陷阱。'
+description: Move beyond viewport-only media queries—use container-type and @container to let cards, sidebars, and other components adapt to their own container width, with complete code examples and common pitfalls.
 image: ''
-tags: [CSS, 容器查询, 响应式设计, 前端]
-category: '前端'
+tags: [CSS, Container Queries, Responsive Design, Frontend]
+category: Frontend
 draft: false
-lang: ''
 ---
+## Introduction: A Long-Standing Problem with Media Queries
 
-## 引言：媒体查询的一个老问题
+For over a decade since the birth of responsive design, `@media` has been our only weapon. But it has a structural limitation: **media queries can only perceive the viewport, not the size of the container in which a component itself resides**.
 
-响应式设计诞生十多年来，`@media` 一直是我们唯一的武器。但它有一个结构性局限：**媒体查询只能感知视口（viewport），无法感知组件自身所处容器的大小**。
-
-想象一个典型的场景：你写了一个「产品卡片」组件，宽度 300px 时应该竖向堆叠、600px 时应该横向排布。你用媒体查询写了：
+Imagine a typical scenario: you've written a "product card" component that should stack vertically at 300px width and lay out horizontally at 600px. You wrote it with media queries:
 
 ```css
 @media (min-width: 768px) {
@@ -21,15 +19,15 @@ lang: ''
 }
 ```
 
-这在小屏幕整页铺开时没问题。可一旦这个卡片被塞进一个 300px 宽的侧边栏里——即便视口有 1200px 宽——它依然会「误以为」自己是横向布局，把图片和文字挤成一团。
+This works fine when the full page spreads out on a small screen. But once this card is placed inside a 300px-wide sidebar—even if the viewport is 1200px wide—it will still "mistakenly believe" it should be in a horizontal layout, squeezing the image and text into a mess.
 
-问题的本质是：**组件的布局取决于它自己的宽度，而不是整个屏幕的宽度**。CSS 容器查询（Container Queries）正是为解决这个问题而生。
+The essence of the problem is: **a component's layout depends on its own width, not the width of the entire screen**. CSS Container Queries were created precisely to solve this problem.
 
-## 1. 核心概念：把「查询对象」从视口换成容器
+## 1. Core Concept: Changing the "Query Target" from the Viewport to a Container
 
-容器查询的用法分两步：先声明哪个元素是「查询容器」，再写针对它的查询规则。
+Using container queries involves two steps: first declare which element is the "query container," then write query rules targeting it.
 
-**第一步：用 `container-type` 声明查询容器**
+**Step 1: Declare a query container with `container-type`**
 
 ```css
 .sidebar {
@@ -38,7 +36,7 @@ lang: ''
 }
 ```
 
-**第二步：用 `@container` 针对容器写规则**
+**Step 2: Write rules targeting the container with `@container`**
 
 ```css
 @container (min-width: 400px) {
@@ -49,21 +47,21 @@ lang: ''
 }
 ```
 
-这条规则读作：「当 `.sidebar` 这个容器的宽度 ≥ 400px 时，把它内部的卡片改为横向布局」。注意这里判断的是**容器宽度**，视口有多宽已经无关紧要了。
+This rule reads: "When the container `.sidebar` is ≥ 400px wide, change the card inside it to a horizontal layout." Note that what's being evaluated here is the **container width**—how wide the viewport is no longer matters.
 
-`container-type` 的取值主要有三个：
+`container-type` has three main values:
 
-| 值 | 含义 | 适用场景 |
+| Value | Meaning | Use Case |
 |----|------|---------|
-| `inline-size` | 只跟踪行内方向（宽度），**不会破坏元素自身的高度计算** | 绝大多数场景，首选 |
-| `size` | 同时跟踪宽度和高度 | 需要 `@container (min-height: …)` 时 |
-| `normal` | 不建立尺寸查询容器，但可参与样式查询 | 只需要 `style()` 查询时 |
+| `inline-size` | Only tracks the inline direction (width), **does not break the element's own height calculation** | Most scenarios, preferred choice |
+| `size` | Tracks both width and height | When `@container (min-height: …)` is needed |
+| `normal` | Does not establish a size query container, but can participate in style queries | When only `style()` queries are needed |
 
-其中 `size` 有一个容易踩的坑：**当你声明 `container-type: size` 时，浏览器会把这个容器的高度视为「未知」，除非你显式指定了高度**。否则会陷入「高度取决于内容 → 内容取决于查询 → 查询取决于高度」的循环依赖。所以日常使用请默认 `inline-size`，只有确实要查高度时才用 `size` 并记得给容器一个确定高度。
+Among these, `size` has an easy pitfall: **when you declare `container-type: size`, the browser treats the container's height as "unknown" unless you explicitly specify a height**. Otherwise, you fall into a circular dependency: "height depends on content → content depends on query → query depends on height." So for everyday use, default to `inline-size`; only use `size` when you genuinely need to query height, and remember to give the container a definite height.
 
-## 2. 完整示例：一个自适应卡片
+## 2. Complete Example: An Adaptive Card
 
-下面这个例子不用任何媒体查询，就能让卡片在「窄容器里竖排、宽容器里横排」。
+The following example uses no media queries at all, yet lets the card "stack vertically in narrow containers and lay out horizontally in wide containers."
 
 ```html
 <div class="card">
@@ -109,11 +107,11 @@ lang: ''
 }
 ```
 
-现在把这个卡片放到任何地方——全宽的页面主栏、350px 的侧边栏、甚至是另一个网格单元里——它都会自动选择正确的形态，无需为每个父容器重复写媒体查询。
+Now place this card anywhere—a full-width main column, a 350px sidebar, or even another grid cell—and it will automatically choose the correct form, with no need to write media queries repeatedly for each parent container.
 
-## 3. 命名容器：让查询更精准
+## 3. Named Containers: Making Queries More Precise
 
-当一个元素同时被多个容器包裹时，`@container` 默认匹配**最近的**查询容器。如果层级复杂，可以用 `container-name` 给容器命名，查询时指定名字：
+When an element is wrapped by multiple containers simultaneously, `@container` by default matches the **nearest** query container. If the hierarchy is complex, you can name containers with `container-name` and specify the name when querying:
 
 ```css
 .main-content {
@@ -132,7 +130,7 @@ lang: ''
 }
 ```
 
-`container-name` 和 `container-type` 可以用 `container` 简写属性合并：
+`container-name` and `container-type` can be combined using the `container` shorthand property:
 
 ```css
 .sidebar {
@@ -140,21 +138,21 @@ lang: ''
 }
 ```
 
-## 4. 容器查询长度单位：cqw / cqi
+## 4. Container Query Length Units: cqw / cqi
 
-除了条件查询，容器查询还带来了一组全新的长度单位，它们是**相对于容器尺寸**的：
+Beyond conditional queries, container queries also introduce a whole new set of length units that are **relative to the container's size**:
 
-| 单位 | 含义 |
+| Unit | Meaning |
 |------|------|
-| `cqw` | 容器宽度的 1% |
-| `cqh` | 容器高度的 1% |
-| `cqi` | 容器行内方向尺寸的 1% |
-| `cqb` | 容器块级方向尺寸的 1% |
-| `cqmin` / `cqmax` | 容器较小 / 较大一边的 1% |
+| `cqw` | 1% of the container's width |
+| `cqh` | 1% of the container's height |
+| `cqi` | 1% of the container's inline-direction size |
+| `cqb` | 1% of the container's block-direction size |
+| `cqmin` / `cqmax` | 1% of the container's smaller / larger side |
 
-（横向书写模式下，`cqi` 等于 `cqw`、`cqb` 等于 `cqh`；竖向书写模式下则互换。所以写国际化布局时优先用 `cqi`/`cqb` 更稳妥。）
+(In horizontal writing mode, `cqi` equals `cqw` and `cqb` equals `cqh`; in vertical writing mode, they swap. So when writing internationalized layouts, it's safer to prefer `cqi`/`cqb`.)
 
-一个经典用法是**让字号随容器缩放**，实现「真正的流式排版」——比媒体查询的字号阶梯更平滑：
+A classic use is **letting font size scale with the container**, achieving "truly fluid typography"—smoother than media query font-size steps:
 
 ```css
 .article {
@@ -167,23 +165,23 @@ lang: ''
 }
 ```
 
-`clamp()` 保证字号被限制在 `1.25rem` 到 `2.5rem` 之间，中间的区间则由 `6cqi` 连续驱动。这和过去用 `clamp(…, 5vw, …)` 的差别在于：`vw` 跟的是视口，`cqi` 跟的是**文字所在的那一栏**——当你的文章栏只有视口的一半宽时，用 `vw` 字就会过大。
+`clamp()` ensures the font size is clamped between `1.25rem` and `2.5rem`, while the middle range is continuously driven by `6cqi`. The difference from using `clamp(…, 5vw, …)` in the past is: `vw` follows the viewport, while `cqi` follows **the column where the text actually lives**—when your article column is only half the viewport width, using `vw` would make the text too large.
 
-## 5. 常见陷阱
+## 5. Common Pitfalls
 
-1. **容器不能查询自己**：`@container` 规则不能作用在声明为容器的那一个元素本身上，只能作用在它的**后代**上。想查自身，需要把它再包一层。
+1. **A container cannot query itself**: `@container` rules cannot apply to the very element declared as the container—only to its **descendants**. To query itself, you need to wrap it in another layer.
 
-2. **`container-type: size` 的高度塌陷**：前面提过，`size` 会让高度变成「由内容决定」的未知量，必须显式设置高度（如 `height: 100%` 或固定值）才能正常工作。
+2. **Height collapse with `container-type: size`**: As mentioned earlier, `size` makes height an unknown quantity "determined by content," and you must explicitly set a height (such as `height: 100%` or a fixed value) for it to work properly.
 
-3. **不要给容器设 `inline-size` 属性**：给一个 `container-type: inline-size` 的元素同时设置 `width` 是可以的，但若设置的是 `inline-size`（逻辑属性）要格外小心——容器查询本身依赖 inline-size 的测量，自引用会导致行为不符合预期。日常避免在容器上混用即可。
+3. **Don't set the `inline-size` property on a container**: Setting `width` on an element that is `container-type: inline-size` is fine, but if you're setting `inline-size` (a logical property), be extra careful—container queries themselves rely on inline-size measurement, and self-reference leads to unexpected behavior. Just avoid mixing them on containers in everyday use.
 
-4. **性能**：每个查询容器都会产生额外的布局测量开销。虽然现代浏览器已做了优化，但没必要把每个 `div` 都设成容器——只在真正需要自适应的组件根节点上声明即可。
+4. **Performance**: Each query container incurs additional layout measurement overhead. Although modern browsers have optimized this, there's no need to make every `div` a container—only declare it on the root node of components that genuinely need to adapt.
 
-5. **`style()` 查询**：除了尺寸，还可以用 `style()` 查询自定义属性值（例如 `@container style(--theme: dark) {}`）。它属于容器查询的进阶分支，浏览器支持相对较晚（Safari 较迟支持），用于主题切换时需做好降级。
+5. **`style()` queries**: Beyond size, you can also use `style()` to query custom property values (e.g., `@container style(--theme: dark) {}`). This is an advanced branch of container queries, with relatively late browser support (Safari was slow to support it), so be sure to provide fallbacks when using it for theme switching.
 
-## 6. 兼容性与渐进增强
+## 6. Compatibility and Progressive Enhancement
 
-容器查询目前已是 **Baseline（2024 年 3 月起 widely available）**，主流浏览器全部支持：Chrome 105+、Edge 105+、Safari 16+、Firefox 110+。对于仍需照顾的老旧浏览器，可以用 `@supports` 做特性检测，提供回退：
+Container queries are now **Baseline (widely available since March 2024)**, supported by all major browsers: Chrome 105+, Edge 105+, Safari 16+, Firefox 110+. For older browsers that still need accommodating, you can use `@supports` for feature detection and provide a fallback:
 
 ```css
 /* 回退：所有浏览器都读得到 */
@@ -200,17 +198,16 @@ lang: ''
 }
 ```
 
-## 结语
+## Conclusion
 
-容器查询补上了响应式设计缺失已久的一块拼图：**把「响应什么」的控制权，从视口交还给组件自身**。它的到来并不意味着媒体查询退役——页面级的整体布局（栅格、导航折叠）依然适合用 `@media` 看视口，而**组件内部**的形态变化则交给 `@container` 看容器。二者分工，各司其职。
+Container queries fill in a long-missing piece of the responsive design puzzle: **returning control over "what to respond to" from the viewport back to the component itself**. Their arrival doesn't mean media queries are retiring—page-level overall layout (grids, navigation collapsing) is still best handled with `@media` looking at the viewport, while **intra-component** form changes are left to `@container` looking at the container. The two divide the work, each playing its role.
 
-下次再遇到「组件复用在不同容器里布局错乱」的问题，试试给组件加一行 `container-type: inline-size`，你会感受到那种「组件真正可移植」的自由。
+Next time you run into the problem of "a component's layout breaking when reused in different containers," try adding a line of `container-type: inline-size` to the component—you'll feel that freedom of "components being truly portable."
 
 ---
-
-## 参考来源
+## References
 
 - [MDN - CSS Container Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries)
-- [web.dev - Container queries land in stable browsers（Una Kravets）](https://web.dev/articles/cq-stable)
+- [web.dev - Container queries land in stable browsers (Una Kravets)](https://web.dev/articles/cq-stable)
 - [Can I use - CSS Container Queries](https://caniuse.com/css-container-queries)
 - [MDN - Container query length units](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries#container_query_length_units)

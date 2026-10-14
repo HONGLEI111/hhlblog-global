@@ -1,21 +1,19 @@
 ---
-title: Prompt Engineering 进阶：从零样本到思维链
+title: 'Advanced Prompt Engineering: From Zero-Shot to Chain-of-Thought'
 published: 2026-09-10
-description: '零样本、少样本、思维链、自洽性到 ReAct——把「提示词技巧」还原成可复现的四层递进方法，附完整代码'
+description: Zero-shot, few-shot, chain-of-thought, self-consistency, and ReAct — reframing "prompting tricks" into a reproducible four-level progression, with complete code.
 image: ''
-tags: [Prompt Engineering, CoT, LLM, 思维链]
+tags: [Prompt Engineering, CoT, LLM, Chain-of-Thought]
 category: 'AI'
 draft: false
-lang: ''
 ---
+Many people's impression of Prompt Engineering stops at "add a sentence saying 'please think step by step'." That sentence is indeed useful, but if it's the only trick you know, you're missing the real structure behind it: **tasks of different difficulty require reasoning scaffolds of different strength**. Use the wrong one, and at best you waste tokens; at worst, you make a simple task perform worse.
 
-很多人对 Prompt Engineering 的印象停留在「加一句『请一步步思考』」。这句话确实有用，但如果你只会这一招，就错过了它背后真正的结构：**不同难度的任务，需要不同强度的推理脚手架**。用错了，轻则浪费 token，重则让简单任务反而变差。
+This article breaks the advanced path of prompting into four layers—zero-shot, few-shot, chain-of-thought, and self-consistency—then adds a fifth layer, ReAct, explaining what problem each layer solves, when to use it, and when it actually becomes negative optimization. All code is based on the Anthropic SDK and can be run directly.
 
-这篇文章把 prompt 的进阶路径拆成四层——零样本、少样本、思维链、自洽性——再补上一层 ReAct，说明每一层解决什么问题、什么时候该用、什么时候反而是负优化。所有代码基于 Anthropic SDK，可直接运行。
+## 1. Zero-shot
 
-## 第一层：零样本（Zero-shot）
-
-零样本就是不提供任何示例，直接把任务描述丢给模型：
+Zero-shot means providing no examples at all and simply throwing the task description at the model:
 
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
@@ -37,13 +35,13 @@ async function zeroShot(review: string) {
 }
 ```
 
-对分类、改写、抽取这类「模型在预训练中见过无数次」的任务，零样本往往就够了。它的优势是省 token、响应快、没有示例带来的偏见。
+For tasks like classification, rewriting, and extraction—things the model has seen countless times during pretraining—zero-shot is often enough. Its advantages are saving tokens, fast responses, and no bias introduced by examples.
 
-**但零样本有两个硬边界**：一是**格式不可控**——你让它输出 JSON，它可能给你一段 markdown 包着的 JSON，还附赠一句「好的，这是您要的结果」；二是**复杂推理会崩**——多步数学题、需要组合多个约束的逻辑题，模型容易在中途「跳步」然后给出看似合理其实错误的答案。这两点分别由第二层和第三层解决。
+**But zero-shot has two hard boundaries**: first, **format is uncontrollable**—you ask it to output JSON, and it might give you JSON wrapped in markdown, plus a bonus sentence like "Sure, here's the result you asked for"; second, **complex reasoning collapses**—for multi-step math problems or logic problems that require combining multiple constraints, the model tends to "skip steps" midway and then give an answer that looks reasonable but is actually wrong. These two problems are solved by the second and third layers, respectively.
 
-## 第二层：少样本（Few-shot）——用示例锚定格式
+## 2. Few-shot—using examples to anchor the format
 
-少样本的本质不是「教模型做事」，而是**用示例定义输出契约**。模型从示例里学到的往往不是知识，而是：字段叫什么、边界情况怎么处理、语气是正式还是随意。
+The essence of few-shot is not "teaching the model to do the task," but **using examples to define the output contract**. What the model learns from examples is often not knowledge, but: what the fields are called, how edge cases are handled, and whether the tone is formal or casual.
 
 ```typescript
 const examples = [
@@ -60,19 +58,19 @@ function buildFewShotPrompt(review: string) {
 }
 ```
 
-这里有三个容易被忽视的细节：
+There are three details here that are easy to overlook:
 
-- **示例要「多样」而非「相似」**。三个都是负面示例，模型会倾向于把所有输入判成负面。理想情况下示例应覆盖每个类别和典型边界情况。
-- **示例顺序会影响结果**。研究表明模型对最后一个示例（recency）和第一个示例（primacy）更敏感。如果你的示例顺序固定而效果不稳定，可以尝试调整顺序做一次 A/B。
-- **示例数量存在收益递减**。通常 3–5 个就能定义清楚格式，继续堆到 20 个既贵又可能引入噪声。
+- **Examples should be "diverse" rather than "similar."** If all three are negative examples, the model will tend to classify every input as negative. Ideally, examples should cover every category and typical edge cases.
+- **Example order affects the result.** Research shows that models are more sensitive to the last example (recency) and the first example (primacy). If your example order is fixed but performance is unstable, try adjusting the order and running an A/B test.
+- **The number of examples has diminishing returns.** Usually 3–5 is enough to define the format clearly; piling on up to 20 is both expensive and may introduce noise.
 
-一句话总结：**少样本管「怎么说」，不管「怎么想」**。
+In one sentence: **few-shot governs "how to say it," not "how to think."**
 
-## 第三层：思维链（Chain-of-Thought）——让模型先推理再回答
+## 3. Chain-of-Thought—let the model reason first, then answer
 
-思维链（CoT）来自 Wei 等人 2022 年的工作：在少样本示例里不仅给出答案，还给出**中间推理步骤**，模型就会模仿这种「先推导后结论」的模式，在算术、常识、符号推理任务上大幅提升准确率。关键结论是——**这种能力在足够大的模型上才涌现**，对小模型反而可能无益。
+Chain-of-Thought (CoT) comes from the 2022 work by Wei et al.: in few-shot examples, you not only give the answer but also the **intermediate reasoning steps**, and the model imitates this "derive first, conclude later" pattern, greatly improving accuracy on arithmetic, commonsense, and symbolic reasoning tasks. The key conclusion is that **this ability only emerges in sufficiently large models**, and may actually be unhelpful for small models.
 
-CoT 有两种形态。**少样本 CoT** 是示例里带推理过程；**零样本 CoT** 则只需在问题后加一句「Let's think step by step」，由 Kojima 等人提出，简单到离谱却有效。
+CoT has two forms. **Few-shot CoT** includes reasoning processes in the examples; **zero-shot CoT** simply adds "Let's think step by step" after the question, proposed by Kojima et al., absurdly simple yet effective.
 
 ```typescript
 async function cotAnswer(question: string) {
@@ -92,13 +90,13 @@ async function cotAnswer(question: string) {
 }
 ```
 
-注意提示里的两个设计：**要求写出推理过程**，并**规定最终答案的格式**。前者触发推理，后者让你能用正则稳定地抽取结果——这正是零样本做不到的格式控制。
+Note the two design choices in the prompt: **require the reasoning process to be written out**, and **specify the format of the final answer**. The former triggers reasoning; the latter lets you stably extract the result with regex—this is exactly the format control that zero-shot cannot achieve.
 
-**什么时候不该用 CoT**：对于情感分类、信息抽取、格式转换这类「一步就能得到答案」的任务，强行让它「一步步思考」会引入两个问题——一是成本上升（输出 token 可能翻几倍），二是**模型可能在推理中「想多了」**，把自己绕进错误结论。这也是「加一句请一步步思考」被滥用的地方。
+**When not to use CoT**: for tasks like sentiment classification, information extraction, and format conversion—where "the answer can be obtained in one step"—forcing it to "think step by step" introduces two problems: first, higher cost (output tokens may multiply several times); second, **the model may "overthink" during reasoning** and talk itself into a wrong conclusion. This is also where "add a sentence saying please think step by step" gets overused.
 
-## 第四层：自洽性（Self-Consistency）——多路采样取多数
+## 4. Self-Consistency—sample multiple paths and take the majority
 
-单条思维链仍然可能走错路。Wang 等人提出的**自洽性**思路很朴素：**同一个问题采样多条推理路径，取出现次数最多的答案**。它的核心假设是——正确的推理路径可能有很多条，但错误答案往往各自为政、难以重复。
+A single chain of thought can still go down the wrong path. The **self-consistency** idea proposed by Wang et al. is very simple: **sample multiple reasoning paths for the same question and take the answer that appears most often**. Its core assumption is that there may be many correct reasoning paths, but wrong answers tend to be scattered and hard to repeat.
 
 ```typescript
 function extractAnswer(text: string): string {
@@ -121,11 +119,11 @@ async function selfConsistent(question: string, samples = 5) {
 }
 ```
 
-两个实现要点：**必须让温度大于 0**（`temperature` 为 0 时多次采样结果几乎相同，自洽性失效），以及**样本数要取奇数**以避免平票。代价是成本乘以采样数，所以它适合「答错代价高、答案可枚举」的场景，比如数学题或关键判断，而不是日常问答。
+Two implementation points: **temperature must be greater than 0** (when `temperature` is 0, repeated sampling produces almost identical results and self-consistency fails), and **the number of samples should be odd** to avoid ties. The cost is multiplied by the number of samples, so it suits scenarios where "a wrong answer is costly and the answer set is enumerable," such as math problems or critical judgments, rather than everyday Q&A.
 
-## 第五层：从 CoT 到 ReAct——把推理接到行动上
+## 5. From CoT to ReAct—connecting reasoning to action
 
-CoT 再强，也只发生在模型的「脑内」——它无法查数据库、无法运行代码。ReAct（Yao 等人，2022）把推理和行动编织成一个循环：模型先 `Thought`（推理），再 `Action`（调用工具），拿到 `Observation`（结果），然后继续下一轮，直到给出 `Answer`。
+No matter how strong CoT is, it only happens "inside the model's head"—it cannot query a database or run code. ReAct (Yao et al., 2022) weaves reasoning and action into a loop: the model first `Thought` (reasoning), then `Action` (calls a tool), gets `Observation` (the result), then continues to the next round until it gives `Answer`.
 
 ```typescript
 const system = `你可以使用工具：search(q)、calculator(expr)。
@@ -136,22 +134,21 @@ Action: <工具名>(<参数>)
 Answer: <最终答案>`;
 ```
 
-在实际工程里，与其手写文本解析，不如直接使用上一篇文章介绍过的 Function Calling——它让模型以结构化 JSON 返回调用意图，比字符串匹配鲁棒得多。ReAct 的价值在于**范式**：推理不再是一次性的「想完就答」，而是「边查边想、边想边查」。
+In real engineering, rather than hand-writing text parsing, it's better to directly use Function Calling as introduced in the previous article—it lets the model return call intentions as structured JSON, which is far more robust than string matching. The value of ReAct lies in the **paradigm**: reasoning is no longer a one-off "think it through, then answer," but "look things up while thinking, and think while looking things up."
 
-## 落地清单
+## Implementation checklist
 
-- **先做零样本基线**。90% 的任务用它加良好措辞就够了，别一上来就堆脚手架。
-- **格式问题用少样本**，示例保持多样、控制数量、注意顺序敏感性。
-- **推理问题用 CoT**，并要求固定格式输出以便解析。
-- **高价值可枚举问题用自洽性**，温度>0、样本取奇数。
-- **需要外部信息就用 ReAct / Function Calling**，而不是让模型硬编答案。
-- **一切改动都要有评测**。同一批测试样本跑前后对比，否则你无法区分「变好了」和「运气好」。
+- **Start with a zero-shot baseline.** For 90% of tasks, it plus good wording is enough; don't pile on scaffolding right away.
+- **Use few-shot for format problems**, keeping examples diverse, controlling the number, and paying attention to order sensitivity.
+- **Use CoT for reasoning problems**, and require fixed-format output for easy parsing.
+- **Use self-consistency for high-value enumerable problems**, with temperature > 0 and an odd number of samples.
+- **Use ReAct / Function Calling when external information is needed**, instead of making the model fabricate an answer.
+- **Every change needs evaluation.** Run before-and-after comparisons on the same test set, otherwise you can't distinguish "it got better" from "it got lucky."
 
-## 结语
+## Conclusion
 
-Prompt Engineering 的进阶不是收集更多「咒语」，而是懂得为任务匹配恰当的推理脚手架强度。零样本定义任务、少样本定义格式、CoT 打开推理、自洽性提升稳健、ReAct 连接世界——每一层都在解决上一层的天花板，也都有自己的代价。**先测量，再叠加**，才是把提示词从玄学变成工程的方法。
-
-## 参考来源
+Advancing in Prompt Engineering is not about collecting more "magic spells," but about knowing how to match a task with the appropriate strength of reasoning scaffolding. Zero-shot defines the task, few-shot defines the format, CoT opens up reasoning, self-consistency improves robustness, and ReAct connects to the world—each layer solves the ceiling of the previous one, and each has its own cost. **Measure first, then stack**—that is how you turn prompting from mysticism into engineering.
+## References
 
 - Wei et al., *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models* (2022) — https://arxiv.org/abs/2201.11903
 - Kojima et al., *Large Language Models are Zero-Shot Reasoners* (2022) — https://arxiv.org/abs/2205.11916

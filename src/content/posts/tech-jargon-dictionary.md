@@ -1,49 +1,47 @@
 ---
-title: 技术黑话词典：从「在我机器上是好的」到「这是个特性」
+title: 'Tech Jargon Dictionary: From "It Works on My Machine" to "It''s a Feature"'
 published: 2026-09-20
-description: '「偶现」「在我机器上是好的」「加个重试就好了」——每一句技术黑话都在掩盖一个真实的技术问题。把它们逐条翻译成人话，再看看它们各自在掩盖什么。'
+description: '"Intermittent," "it works on my machine," "just add a retry" — every piece of tech jargon masks a real technical problem. Translate them one by one into plain language, then see what each one is hiding.'
 image: ''
-tags: [程序员笑话, 技术黑话, 团队协作, 调试, 软件工程]
-category: '其他'
+tags: [programmer humor, tech jargon, team collaboration, debugging, software engineering]
+category: Other
 draft: false
-lang: ''
 ---
+An incident postmortem meeting was underway when someone said, "This is a probabilistic issue," and the meeting just ended.
 
-一场事故复盘会，有人说了句「这是个概率性问题」，会议就散了。
+The information content of that sentence is zero, but its efficiency is perfect. It sounds like a technical judgment, but it's actually a social move—it means "I haven't figured it out yet, but if we keep digging, we're not getting off work today."
 
-这句话的信息量是零，但它的效率是满分。它听起来像一个技术判断，实际是一个社交动作——意思是「我还没查清楚，但如果继续追下去，今天下不了班」。
+Technical jargon isn't the rhetoric of liars; it's language compression formed under long-term pressure. The cost of that compression is straightforward: **information is lost, and accountability is blurred**. This dictionary below tries to decompress each entry, one by one, to see what's hidden underneath.
 
-技术黑话不是骗子的话术，它是长期在压力下形成的语言压缩。压缩的代价很直接：**信息丢了，责任也模糊了**。下面这份词典，每一条都试着把这层压缩解开，看看底下藏着什么。
+## 1. Blame-Shifting: Pushing the Problem onto an Unfalsifiable Target
 
-## 1. 甩锅类：把问题推给一个不可证伪的对象
+### "It works on my machine"
 
-### 「在我机器上是好的」
+**Translation**: The code is fine, it's your environment that's the problem—and I don't plan to investigate what's different.
 
-**翻译**：代码没问题，是你的环境有问题——而且我不打算查是哪里不一样。
+The most infuriating thing about this sentence is that it's often **correct**. Environment differences are real technical problems; it's just that nobody wants to take responsibility for them. The common root causes are just a few:
 
-这句话最气人的地方在于，它经常是**对的**。环境差异是真实存在的技术问题，只是没人愿意为它负责。常见的根因就那几个：
+- **The lockfile wasn't committed**, or someone ran `npm install` instead of `npm ci`, so transitive dependencies resolve to different versions each time;
+- **Two copies of Node are sitting in PATH**—v22 in the terminal, v18 in the IDE;
+- **Environment variables only exist in `.env`**, aren't configured on CI at all, so it's connecting to a different database;
+- **Filesystem case sensitivity**: macOS's APFS is case-insensitive by default, so `import './Button'` passes locally, but on Linux it errors out because the actual file is named `button.tsx`;
+- Local timezone, local glibc version, some global tool installed locally.
 
-- **lockfile 没提交**，或者别人跑了 `npm install` 而不是 `npm ci`，传递依赖每次解析出不同版本；
-- **PATH 里躺着两份 Node**，终端里是 v22，IDE 里是 v18；
-- **环境变量只在 `.env` 里有**，CI 上压根没配，于是连的是另一个数据库；
-- **文件系统大小写**：macOS 的 APFS 默认大小写不敏感，`import './Button'` 在本地能过，到了 Linux 上因为真实文件叫 `button.tsx` 而报错；
-- 本地时区、本地 glibc 版本、本地装了某个全局工具。
+The remedies have long existed—it just takes someone willing to do them: lockfile into the repo, CI uses `npm ci`, runtime version written into `.nvmrc` or `mise.toml`, configuration banished from code (the third factor of 12-Factor). The payoff of this setup isn't "fewer arguments"—it's **making the sentence "it works on my machine" meaningless**.
 
-止血方式也早就有了，只是需要有人愿意做：lockfile 进仓库、CI 用 `npm ci`、运行时版本写进 `.nvmrc` 或 `mise.toml`、配置从代码里赶出去（12-Factor 的第三条）。这套东西的收益不是「少吵几次架」，而是**让「在我机器上是好的」这句话变得没有意义**。
+### "Try restarting it"
 
-### 「你重启一下试试」
+This is the most honest sentence in the entire dictionary—it admits it doesn't know the cause, but it knows an operation that almost always works.
 
-这是整份词典里最诚实的一句——它承认自己不知道原因，但它知道一个几乎总有效的操作。
+Restarting isn't mysticism; restarting is **state reset**. The fact that it works means the problem lies in the process's accumulated state. Candidates: memory leaks, connection pool or file descriptor leaks (unclosed sockets eventually hitting `EMFILE`), objects piling up in global singletons, dirty data in caches, an uncaught Promise rejection permanently freezing a state machine somewhere.
 
-重启不是玄学，重启是**状态重置**。它有效，说明问题出在进程的累积状态里。候选者：内存泄漏、连接池或文件描述符泄漏（未 close 的 socket 最终撞上 `EMFILE`）、全局单例里越攒越多的对象、缓存里的脏数据、某个未捕获的 Promise rejection 让一处状态机永久卡死。
+So "restarting fixed it" should be treated as a **clue**, not a **conclusion**. If a service needs restarting every week, it's already telling you where it's sick through its leak rate.
 
-所以「重启一下好了」应该被当成**线索**而不是**结论**。一个服务如果每周都需要重启，它已经在用泄漏速度告诉你它病在哪了。
+### "It's a caching issue"
 
-### 「这是缓存问题」
+Caching is the component most easily framed: it genuinely is often the cause, and clearing it looks cheap.
 
-缓存是最容易被栽赃的组件：它确实经常是原因，而且清它的成本看起来很低。
-
-但「缓存问题」不是诊断，是猜测。想验证，成本也不高：
+But "caching issue" isn't a diagnosis—it's a guess. Verifying it isn't expensive either:
 
 ```bash
 curl -sI https://example.com/api/posts \
@@ -51,39 +49,39 @@ curl -sI https://example.com/api/posts \
   | grep -iE 'age|x-cache|cache-control|etag'
 ```
 
-`Age` 很大说明命中的是旧副本，`X-Cache: HIT` 说明前面真有一层缓存在拦。
+A large `Age` means you're hitting a stale copy; `X-Cache: HIT` means there really is a cache layer intercepting in front.
 
-而真正的缓存问题，形态基本只有三种，**清缓存一个都治不了**：
+And real caching problems come in basically only three forms, and **clearing the cache cures none of them**:
 
-1. **缓存键漏了维度**——多租户场景下 key 里只有资源 id 没有租户 id，于是 A 的数据被返回给了 B。这是事故，不是性能问题。
-2. **失效策略错**——写入时忘了让缓存失效，或者 TTL 长得离谱，用户改完资料刷新十次还是旧的。
-3. **缓存击穿**——大批 key 同时过期，流量瞬间打穿到数据库，把数据库也带走。
+1. **The cache key is missing a dimension**—in a multi-tenant scenario, the key has only the resource id and no tenant id, so A's data gets returned to B. This is an incident, not a performance issue.
+2. **Wrong invalidation strategy**—forgetting to invalidate the cache on write, or a TTL that's absurdly long, so users refresh ten times after editing their profile and still see the old version.
+3. **Cache stampede**—a large batch of keys expires simultaneously, traffic punches straight through to the database, and takes the database down with it.
 
-## 2. 状态描述类：把 bug 说成设计
+## 2. Status-Description: Framing a Bug as a Design
 
-### 「这是个特性，不是 bug」
+### "It's a feature, not a bug"
 
-这句话有一半时候是真的，而它成真的机制有个名字：**Hyrum 定律**——当你的接口有了足够多的用户，你对其**所有可观察行为**的依赖都不再是偶然，而是契约的一部分。
+This sentence is true half the time, and the mechanism by which it becomes true has a name: **Hyrum's Law**—once your interface has enough users, dependence on **all observable behavior** is no longer accidental; it's part of the contract.
 
-一个真实形态的例子：某接口在列表为空时返回 `null` 而不是 `[]`。下游五百个服务老老实实写了 `if (res == null) { ... }`。三年后你想修这个「显然的 bug」，代价是发大版本、写迁移指南、挨个通知调用方。**兼容性成本已经超过了正确性收益**，于是 bug 就地转正，领取了「特性」的编制。
+A real-world example: some API returns `null` instead of `[]` when the list is empty. Five hundred downstream services dutifully wrote `if (res == null) { ... }`. Three years later you want to fix this "obvious bug," and the cost is a major version bump, a migration guide, and notifying every caller one by one. **The compatibility cost has exceeded the correctness benefit**, so the bug gets promoted on the spot and receives its "feature" headcount.
 
-这句黑话在多数场合是自我解嘲，但它的技术内核是硬的：正确性不是免费的，它要和兼容性竞价。
+This piece of jargon is self-deprecating in most contexts, but its technical core is hard: correctness isn't free—it has to bid against compatibility.
 
-### 「预期行为」
+### "Expected behavior"
 
-上一句的正式版本，通常出现在 issue tracker 的关闭理由里，和 `WONTFIX` 的区别只在于礼貌程度。
+The formal version of the previous sentence, usually appearing as the closing reason in an issue tracker, differing from `WONTFIX` only in politeness level.
 
-## 3. 偶现类：把不确定性当成不可知
+## 3. Intermittent: Treating Uncertainty as Unknowability
 
-### 「偶现」「概率性问题」
+### "Intermittent" / "Probabilistic issue"
 
-**翻译**：我复现不出来，而且我怀疑复现需要条件。
+**Translation**: I can't reproduce it, and I suspect reproduction requires conditions.
 
-这类问题的根因几乎总在这几类里：**竞态**（多线程/多协程读写共享状态没有同步）、**时序依赖**（隐含假设某个网络请求会先返回）、**未初始化或已释放的资源**、GC 时机、时钟。
+The root causes of these problems almost always fall into these categories: **race conditions** (multi-threaded/multi-coroutine reads and writes to shared state without synchronization), **timing dependencies** (an implicit assumption that some network request will return first), **uninitialized or already-freed resources**, GC timing, clocks.
 
-它们的共同点值得单独拎出来说：**代码不是「有时候错」，而是代码对执行顺序有隐含假设，而这个假设不总是成立**。
+Their commonality deserves to be called out separately: **the code isn't "sometimes wrong"—it's that the code has implicit assumptions about execution order, and those assumptions don't always hold**.
 
-所以正确的做法不是反复尝试「复现」，而是把不确定性变成可观测性：
+So the right approach isn't repeatedly trying to "reproduce," but turning uncertainty into observability:
 
 ```bash
 # Go：竞态检测器，专治「本地跑一万次都没事」
@@ -93,28 +91,28 @@ go test -race -count=10000 ./...
 node --unhandled-rejections=strict app.js
 ```
 
-加日志时带上 request id 和协程/线程 id，把顺序记下来。概率性 bug 只要样本足够，**一定会复现**——它缺的只是样本量，不是运气。
+Add logging with request id and coroutine/thread id, and record the order. A probabilistic bug, given enough samples, **will definitely reproduce**—what it lacks is sample size, not luck.
 
-### 「线上没复现出来」
+### "Couldn't reproduce it in production"
 
-**翻译**：生产和我们能碰的环境不一样。
+**Translation**: Production and the environment we can touch are different.
 
-真正的差异通常不在代码，而在**数据**：生产有几亿行、有真实并发、有三年前那次迁移留下的空字段。本地拿一张十行的 `users` 表测出来的「没问题」，不能说明任何事。
+The real difference usually isn't in the code, but in the **data**: production has hundreds of millions of rows, real concurrency, and empty fields left over from a migration three years ago. Testing locally with a ten-row `users` table and concluding "no problem" proves nothing.
 
-缩短差距的办法是具体的：生产数据脱敏后灌进预发、做流量回放、用 feature flag 灰度而不是一把梭全量。
+The ways to close the gap are concrete: sanitize production data and load it into staging, do traffic replay, use feature flags for canary rollouts instead of going all-in at once.
 
-## 4. 稳定性类：把放大器当成修复
+## 4. Stability: Treating an Amplifier as a Fix
 
-### 「加个重试就好了」
+### "Just add a retry"
 
-这条是整篇词典里**最危险**的一句。
+This is the **most dangerous** sentence in the entire dictionary.
 
-重试真正能治的只有一类问题：**瞬时故障**——网络抖动、单个副本重启、被限流。超出这三类，重试都在帮倒忙：
+What retries can genuinely cure is only one category of problem: **transient failures**—network jitter, a single replica restarting, being rate-limited. Beyond these three, retries are doing harm:
 
-- 下游如果是因为**过载**而超时，重试等于继续加压。一次故障就是这样被放大成全站故障的，它有专门的名字：**retry storm**。
-- 操作如果不幂等，重试就变成了重复扣款、重复发券、重复建单。
+- If the downstream is timing out due to **overload**, retrying is just adding more pressure. This is exactly how one failure gets amplified into a site-wide outage, and it has a name: **retry storm**.
+- If the operation isn't idempotent, retrying becomes duplicate charges, duplicate coupon issuance, duplicate order creation.
 
-一条能上线的重试，至少要凑齐五个条件：有上限、有指数退避、**有抖动**（否则所有客户端会在同一毫秒一起重试，形成同步尖峰）、只对可重试的错误码重试（`400`/`404` 重试毫无意义）、配熔断。写操作还必须带幂等键。
+A production-worthy retry needs at least five conditions: a cap, exponential backoff, **jitter** (otherwise all clients retry at the same millisecond, creating a synchronized spike), retrying only retryable error codes (retrying `400`/`404` is meaningless), and a circuit breaker. Write operations must also carry an idempotency key.
 
 ```js
 // 退避 + 抖动 + 上限 + 熔断，一个都不能少
@@ -133,57 +131,57 @@ async function retryable(fn, attempt = 1) {
 }
 ```
 
-少任何一个条件，这段代码都是一颗定时炸弹。
+Miss any one condition, and this code is a time bomb.
 
-### 「先这样，后面再优化」
+### "Let's ship it for now, optimize later"
 
-**翻译**：没有 ticket 的重构，等于永不重构。
+**Translation**: A refactor without a ticket equals a refactor that never happens.
 
-这句不只是笑话。临时方案有个致命特性：它会变成事实标准，然后被依赖，然后按 Hyrum 定律变得不可移除。于是「后面再优化」这句话的诚意是可以被**验证**的——有没有开 issue、有没有写进本季度的待办、有没有设一个真的会响的提醒。三者全无，那就是「永不」。
+This isn't just a joke. Temporary solutions have a fatal property: they become the de facto standard, then get depended upon, then become irremovable per Hyrum's Law. So the sincerity of "optimize later" can be **verified**—is there an issue filed, is it written into this quarter's backlog, is there a reminder that will actually fire. None of the three, and it means "never."
 
-## 5. AI 时代的新黑话
+## 5. New Jargon in the AI Era
 
-旧黑话还没退休，新的一批已经上岗了。
+The old jargon hasn't retired yet, and a new batch has already clocked in.
 
-### 「模型幻觉」
+### "Model hallucination"
 
-「幻觉」是个正儿八经的学术词，现在被用成了万能背锅词。但真实的失败模式至少有四种，**对症下药完全不同**：
+"Hallucination" is a legitimate academic term, now used as a universal scapegoat. But there are at least four real failure modes, and **the remedies are completely different**:
 
-| 你看到的现象 | 真实原因 | 该做的事 |
+| What you see | Real cause | What to do |
 |---|---|---|
-| 答了但完全是编的 | 知识不在模型里 | 上 RAG，把资料检索进上下文 |
-| 资料给它了还是答错 | 检索到的片段不对 | 调分块策略、加重排 |
-| 格式/字段总是错 | 指令遵循失败 | 结构化输出、约束解码 |
-| 同一问题答案飘忽 | 采样随机性 | 降温度、自洽性投票 |
+| Answered but completely fabricated | Knowledge isn't in the model | Add RAG, retrieve documents into context |
+| Gave it the documents and it still answers wrong | Retrieved chunks are wrong | Tune chunking strategy, add reranking |
+| Format/fields always wrong | Instruction-following failure | Structured output, constrained decoding |
+| Answers to the same question fluctuate | Sampling randomness | Lower temperature, self-consistency voting |
 
-把四类都叫「幻觉」，约等于把 `404`、`500`、超时统称为「网络不好」——听着像结论，实际是放弃了。
+Calling all four categories "hallucination" is roughly equivalent to lumping `404`, `500`, and timeouts under "the network is bad"—it sounds like a conclusion, but it's actually giving up.
 
-### 「是提示词的问题」
+### "It's a prompt problem"
 
-**先确认你要的信息到底在不在上下文里。** 提示词调得再漂亮，也变不出没给它的事实。绝大多数被归为「提示词问题」的故障，翻到最后都是上下文里根本没有那一条。
+**First confirm whether the information you want is even in the context.** No matter how beautifully you tune the prompt, you can't conjure facts that weren't given to it. The vast majority of failures attributed to "prompt problems," when you dig to the bottom, turn out to be that the context simply didn't contain that piece of information.
 
-### 「这个 case 模型没学过」
+### "The model hasn't learned this case"
 
-多数时候，它是学过，但你的调用方式让它没机会答对。
+Most of the time, it has learned it—but your invocation method gave it no chance to answer correctly.
 
-## 黑话的自我修养
+## The Self-Cultivation of Jargon
 
-黑话不是罪。它是团队的速记：说「在我机器上是好的」比说「我怀疑是 lockfile 未提交导致的传递依赖漂移」快十倍。
+Jargon isn't a sin. It's the team's shorthand: saying "it works on my machine" is ten times faster than saying "I suspect transitive dependency drift caused by an uncommitted lockfile."
 
-问题出在信息量的差距。前者让人**停下**，后者让人**继续**。
+The problem lies in the information gap. The former makes people **stop**; the latter makes people **continue**.
 
-所以给一条能落地的建议：黑话可以说，但后面跟一句提问方向。
+So here's one actionable piece of advice: jargon is fine, but follow it with a direction for inquiry.
 
-- 「这是缓存问题。」——讨论结束了。
-- 「这是缓存问题吗？我看下 `X-Cache` 是不是 HIT。」——讨论开始了。
+- "It's a caching issue."—Discussion over.
+- "Is it a caching issue? Let me check whether `X-Cache` is a HIT."—Discussion begins.
 
-复盘会上最贵的成本从来不是故障本身，而是「偶现」「概率性」这类词把复盘提前按停。无责复盘（blameless postmortem）的核心原则是追机制不追人，但这一切有个前提：**这个机制得先被说出来**。
+The most expensive cost in a postmortem is never the incident itself, but words like "intermittent" and "probabilistic" pressing pause on the postmortem prematurely. The core principle of a blameless postmortem is to chase mechanisms, not people—but all of this has a prerequisite: **the mechanism has to be spoken aloud first**.
 
-## 参考来源
+## References
 
 - [Hyrum's Law](https://www.hyrumslaw.com/)
 - [The Twelve-Factor App — Config](https://12factor.net/config)
 - [Exponential Backoff And Jitter — AWS Architecture Blog](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)
 - [Idempotent requests — Stripe API Docs](https://docs.stripe.com/api/idempotent_requests)
 - [Blameless PostMortems and a Just Culture — PagerDuty](https://postmortems.pagerduty.com/culture/blameless/)
-- [RFC 1122 — Requirements for Internet Hosts（Robustness Principle）](https://www.rfc-editor.org/rfc/rfc1122)
+- [RFC 1122 — Requirements for Internet Hosts (Robustness Principle)](https://www.rfc-editor.org/rfc/rfc1122)

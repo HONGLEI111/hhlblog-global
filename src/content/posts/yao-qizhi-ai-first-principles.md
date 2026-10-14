@@ -1,212 +1,209 @@
 ---
-title: 姚期智谈 AI 第一性原理：人工智能的威力及其局限
+title: 'Andrew Yao on the First Principles of AI: The Power and Limits of Artificial Intelligence'
 published: 2026-08-04
-description: '图灵奖得主姚期智在 WAIC 思想者论坛上，从计算理论出发剖析 AI 的能力边界：它能做什么、不能做什么，以及量子 AI 如何接棒成为科学探索的新范式。'
+description: 'Turing Award winner Andrew Yao examines the boundaries of AI''s capabilities from the perspective of computation theory at the WAIC Thinkers Forum: what it can and cannot do, and how quantum AI could become the next paradigm for scientific exploration.'
 image: ''
-tags: [AI, 人工智能, 姚期智, WAIC, 量子AI, AI for Science, 大模型]
+tags: [AI, Artificial Intelligence, Andrew Yao, WAIC, Quantum AI, AI for Science, Large Language Models]
 category: 'AI'
 draft: false
-lang: ''
 ---
+## 1. Introduction
 
-## 1. 引言
+On July 19, 2026, at the Thinkers Forum of the World Artificial Intelligence Conference (WAIC) in Shanghai, Turing Award laureate, Academician of the Chinese Academy of Sciences, and Dean of the Institute for Interdisciplinary Information Sciences and the School of Artificial Intelligence at Tsinghua University, **Andrew Yao**, delivered a speech that went "against the tide."
 
-2026 年 7 月 19 日，上海世界人工智能大会（WAIC）的思想者论坛上，图灵奖得主、中国科学院院士、清华大学交叉信息研究院及人工智能学院院长**姚期智**（Andrew Yao）发表了一场"反潮流"的演讲。
+At a time when virtually everyone in the AI industry is talking about what AI can do, he chose a different angle — "**The First Principles of AI: The Power and Limitations of Artificial Intelligence**." Starting from computation theory, mathematics, and logic, he calmly and profoundly dissected the true boundaries of AI.
 
-在当前 AI 行业几乎所有人都在谈论 AI 能做什么的时候，他选择了一个不同的角度——《**AI 的第一性原理：人工智能的威力及其局限**》。从计算理论、数学和逻辑学出发，冷静而深刻地剖析了 AI 真正的边界。
+This speech was extremely information-dense. Yao did not talk about model parameters, benchmarks, or product deployment, but instead returned to the most fundamental questions: **What exactly is AI? What can it do? What can it never do?**
 
-这场演讲信息密度极高。姚期智没有谈论模型参数、基准测试或产品落地，而是回到了最根本的问题：**AI 到底是什么？它能做什么？它永远不能做什么？**
-
-本文将演讲核心内容梳理为以下几个部分。
-
----
-
-## 2. AI 的本质：图灵机 + 数据
-
-姚期智开宗明义：要理解 AI 的能力边界，必须先理解 AI 的**本质**。
-
-现代 AI 高度依赖"机器学习"框架：给定一个任务和由参数 θ 决定的模型模板，核心问题只有两个——是否存在合适的 θ 能完成这个任务（**表征问题**），以及能否在合理的时空成本内找到它（**学习问题**）。
-
-与传统计算机科学不同的是，机器学习将"从数据中学习"加入了算法的武器库，这正是 AI 近年来取得巨大进展的核心原因。
-
-但姚期智提醒我们，回到第一性原理来看：
-
-> **AI 的底层本质，就是一台加装了数据的图灵机。**
-
-这个定义看似朴素，却直接决定了 AI 的能力上限。图灵机解决不了的问题——比如著名的"停机问题"——AI 同样无法解决。**数据再大、算力再强，也突破不了计算理论的基本定律。**
+This article organizes the core content of the speech into the following sections.
 
 ---
 
-## 3. AI 不可逾越的四个边界
+## 2. The Essence of AI: Turing Machine + Data
 
-姚期智从第一性原理出发，系统性地阐述了 AI 的四个根本局限。这些不是"当前阶段"的技术瓶颈，而是由数学和逻辑学决定的**永久边界**。
+Yao stated at the outset: to understand the boundaries of AI's capabilities, one must first understand the **essence** of AI.
 
-### 边界一：不能创造真正的新思想
+Modern AI relies heavily on the "machine learning" framework: given a task and a model template determined by parameters θ, there are only two core questions — whether there exists a suitable θ that can accomplish the task (the **representation problem**), and whether it can be found within reasonable time and space costs (the **learning problem**).
 
-爱因斯坦的相对论、图灵的可计算理论、哥德尔的不完备定理、量子力学的基本框架——这些从 0 到 1 的突破，都需要跳出已有范式。
+What distinguishes it from traditional computer science is that machine learning adds "learning from data" to the algorithm's arsenal — and this is precisely the core reason for AI's tremendous progress in recent years.
 
-大模型擅长在现有范式内进行优化和组合，但无法创造全新的范式。因为它的所有能力，本质上来自对人类已有知识的压缩与蒸馏。姚期智犀利地指出：
+But Yao reminds us to return to first principles:
 
-> **它可以告诉你人类已经知道的一切，但无法告诉你一个"全世界都还没有人知道的秘密"。**
+> **The underlying essence of AI is simply a Turing machine equipped with data.**
 
-### 边界二：不能解决不可计算的问题
+This definition may seem plain, but it directly determines the upper limit of AI's capabilities. Problems that a Turing machine cannot solve — such as the famous "halting problem" — AI likewise cannot solve. **No matter how large the data or how powerful the compute, it cannot break through the fundamental laws of computation theory.**
 
-图灵在 90 年前证明了一个令人震撼的结论：**世界上绝大多数问题是不可计算的。**
+---
 
-停机问题只是其中最著名的一个例子。AI 再强大，也仍然是一种计算模型，必须遵守计算理论的基本定律。用姚期智的话说：
+## 3. The Four Insurmountable Boundaries of AI
 
-> **数学的边界，就是 AI 的边界。**
+Starting from first principles, Yao systematically articulated four fundamental limitations of AI. These are not technical bottlenecks of the "current stage," but **permanent boundaries** determined by mathematics and logic.
 
-这在哲学层面意味深长：人类的智慧包含着某种"超越算法"的东西，而 AI 无法触及那个领域。
+### Boundary One: It Cannot Create Truly New Ideas
 
-### 边界三：不能给你训练数据中没有的东西
+Einstein's theory of relativity, Turing's computability theory, Gödel's incompleteness theorems, the fundamental framework of quantum mechanics — these breakthroughs from 0 to 1 all required stepping outside existing paradigms.
 
-这个边界与第一个边界相关但有微妙区别。AI 可以在已有知识中进行令人惊叹的整合、推理和重新表达，但它无法凭空产生**真正超出人类已有知识体系**的内容。
+Large models excel at optimizing and combining within existing paradigms, but cannot create entirely new ones. Because all of its capabilities essentially come from compressing and distilling humanity's existing knowledge. Yao sharply pointed out:
 
-姚期智强调，这不是一个工程问题——不是"数据再多一点、模型再大一点"就能突破的。它是一个**认识论层面的限制**。
+> **It can tell you everything humanity already knows, but it cannot tell you a "secret that no one in the world knows yet."**
 
-### 边界四：不能做出真正的价值判断
+### Boundary Two: It Cannot Solve Uncomputable Problems
 
-AI 可以告诉你达到某个目标的最优路径，但无法告诉你**应该追求哪个目标**。
+Ninety years ago, Turing proved a stunning conclusion: **the vast majority of problems in the world are uncomputable.**
 
-它可以计算效率、优化参数、预测结果，但"什么是好的""什么是值得做的""什么是正义的"——这些问题没有训练数据可以覆盖。价值判断需要的是**主体性**，而 AI 没有主体性。
+The halting problem is just the most famous example. No matter how powerful AI becomes, it is still a computational model and must obey the fundamental laws of computation theory. In Yao's words:
 
-| 四个边界 | 核心原因 | 是否可突破 |
+> **The boundary of mathematics is the boundary of AI.**
+
+This is profoundly significant at the philosophical level: human intelligence contains something that "transcends algorithms," and AI cannot reach that domain.
+
+### Boundary Three: It Cannot Give You What Is Not in the Training Data
+
+This boundary is related to the first but has a subtle distinction. AI can perform astonishing integration, reasoning, and re-expression within existing knowledge, but it cannot conjure content **genuinely beyond humanity's existing knowledge system** out of thin air.
+
+Yao emphasized that this is not an engineering problem — not something that "a bit more data, a bit bigger model" can break through. It is an **epistemological limitation**.
+
+### Boundary Four: It Cannot Make True Value Judgments
+
+AI can tell you the optimal path to achieve a goal, but it cannot tell you **which goal you should pursue**.
+
+It can calculate efficiency, optimize parameters, predict outcomes, but "what is good," "what is worth doing," "what is just" — these questions have no training data that can cover them. Value judgments require **subjectivity**, and AI has no subjectivity.
+
+| Four Boundaries | Core Reason | Breakable? |
 |---------|---------|-----------|
-| 不能创造新思想 | 能力来自已有知识的压缩 | ❌ 永久边界 |
-| 不能解决不可计算问题 | 受计算理论基本定律约束 | ❌ 永久边界 |
-| 不能超出训练数据 | 认识论层面的限制 | ❌ 永久边界 |
-| 不能做价值判断 | 缺乏主体性 | ❌ 永久边界 |
+| Cannot create new ideas | Capabilities come from compression of existing knowledge | ❌ Permanent boundary |
+| Cannot solve uncomputable problems | Constrained by fundamental laws of computation theory | ❌ Permanent boundary |
+| Cannot exceed training data | Epistemological limitation | ❌ Permanent boundary |
+| Cannot make value judgments | Lacks subjectivity | ❌ Permanent boundary |
 
 ---
 
-## 4. AI 能做什么：三个层次
+## 4. What AI Can Do: Three Levels
 
-在划清了边界之后，姚期智也清晰地描绘了 AI 的能力版图。他将 AI 的能力分为三个层次：
+After delineating the boundaries, Yao also clearly mapped out AI's capability landscape. He divided AI's capabilities into three levels:
 
-| 层次 | 能力描述 | 当前状态 |
+| Level | Capability Description | Current Status |
 |------|---------|---------|
-| **第一层：模仿人类** | 语言理解、知识问答、翻译、写作、简单推理 | 已达甚至超过普通人水平 |
-| **第二层：超越人类** | 过目不忘的记忆、超高带宽并行处理、绝对耐心细致、不受偏见和情绪干扰 | 已在多个领域实现 |
-| **第三层：人类做不到** | 解决不可计算问题、创造真正的新思想 | AI 同样做不到 |
+| **Level One: Imitating Humans** | Language understanding, knowledge Q&A, translation, writing, simple reasoning | Has reached or even surpassed average human level |
+| **Level Two: Surpassing Humans** | Photographic memory, ultra-high-bandwidth parallel processing, absolute patience and meticulousness, free from bias and emotional interference | Already achieved in multiple domains |
+| **Level Three: What Humans Cannot Do** | Solving uncomputable problems, creating truly new ideas | AI also cannot do these |
 
-第一层和第二层已经创造了巨大的价值。但理解第三层的存在，能帮我们校准对 AI 的期待——它既不是万能的，也不是无用的。
+Levels One and Two have already created enormous value. But understanding the existence of Level Three helps us calibrate our expectations of AI — it is neither omnipotent nor useless.
 
-姚期智特别指出，第二层中 AI 超越人类的那些特质——不知疲倦、不情绪化、并行处理——恰恰是它最实用的价值所在。**把苦力、计算和优化交给 AI，这本身就是一场革命。**
-
----
-
-## 5. 两个 AI 无法攻破的实例
-
-为了让抽象的边界变得具体，姚期智举了两个实例，证明 AI 在某些领域确实毫无办法。
-
-### 5.1 选择明文攻击下的密码学安全
-
-以 ElGamal 公钥加密体系为例——基于特定数学假设（离散对数问题的难解性），这套密码体系可以从**数学上证明**能够抵御包括 AI 在内的所有经典计算机的攻击。
-
-这不是"目前还没找到攻击方法"，而是"如果攻击成功，将意味着推翻了某些数学基础假设"。AI 在这里碰到的不是工程问题，是数学定理。
-
-### 5.2 量子密钥分发（QKD）
-
-量子密钥分发利用量子力学的基本原理——任何窃听行为都会不可避免地扰动量子态，从而被通信双方检测到。
-
-姚期智特别提到，中国在这一领域处于世界领先地位：2016 年发射了全球首颗量子科学实验卫星"墨子号"，并已建成覆盖全国超过 **1 万公里**的量子密钥分发网络。
-
-> **原则上帝都无法破解——除非你推翻量子力学本身。**
-
-这两个实例的共同点在于：安全性不依赖于"攻击者能力有限"，而是依赖于**物理定律和数学定理**。AI 在这些领域是无能为力的。理解这一点，恰恰是构建安全 AI 系统的基础。
+Yao particularly noted that the traits in Level Two where AI surpasses humans — tirelessness, lack of emotionality, parallel processing — are precisely where its most practical value lies. **Handing grunt work, computation, and optimization to AI is itself a revolution.**
 
 ---
 
-## 6. AI 的下一个层次：从 AI for Science 到 Science for AI
+## 5. Two Examples AI Cannot Crack
 
-在划清边界之后，姚期智将目光投向了未来。他认为，未来 3 到 5 年 AI 最令人兴奋的方向是 **AI for Science**——用 AI 赋能科学研究。
+To make the abstract boundaries concrete, Yao gave two examples proving that AI truly has no way forward in certain domains.
 
-### 6.1 AI 赋能天文学
+### 5.1 Cryptographic Security Under Chosen-Plaintext Attack
 
-姚期智分享了清华大学团队的一项成果：使用名为 **Asterisk AI** 的神经网络，处理詹姆斯·韦伯太空望远镜（JWST）传回的早期宇宙数据。通过对星系形态的精确重构，团队成功将人类可观测的时间线**向前推进了 1 亿年**——逼近大爆炸后仅 1 亿年的状态。
+Taking the ElGamal public-key encryption system as an example — based on specific mathematical assumptions (the intractability of the discrete logarithm problem), this cryptographic system can be **mathematically proven** to resist attacks from all classical computers, including AI.
 
-### 6.2 AI 推动理论突破
+This is not "no attack method has been found yet," but rather "if an attack succeeded, it would mean overturning certain foundational mathematical assumptions." What AI encounters here is not an engineering problem, but a mathematical theorem.
 
-在更硬核的理论层面，两个近期的例子让学界震动了：
+### 5.2 Quantum Key Distribution (QKD)
 
-- **Gemini DeepThink** 模型解决了困扰物理学界 **40 年**的"宇宙弦问题"（cosmic string problem）
-- **OpenAI 最新模型**推翻了埃尔德什在 80 年前提出的"单位距离问题"猜想——最令人惊讶的是，证明过程中用到了深奥的**分圆数论**技巧，在纯数学家看来"不该是 AI 能想到的"
+Quantum key distribution leverages the fundamental principles of quantum mechanics — any eavesdropping behavior will inevitably disturb the quantum state, and thus be detected by both communicating parties.
 
-这些突破暗示了一件事：AI 不仅是一个工程工具，它正在成为**科学发现的催化剂**。它可以发现人类数学家尚未注意到的连接，可以处理人类无法同时处理的数据维度。
+Yao particularly mentioned that China is a world leader in this field: in 2016, it launched the world's first quantum science experiment satellite, "Micius," and has already built a quantum key distribution network covering over **10,000 kilometers** nationwide.
 
----
+> **In principle, not even God can crack it — unless you overturn quantum mechanics itself.**
 
-## 7. 量子 AI：新的范式正在浮现
-
-演讲中最令人振奋的部分，是姚期智提出的"AI 的下一个层次"。
-
-当前的 AI 建立在经典图灵机之上。但如果把**学习的载体从图灵机换成量子机器**呢？姚期智提出了一个核心问题：
-
-> **是否能在一个更通用的计算模型下，做出连当前 AI 都做不到的事情？**
-
-### 7.1 AI 赋能量子计算
-
-一个已经发生的突破来自谷歌。2025 年，谷歌 **Willow 量子芯片**（约 100 个物理量子比特）借助 **AlphaQubit** 神经网络解码器，**首次将量子纠错的错误率降到了临界阈值以下**。
-
-这是量子计算领域的一个里程碑。没有 AI 的辅助，仅靠传统纠错算法，这个阈值一直无法突破。AI 和量子计算的结合，产生了 1+1 > 2 的效果。
-
-### 7.2 量子增强 AI 的前景
-
-反过来，量子计算也将赋能 AI。量子计算机能够从第一性原理出发模拟分子和材料的量子行为——这是经典计算机原则上无法高效完成的任务。
-
-姚期智的预测是：
-
-> **未来 5 到 10 年，量子 AI 将取得巨大进展。AI 的新鲜感迟早会过去，量子 AI 会接棒，让科学探索的火焰持续燃烧。**
-
-他进一步描绘了一个愿景：量子 AI 将在**新材料研发**、**药物研发**等领域实现突破性进展，实现爱因斯坦那代科学家"从第一性原理出发理解世界"的梦想。
+What these two examples share is that security does not depend on "the attacker's limited capability," but on **physical laws and mathematical theorems**. AI is powerless in these domains. Understanding this is precisely the foundation for building secure AI systems.
 
 ---
 
-## 8. 振聋发聩的警示：人类越来越像 AI
+## 6. The Next Level of AI: From AI for Science to Science for AI
 
-演讲中有一段话，可能是整场论坛传播最广的金句。在所有人都在担心 AI 变得太像人类的时候，姚期智提出了一个反向的警告：
+After delineating the boundaries, Yao turned his gaze to the future. He believes that the most exciting direction for AI in the next 3 to 5 years is **AI for Science** — empowering scientific research with AI.
 
-> **"很多人担心 AI 会变得比人聪明，然后统治人类。我觉得这个担心还太早了。在那一天到来之前，我们首先要面对的一个更大的危险是：人类会变得越来越像 AI。"**
+### 6.1 AI Empowering Astronomy
 
-这段话值得深思。当人类开始放弃独立思考、放弃价值判断、放弃探索的勇气，把所有问题都交给 AI 去回答时——真正的危险不是 AI 超过了人类，而是人类自己降到了 AI 的水平。
+Yao shared an achievement from a Tsinghua University team: using a neural network called **Asterisk AI** to process early-universe data transmitted back by the James Webb Space Telescope (JWST). Through precise reconstruction of galaxy morphology, the team successfully **pushed humanity's observable timeline back by 100 million years** — approaching a state just 100 million years after the Big Bang.
 
-姚期智的言下之意是：**AI 的边界不是一套笼子，而是一面镜子。** 它照出了什么是"只有人才能做的事"，也照出了什么是"人不该放弃的事"。
+### 6.2 AI Driving Theoretical Breakthroughs
 
----
+At a more hardcore theoretical level, two recent examples shook the academic community:
 
-## 9. 六个值得关注的未来方向
+- The **Gemini DeepThink** model solved the "cosmic string problem" that had plagued the physics community for **40 years**
+- **OpenAI's latest model** disproved Erdős's "unit distance problem" conjecture proposed 80 years ago — most surprisingly, the proof used esoteric **cyclotomic number theory** techniques that, in the eyes of pure mathematicians, "should not be something AI could think of"
 
-在演讲的总结部分，姚期智列出了他看好的六个未来方向：
-
-1. **AI for Science** — AI 赋能科学发现，从天文到生物到材料
-2. **量子 AI** — 量子计算与 AI 的双向赋能
-3. **可靠的大模型系统** — 构建可验证、可信任的 AI 基础设施
-4. **Mathematics for AI** — 用数学为 AI 提供理论基础和边界分析
-5. **AI 安全** — 在能力增长的同时确保安全可控
-6. **AI for AI** — 用 AI 改进 AI 本身，深入理解智能的本质
-
-这六个方向之间并非独立，而是形成了一个闭环：AI for Science 拓展能力边界，Science for AI 提供理论根基，Mathematics for AI 刻画能力极限，AI 安全确保可控，AI for AI 推动自我进化。
+These breakthroughs hint at one thing: AI is not just an engineering tool — it is becoming a **catalyst for scientific discovery**. It can discover connections that human mathematicians have not yet noticed, and can handle data dimensions that humans cannot process simultaneously.
 
 ---
 
-## 10. 结语
+## 7. Quantum AI: A New Paradigm Is Emerging
 
-姚期智用一句话收尾了他的演讲——
+The most exciting part of the speech was Yao's proposal of "the next level of AI."
 
-> **"AI 不是来取代人类的，而是来解放人类的。"**
+Current AI is built on the classical Turing machine. But what if we **switch the carrier of learning from a Turing machine to a quantum machine**? Yao posed a core question:
 
-把苦力、计算、优化交给 AI。把创造新思想、探索未知、做出价值判断——这些 AI 永远做不到的事情——留给人类自己。
+> **Can we, under a more general computational model, accomplish things that even current AI cannot do?**
 
-在行业集体狂热追高的时候，姚期智这场演讲提供了一个稀缺的视角：**冷静地看清 AI 的局限，恰恰是人类用好 AI 的前提。**
+### 7.1 AI Empowering Quantum Computing
 
-知道什么不能做，才知道什么值得做。
+One breakthrough that has already occurred comes from Google. In 2025, Google's **Willow quantum chip** (approximately 100 physical qubits), with the help of the **AlphaQubit** neural network decoder, **reduced the error rate of quantum error correction below the critical threshold for the first time**.
+
+This is a milestone in the field of quantum computing. Without AI's assistance, relying solely on traditional error correction algorithms, this threshold could never be breached. The combination of AI and quantum computing produced a 1+1 > 2 effect.
+
+### 7.2 The Promise of Quantum-Enhanced AI
+
+Conversely, quantum computing will also empower AI. Quantum computers can simulate the quantum behavior of molecules and materials from first principles — a task that classical computers in principle cannot perform efficiently.
+
+Yao's prediction is:
+
+> **In the next 5 to 10 years, quantum AI will make tremendous progress. The novelty of AI will eventually fade, and quantum AI will take the baton, keeping the flame of scientific exploration burning.**
+
+He further painted a vision: quantum AI will achieve breakthrough progress in fields such as **new materials development** and **drug discovery**, realizing the dream of Einstein's generation of scientists to "understand the world from first principles."
 
 ---
 
-> **参考来源**
-> - [姚期智：AI 的第一性原理——人工智能的威力及其局限（爱思想）](https://www.aisixiang.com/data/179875.html)
-> - [WAIC 特辑丨姚期智万字长文演讲（搜狐）](https://www.sohu.com/a/1052558614_377096)
-> - [直击 WAIC——AI 会淡出头条？姚期智说，接替它的将是量子 AI（腾讯新闻）](https://news.qq.com/rain/a/20260720A09CNQ00)
-> - [论坛直击｜2026 世界人工智能大会"AI 的第一性原理"思想者论坛成功举行（JUFAIR）](https://www.jufair.com/information/334727.html)
-> - [AI 的第一性原理，到底是什么？（延安新闻网）](https://www.yanews.cn/guonei/2026/07-23/z1zqOEPk.html)
+## 8. A Stirring Warning: Humans Are Becoming More Like AI
+
+There was a passage in the speech that may be the most widely circulated quote from the entire forum. At a time when everyone is worried about AI becoming too much like humans, Yao offered a reverse warning:
+
+> **"Many people worry that AI will become smarter than humans and then rule humanity. I think that worry is premature. Before that day arrives, the greater danger we must first face is this: humans will become more and more like AI."**
+
+This passage is worth pondering. When humans begin to abandon independent thinking, abandon value judgments, abandon the courage to explore, and hand all questions over to AI to answer — the real danger is not AI surpassing humans, but humans themselves descending to AI's level.
+
+Yao's implication is: **AI's boundaries are not a cage, but a mirror.** It reflects what "only humans can do," and also reflects what "humans should not give up."
+
+---
+
+## 9. Six Future Directions Worth Watching
+
+In the concluding section of the speech, Yao listed six future directions he is optimistic about:
+
+1. **AI for Science** — AI empowering scientific discovery, from astronomy to biology to materials
+2. **Quantum AI** — Bidirectional empowerment between quantum computing and AI
+3. **Reliable Large Model Systems** — Building verifiable, trustworthy AI infrastructure
+4. **Mathematics for AI** — Using mathematics to provide theoretical foundations and boundary analysis for AI
+5. **AI Safety** — Ensuring safety and controllability alongside capability growth
+6. **AI for AI** — Using AI to improve AI itself, and deeply understanding the nature of intelligence
+
+These six directions are not independent, but form a closed loop: AI for Science expands capability boundaries, Science for AI provides theoretical foundations, Mathematics for AI characterizes capability limits, AI Safety ensures controllability, and AI for AI drives self-evolution.
+
+---
+## 10. Conclusion
+
+Andrew Yao closed his talk with a single sentence—
+
+> **"AI is not here to replace humans, but to liberate them."**
+
+Hand over the grunt work, computation, and optimization to AI. Leave the creation of new ideas, the exploration of the unknown, and the making of value judgments—things AI can never do—to humans themselves.
+
+At a time when the industry is collectively caught up in the frenzy of chasing ever-higher valuations, this talk by Andrew Yao offers a rare perspective: **seeing AI's limitations clearly is precisely the precondition for humans to make good use of AI.**
+
+Only when you know what cannot be done do you know what is worth doing.
+
+---
+
+> **References**
+> - [Yao Qizhi: The First Principles of AI—The Power and Limitations of Artificial Intelligence (Aisixiang)](https://www.aisixiang.com/data/179875.html)
+> - [WAIC Special | Yao Qizhi's 10,000-Word Long-Form Speech (Sohu)](https://www.sohu.com/a/1052558614_377096)
+> - [Live from WAIC—Will AI Fade from the Headlines? Yao Qizhi Says Quantum AI Will Take Its Place (Tencent News)](https://news.qq.com/rain/a/20260720A09CNQ00)
+> - [Live from the Forum | The 2026 World Artificial Intelligence Conference "The First Principles of AI" Thinkers Forum Successfully Held (JUFAIR)](https://www.jufair.com/information/334727.html)
+> - [What Exactly Are the First Principles of AI? (Yan'an News Network)](https://www.yanews.cn/guonei/2026/07-23/z1zqOEPk.html)

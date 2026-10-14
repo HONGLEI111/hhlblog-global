@@ -1,29 +1,27 @@
 ---
-title: Service Worker 高级用法：离线优先策略
+title: 'Advanced Service Worker Usage: Offline-First Strategies'
 published: 2026-08-18
-description: '深入 Service Worker 的缓存策略：Cache-First、Network-First、Stale-While-Revalidate 与离线回退，附完整可运行的渐进式增强代码示例'
+description: 'A deep dive into Service Worker caching strategies: Cache-First, Network-First, Stale-While-Revalidate, and offline fallback, with complete runnable progressive enhancement code examples.'
 image: ''
-tags: [Service Worker, PWA, 离线优先, 缓存, Web开发]
-category: '网站'
+tags: [Service Worker, PWA, Offline-First, Caching, Web Development]
+category: Web
 draft: false
-lang: ''
 ---
+## Introduction: The Network Is Not Reliable
 
-## 引言：网络不是可靠的
+As frontend developers, we often test applications on local development servers, where the network always responds instantly. But the real-world network is fragile: signals drop in the subway, café Wi-Fi is useless, and carriers only have 2G in remote areas. If your page only shows users a browser error page saying "This site can't be reached" when offline, the experience will be terrible.
 
-作为前端开发者，我们常常在本地开发服务器上测试应用，网络永远是「秒回」的。但真实世界的网络是脆弱的：地铁里信号中断、咖啡厅的 Wi-Fi 形同虚设、运营商在偏远地区只有 2G。如果你的页面在断网时只给用户一个「无法访问此网站」的浏览器错误页，体验会非常糟糕。
+The **Offline-First** design philosophy holds that: applications should assume "network unavailable" is the norm, treating offline as a first-class citizen in design rather than patching it in afterward. And the Service Worker is precisely the core primitive the browser provides for this concept—it acts like a programmable **network proxy**, intercepting all requests made by the page and letting you decide whether to go to the network, go to the cache, or combine both.
 
-**离线优先（Offline-First）** 的设计哲学认为：应用应该假设「网络不可用」是常态，把离线当作一等公民来设计，而不是事后补丁。而 Service Worker 正是浏览器为这一理念提供的核心原语——它像一个可编程的**网络代理**，拦截页面发出的所有请求，让你决定是走网络、走缓存，还是两者结合。
+## Service Worker Lifecycle Recap
 
-## Service Worker 生命周期回顾
-
-Service Worker 运行在独立的线程中，与页面完全解耦，有一套自己的生命周期：
+The Service Worker runs in a separate thread, completely decoupled from the page, with its own lifecycle:
 
 ```
 install → waiting → activate → fetch（拦截请求）
 ```
 
-三个关键事件构成了它的骨架：
+Three key events form its skeleton:
 
 ```js
 self.addEventListener('install', (event) => {
@@ -43,15 +41,15 @@ self.addEventListener('fetch', (event) => {
 });
 ```
 
-`event.waitUntil()` 告诉浏览器「这个异步任务完成前，不要结束当前生命周期阶段」；`event.respondWith()` 则让你接管请求，返回自定义的 `Response` 对象。理解了这两个 API，就理解了 Service Worker 的全部心智模型。
+`event.waitUntil()` tells the browser "don't end the current lifecycle phase until this async task completes"; `event.respondWith()` lets you take over requests and return a custom `Response` object. Once you understand these two APIs, you understand the entire mental model of the Service Worker.
 
-## 四种核心缓存策略
+## Four Core Caching Strategies
 
-离线优先的实现，本质上是把这四种策略按请求类型「分而治之」。
+Implementing offline-first is essentially about applying these four strategies in a "divide and conquer" manner based on request type.
 
-### 1. Cache-First（缓存优先）
+### 1. Cache-First
 
-先查缓存，命中就直接返回；未命中才请求网络，并写入缓存。适合**不常变化的静态资源**（如带哈希的构建产物 `app.3f2a.js`、字体、图标）。
+Check the cache first; if there's a hit, return it directly; only on a miss do you request the network and write to the cache. Suitable for **static assets that don't change often** (such as hashed build artifacts `app.3f2a.js`, fonts, icons).
 
 ```js
 async function cacheFirst(request) {
@@ -64,9 +62,9 @@ async function cacheFirst(request) {
 }
 ```
 
-### 2. Network-First（网络优先）
+### 2. Network-First
 
-先请求网络，失败再回退到缓存。适合**需要新鲜度、但离线时也要能兜底**的请求（如文章正文、API 数据）。
+Request the network first, and fall back to the cache on failure. Suitable for **requests that need freshness but also need a fallback when offline** (such as article content, API data).
 
 ```js
 async function networkFirst(request) {
@@ -83,9 +81,9 @@ async function networkFirst(request) {
 }
 ```
 
-### 3. Stale-While-Revalidate（先返回缓存，后台更新）
+### 3. Stale-While-Revalidate
 
-立即返回缓存（快），同时后台发请求更新缓存，下次访问即拿到新内容。这是**兼顾速度与新鲜度**的折中策略，最适合首屏页面。
+Immediately return the cache (fast), while simultaneously sending a request in the background to update the cache, so the next visit gets the new content. This is a compromise strategy that **balances speed and freshness**, best suited for the initial screen page.
 
 ```js
 async function staleWhileRevalidate(request) {
@@ -101,11 +99,11 @@ async function staleWhileRevalidate(request) {
 
 ### 4. Cache-Only / Network-Only
 
-两个极端：`Cache-Only` 只查缓存（用于预缓存好的 app shell）；`Network-Only` 只走网络（用于登录、下单等绝不能返回过期数据的关键请求）。
+Two extremes: `Cache-Only` only checks the cache (used for pre-cached app shells); `Network-Only` only goes to the network (used for critical requests like login and checkout that must never return stale data).
 
-## 完整实现：一个可运行的离线优先 Service Worker
+## Complete Implementation: A Runnable Offline-First Service Worker
 
-把上述策略组合起来，就是一个生产级的 Service Worker。核心思想是**按 URL 路由**：
+Combining the above strategies gives you a production-grade Service Worker. The core idea is **routing by URL**:
 
 ```js
 const VERSION = 'v3';
@@ -171,11 +169,11 @@ self.addEventListener('fetch', (event) => {
 });
 ```
 
-> 注意 `response.clone()`：`Response` 的 body 只能被读取一次，既要写缓存又要返回给页面，必须先 `clone()`。
+> Note `response.clone()`: the body of `Response` can only be read once; to both write to the cache and return it to the page, you must first `clone()`.
 
-## 离线回退：给用户一个友好的兜底
+## Offline Fallback: Give Users a Friendly Safety Net
 
-比起浏览器自带的「无法连接」错误页，一个自定义的离线页面能大幅提升观感。做法是预缓存一个 `offline.html`，在导航请求失败时返回它：
+Compared to the browser's built-in "can't connect" error page, a custom offline page can greatly improve the impression. The approach is to pre-cache an `offline.html` and return it when a navigation request fails:
 
 ```js
 self.addEventListener('install', (event) => {
@@ -197,19 +195,18 @@ self.addEventListener('fetch', (event) => {
 });
 ```
 
-## 常见陷阱
+## Common Pitfalls
 
-- **缓存命名要带版本**：`static-v1`、`static-v2`…… 换版本号比覆盖旧缓存更安全，配合 `activate` 阶段的清理逻辑，能避免「更新了代码但用户一直命中旧缓存」的经典翻车。
-- **不要缓存跨域请求**：跨域响应需要 CORS 支持才能被 `cache.put()`，否则会静默失败。务必先判断 `url.origin === location.origin`。
-- **`cache.addAll` 是原子操作**：只要一个资源 404，整个 `install` 就失败，Service Worker 无法激活。预缓存清单里的路径要反复确认。
-- **Storage 配额有限**：浏览器可能随时回收缓存，不要把大文件、视频塞进 Cache Storage，重要数据应配合 IndexedDB 持久化。
+- **Cache names should be versioned**: `static-v1`, `static-v2`… changing the version number is safer than overwriting the old cache, and combined with cleanup logic in the `activate` phase, it avoids the classic disaster of "code was updated but users keep hitting the old cache."
+- **Don't cache cross-origin requests**: cross-origin responses require CORS support to be `cache.put()`, otherwise they fail silently. Always check `url.origin === location.origin` first.
+- **`cache.addAll` is an atomic operation**: if even one resource 404s, the entire `install` fails and the Service Worker cannot activate. Double-check the paths in the pre-cache manifest.
+- **Storage quota is limited**: the browser may reclaim the cache at any time, so don't stuff large files or videos into Cache Storage; important data should be persisted with IndexedDB.
+## Conclusion
 
-## 结语
+Service Worker turns "the network" from an uncontrollable external environment into a resource you can precisely orchestrate in code. The three strategies—Cache-First, Network-First, and Stale-While-Revalidate—cover the vast majority of scenarios, and the key lies in **routing by request type**—navigation, static assets, and APIs each have their own optimal solution. Offline-first isn't about making the app "completely independent of the network," but rather ensuring that when the network fails, users can still continue using it gracefully.
 
-Service Worker 把「网络」从不可控的外部环境，变成了你可以在代码里精确编排的资源。Cache-First、Network-First、Stale-While-Revalidate 三种策略覆盖了绝大多数场景，而关键在于**按请求类型做路由**——导航、静态资源、API 各有各的最优解。离线优先不是让应用「完全脱离网络」，而是让网络失败时，用户依然能优雅地继续使用。
-
-## 参考来源
+## References
 
 - [MDN — Service Worker API](https://developer.mozilla.org/zh-CN/docs/Web/API/Service_Worker_API)
-- [web.dev — The Offline Cookbook（Jake Archibald）](https://web.dev/articles/offline-cookbook)
-- [Google Developers — PWA 离线优先指南](https://web.dev/learn/pwa/caching)
+- [web.dev — The Offline Cookbook (Jake Archibald)](https://web.dev/articles/offline-cookbook)
+- [Google Developers — PWA Offline-First Guide](https://web.dev/learn/pwa/caching)

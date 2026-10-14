@@ -1,193 +1,190 @@
 ---
-title: Code Review 人间百态：LGTM 背后的真相
+title: 'The Many Faces of Code Review: The Truth Behind LGTM'
 published: 2026-10-11
-description: '「LGTM 👍」——一个 1400 行的 PR，40 秒后就被批准。这三个字母既可能是最高的信任，也可能是最贵的一次敷衍。把评审现场的黑话逐条拆开，再看看研究数据里，代码评审到底抓到了什么、又漏掉了什么。'
+description: '"LGTM 👍" — a 1,400-line PR approved 40 seconds later. Those three letters can be the highest form of trust or the most expensive brush-off. We break down the jargon of the review room one by one, then look at what the research data says code review actually catches — and what it misses.'
 image: ''
-tags: [程序员笑话, Code Review, 团队协作, 软件工程]
-category: '其他'
+tags: [Programmer Humor, Code Review, Team Collaboration, Software Engineering]
+category: Other
 draft: false
-lang: ''
 ---
+17:48 PR submitted, 1400-line diff.
 
-17:48 提的 PR，1400 行 diff。
+17:49 One comment: **LGTM 👍**
 
-17:49 一条评论：**LGTM 👍**
+1400 lines read in 40 seconds, averaging 35 lines per second. That speed isn't called review—it's called signing off.
 
-40 秒读完 1400 行，平均 35 行每秒。这个速度不叫审阅，叫签收。
+What's interesting about LGTM is that it's **binary and unfalsifiable**: "I looked carefully, the logic is fine" uses it, and "I want to leave early today" also uses it. Literally identical.
 
-LGTM 有意思的地方在于它是**二值的、不可证伪的**：「我仔细看了，逻辑没问题」用的是它，「我今天想早点下班」用的也是它。字面上完全一样。
+This field guide below tries to decompress each one, to see what's underneath. And—research data says, here's how this should actually be done.
 
-下面这份图鉴，每一条都试着把这层压缩解开，看看底下是什么。以及——研究数据说，这件事本来应该怎么干。
+## 1. Review Scene Field Guide
 
-## 1. 评审现场图鉴
+### The "LGTM 👍" Type
 
-### 「LGTM 👍」型
+See above.
 
-见上。
+An imprecise but very useful observation: **the frequency of LGTM correlates positively with diff size.** A 40-line PR often has seven or eight discussion threads below it; a 1400-line PR often has just one 👍. This isn't coincidence—Section 3 will explain why.
 
-顺带一个不严谨但很有用的观察：**LGTM 出现的频率和 diff 的大小正相关。** 40 行的 PR 下面往往有七八条讨论，1400 行的 PR 下面常常只有一个 👍。这不是巧合，第三节会给出原因。
+### The "nit:" Type
 
-### 「nit:」型
+Among 1400 lines of changes, the only comment landed on indentation:
 
-1400 行改动里，唯一一条评论落在了缩进上：
+> nit: suggest using 2 spaces here
 
-> nit: 这里建议用 2 空格
+`nit` is short for nitpick, originally meaning "I'm being pedantic, I know this doesn't matter." But in practice, it often becomes the receipt a reviewer uses to prove they actually opened the page.
 
-`nit` 是 nitpick 的缩写，本意是「吹毛求疵，我知道这不重要」。但在实践里，它经常变成 reviewer 证明自己确实打开过这个页面的收据。
+### The "bikeshed" Type
 
-### 「bikeshed」型
+In 1957, C. Northcote Parkinson told a fictional story about a committee: reviewing a nuclear reactor, passed in 3 minutes; reviewing what building materials to use for a bike shed, argued for 45 minutes.
 
-1957 年，C. Northcote Parkinson 讲过一个虚构的委员会：审议核电站反应堆，3 分钟通过；审议自行车棚用什么建材，吵了 45 分钟。
+The reason is simple—nobody really understands reactors, but everyone understands bike sheds. **When something exceeds everyone's judgment capacity, people automatically retreat to the small patch where they're qualified to have an opinion.**
 
-理由很朴素——反应堆没人真懂，车棚人人都懂。**当一件事超出所有人的判断力时，众人会自动退回到自己有资格表态的那一小块地方。**
+In code it's identical: a 40-line concurrency refactor gets no comments, while whether a variable is called `data2` or `result` gets 40 replies.
 
-代码里一模一样：一个 40 行的并发改造无人评论，而变量叫 `data2` 还是 `result`，下面挂了 40 条回复。
+### The "This Function Is Too Long" Type
 
-### 「这个函数太长了」型
+No threshold, no alternative, no pointing to which part is redundant. The author can only guess after receiving it; the most common response is to mechanically split the function into two—the original problem hasn't changed at all.
 
-没有阈值，没有替代方案，没有指认哪一段是多余的。作者收到之后只能猜，最常见的应对是把函数机械地拆成两个——原来的问题一点没变。
+### The "Big PR Phobia" Type
 
-### 「大 PR 恐惧症」型
+The reviewer opens a 3000-line diff, scrolls two screens, thinks "such a big change, the author must have tested it themselves," and hits LGTM.
 
-reviewer 打开 3000 行的 diff，滚了两屏，心想「这么大的改动，作者肯定自己测过了」，于是 LGTM。
+### The "AI reviewer" Type (New in 2026)
 
-### 「AI reviewer」型（2026 新增）
+Throw the diff at a model, hit enter, paste:
 
-把 diff 丢给模型，回车，粘贴：
+> There may be a null pointer risk here, suggest adding error handling.
 
-> 这里可能存在空指针风险，建议添加错误处理。
+Structurally complete, professionally toned, vaguely located—where is "here"? Which input triggers it?
 
-结构完整、语气专业、定位模糊——「这里」是哪里？哪个输入会触发？
+### The "Comments Section More Exciting Than the Code" Type
 
-### 「评论区比代码精彩」型
+A rename PR, 6 lines of code changed, 60 comments. Finally everyone reaches consensus: next time open a separate PR just for the rename.
 
-一个 rename PR，代码改了 6 行，评论 60 条。最后大家达成共识：下次单独开一个 PR 改名字。
+(And there was no next time.)
 
-（然后并没有下次。）
+## 2. Taking "LGTM" Apart: What It's Actually Saying
 
-## 2. 把「LGTM」拆开：它到底在说什么
+The same LGTM compresses at least three different meanings:
 
-同一个 LGTM，至少压着三种不同的意思：
-
-| 可能的语义 | 说的是什么 | 代价 |
+| Possible Semantics | What It's Saying | Cost |
 | --- | --- | --- |
-| 信任代理 | 「作者比我熟这块，我信他」 | 信任被固化成了流程 |
-| 社交润滑 | 「我不想当那个卡住 PR 的人」 | 拦截功能静默失效 |
-| 免责声明 | 「我点了批准，出事别找我」 | 责任被形式化地转移了 |
+| Trust proxy | "The author knows this area better than me, I trust them" | Trust gets ossified into process |
+| Social lubrication | "I don't want to be the one blocking the PR" | The interception function silently fails |
+| Disclaimer | "I clicked approve, don't come after me if something breaks" | Responsibility gets formally transferred |
 
-区分方法意外的简单：**看它有没有伴随一句「我重点看了 X」。**
+The method to distinguish them is surprisingly simple: **see if it's accompanied by a sentence like "I focused on X."**
 
-真读过的审阅者，几乎总会说出自己看了什么、跳过了什么。这条经验在实践中比任何流程文档都准——因为「看过」这件事没法伪装成沉默。
+A reviewer who actually read almost always says what they looked at and what they skipped. This heuristic is more accurate in practice than any process document—because "having looked" can't be disguised as silence.
 
-## 3. 研究怎么说：评审真正抓到了什么
+## 3. What the Research Says: What Review Actually Catches
 
-### 起源：从「正式检查」到「现代评审」
+### Origins: From "Formal Inspection" to "Modern Review"
 
-1976 年，IBM 的 Michael Fagan 发表了设计评审与代码检查（inspection）的流程，把评审定义成一道**有角色、有清单、有度量的质量门禁**：主持人、读者、记录员、作者，按行逐条过。这是评审第一次被制度化。
+In 1976, Michael Fagan at IBM published the process for design review and code inspection, defining review as a **quality gate with roles, checklists, and metrics**: moderator, reader, recorder, author, going through line by line. This was the first time review was institutionalized.
 
-2008 年，Google 为 Android 项目做了 Gerrit，评审被工具化成**异步、轻量、贴着每一次提交走**的一步。评审从「一场会议」变成了「一个页面」——这就是今天说的 modern code review。
+In 2008, Google built Gerrit for the Android project, and review became tooled into an **asynchronous, lightweight step attached to every commit**. Review went from "a meeting" to "a page"—this is what we now call modern code review.
 
-工具变了，隐含的假设也变了：正式检查假设评审是一个高成本的仪式，所以要做厚；现代评审假设它是一个低成本的日常动作，所以要做薄。**问题出在中间：流程做薄了，但期待还留在厚的那一端。**
+The tools changed, and so did the implicit assumptions: formal inspection assumed review was a high-cost ritual, so it should be thick; modern review assumes it's a low-cost daily action, so it should be thin. **The problem lies in between: the process got thin, but expectations stayed at the thick end.**
 
-### 微软的研究：找 bug 并不是第一名
+### Microsoft's Research: Finding Bugs Isn't #1
 
-Bacchelli 和 Bird 在 ICSE 2013 发表的《Expectations, Outcomes, and Challenges of Modern Code Review》，在微软做了访谈、现场观察和评论分类，结论相当反直觉：
+Bacchelli and Bird's ICSE 2013 paper "Expectations, Outcomes, and Challenges of Modern Code Review," based on interviews, field observations, and comment classification at Microsoft, reached a fairly counterintuitive conclusion:
 
-- 开发者**自报的最高动机**确实是找缺陷；
-- 但在 200 次评审、570 条评论的实际分类里，**「代码改进」占 29%，「发现缺陷」只占 14%**；
-- 而且被发现的缺陷大多是小颗粒的：边界情况、运算符优先级、配置值写错——不是架构问题，也不是安全问题；
-- 真正的收益反而落在**知识传递、团队认知、替代方案讨论**上。
+- Developers' **self-reported top motivation** is indeed finding defects;
+- But in the actual classification of 200 reviews and 570 comments, **"code improvement" accounted for 29%, while "defect finding" was only 14%**;
+- And most defects found were small-grained: edge cases, operator precedence, wrong config values—not architecture issues, not security issues;
+- The real benefits actually landed on **knowledge transfer, team awareness, and alternative solution discussions**.
 
-翻译一下：你指望评审拦住线上事故，但数据说它更擅长让大家知道彼此在干什么。这不是坏事，前提是你别对它抱错的期待。
+In translation: you expect review to catch production incidents, but the data says it's better at letting everyone know what each other is doing. This isn't bad, provided you don't hold the wrong expectations of it.
 
-### Google 的研究：评审是轻的，而且必须轻
+### Google's Research: Review Is Light, and Must Be Light
 
-Sadowski 等人 2018 年的《Modern Code Review: A Case Study at Google》看了约 900 万次变更：
+Sadowski et al.'s 2018 paper "Modern Code Review: A Case Study at Google" looked at about 9 million changes:
 
-- **75% 的变更只有一位审阅者**；
-- 变更的**中位数大小是 24 行**，35% 只碰一个文件；
-- 超过 80% 的评审**一轮就结束**，70% 的变更在 24 小时内合入。
+- **75% of changes had only one reviewer**;
+- The **median change size was 24 lines**, with 35% touching only one file;
+- Over 80% of reviews **finished in one round**, and 70% of changes were merged within 24 hours.
 
-Google 自己工程实践文档里的建议也朴素到近乎无聊：普通 CL 大概 100 行是合理的，1000 行基本就太大了。
+Google's own engineering practices documentation advice is also plain to the point of being boring: a typical CL of about 100 lines is reasonable; 1000 lines is basically too large.
 
-注意这里的方向：不是「Google 的员工更自律所以 diff 小」，而是**在 Google 的流程里，一个 1400 行的 CL 根本走不到合并那一步**——它会在评审入口就被要求拆开。
+Note the direction here: it's not "Google employees are more disciplined so diffs are small," but rather **in Google's process, a 1400-line CL simply can't make it to the merge stage**—it gets asked to be split at the review entrance.
 
-### Cisco 的实验：超过 400 行，审查开始失效
+### Cisco's Experiment: Beyond 400 Lines, Review Starts to Fail
 
-SmartBear 整理的 Cisco 案例（2500 次评审、50 名程序员、320 万行代码，追踪 MeetingPlace 团队 10 个月）给出了量化边界：
+The Cisco case compiled by SmartBear (2500 reviews, 50 programmers, 3.2 million lines of code, tracking the MeetingPlace team for 10 months) gives quantitative boundaries:
 
-- 一次审阅 **200–400 行**是有效区间；
-- 检查速度超过 **500 行/小时**之后，缺陷发现密度显著下降；建议控制在 **300–500 行/小时**；
-- 单次评审超过 **60 分钟**，效果开始明显衰减；
-- 有的整理给出的分组数据更直观：1–200 行的检出率约 87%，超过 1000 行掉到三成以下。
+- **200–400 lines** per review session is the effective range;
+- After inspection speed exceeds **500 lines/hour**, defect detection density drops significantly; recommended to stay at **300–500 lines/hour**;
+- A single review session exceeding **60 minutes** starts to show clear decay;
+- Some compiled grouping data is more intuitive: 1–200 lines has a detection rate of about 87%, dropping below 30% beyond 1000 lines.
 
-### 把这些放在一起
+### Putting These Together
 
-四组独立证据，指向同一个结论：
+Four independent sets of evidence, pointing to the same conclusion:
 
-> **代码评审不是一道「质量门」，而是一条「注意力通道」。** 它的通过量有上限——200–400 行、60 分钟、500 行/小时。你把它当门，就得接受这道门的宽度；你一次往门口推 3000 行，得到的不是更严格的审查，而是更快的批准。
+> **Code review is not a "quality gate," but an "attention channel."** Its throughput has an upper limit—200–400 lines, 60 minutes, 500 lines/hour. If you treat it as a gate, you have to accept the width of that gate; if you push 3000 lines at the door at once, what you get isn't stricter review, but faster approval.
 
-这也正面回答了第一节那个观察：**为什么 LGTM 在大 PR 上出现得更频繁。**
+This also directly answers the observation from Section 1: **why LGTM appears more frequently on big PRs.**
 
-## 4. 四个让评审失效的机制
+## 4. Four Mechanisms That Make Review Fail
 
-1. **注意力是线性的，理解成本不是。**
-   读第 1 行和读第 900 行时，你脑子里的上下文不一样。diff 越大，后半段的边际审查质量越低。这就是 200–400 行这条线的技术依据，不是什么整齐的约定。
+1. **Attention is linear, comprehension cost is not.**
+   Reading line 1 and reading line 900, the context in your head is different. The larger the diff, the lower the marginal review quality of the latter half. This is the technical basis for the 200–400 line threshold, not some neat convention.
 
-2. **社会压力会替代技术判断。**
-   作者在等，评审在排队，最省事的动作是批准。这不是人品问题，是排队系统的默认输出——只要「批准」比「问一句」便宜，系统就会生产批准。
+2. **Social pressure replaces technical judgment.**
+   The author is waiting, reviews are queuing, and the least effortful action is to approve. This isn't a character issue, it's the default output of a queuing system—as long as "approve" is cheaper than "ask a question," the system will produce approvals.
 
-3. **不可执行的判断等于没有判断。**
-   「这个函数太长了」信息量为零。可执行的版本是：「第 40–70 行的三个分支只为了处理空值，建议在入口处归一化，这段就不需要了。」给出替代实现，或给出明确阈值，才算反馈。
+3. **An unactionable judgment equals no judgment.**
+   "This function is too long" has zero information content. The actionable version is: "The three branches in lines 40–70 exist only to handle null values; suggest normalizing at the entry point, then this section isn't needed." Giving an alternative implementation, or giving a clear threshold—that counts as feedback.
 
-4. **评审的好处是沉默的。**
-   一个被拦下的 bug 不会出现在任何看板上，写代码的产出却会。就像[《如何向爸妈解释你的工作》](/posts/how-to-explain-your-job-to-parents)里说的：**中间环节的工作之所以难被认可，是因为它最成功的形态就是「什么都没发生」。**
+4. **The benefits of review are silent.**
+   A bug that gets intercepted won't appear on any dashboard, but the output of writing code will. As said in [Explaining Your Job to Your Parents: Why Your Mum Still Thinks You Fix Computers](/posts/how-to-explain-your-job-to-parents/): **the work of intermediate steps is hard to get recognized because its most successful form is "nothing happened."**
 
-## 5. 六个今天就能用上的杠杆
+## 5. Six Levers You Can Use Today
 
-1. **把 PR 变小。** 理想 200 行以内，硬上限 400。纯机械改动（重命名、格式化、移动文件）单独开一个 PR——它应该由工具生成，也应该由工具批准。
+1. **Make PRs smaller.** Ideally under 200 lines, hard cap at 400. Purely mechanical changes (renames, formatting, file moves) should be a separate PR—it should be generated by tools and approved by tools.
 
-2. **PR 描述先写「为什么」。** reviewer 的第一分钟应该花在理解意图上，而不是从 diff 里反推意图。写清三件事：改之前是什么行为、改之后是什么行为、为什么必须改。
+2. **Write the "why" first in the PR description.** The reviewer's first minute should be spent understanding intent, not reverse-engineering intent from the diff. Write three things clearly: what the behavior was before, what the behavior is after, and why it must change.
 
-3. **给评论分级。** 最简单三档：`nit:`（可改可不改）、`suggestion:`（建议但非阻塞）、`blocking:`（必须改，且要写清判据）。有了分级，作者知道该改哪些，reviewer 也才敢把小事写出来——**小事能写出来，人才不会把意见攒成一次爆发。**
+3. **Grade your comments.** The simplest three tiers: `nit:` (optional), `suggestion:` (suggested but non-blocking), `blocking:` (must fix, with clear criteria). With grading, the author knows what to fix, and the reviewer dares to write out small things—**when small things can be written out, people won't accumulate opinions into one explosion.**
 
-4. **把机械检查全部交给机器。** 格式、lint、类型、单测、依赖漏洞扫描——这些都有确定答案，让 CI 去说。人的注意力只该花在机器回答不了的问题上：设计是否合理、命名是否表达了意图、边界语义是否说清了。
+4. **Give all mechanical checks to machines.** Formatting, lint, types, unit tests, dependency vulnerability scanning—these all have definite answers, let CI say them. Human attention should only be spent on questions machines can't answer: is the design reasonable, does the naming express intent, is the boundary semantics clear.
 
-5. **给评审定 SLA，先修排队、再修审查。** 在 DORA 那套指标里，change lead time 的大头常常不在写代码，而在**等**。24 小时内首响应是个务实的目标。这里有个会自我强化的循环：**响应越慢，diff 越大；diff 越大，评审越烂；评审越烂，响应越慢。**
+5. **Set an SLA for review—fix the queue first, then fix the review.** In the DORA metrics, the bulk of change lead time is often not in writing code, but in **waiting**. First response within 24 hours is a pragmatic target. There's a self-reinforcing loop here: **the slower the response, the bigger the diff; the bigger the diff, the worse the review; the worse the review, the slower the response.**
 
-6. **作者先自审一遍。** 提交前自己把 diff 从头看一遍。这一步能摘掉相当一部分「我自己都看得出来不对」的问题，也能顺手给 reviewer 写一句导航：「重点看 `auth/session.ts`，其它都是机械改动。」
+6. **The author should self-review first.** Before submitting, read through the diff yourself from start to finish. This step can remove a fair number of "even I can see it's wrong" issues, and also lets you write a navigation note for the reviewer: "Focus on `auth/session.ts`, everything else is mechanical changes."
 
-## 6. AI 时代的新问题
+## 6. New Problems in the AI Era
 
-2026 年，评审被两头同时夹击。
+In 2026, review is being squeezed from both ends.
 
-**一头是供给。** AI 让写代码变快了，同一个人一天产出的 diff 可能是过去的几倍，[《AI 生成代码的翻车现场》](/posts/ai-generated-code-fails)里那类问题也更容易被一并产出来。但评审通道的宽度没有变——原来 200–400 行/次的通道，现在每天要过更多行。**这不是 reviewer 变懒了，是流程被供给了。**
+**One end is supply.** AI makes writing code faster; the same person's daily diff output might be several times what it used to be, and problems like those in [AI-Generated Code Fails: From Confident Nonsense to Hallucination Dependency](/posts/ai-generated-code-fails/) are more easily produced along with everything else. But the width of the review channel hasn't changed—the channel that used to handle 200–400 lines per session now has to handle more lines every day. **This isn't reviewers getting lazy; it's the process being over-supplied.**
 
-**另一头是审阅者。** AI reviewer 很擅长一致性检查：命名风格、代码模式、已知漏洞库。这部分它确实比人强，也比人便宜。但它不擅长两个问题——「这个需求本身对不对」和「这段代码三个月后还有没有人敢动」。它能给出很多「可能存在 X 风险」，很少能说出「如果这样，那设计里有三个地方会同时崩」。
+**The other end is the reviewer.** AI reviewers are very good at consistency checks: naming style, code patterns, known vulnerability databases. In this part, it's genuinely better than humans, and cheaper too. But it's not good at two questions—"is this requirement itself correct" and "will anyone dare to touch this code three months from now." It can give many "there may be X risk" statements, but rarely can it say "if this happens, three places in the design will collapse simultaneously."
 
-所以合理的分工大致是：
+So the reasonable division of labor is roughly:
 
-- **机器负责一致性**：格式、模式、已知缺陷、测试覆盖率；
-- **人负责意图**：这个改动是不是解决问题的正确方式，这个新增抽象是否值得它的维护成本。
+- **Machines handle consistency**: formatting, patterns, known defects, test coverage;
+- **Humans handle intent**: is this change the right way to solve the problem, is this new abstraction worth its maintenance cost.
 
-要小心的最后一件事是**评论通胀**：当一条「建议添加错误处理」的评论成本接近零时，评论数量会涨，而每条评论的平均判断力会掉。数量不是质量——这和[《技术债的识别与管理》](/posts/technical-debt-identification-and-management)里的逻辑一样：**能被自动产出的东西，不能直接当作产出。**
+The last thing to watch out for is **comment inflation**: when the cost of a "suggest adding error handling" comment approaches zero, the number of comments will rise, and the average judgment per comment will drop. Quantity isn't quality—this is the same logic as in [Identifying and Managing Technical Debt: Stop Using "Bad Code" as an Excuse](/posts/technical-debt-identification-and-management/): **anything that can be automatically produced cannot be directly counted as output.**
 
-## 写在最后
+## Final Thoughts
 
-LGTM 的真相，通常不是「审阅者不负责任」。
+The truth behind LGTM usually isn't "the reviewer is irresponsible."
 
-一个人在一天里被塞进六个 800 行的 PR，每个都要求他承担一次事故的连带责任，那他给出的最优解就是最快地点下批准。**这是流程设计的结果，不是道德水平的结果。**
+When a person is stuffed with six 800-line PRs in a day, each requiring them to bear joint liability for an incident, the optimal solution they give is to click approve as fast as possible. **This is the result of process design, not the result of moral character.**
 
-反过来也成立：当你把 diff 压到 200 行、把机械检查交给 CI、在描述里先写清「为什么」，LGTM 会自己变回一句真话——因为这时候它真的只值 40 秒。
+The reverse also holds: when you compress diffs to 200 lines, hand mechanical checks to CI, and write the "why" clearly in the description first, LGTM will turn back into a true statement on its own—because at that point it really is only worth 40 seconds.
+## References
 
-## 参考来源
+- [Expectations, Outcomes, and Challenges of Modern Code Review (Bacchelli & Bird, ICSE 2013)](https://dl.acm.org/doi/10.5555/2486788.2486882)
+- [Modern Code Review: A Case Study at Google (Sadowski et al., ICSE-SEIP 2018)](https://dl.acm.org/doi/10.1145/3183519.3183525)
+- [Best Practices for Peer Code Review — SmartBear (Cisco case study)](https://smartbear.com/learn/code-review/best-practices-for-peer-code-review/)
+- [Design and code inspections to reduce errors in program development (Fagan, 1976)](https://ieeexplore.ieee.org/document/5388087)
+- [Google Engineering Practices: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
+- [The Law of Triviality (Parkinson, 1957)](https://en.wikipedia.org/wiki/Law_of_triviality)
+- [DORA: Software Delivery Performance Metrics](https://dora.dev/guides/dora-metrics-four-keys/)
 
-- [Expectations, Outcomes, and Challenges of Modern Code Review（Bacchelli & Bird, ICSE 2013）](https://dl.acm.org/doi/10.5555/2486788.2486882)
-- [Modern Code Review: A Case Study at Google（Sadowski et al., ICSE-SEIP 2018）](https://dl.acm.org/doi/10.1145/3183519.3183525)
-- [Best Practices for Peer Code Review — SmartBear（Cisco 案例）](https://smartbear.com/learn/code-review/best-practices-for-peer-code-review/)
-- [Design and code inspections to reduce errors in program development（Fagan, 1976）](https://ieeexplore.ieee.org/document/5388087)
-- [Google Engineering Practices：Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
-- [The Law of Triviality（Parkinson, 1957）](https://en.wikipedia.org/wiki/Law_of_triviality)
-- [DORA：Software Delivery Performance Metrics](https://dora.dev/guides/dora-metrics-four-keys/)
-
-延伸阅读：本博客里还有两篇讲「评审之外的另一半」的文章——[《Git 工作流最佳实践：从 rebase 到 squash》](/posts/git-workflow-best-practices)和[《代码可读性：写出别人看得懂的代码》](/posts/code-readability)。
+Further reading: this blog also has two articles on "the other half beyond review" — [Git Workflow Best Practices: From rebase to squash](/posts/git-workflow-best-practices) and [Code Readability: Writing Code Others Can Understand](/posts/code-readability).

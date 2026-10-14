@@ -1,21 +1,19 @@
 ---
-title: 本地大模型运行指南：Ollama + Open WebUI 从零搭建
+title: 'Running Local LLMs: Building Ollama + Open WebUI from Scratch'
 published: 2026-09-17
-description: '在自己的机器上跑起一个 ChatGPT，从 Ollama 安装、Modelfile 定制到 Open WebUI 图形界面与 RAG 知识库，附完整配置与踩坑清单'
+description: Run your own ChatGPT on your own machine, covering Ollama installation, Modelfile customization, the Open WebUI graphical interface, and a RAG knowledge base, with complete configuration and a list of pitfalls.
 image: ''
-tags: [Ollama, 本地大模型, Open WebUI, LLM]
+tags: [Ollama, Local LLM, Open WebUI, LLM]
 category: 'AI'
 draft: false
-lang: ''
 ---
+Cloud APIs are convenient, but there are always moments when you want a model that "runs on your own machine": when handling internal company documents and you don't want to send data out, when you want to keep writing code on a plane, or when you just want to tinker around without the anxiety of a token bill. Ollama makes this simpler than you'd imagine—it wraps a layer of model management and inference serving on top of llama.cpp, compressing the whole "download, quantize, load, expose API" workflow into a few commands.
 
-云端 API 很方便，但总有些时刻你会想要一个「跑在自己机器上」的模型：处理公司内部文档时不想把数据发出去、飞机上想继续写代码、或者只是想在没有 token 账单焦虑的前提下随便折腾。Ollama 让这件事变得比想象中简单——它在 llama.cpp 之上包了一层模型管理和推理服务，把「下载、量化、加载、暴露 API」这套流程压缩成了几条命令。
+This article builds a local large model environment from scratch: Ollama as the inference backend, Open WebUI as the graphical frontend, and finally hooking up documents to make a private knowledge base.
 
-这篇文章从零开始，把本地大模型环境搭起来：Ollama 做推理后端，Open WebUI 做图形前端，最后接上文档做成一个私有知识库。
+## 1. Install Ollama
 
-## 第一步：安装 Ollama
-
-macOS 和 Linux 一行搞定：
+One line on macOS and Linux:
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
@@ -24,27 +22,27 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama --version
 ```
 
-Windows 用 PowerShell：
+On Windows, use PowerShell:
 
 ```powershell
 irm https://ollama.com/install.ps1 | iex
 ```
 
-macOS 用户也可以用 Homebrew：`brew install ollama`。
+macOS users can also use Homebrew: `brew install ollama`.
 
-安装脚本会顺带把 Ollama 注册成后台服务（Linux 上是 systemd，macOS 是 launchd），所以装完之后 API 已经在 `http://localhost:11434` 监听了。如果 `ollama serve` 报 `address already in use`，不用慌——那说明服务本来就在跑。
+The install script also registers Ollama as a background service (systemd on Linux, launchd on macOS), so after installation the API is already listening on `http://localhost:11434`. If `ollama serve` reports `address already in use`, don't panic—that just means the service was already running.
 
-### 挑一个模型
+### Pick a model
 
-第一次跑会先把模型权重拉下来，所以别一上来就冲 70B。按显存/内存估算：
+The first run will pull down the model weights, so don't go straight for 70B. Estimate by VRAM/RAM:
 
-| 参数量 | 大致内存占用 | 适合场景 |
+| Parameter count | Approximate memory usage | Suitable scenarios |
 | --- | --- | --- |
-| 3B | ~2 GB | 老笔记本、树莓派、快速试验 |
-| 7–8B | ~5 GB | 日常问答、代码补全的主力区间 |
-| 13B | ~8 GB | 需要更强推理，显存尚可 |
-| 34B | ~20 GB | 24G 显卡的甜点 |
-| 70B | ~40 GB | 双卡或大内存工作站 |
+| 3B | ~2 GB | Old laptops, Raspberry Pi, quick experiments |
+| 7–8B | ~5 GB | The main range for everyday Q&A and code completion |
+| 13B | ~8 GB | When you need stronger reasoning and have enough VRAM |
+| 34B | ~20 GB | The sweet spot for 24G GPUs |
+| 70B | ~40 GB | Dual-GPU or large-memory workstations |
 
 ```bash
 # 拉取并进入交互式 REPL
@@ -58,17 +56,17 @@ ollama stop llama3.1:8b   # 手动卸载，释放显存
 ollama rm llama3.1:8b
 ```
 
-模型默认空闲约 5 分钟后自动卸载。想让它常驻（省掉每次重新加载的几秒冷启动），设环境变量：
+By default, models automatically unload after about 5 minutes idle. If you want them to stay resident (saving the few seconds of cold start from reloading each time), set an environment variable:
 
 ```bash
 export OLLAMA_KEEP_ALIVE=30m
 ```
 
-## 第二步：用 Modelfile 定制自己的模型
+## 2. Customize your own model with a Modelfile
 
-Modelfile 之于模型，就像 Dockerfile 之于容器——把「每次调用都要重复传的参数」固化下来。这是 Ollama 最被低估的功能。
+A Modelfile is to a model what a Dockerfile is to a container—it bakes in "the parameters you'd otherwise have to pass repeatedly on every call." This is Ollama's most underrated feature.
 
-创建一个 `Modelfile`：
+Create a `Modelfile`:
 
 ```dockerfile
 FROM qwen2.5:7b
@@ -84,23 +82,23 @@ SYSTEM """你是一位严谨的代码审查助手。
 不要赘述显而易见的正确代码。"""
 ```
 
-然后构建并运行：
+Then build and run:
 
 ```bash
 ollama create code-reviewer -f ./Modelfile
 ollama run code-reviewer
 ```
 
-想基于已有模型改造？`ollama show --modelfile <model>` 能打印出它的完整配方，改几行再 `create` 就行。
+Want to modify an existing model? `ollama show --modelfile <model>` can print out its full recipe; change a few lines and then `create`.
 
-关于两个参数值得展开说一下：
+Two parameters are worth expanding on:
 
-- **`num_ctx`**：Ollama 的默认上下文窗口相对保守（常见默认 2048），做 RAG 或者丢长文档进去时一定要调大，否则超出部分会被静默截断——这是「明明文档里有这段话，模型却说不知道」的头号原因。代价是显存和速度。
-- **量化等级**：模型名里的 `q4_K_M` 是默认推荐的量化档位，相比 FP16 大约小 4 倍，在多数任务上质量损失很小。显存紧张时降到 `q4_0`，追求质量可以上 `q8_0`。
+- **`num_ctx`**: Ollama's default context window is relatively conservative (commonly 2048 by default). When doing RAG or throwing long documents in, you must increase it, otherwise the excess will be silently truncated—this is the number one reason for "the document clearly contains this passage, but the model says it doesn't know." The cost is VRAM and speed.
+- **Quantization level**: The `q4_K_M` in the model name is the default recommended quantization tier, roughly 4 times smaller than FP16, with very little quality loss on most tasks. When VRAM is tight, drop to `q4_0`; if you're chasing quality, you can go up to `q8_0`.
 
-## 第三步：把它当成 OpenAI 用
+## 3. Use it like OpenAI
 
-除了原生 API（`/api/generate`、`/api/chat`），Ollama 还暴露了一套 OpenAI 兼容接口 `http://localhost:11434/v1`。这意味着 LangChain、LlamaIndex、各种 Agent 框架、IDE 插件，往往只需要改一个 `base_url`。
+Besides the native API (`/api/generate`, `/api/chat`), Ollama also exposes an OpenAI-compatible interface `http://localhost:11434/v1`. This means LangChain, LlamaIndex, various Agent frameworks, and IDE plugins often only need a single `base_url` changed.
 
 ```python
 from openai import OpenAI
@@ -116,7 +114,7 @@ resp = client.chat.completions.create(
 print(resp.choices[0].message.content)
 ```
 
-不装 SDK 的话，原生接口用 curl 更直接：
+If you don't want to install an SDK, the native interface is more direct with curl:
 
 ```bash
 curl http://localhost:11434/api/chat -d '{
@@ -126,11 +124,11 @@ curl http://localhost:11434/api/chat -d '{
 }'
 ```
 
-把 `stream` 设为 `false` 会一次性返回完整结果；流式则是 NDJSON，每行一个 JSON 对象。调试时用非流式，生产里用流式提升体感。
+Setting `stream` to `false` returns the complete result in one go; streaming is NDJSON, one JSON object per line. Use non-streaming when debugging, and streaming in production to improve perceived responsiveness.
 
-## 第四步：装上图形界面 Open WebUI
+## 4. Install the graphical interface Open WebUI
 
-命令行够用，但一个带聊天记录、多会话、文档上传的界面体验好得多。Open WebUI 是自托管的 ChatGPT 风格前端，数据全在本地。
+The command line is enough to get by, but an interface with chat history, multiple sessions, and document upload is a much better experience. Open WebUI is a self-hosted ChatGPT-style frontend with all data kept locally.
 
 ```bash
 docker run -d -p 3000:8080 \
@@ -140,31 +138,31 @@ docker run -d -p 3000:8080 \
   ghcr.io/open-webui/open-webui:main
 ```
 
-几个参数解释一下：
+A few parameters explained:
 
-- `-p 3000:8080`：容器内监听 8080，映射到宿主机的 3000，所以访问 `http://localhost:3000`。
-- `-v open-webui:/app/backend/data`：把聊天记录、账号、设置持久化到命名卷。**不加这个，容器一删数据全没。**
-- `--add-host=host.docker.internal:host-gateway`：让容器能访问宿主机上的 Ollama。Ollama 装在宿主机而不是容器里，是因为这样可以复用已有的 GPU 驱动和模型缓存，避免重复下载几十 GB。
+- `-p 3000:8080`: Listens on 8080 inside the container, mapped to port 3000 on the host, so you access `http://localhost:3000`.
+- `-v open-webui:/app/backend/data`: Persists chat history, accounts, and settings to a named volume. **Without this, all data is gone once the container is deleted.**
+- `--add-host=host.docker.internal:host-gateway`: Lets the container access Ollama on the host. Ollama is installed on the host rather than in the container because this way you can reuse the existing GPU drivers and model cache, avoiding re-downloading tens of GB.
 
-有 NVIDIA 显卡就给 `docker run` 加上 `--gpus all`，镜像名换成 `:cuda` 标签。
+If you have an NVIDIA GPU, add `docker run` to `--gpus all`, and switch the image name to the `:cuda` tag.
 
-启动后打开 `http://localhost:3000`，**第一个注册的账号自动成为管理员**，然后：
+After startup, open `http://localhost:3000`. **The first registered account automatically becomes the administrator**, then:
 
-1. 右上角头像 → **Admin Panel** → **Settings** → **External Connections**
-2. Ollama API 地址填 `http://host.docker.internal:11434`
-3. 点 **Verify Connection**，看到绿色对勾就成了
+1. Avatar in the top right → **Admin Panel** → **Settings** → **External Connections**
+2. Fill in the Ollama API address as `http://host.docker.internal:11434`
+3. Click **Verify Connection**; if you see a green checkmark, you're done
 
-如果连接失败，先确认 `curl http://localhost:11434` 能返回 "Ollama is running"。若 UI 里列表是空的，通常是还没 pull 任何模型。
+If the connection fails, first confirm that `curl http://localhost:11434` returns "Ollama is running." If the list in the UI is empty, it's usually because no models have been pulled yet.
 
-### 隐私提醒
+### Privacy reminder
 
-`docker run -p 3000:8080` 意味着同局域网的任何人都能访问你的界面。不要直接改绑定到 `0.0.0.0` 就完事，正经做法是在前面挂一层 Nginx/Caddy 做 TLS 和认证。同理，`OLLAMA_HOST=0.0.0.0` 在没有反代保护的情况下绝不要设——那等于把你的模型 API 裸奔到公网。
+`docker run -p 3000:8080` means anyone on the same LAN can access your interface. Don't just change the binding to `0.0.0.0` and call it done; the proper approach is to put Nginx/Caddy in front for TLS and authentication. Likewise, never set `OLLAMA_HOST=0.0.0.0` without reverse proxy protection—that's equivalent to exposing your model API naked to the public internet.
 
-## 第五步：做成私有知识库（RAG）
+## 5. Turn it into a private knowledge base (RAG)
 
-Open WebUI 内置了 RAG 引擎，不需要额外写代码。
+Open WebUI has a built-in RAG engine, so no extra code is needed.
 
-先装一个嵌入模型，用于把文档切块后转成向量：
+First install an embedding model, used to convert document chunks into vectors:
 
 ```bash
 ollama pull nomic-embed-text
@@ -172,39 +170,38 @@ ollama pull nomic-embed-text
 ollama pull bge-m3
 ```
 
-然后在 **Admin Panel → Settings → Documents** 里，把 **Semantic Vector Model Engine** 设为 **Ollama**，Embedding 模型选 `bge-m3`，保存。
+Then in **Admin Panel → Settings → Documents**, set **Semantic Vector Model Engine** to **Ollama**, choose `bge-m3` as the Embedding model, and save.
 
-两种用法：
+Two ways to use it:
 
-- **临时问文档**：在聊天输入框点回形针图标上传 PDF/Word/TXT，之后的问题会自动带上这份文档的上下文。第一次上传会慢一些，因为要现加载嵌入模型。
-- **长期知识库**：**Workspace → Knowledge → +** 新建知识库，批量上传文件。之后在聊天里输入 `#` 就能把整个知识库挂进当前对话。
+- **Ask documents temporarily**: In the chat input box, click the paperclip icon to upload a PDF/Word/TXT, and subsequent questions will automatically include the context of this document. The first upload will be slower because the embedding model has to be loaded on the spot.
+- **Long-term knowledge base**: **Workspace → Knowledge → +** to create a new knowledge base, and upload files in batches. After that, typing `#` in chat will attach the entire knowledge base to the current conversation.
 
-文档量大了之后，默认的向量存储会成为瓶颈，可以把向量检索迁到 Qdrant 这类专用向量库，Open WebUI 支持通过环境变量切换。
+Once the volume of documents grows large, the default vector storage becomes a bottleneck. You can migrate vector retrieval to a dedicated vector database like Qdrant; Open WebUI supports switching via environment variables.
 
-## 踩坑清单
+## Pitfall checklist
 
-几个我在搭建过程中真实撞过的问题：
+A few problems I actually ran into during setup:
 
-**1. 答非所问 / 说文档里没有的内容。** 先查 `num_ctx`。默认上下文常常装不下 RAG 塞进去的 chunk，超出部分被静默丢弃，症状就是「明明上传了却说不知道」。把它调到 8192 或 16384 再试。
+**1. Irrelevant answers / claiming content isn't in the document.** First check `num_ctx`. The default context often can't fit the chunks that RAG stuffs in, and the excess is silently discarded; the symptom is "I clearly uploaded it, but it says it doesn't know." Set it to 8192 or 16384 and try again.
 
-**2. 内存爆掉而不是显存爆掉。** 显存不够时 Ollama 会自动把部分层放到 CPU 上跑，结果不是报错而是变得极慢。用 `ollama ps` 看，如果 PROCESSOR 那列是 `CPU/GPU` 混合，就是这个情况。调小模型或调低量化档位。
+**2. Running out of RAM rather than VRAM.** When VRAM is insufficient, Ollama automatically puts some layers on the CPU, and the result isn't an error but extreme slowness. Check with `ollama ps`; if the PROCESSOR column shows `CPU/GPU` mixed, that's the situation. Use a smaller model or lower the quantization tier.
 
-**3. 模型加载慢。** 每次对话前几秒的卡顿是冷启动。设 `OLLAMA_KEEP_ALIVE=30m` 让常用模型常驻。
+**3. Slow model loading.** The few seconds of lag before each conversation is cold start. Set `OLLAMA_KEEP_ALIVE=30m` to keep commonly used models resident.
 
-**4. 只能跑 GGUF。** Ollama 底层是 llama.cpp，只吃 GGUF 格式。HuggingFace 上的 safetensors 模型需要先转换，或者干脆换 vLLM 这类推理框架。
+**4. It can only run GGUF.** Ollama is built on llama.cpp and only accepts the GGUF format. safetensors models on HuggingFace need to be converted first, or you should just switch to an inference framework like vLLM.
 
-**5. 单用户工具，别当生产服务。** Ollama 没有并发调度和队列管理，几个人同时用就会互相排队。真要做多用户的生产级部署，vLLM 或 TGI 是更合适的选择。
+**5. It's a single-user tool, don't treat it as a production service.** Ollama has no concurrent scheduling or queue management; if several people use it at the same time, they'll queue behind each other. If you really need a multi-user production-grade deployment, vLLM or TGI is a more suitable choice.
+## Conclusion
 
-## 结语
+The value of local large models isn't in "free replacement for GPT-4"—the reasoning ability of 7B models is indeed still far behind. Their value lies in **controllability**: data never leaves the machine, no network dependency, no pay-per-use billing, you can freely tweak the system prompt, and you can keep using it on the subway with no signal. For scenarios involving sensitive data, or if you just want to understand what LLMs are really about at low cost, this combo offers great value for money.
 
-本地大模型的价值不在于「免费替代 GPT-4」——7B 模型的推理能力确实还差得远。它的价值在于**可控**：数据不出机器、没有网络依赖、没有按量计费、可以随意微调系统提示词、可以在断网的地铁上继续用。对涉及敏感数据的场景，或者只是想低成本理解 LLM 到底是怎么回事，这套组合拳的性价比很高。
+From `curl` one-line installation to chatting your first sentence in the browser, ten minutes is enough if you're proficient. The rest of the time, spend it on tuning `num_ctx` and picking models—that's where the real fun of local deployment lies.
 
-从 `curl` 一行安装到浏览器里聊上第一句，熟练的话十分钟够了。剩下的时间，就花在调 `num_ctx` 和挑模型上吧——那才是本地部署真正的乐趣所在。
+## References
 
-## 参考来源
-
-- Ollama 官方文档与 API 参考：https://github.com/ollama/ollama/blob/main/docs/api.md
-- Ollama OpenAI 兼容接口说明：https://github.com/ollama/ollama/blob/main/docs/openai.md
-- Open WebUI 官方文档：https://docs.openwebui.com/
-- Ollama 模型库：https://ollama.com/library
-- llama.cpp 项目主页：https://github.com/ggml-org/llama.cpp
+- Ollama official documentation and API reference: https://github.com/ollama/ollama/blob/main/docs/api.md
+- Ollama OpenAI-compatible API documentation: https://github.com/ollama/ollama/blob/main/docs/openai.md
+- Open WebUI official documentation: https://docs.openwebui.com/
+- Ollama model library: https://ollama.com/library
+- llama.cpp project homepage: https://github.com/ggml-org/llama.cpp

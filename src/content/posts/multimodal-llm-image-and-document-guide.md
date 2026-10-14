@@ -1,62 +1,60 @@
 ---
-title: 多模态模型实战：让 LLM 看懂图片与文档
+title: 'Multimodal Models in Practice: Getting LLMs to Understand Images and Documents'
 published: 2026-10-01
-description: '把「让模型看图」拆成三个可控的工程问题：图片怎么变成 token、同一张图为什么有两套价格、以及 PDF 为什么敢不用 OCR。附完整的 TypeScript 代码与踩坑清单。'
+description: 'Breaking "getting a model to see images" into three controllable engineering problems: how images become tokens, why the same image has two different prices, and why PDFs can skip OCR. Includes complete TypeScript code and a list of pitfalls.'
 image: ''
-tags: [多模态, Vision, Claude API, PDF, LLM]
+tags: [Multimodal, Vision, Claude API, PDF, LLM]
 category: 'AI'
 draft: false
-lang: ''
 ---
+Adding an image to a model sounds like just stuffing an attachment into `messages`. But when you actually write it, problems pop up one after another: why does the same 4K screenshot cost 1560 tokens for some models and 4784 for others? Why can a 50-page PDF eat up half a book's worth of context? Why does production suddenly throw a "image too large" error out of nowhere?
 
-给模型加一张图，听起来只是往 `messages` 里塞个附件。真写起来，问题会一个接一个冒出来：为什么同一张 4K 截图，有的模型收 1560 个 token，有的收 4784？为什么一个 50 页的 PDF 能顶掉半本书的上下文？为什么线上跑着跑着突然报「图片太大」？
+This article breaks "multimodality" down into three problems that can be controlled through engineering: **how images become tokens**, **where the cost curve bends**, and **why documents can skip OCR**.
 
-这篇把「多模态」拆成三个能被工程化控制的问题：**图片如何变成 token**、**成本曲线在哪拐弯**、**文档为什么可以不用 OCR**。
+## 1. An image isn't an "attachment" — it's a string of 28×28 patches
 
-## 1. 图片不是「附件」，而是一串 28×28 的补丁
-
-多模态模型不把图当成一个整体来看，而是切成网格状的**视觉补丁（patch）**：每个 28×28 像素的小方块算作一个 token。于是图片的 token 数是一个干净的乘式：
+Multimodal models don't look at an image as a whole; they slice it into a grid of **visual patches**: each 28×28-pixel square counts as one token. So the token count of an image is a clean multiplication:
 
 ```
 tokens = ⌈宽 / 28⌉ × ⌈高 / 28⌉
 ```
 
-一张 200×200 的图标是 ⌈200/28⌉² = 64 个 token，几乎不要钱；一张 1000×1000 的图是 36×36 = 1296 个 token；而 1920×1080 的截图会先被等比缩放到长边 1568 以内（1456×819），再切成 52×30 = 1560 个 token。
+A 200×200 icon is ⌈200/28⌉² = 64 tokens, practically free; a 1000×1000 image is 36×36 = 1296 tokens; and a 1920×1080 screenshot first gets proportionally scaled so its long edge is within 1568 (1456×819), then sliced into 52×30 = 1560 tokens.
 
-关键点在于**「先缩放，再切块」**：模型的每张图都有一个长边上限，超出的部分不是报错，而是被静默缩放。这解释了一个很反直觉的现象——**把图从 2000px 压到 1568px，token 数不会变**，因为两张图在缩放后落到同一个尺寸。想省钱，得压到上限以内才有效；只压一点点，纯属白费功夫。
+The key point is **"scale first, then slice"**: every image has a long-edge cap, and anything beyond it isn't an error — it's silently scaled down. This explains a very counterintuitive phenomenon — **compressing an image from 2000px to 1568px doesn't change the token count**, because both images land on the same size after scaling. To save money, you have to compress below the cap for it to work; compressing just a little is pure wasted effort.
 
-## 2. 同一张图，两条成本曲线
+## 2. The same image, two cost curves
 
-不同模型档位的长边上限不一样，这直接构成了第二条曲线：
+Different model tiers have different long-edge caps, which directly forms the second curve:
 
-| 图片尺寸 | 标准档（长边 1568px） | 高分辨率档（长边 2576px） |
+| Image size | Standard tier (long edge 1568px) | High-resolution tier (long edge 2576px) |
 | --- | --- | --- |
 | 200×200 | 64 | 64 |
 | 1000×1000 | 1296 | 1296 |
 | 1920×1080 | 1560 | 2691 |
 | 3840×2160 | 1560 | 4784 |
 
-在标准档下，**4K 截图和 1080p 截图的价格完全一样**——都是 1560 token。这不是 bug，而是设计选择：小字、密集表格、代码截图在这种精度下本来就糊成一团，模型看不看得清与尺寸无关。
+Under the standard tier, **a 4K screenshot and a 1080p screenshot cost exactly the same** — both 1560 tokens. This isn't a bug but a design choice: small text, dense tables, and code screenshots are already a blurry mess at this precision, and whether the model can read them has nothing to do with size.
 
-高分辨率档（Claude 4.7 及之后的模型支持，自动生效，无需 beta 头）把长边上限提到 2576px、视觉 token 上限提到 4784。代价是实打实的：同样一张 4K 截图，token 从 1560 涨到 4784，是标准档的 3 倍。以 Claude Opus 5.5 的 $4 / 百万输入 token 计算，单张约 **$0.019**；而在标准档下同样一张图只要 **$0.006**。
+The high-resolution tier (supported by Claude 4.7 and later models, enabled automatically, no beta header needed) raises the long-edge cap to 2576px and the visual token cap to 4784. The cost is very real: for the same 4K screenshot, tokens jump from 1560 to 4784, 3× the standard tier. At Claude Opus 5.5's $4 / 百万输入 token 计算，单张约 **$0.019**; under the standard tier the same image costs only **$0.006**.
 
-**决策规则很简单**：图片里的信息是「看个大概」（物体、场景、情绪）→ 压到 1568px，走标准档；信息藏在像素里（表格数字、报错堆栈、UI 细节）→ 别压，让它吃满 2576px。为前者付 3 倍价格是浪费，让后者走标准档则等于让模型猜。
+**The decision rule is simple**: if the information in the image is "just get the gist" (objects, scenes, emotions) → compress to 1568px, use the standard tier; if the information is hidden in the pixels (table numbers, error stacks, UI details) → don't compress, let it use the full 2576px. Paying 3× the price for the former is wasteful, and forcing the latter through the standard tier is basically asking the model to guess.
 
-## 3. 三种传图方式与它们的代价
+## 3. Three ways to send images and their costs
 
-| 方式 | 适用场景 | 注意 |
+| Method | Use case | Notes |
 | --- | --- | --- |
-| `source.type: "url"` | 图片已有公网地址 | 省掉 base64 编码与传输开销 |
-| `source.type: "base64"` | 本地文件、需审核的私有图 | Claude API 单图上限 10MB（Bedrock / Vertex 为 5MB） |
-| Files API（`file_id`） | 同一张图要在多轮/多次请求里复用 | 上传一次，之后只传 ID，不必每轮重发 base64 |
+| `source.type: "url"` | Image already has a public URL | Saves base64 encoding and transfer overhead |
+| `source.type: "base64"` | Local files, private images needing review | Claude API single-image limit 10MB (Bedrock / Vertex 5MB) |
+| Files API (`file_id`) | The same image reused across multiple turns/requests | Upload once, then send only the ID — no need to resend base64 every turn |
 
-图片格式支持 JPEG / PNG / GIF / WebP，单图最大 8000×8000。**动图只取第一帧**——想要视频理解，得自己抽帧。
+Image formats supported: JPEG / PNG / GIF / WebP, single image up to 8000×8000. **Animated images only take the first frame** — for video understanding, you have to extract frames yourself.
 
-一个容易被忽略的坑：**图片不计入「文件数」，但计入上下文，而且在多轮对话里每轮都会重新计费**。一个持续 20 轮的 Agent 对话，如果每轮都带着同一张 4K 截图，你付的是 20 次 4784 token。聊天类场景通常撞的是上下文窗口，而不是图片数量上限；真正的解法是给图片块加 `cache_control`，或者干脆在首轮就把你看懂的内容落成文字——**能用文字描述清楚的，就别用图片传下去**。
+An easily overlooked pitfall: **images don't count toward the "file count" but do count toward context, and in multi-turn conversations they're re-billed every turn**. In a 20-turn Agent conversation, if every turn carries the same 4K screenshot, you're paying for 20 × 4784 tokens. Chat-style scenarios usually hit the context window, not the image count limit; the real fix is to add `cache_control` to the image block, or simply turn what you understood into text in the first turn — **if you can describe it clearly in text, don't pass it along as an image**.
 
-## 4. 实战：把一张仪表盘截图变成结构化数据
+## 4. In practice: turning a dashboard screenshot into structured data
 
-最典型的多模态任务是「截图 → JSON」。下面这段 TypeScript 先算账、再抽取：
+The most typical multimodal task is "screenshot → JSON". This TypeScript snippet first does the accounting, then the extraction:
 
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
@@ -100,11 +98,11 @@ const data = JSON.parse(text);
 console.log(data.errors, data.alerts.length);
 ```
 
-三个细节值得强调。**第一**，`countTokens` 是唯一准确的预估手段——图片不是按 base64 的字符数当文本计费的，直接数字节会高估一个数量级。**第二**，抽取类任务一定要显式写「看不清就填 null、禁止编造」：多模态模型在小字模糊时的默认行为不是报错，而是**用上下文补全一个看起来合理的数字**，这在监控数据场景里比崩掉更危险。**第三**，生产环境别裸用 `JSON.parse`，套一层 schema 校验（zod / ajv），把模型输出的信任边界收到和用户输入同一档。
+Three details are worth emphasizing. **First**, `countTokens` is the only accurate estimation method — images aren't billed as text by base64 character count, and counting bytes directly overestimates by an order of magnitude. **Second**, extraction tasks must explicitly say "if unclear, fill in null, no fabrication": the default behavior of multimodal models when small text is blurry isn't to error out but to **fill in a plausible-looking number from context**, which in monitoring-data scenarios is more dangerous than crashing. **Third**, don't use `JSON.parse` raw in production — wrap it in a schema validation layer (zod / ajv) and bring the trust boundary for model output down to the same level as user input.
 
-## 5. 文档（PDF）：不用 OCR 的代价与回报
+## 5. Documents (PDF): the cost and reward of skipping OCR
 
-PDF 走的是 `document` 内容块，而不是 `image`。模型内部的处理方式是：**每一页转成图片，同时把该页的文字层抽出来**，两者一起送进模型。这意味着图表、印章、手写批注和正文同时可见——你不需要先跑一遍 OCR，也不会因为版面识别错位而丢掉表格结构。
+PDFs go through the `document` content block, not `image`. The model's internal handling is: **each page is converted to an image, while the page's text layer is extracted**, and both are sent to the model together. This means charts, stamps, handwritten annotations, and body text are all visible at once — you don't need to run OCR first, and you won't lose table structure due to layout-recognition misalignment.
 
 ```typescript
 const pdfData = fs.readFileSync("annual-report.pdf").toString("base64");
@@ -137,33 +135,32 @@ for (const block of res.content) {
 }
 ```
 
-代价有三个。**一是 token**：PDF 没有独立计价，走的就是标准输入价，但每页通常要 1500～3000 个 token，一份 50 页的报告约 10 万 token——按 Opus 5.5 的 $4/百万算约 **$0.4**，多轮追问时这笔钱每轮都要再付一次。**二是上限**：单请求 32MB、600 页，200k 上下文的模型压到 100 页；**加密或带密码的 PDF 直接被拒**，没有回旋余地。**三是分块**：超过上限只能切分，而一旦切分，跨页的表格和「如上所述」就会断掉，切分点最好沿章节走。
+There are three costs. **One is tokens**: PDFs have no separate pricing — they use the standard input price — but each page typically costs 1500–3000 tokens, so a 50-page report is about 100k tokens — at Opus 5.5's $4/百万算约 **$0.4**, and in multi-turn follow-ups this cost is paid again every turn. **Two is limits**: 32MB and 600 pages per request, and models with 200k context are capped at 100 pages; **encrypted or password-protected PDFs are rejected outright**, with no room for negotiation. **Three is chunking**: beyond the limit you can only split, and once split, cross-page tables and "as mentioned above" break — the split points are best placed along chapters.
 
-`citations` 是目前最被低估的一个开关：PDF 的引用会返回 **`page_location`（页码，从 1 开始计）**，纯文本返回 `char_location`（字符下标，从 0 开始），自定义内容返回 `content_block_location`。对需要「答案可追溯」的场景——财务、法务、医疗——这是把多模态输出纳入合规流程的最低成本方案。注意它和结构化输出（`output_config.format`）互斥，同时用会直接返回 400。
+`citations` is currently one of the most underrated switches: PDF citations return **`page_location` (page number, starting from 1)**, plain text returns `char_location` (character index, starting from 0), and custom content returns `content_block_location`. For scenarios that need "traceable answers" — finance, legal, medical — this is the lowest-cost way to bring multimodal output into a compliance workflow. Note that it's mutually exclusive with structured output (`output_config.format`); using both at once returns a 400.
+## 6. Six Pitfalls I Kept Falling Into
 
-## 6. 六个反复踩的坑
+1. **Image before text**. Placing `image` / `document` before `text` in the content array noticeably improves the model's localization accuracy—this isn't superstition, it's the order officially recommended.
+2. **Over 20 images, and the rules get stricter**. When a request contains more than 20 image/document blocks, each one gets subjected to a stricter per-image limit (2000px on the long edge), and 4K images that previously worked suddenly get rejected.
+3. **Document blocks count too**. On Bedrock and Google Cloud, PDF blocks also consume that quota of 20.
+4. **Files API block types must match the MIME**. Putting an image file into a `document` block returns a 400, and vice versa.
+5. **Compression doesn't equal savings**. Compressing down to within the long-edge limit is meaningful; compressing beyond the limit just needlessly loses clarity.
+6. **Don't use multimodal as OCR**. For pure text extraction scenarios, the combination of OCR + a text model is usually more cost-effective and stable; the real value of multimodal lies in situations where **layout matters as much as the text**—charts, seals, complex forms.
 
-1. **先图后文**。内容数组里把 `image` / `document` 放在 `text` 前面，模型的定位精度明显更好——这不是玄学，是官方明确建议的顺序。
-2. **超过 20 张图，规则会变严**。请求里超过 20 个图片/文档块时，每一张都会被套上更严格的单图限制（长边 2000px），之前跑通的 4K 图片会突然被拒。
-3. **文档块也计数**。在 Bedrock 和 Google Cloud 上，PDF 块同样占用那 20 张的配额。
-4. **Files API 的块类型必须和 MIME 对得上**。图片文件塞进 `document` 块会返回 400，反之亦然。
-5. **压缩不等于省钱**。压到长边上限以内才有意义，压到上限之外只是白白损失清晰度。
-6. **别把多模态当 OCR 用**。纯文字提取场景，OCR + 文本模型的组合在成本和稳定性上通常更划算；多模态真正的价值在于**版面和文字同样重要**的场合——图表、印章、复杂的表单。
+## Conclusion
 
-## 结语
+The engineering challenge of multimodal was never "can it be called," but whether three accounts can be settled clearly: **how many tokens this image is worth, in which round it gets billed repeatedly, and whether the information it provides can be turned into text earlier**. Once these three accounts are settled, what remains is just ordinary API calls.
 
-多模态的工程难点从来不是「能不能调用」，而是三笔账算不算得清：**这张图值多少 token、它在第几轮会被重复计费、以及它给的信息能不能更早地落成文字**。把这三笔账算清楚，剩下的就是普通的 API 调用。
-
-| 维度 | API 底座 | 内容块 | 关键参数 |
+| Dimension | API Base | Content Block | Key Parameters |
 | --- | --- | --- | --- |
-| 图片 | Claude API | `image` | `source` / `cache_control` |
-| 文档 | Claude API | `document` | `media_type` / `citations` |
-| 复用 | Files API | 按 MIME 匹配 | `file_id` |
+| Image | Claude API | `image` | `source` / `cache_control` |
+| Document | Claude API | `document` | `media_type` / `citations` |
+| Reuse | Files API | Matched by MIME | `file_id` |
 
-## 参考来源
+## References
 
-- [Vision — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/vision)：图片格式、尺寸上限、28×28 补丁计费公式与分辨率分档
-- [PDF support — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/pdf-support)：`document` 块、32MB / 600 页限制、每页 token 量级
-- [Citations — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/citations)：`page_location` / `char_location` 的取值与互斥约束
-- [Files API — Claude Platform Docs](https://platform.claude.com/docs/zh-CN/build-with-claude/files)：上传一次、按 `file_id` 跨请求复用
-- [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript)：`@anthropic-ai/sdk` 的图片与文档内容块类型定义
+- [Vision — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/vision): image formats, size limits, the 28×28 patch billing formula, and resolution tiers
+- [PDF support — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/pdf-support): `document` blocks, 32MB / 600 page limits, per-page token magnitude
+- [Citations — Claude Platform Docs](https://platform.claude.com/docs/en/build-with-claude/citations): value ranges and mutual exclusion constraints for `page_location` / `char_location`
+- [Files API — Claude Platform Docs](https://platform.claude.com/docs/zh-CN/build-with-claude/files): upload once, reuse across requests by `file_id`
+- [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript): type definitions for `@anthropic-ai/sdk` image and document content blocks

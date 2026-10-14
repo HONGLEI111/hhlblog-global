@@ -1,70 +1,67 @@
 ---
-title: WebAssembly 2026：哪些语言能编译到 Wasm，以及你什么时候真不该用它
+title: 'WebAssembly in 2026: Which Languages Compile to Wasm, and When You Really Shouldn''t Use It'
 published: 2026-09-29
-description: 'Wasm 3.0 定版一年后，语言版图因为 WasmGC 被重画了一遍。本文用一份手写的 104 字节 Wasm 模块看清它的二进制结构，再用实测数据回答那个最实际的问题：Wasm 到底在什么情况下比 JavaScript 快。'
+description: 'A year after Wasm 3.0 was finalized, the language landscape has been redrawn by WasmGC. This article uses a hand-written 104-byte Wasm module to reveal its binary structure, then answers the most practical question with real benchmark data: under what circumstances is Wasm actually faster than JavaScript?'
 image: ''
-tags: [WebAssembly, Wasm, WasmGC, WASI, 性能优化, 网站开发]
-category: '网站'
+tags: [WebAssembly, Wasm, WasmGC, WASI, Performance Optimization, Web Development]
+category: Web
 draft: false
-lang: ''
 ---
+## 1. Wasm's Positioning Quietly Shifted Once in 2026
 
-## 1. Wasm 的定位在 2026 年悄悄换了一次
+When people mention WebAssembly, many still picture "running C++ games and Photoshop in the browser"—a special case that opens a back door for giant desktop applications. That impression is long outdated.
 
-提到 WebAssembly，很多人的印象还停留在「在浏览器里跑 C++ 游戏和 Photoshop」——一个给巨型桌面应用开后门的特例。这个印象早就过期了。
+On September 17, 2025, the W3C WebAssembly Community Group announced that **Wasm 3.0 was finalized**, becoming the new official standard. This is the biggest update since Wasm 2.0 in 2020, and the official statement is that "some features took six to eight years to complete." What 3.0 brings is not a small improvement in performance numbers, but an expansion of **capability boundaries**:
 
-2025 年 9 月 17 日，W3C WebAssembly 社区组宣布 **Wasm 3.0 定版**，成为新的正式标准。这是继 2020 年 Wasm 2.0 之后的最大一次更新，官方说法是「有些特性做了六年到八年才完成」。3.0 带来的不是性能数字上的小提升，而是**能力边界**的扩张：
-
-| 新特性 | 解决什么问题 |
+| New Feature | What Problem It Solves |
 | --- | --- |
-| **WasmGC（垃圾回收）** | 托管语言不用再自带一个 GC 进浏览器 |
-| **64 位地址空间（Memory64）** | 内存与表的地址类型从 i32 扩展到 i64，理论上从 4 GB 到 16 EB |
-| **多内存（Multiple Memories）** | 单模块可声明并直接访问多块内存，还能互相拷贝 |
-| **类型化引用（Typed References）** | 支持更丰富的引用类型、子类型与类型递归 |
-| **尾调用（Tail Calls）** | 不额外消耗栈空间的完全尾调用 |
-| **异常处理（Exception Handling）** | 带 payload 的 exception tag，可选择性捕获 |
-| **宽松 SIMD、确定性默认值、自定义注解语法** | 边缘行为明确化、文本格式可携带注解 |
+| **WasmGC (Garbage Collection)** | Managed languages no longer need to bring their own GC into the browser |
+| **64-bit Address Space (Memory64)** | Address types for memory and tables expand from i32 to i64, theoretically from 4 GB to 16 EB |
+| **Multiple Memories** | A single module can declare and directly access multiple memories, and can also copy between them |
+| **Typed References** | Supports richer reference types, subtyping, and type recursion |
+| **Tail Calls** | Full tail calls that do not consume additional stack space |
+| **Exception Handling** | Exception tags with payloads, with selective catching |
+| **Relaxed SIMD, Deterministic Defaults, Custom Annotation Syntax** | Edge behaviors are clarified, and the text format can carry annotations |
 
-其中 **WasmGC 是改变格局的那一项**。在此之前，Kotlin、Dart、Java 这类语言编译到 Wasm 时要塞进去一整套自己的垃圾回收器——500 KB 到 2 MB 的固定开销，还没开始写业务代码就先付了体积税。WasmGC 把这件事交给 Wasm 自己：编译器只需要用 struct / array 类型声明内存布局，分配与生命周期由 Wasm 负责。
+Among these, **WasmGC is the one that changes the game**. Before this, when languages like Kotlin, Dart, and Java compiled to Wasm, they had to stuff in an entire garbage collector of their own—a fixed overhead of 500 KB to 2 MB, paying a size tax before writing any business code. WasmGC hands this over to Wasm itself: the compiler only needs to declare memory layout using struct / array types, and allocation and lifetime are handled by Wasm.
 
-浏览器这边，WasmGC 的基线是 **Chrome 119 / Firefox 120 / Safari 18.2**（Safari 18.2 发布于 2024 年 12 月 11 日，Web Platform Features Explorer 从这天起把它标记为 "Newly Available"）。
+On the browser side, the baseline for WasmGC is **Chrome 119 / Firefox 120 / Safari 18.2** (Safari 18.2 was released on December 11, 2024, and Web Platform Features Explorer has marked it as "Newly Available" since that day).
 
 :::note
-"Newly Available" 到 "Widely Available" 官方给的预期是 2027 年 6 月。也就是说现在能跨浏览器用了，但**别把 WasmGC 当成可以无条件依赖的能力**，该做的特性检测还是要做。
+The official expectation from "Newly Available" to "Widely Available" is June 2027. In other words, it can now be used across browsers, but **do not treat WasmGC as a capability you can rely on unconditionally**; feature detection should still be done where needed.
 :::
 
-## 2. 语言地图：谁在编译到 Wasm，代价是什么
+## 2. Language Map: Who Is Compiling to Wasm, and at What Cost
 
-Wasm 3.0 官方公告里点名已经瞄准 Wasm 的语言包括 **Java、OCaml、Scala、Kotlin、Scheme 和 Dart**。加上原本就在序列里的系统语言，2026 年的版图大致可以分成三类，而**这三类的差别决定了你能不能真的用它**。
+The official Wasm 3.0 announcement named languages already targeting Wasm, including **Java, OCaml, Scala, Kotlin, Scheme, and Dart**. Adding the systems languages that were already in the lineup, the 2026 landscape can roughly be divided into three categories, and **the differences among these three categories determine whether you can actually use it**.
 
-第一类是**手动内存的系统语言**，产物最干净：没有运行时，只有你写的东西。
+The first category is **systems languages with manual memory management**, whose output is the cleanest: no runtime, only what you wrote.
 
-第二类是**借助 WasmGC 的托管语言**，终于卸下了自带 GC 的包袱，但工具链成熟度差异很大。
+The second category is **managed languages leveraging WasmGC**, which have finally shed the burden of bundling their own GC, but toolchain maturity varies greatly.
 
-第三类是**把整个运行时搬过去**的语言——诚实地说，这类往往能跑起来，但代价写在首屏体积上。
+The third category is **languages that move the entire runtime over**—honestly speaking, these often can run, but the cost is written in the first-screen size.
 
-| 语言 | 工具链 | 产物特征 | 2026 年的状态 |
+| Language | Toolchain | Output Characteristics | Status in 2026 |
 | --- | --- | --- | --- |
-| **Rust** | `wasm-bindgen` + `wasm-pack` | 无运行时，通常几十到几百 KB | Web 方向的一等公民：能直接传字符串、闭包、JS 对象，还能自动生成 TypeScript 绑定 |
-| **C / C++** | Emscripten（`emcc`） | 需附带 JS glue code | 最成熟的老牌路径，存量代码库迁移的首选；代价是工具链重、产物偏大 |
-| **Zig** | `zig build-exe -target wasm32` | 无运行时 | 定位接近「更好写的 C」，适合手搓轻量模块 |
-| **Go（标准工具链）** | `GOOS=js GOARCH=wasm go build` | 打包整个 Go runtime，体积从几 MB 起 | 能跑，但体积和 `syscall/js` 的调用开销是公认的痛点 |
-| **Go（TinyGo）** | `tinygo build -target wasm` | 小得多 | 官方文档明确标注：**部分语言特性和标准库不支持**，用之前先查支持矩阵 |
-| **Kotlin** | Kotlin/Wasm | 走 WasmGC，不再自带 GC | 仍在 **Beta**；Compose for Web 于 2025 年 9 月进入 Beta，二进制体积比 Kotlin/JS 小 50%–70% |
-| **Dart** | `dart compile wasm` / Flutter `--wasm` | 走 WasmGC | Flutter Web 的 Wasm 构建已生产可用，**检测不到 WasmGC 时会自动回退到 JS** |
-| **Java / Scala / OCaml / Scheme** | 各自后端 | 走 WasmGC | Wasm 3.0 公告点名的语言，生态成熟度参差 |
-| **Python** | Pyodide（本质是 CPython 编译到 Wasm） | 需要下载几 MB 的解释器 | 适合把现成的 Python 生态搬进浏览器，代价是首屏体积与启动时间 |
-| **AssemblyScript** | `asc` | 无运行时，产物小 | 类 TypeScript 语法，前端开发者上手门槛最低 |
+| **Rust** | `wasm-bindgen` + `wasm-pack` | No runtime, usually tens to hundreds of KB | A first-class citizen in the Web direction: can directly pass strings, closures, and JS objects, and can also automatically generate TypeScript bindings |
+| **C / C++** | Emscripten (`emcc`) | Requires accompanying JS glue code | The most mature veteran path, the first choice for migrating existing codebases; the cost is a heavy toolchain and relatively large output |
+| **Zig** | `zig build-exe -target wasm32` | No runtime | Positioned close to "a better C," suitable for hand-rolling lightweight modules |
+| **Go (standard toolchain)** | `GOOS=js GOARCH=wasm go build` | Packages the entire Go runtime, starting from several MB in size | It can run, but size and the call overhead of `syscall/js` are widely recognized pain points |
+| **Go (TinyGo)** | `tinygo build -target wasm` | Much smaller | The official documentation clearly states: **some language features and standard library support are unavailable**; check the support matrix before use |
+| **Kotlin** | Kotlin/Wasm | Uses WasmGC, no longer bundles its own GC | Still in **Beta**; Compose for Web entered Beta in September 2025, with binary size 50%–70% smaller than Kotlin/JS |
+| **Dart** | `dart compile wasm` / Flutter `--wasm` | Uses WasmGC | Flutter Web's Wasm build is production-ready, and **automatically falls back to JS when WasmGC is not detected** |
+| **Java / Scala / OCaml / Scheme** | Their respective backends | Use WasmGC | Languages named in the Wasm 3.0 announcement, with varying ecosystem maturity |
+| **Python** | Pyodide (essentially CPython compiled to Wasm) | Requires downloading a multi-MB interpreter | Suitable for bringing the existing Python ecosystem into the browser, at the cost of first-screen size and startup time |
+| **AssemblyScript** | `asc` | No runtime, small output | TypeScript-like syntax, with the lowest barrier to entry for frontend developers |
 
-这里有个反直觉但重要的判断：**「能不能编译」和「该不该编译」是两回事**。表里每一行都能编译成功，但只有前两行左右的语言，产物是不带附加成本的。
+There is a counterintuitive but important judgment here: **"whether it can compile" and "whether it should compile" are two different things**. Every row in the table can compile successfully, but only languages around the first two rows produce output without additional costs.
 
 :::warning
-选语言之前先看一眼产物体积和它附带的运行时。一个「Hello World」级别的 Go 标准工具链产物通常在 MB 量级，而同等功能的 Rust 产物可能只有几十 KB——这个差距在第一屏就是 LCP 的差距。
+Before choosing a language, take a look at the output size and the runtime it brings with it. A "Hello World"-level Go standard toolchain output is usually on the order of MB, while an equivalent Rust output may be only tens of KB—this gap is the LCP gap on the first screen.
 :::
+## 3. Hands-On: What a Wasm Module Actually Looks Like
 
-## 3. 动手：一个 Wasm 模块到底长什么样
-
-要理解 Wasm，最好的办法是**不用任何工具链，手搓一个二进制出来**。下面这段脚本只依赖 Node.js：它按规范逐字节拼出一个 104 字节的合法模块，导出 `add`、`sum` 和一个线性内存 `mem`。
+To understand Wasm, the best approach is to **hand-craft a binary without any toolchain**. The script below relies only on Node.js: it assembles a valid 104-byte module byte by byte according to the spec, exporting `add`, `sum`, and a linear memory `mem`.
 
 ```js
 // gen.mjs —— 手写 Wasm 二进制，导出 add(a,b) / sum(ptr,len) / memory
@@ -126,7 +123,7 @@ const module = Uint8Array.from([
 ]);
 ```
 
-把它交给 Node 跑起来（Node 内置了 V8 的 Wasm 引擎，不需要任何额外依赖）：
+Hand it to Node to run (Node has V8's Wasm engine built in, no extra dependencies needed):
 
 ```js
 console.log("模块字节数:", module.length);
@@ -142,7 +139,7 @@ view.set([1, 2, 3, 4, 5]);
 console.log("sum(0, 5) =", sum(0, 5));              // 15
 ```
 
-实测输出：
+Actual output:
 
 ```text
 模块字节数: 104
@@ -152,15 +149,15 @@ add(2, 40) = 42
 sum(0, 5) = 15
 ```
 
-这 104 个字节里没有一行是「代码」在传统意义上的样子——没有变量名、没有函数名、没有可读的表达式，只有五个段和一堆操作码。**这正是 Wasm 的核心设计：它不是给人读的，是给编译器生成的、给引擎验证的。** 它定义的不是一门语言，而是一个**确定性的、可静态验证的目标格式**。
+In these 104 bytes, not a single line looks like "code" in the traditional sense—no variable names, no function names, no readable expressions, just five sections and a bunch of opcodes. **This is precisely the core design of Wasm: it's not meant for humans to read, it's meant for compilers to generate and engines to validate.** What it defines is not a language, but a **deterministic, statically verifiable target format**.
 
 :::tip
-把上面这段代码亲手跑一遍，比读十篇「Wasm 原理介绍」都管用。尤其是 `sum` 那段手动编码的字节——你会发现 `block`/`loop`/`br_if` 的结构和汇编里的跳转标签是同一回事，只是被类型系统约束住了。
+Running the code above yourself is more useful than reading ten "Introduction to Wasm Principles" articles. Especially that hand-encoded byte sequence in `sum`—you'll realize that the structure of `block`/`loop`/`br_if` is the same thing as jump labels in assembly, just constrained by a type system.
 :::
 
-## 4. 实测：Wasm 什么时候快，什么时候反而慢
+## 4. Measured: When Wasm Is Fast, and When It's Actually Slow
 
-现在回答那个最实际的问题。同一台机器、同一个 Node 进程、预热后取五轮最优，对比两类负载：
+Now to answer the most practical question. Same machine, same Node process, best of five rounds after warm-up, comparing two types of workloads:
 
 ```text
 一次调用算完 200,000 个 i32 的和：
@@ -172,69 +169,68 @@ sum(0, 5) = 15
   JS  a + 1       1.64 ms
 ```
 
-两个结论，方向完全相反：
+Two conclusions, pointing in completely opposite directions:
 
-**批量计算，Wasm 赢。** 200k 个元素的求和，Wasm 0.12 ms，JS 0.21 ms，大约 1.7 倍。注意这里 Wasm 直接读线性内存里的 `Int32Array`，中间没有任何数据搬运。
+**Batch computation: Wasm wins.** Summing 200k elements, Wasm takes 0.12 ms, JS takes 0.21 ms—about 1.7×. Note that here Wasm reads `Int32Array` directly from linear memory, with no data copying in between.
 
-**频繁的小调用，Wasm 输。** 一百万次「加一」，Wasm 4.06 ms，纯 JS 1.64 ms——**慢了一倍半**。原因很直白：**每一次 `add()` 都要跨一次 JS ↔ Wasm 的边界**。这个调用成本（约 4 纳秒一次）远远超过了「加一」这个操作本身的价值。
+**Frequent small calls: Wasm loses.** One million "add one" operations, Wasm takes 4.06 ms, pure JS takes 1.64 ms—**one and a half times slower**. The reason is straightforward: **every `add()` has to cross the JS ↔ Wasm boundary**. This call overhead (about 4 nanoseconds per call) far exceeds the value of the "add one" operation itself.
 
-这就是 Wasm 性能的关键规律：**它有「过关费」，而且过关费按次数收，不按活儿的大小收。** 一次调用里干的活越多，过关费摊得越薄；每次只干一点点，过关费就成了主要开销。
+This is the key rule of Wasm performance: **it has a "toll fee," and the toll is charged per crossing, not by the size of the job.** The more work done in a single call, the thinner the toll is spread; if each call does only a tiny bit, the toll becomes the main cost.
 
-这条规律直接推导出一份决策清单：
+This rule directly yields a decision checklist:
 
-| 场景 | 结论 | 原因 |
+| Scenario | Verdict | Reason |
 | --- | --- | --- |
-| 图片 / 音视频编解码、压缩解压 | ✅ 该用 | 一次调用处理整块数据，且是纯计算 |
-| 密码学、哈希、大数运算 | ✅ 该用 | 计算密集 + 无外部依赖，还顺带拿到恒定时间实现 |
-| 已有的 C/C++/Rust 库要搬到 Web | ✅ 该用 | 不用重写，一次编译长期受益 |
-| 把 JS 里的小函数改写成 Wasm | ❌ 别用 | 正是上表第二个例子的情形，大概率更慢 |
-| DOM 操作、事件处理 | ❌ 别用 | Wasm 碰不到 DOM，必须回调 JS，等于每次操作都交两次过关费 |
-| 一次性、只在启动时跑的计算 | ❌ 别用 | 下载 + 编译 `.wasm` 的成本收不回来 |
-| 纯字符串 / 正则处理 | ⚠️ 谨慎 | 字符串要手动编解码，通常不如 JS 引擎的优化结果 |
+| Image / audio-video codec, compression/decompression | ✅ Use it | One call processes an entire block of data, and it's pure computation |
+| Cryptography, hashing, big-number arithmetic | ✅ Use it | Compute-intensive + no external dependencies, plus you get constant-time implementations for free |
+| Existing C/C++/Rust libraries to port to the Web | ✅ Use it | No rewrite needed, one compile yields long-term benefits |
+| Rewriting small JS functions into Wasm | ❌ Don't | This is exactly the second example above, almost certainly slower |
+| DOM manipulation, event handling | ❌ Don't | Wasm can't touch the DOM, must call back into JS—meaning two tolls per operation |
+| One-off computation that only runs at startup | ❌ Don't | The cost of downloading + compiling `.wasm` can't be recouped |
+| Pure string / regex processing | ⚠️ Be careful | Strings must be manually encoded/decoded, usually worse than the JS engine's optimized results |
 
 :::caution
-网上大部分「Wasm 比 JS 快 N 倍」的对比，测的都是批量计算这一类，然后把结论推广到所有场景。这是错得最普遍的一条。**先量一下你的调用频率**：如果某段逻辑会被高频小粒度调用，把它搬进 Wasm 几乎一定变慢。
+Most "Wasm is N× faster than JS" comparisons online test batch computation, then generalize the conclusion to all scenarios. This is the most widespread mistake. **First measure your call frequency**: if a piece of logic gets called frequently at a fine granularity, moving it into Wasm will almost certainly make it slower.
 :::
 
-顺带一提，我在写这篇文章时还踩了一个小坑：第一次跑的时候内存只声明了 1 页（64 KiB），放 20 万个 i32 直接抛了 `Invalid typed array length`。**线性内存不是自动增长的**，除非你显式声明最大页数并在需要时调 `memory.grow()`——这是从 JS 转过来的同学最容易忽略的一点。
+By the way, I hit a small pitfall while writing this article: the first time I ran it, the memory was declared with only 1 page (64 KiB), and putting 200k i32 values in it threw a `Invalid typed array length` directly. **Linear memory doesn't grow automatically** unless you explicitly declare a maximum page count and call `memory.grow()` when needed—this is the easiest thing for people coming from JS to overlook.
+## 5. Leaving the Browser: WASI 0.3 and the Component Model
 
-## 5. 走出浏览器：WASI 0.3 与组件模型
+If Wasm could only run in the browser, all the discussion above would still just be a frontend topic. The real reason it deserves frontend engineers' attention in 2026 is that **it is becoming a portable execution format for the server side**.
 
-如果 Wasm 只能在浏览器里跑，上面这些讨论都还只是前端话题。真正让它在 2026 年值得前端工程师关注的原因，是**它正在成为服务端的可移植执行格式**。
+**WASI (WebAssembly System Interface)** is Wasm's system call interface—it lets Wasm modules access files, networks, clocks, and other things "outside the browser." In June 2026, **WASI 0.3 was released and became the primary WASI preview version**, with the core change being **pushing async capabilities down into the component model's Canonical ABI**, bringing three first-class primitives:
 
-**WASI（WebAssembly System Interface）** 就是 Wasm 的系统调用接口——它让 Wasm 模块能访问文件、网络、时钟这些「浏览器之外」的东西。2026 年 6 月，**WASI 0.3 发布并成为主要的 WASI preview 版本**，核心变化是**把异步能力下沉到了组件模型的 Canonical ABI**，带来三个一等公民原语：
+- `async func`: Declare async functions directly in WIT (the interface definition), and binding generators for each language map them to that language's idioms—in Rust it's `async fn`, in JavaScript it's `Promise`, in Python it's coroutines;
+- `stream<T>`: A typed asynchronous data channel that **can be passed as a value**;
+- `future<T>`: A single-value async completion signal, replacing the `pollable` resource from 0.2.
 
-- `async func`：在 WIT（接口定义）里直接声明异步函数，各语言的绑定生成器会映射成本语言的写法——Rust 里是 `async fn`，JavaScript 里是 `Promise`，Python 里是协程；
-- `stream<T>`：**可作为值传递**的类型化异步数据通道；
-- `future<T>`：单值的异步完成信号，取代了 0.2 里的 `pollable` 资源。
+There's a detail here worth understanding: responsibility for scheduling and wakeup propagation **shifts from each component to the host runtime**, with all components sharing a single event loop. This fixes the "sandwich problem" in WASI 0.2—a component in the middle layer couldn't forward wakeup signals from the host's pollable to downstream components. The new model is **completion-based rather than readiness-based**.
 
-这里有个值得理解的细节：调度与唤醒传播的责任**从每个组件转移到了宿主运行时**，所有组件共享一个事件循环。这修掉了 WASI 0.2 里的「三明治问题」——一个处在中间层的组件没法把唤醒信号从宿主的 pollable 转发给下游组件。新模型是**基于完成（completion-based）而非基于就绪（readiness-based）**的。
+On the runtime side, Wasmtime 43+ and jco already provide WASI 0.3 support, while WASI 0.2 can coexist via polyfill or natively. Subsequent 0.3.x releases will be incremental, with planned directions including automatic cancellation, stream optimizations (forwarding/splicing, zero-copy), and threads (cooperative first, then preemptive).
 
-运行时方面，Wasmtime 43+ 与 jco 已提供 WASI 0.3 支持，WASI 0.2 则可通过 polyfill 或原生方式并存。后续 0.3.x 走增量发布，计划中的方向包括自动取消、流优化（转发/拼接、零拷贝）以及线程（先协作式，后抢占式）。
+For frontend engineers, this means a very practical future: **the same Wasm artifact can be used as a module in the browser and as a sandboxed function on the server**. Scenarios like edge computing, plugin systems, and multi-tenant isolation are being taken over by this stack.
 
-对前端工程师来说，这意味着一个很实际的未来：**同一份 Wasm 产物，在浏览器里当模块用，在服务端当沙箱化的函数用**。边缘计算、插件系统、多租户隔离这类场景，正在被这套东西接管。
+## 6. One-Line Decision Checklist
 
-## 6. 一句话决策清单
+- **Want to write Web modules in Rust** → Go straight to `wasm-bindgen`; it handles strings, closures, JS objects, and generates TypeScript types;
+- **Have an existing C/C++ library** → Emscripten, don't rewrite it;
+- **Want to use a managed language (Kotlin / Dart)** → First confirm all target browsers support WasmGC (Safari 18.2 is the baseline), and prepare a JS fallback path;
+- **Just want to write JS in a different language** → You probably shouldn't use Wasm; first measure your JS call frequency;
+- **Building a plugin sandbox on the server** → Pay attention to WASI 0.3 and the component model; this is the fastest-changing part of 2026.
 
-- **想用 Rust 写 Web 模块** → 直接上 `wasm-bindgen`，它能处理字符串、闭包、JS 对象，还会生成 TypeScript 类型；
-- **有现成的 C/C++ 库** → Emscripten，别重写；
-- **想用托管语言（Kotlin / Dart）** → 先确认目标浏览器都支持 WasmGC（Safari 18.2 是底线），并准备好 JS 回退路径；
-- **只想把 JS 换个语言写** → 大概率不该用 Wasm，先把 JS 的调用频率量出来；
-- **在服务端做插件沙箱** → 关注 WASI 0.3 与组件模型，这是 2026 年变化最快的部分。
+Wasm is no longer a "performance silver bullet," nor a "C++ container in the browser." It's more like a **contract format with clear boundaries**: fence off the compute-intensive parts using the rules of integers and linear memory, and hand them over; leave the small stuff at the boundary to JS.
 
-Wasm 已经不是「性能银弹」，也不是「浏览器里的 C++ 容器」。它更像一个**边界清晰的契约格式**：把计算密集的部分用整数和线性内存的规则圈起来，交给它做；边界上的小事，留给 JS。
+## References
 
-## 参考来源
-
-- [Wasm 3.0 Completed — WebAssembly（2025-09-17 官方公告，作者 Andreas Rossberg）](https://webassembly.org/news/2025-09-17-wasm-3.0/)
+- [Wasm 3.0 Completed — WebAssembly (2025-09-17 official announcement, author Andreas Rossberg)](https://webassembly.org/news/2025-09-17-wasm-3.0/)
 - [WASI 0.3 Launched — Bytecode Alliance](https://bytecodealliance.org/articles/WASI-0.3)
-- [WASI 0.3 · WASI.dev（发布说明）](https://wasi.dev/releases/wasi-p3)
+- [WASI 0.3 · WASI.dev (release notes)](https://wasi.dev/releases/wasi-p3)
 - [WASI Roadmap — WASI.dev](https://wasi.dev/roadmap)
 - [WebAssembly/WASI v0.3.0 Release — GitHub](https://github.com/WebAssembly/WASI/releases/tag/v0.3.0)
-- [Garbage collection (WebAssembly) · Web Platform Features Explorer（WasmGC 浏览器基线）](https://web-platform-dx.github.io/web-features-explorer/features/wasm-garbage-collection/)
+- [Garbage collection (WebAssembly) · Web Platform Features Explorer (WasmGC browser baseline)](https://web-platform-dx.github.io/web-features-explorer/features/wasm-garbage-collection/)
 - [The `wasm-bindgen` Guide — Rust and WebAssembly](https://rustwasm.github.io/docs/wasm-bindgen/)
 - [The Rust and WebAssembly Book](https://rustwasm.github.io/docs/book/)
-- [WebAssembly — TinyGo 官方文档](https://tinygo.org/webassembly/webassembly/)
+- [WebAssembly — TinyGo official documentation](https://tinygo.org/webassembly/webassembly/)
 - [Supported versions and configuration · Kotlin/Wasm — JetBrains](https://kotlinlang.org/docs/wasm-configuration.html)
 
-> 文中的字节结构、体积与性能数据均为在本机（Node.js v26.5.1）实际运行上述脚本所得，脚本完整可复现。语言生态与规范状态部分来自上列一手来源；WASI 0.3 的具体发布日期以 WASI.dev 发布页为准。
+> The byte structures, sizes, and performance data in this article were all obtained by actually running the above scripts on a local machine (Node.js v26.5.1), and the scripts are fully reproducible. The language ecosystem and specification status sections come from the first-hand sources listed above; the specific release date of WASI 0.3 is subject to the WASI.dev release page.

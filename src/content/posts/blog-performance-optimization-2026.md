@@ -1,63 +1,61 @@
 ---
-title: 一次博客性能与多端体验的深度优化实战
+title: A Deep Dive into Optimizing Blog Performance and Cross-Device Experience
 published: 2026-08-19
-description: '记录本站一次全面的性能与多端体验优化：从审计数据出发，修复三个隐藏 bug，把首屏 JS 从约 700KB 降到约 110KB，并沉淀了一套自动化验证工具。'
+description: 'A record of a comprehensive performance and cross-device experience optimization for this site: starting from audit data, fixing three hidden bugs, reducing first-screen JS from about 700KB to about 110KB, and building a set of automated validation tools.'
 image: ''
-tags: [性能优化, Astro, Svelte, 工程实践, 响应式设计]
-category: '网站'
+tags: [Performance Optimization, Astro, Svelte, Engineering Practices, Responsive Design]
+category: Web
 draft: false
-lang: ''
 ---
+## Introduction
 
-## 引言
+Recently I ran a "health check" on this site: a complete audit across three dimensions—build artifacts, runtime behavior, and multi-device adaptation—followed by prioritized optimizations. In the end, I reduced **per-page first-screen JS from about 700KB to about 110KB**, fixed three hidden bugs (one of which was an infinite loop in the search feature), and also filled in PWA, SEO, and browser fallback solutions along the way.
 
-最近给本站做了一次「体检」：从构建产物、运行时行为、多端适配三个维度完整审计了一遍，然后按优先级实施优化。最终把**每页首屏 JS 从约 700KB 降到约 110KB**，修复了三个隐藏 bug（其中一个还是搜索功能的死循环），并顺手补齐了 PWA、SEO 和浏览器回退方案。
+This article documents the whole process: what the audit found, which pitfalls I hit, and what lessons were distilled in the end. All data in this article comes from this site's real build artifacts and automated tests, and privacy-related configuration (analytics project ID, proxy service address, etc.) has been redacted.
 
-这篇文章记录整个过程：审计发现了什么、踩了哪些坑、最后沉淀了什么。文中所有数据均来自本站的真实构建产物与自动化测试，涉及隐私的配置（统计项目 ID、代理服务地址等）均已隐去。
+## 1. Audit: Quantify First, Then Act
 
-## 1. 审计：先量化，再动手
+The first step in optimization is not changing code, but getting trustworthy data. I used three rulers:
 
-优化的第一步不是改代码，而是拿到可信的数据。我用三把尺子：
+1. **Build artifact analysis**: directly unpack the dist directory, sort JS/CSS/fonts/images by size, and list the resources actually referenced by each page
+2. **Runtime observation**: use Playwright to load pages in a real browser and record network requests, console errors, and page exceptions
+3. **Multi-breakpoint walkthrough**: check horizontal overflow and layout behavior at nine widths from 320 to 1920
 
-1. **构建产物分析**：直接解包 dist 目录，按体积排序 JS/CSS/字体/图片，列出每个页面实际引用的资源
-2. **运行时观测**：用 Playwright 在真实浏览器里加载页面，记录网络请求、控制台错误、页面异常
-3. **多断点走查**：在 320–1920 共九个宽度下检查横向溢出与布局行为
+The audit results were shocking—the most serious issue was this table:
 
-审计结果触目惊心——最严重的是这张表：
-
-| 资源 | 体积 | 加载时机 | 问题 |
+| Resource | Size | Load timing | Problem |
 | --- | --- | --- | --- |
-| Mermaid 图表核心 | 约 587KB | **每页强制加载** | 首页和无图表文章白付代价 |
-| PhotoSwipe 灯箱 | 约 46KB | 每页加载 | 只有点开图片才需要 |
-| 搜索索引运行时 | 约 250KB | 每页加载 | 应该按需 |
-| 主题 CSS | 约 251KB | 每页加载 | 存在重复引入的隐患 |
-| 每页 JS 合计 | **约 700KB** | — | 移动端 4G 下体验差 |
+| Mermaid diagram core | About 587KB | **Force-loaded on every page** | The homepage and articles without diagrams pay the cost for nothing |
+| PhotoSwipe lightbox | About 46KB | Loaded on every page | Only needed when an image is opened |
+| Search index runtime | About 250KB | Loaded on every page | Should be on demand |
+| Theme CSS | About 251KB | Loaded on every page | Risk of duplicate inclusion |
+| Total JS per page | **About 700KB** | — | Poor experience on mobile 4G |
 
-> 上表是审计当时的状况。其中 Mermaid 一项后来走得更远：改为构建期渲染成内联 SVG 后，图表运行时**完全不再进入浏览器**，详见 [图表系统说明](https://github.com/HONGLEI111/HHLBlog/blob/main/docs/diagrams.md)。
+> The table above reflects the situation at the time of the audit. The Mermaid item later went further: after switching to build-time rendering into inline SVG, the diagram runtime **no longer enters the browser at all**, see [Diagram System Notes](https://github.com/HONGLEI111/HHLBlog/blob/main/docs/diagrams.md).
 
-另外还有两个功能性发现：
+There were also two functional findings:
 
-- **搜索在部分部署链路下会失效**：构建命令里没有包含搜索索引生成步骤，且索引加载器存在逻辑问题
-- **小屏溢出**：欢迎通知在 ≤344px 宽的设备上会超出屏幕
+- **Search fails under some deployment pipelines**: the build command did not include the search index generation step, and the index loader had logic issues
+- **Small-screen overflow**: the welcome notification extends beyond the screen on devices ≤344px wide
 
-## 2. 三个值得记录的隐藏 bug
+## 2. Three Hidden Bugs Worth Recording
 
-### Bug 1：一个 glob 悄悄改变了整个打包行为
+### Bug 1: One glob quietly changed the entire bundling behavior
 
-审计时发现一个诡异现象：项目里没有任何地方 import 主题样式文件，但构建产物里却有它们。排查半天，元凶是一行图片加载代码：
+During the audit I found a strange phenomenon: nowhere in the project imported the theme style files, yet they were present in the build artifacts. After a long investigation, the culprit was a line of image-loading code:
 
 ```ts
 // 优化前：把整个 src 目录都变成了模块图的一部分
 const files = import.meta.glob("../../**", { import: "default" });
 ```
 
-这行代码本意是动态引入图片，但 `../../**` 把 `src` 下**所有文件**——包括所有 CSS 和 Stylus——都卷进了依赖图。主题样式之所以「莫名其妙」出现在产物里，全靠这个副作用。
+The intent of this line was to dynamically import images, but `../../**` pulled **all files** under `src`—including all CSS and Stylus—into the dependency graph. The reason the theme styles "mysteriously" appeared in the artifacts was entirely due to this side effect.
 
-修复方式是把 glob 收窄到真正的图片目录，并把样式改为显式导入：依赖关系应该写清楚，而不是靠巧合。
+The fix was to narrow the glob to the actual image directory and change the styles to explicit imports: dependencies should be written clearly, not rely on coincidence.
 
-### Bug 2：Svelte effect 的自失效死循环
+### Bug 2: A self-invalidating infinite loop in a Svelte effect
 
-搜索组件原本用 `$effect` 实现「输入即搜」，但在运行时疯狂刷错误（`effect_update_depth_exceeded`）。原因是 effect 里调用的 `search()` 函数读了自己写的状态：
+The search component originally used `$effect` to implement "search as you type," but at runtime it spewed errors frantically (`effect_update_depth_exceeded`). The reason was that the `search()` function called inside the effect read state that it itself wrote:
 
 ```ts
 $effect(() => {
@@ -71,74 +69,74 @@ async function search(keyword) {
 }
 ```
 
-每次搜索都把 `result` 换成**新数组引用**，而 effect 又依赖 `result`，于是触发自己重新执行——死循环。修复方式是把搜索改成事件驱动（`oninput` 处理器直接调用），并在索引就绪后补跑未决查询。
+Each search replaced `result` with a **new array reference**, and because the effect depended on `result`, it triggered its own re-execution—an infinite loop. The fix was to change search to be event-driven (the `oninput` handler calls it directly), and to rerun pending queries once the index was ready.
 
-**教训**：`$effect` 里调用的函数如果会读写同一份响应式状态，先停下来想清楚依赖边界；交互触发的逻辑用事件处理器往往更直白。
+**Lesson**: If a function called inside `$effect` reads and writes the same reactive state, stop first and think clearly about the dependency boundaries; interaction-triggered logic is often more straightforward with event handlers.
 
-### Bug 3：模块级 import() 是「伪懒加载」
+### Bug 3: Module-level import() is "fake lazy loading"
 
-第一次「优化」PhotoSwipe 时，我把静态导入改成了模块级动态导入：
+The first time I "optimized" PhotoSwipe, I changed the static import to a module-level dynamic import:
 
 ```ts
 let lightboxModule = import("photoswipe/lightbox"); // 看起来懒，其实立即发起请求
 ```
 
-结果验证脚本当场抓包：首页依然请求了 PhotoSwipe。原因是 **`import()` 在调用瞬间就发起网络请求**，跟 await 与否无关。真正的懒加载必须把 `import()` 放进「用户实际需要」的回调里——最终方案是：首次点击文章图片时才加载并初始化灯箱。
+The verification script caught it immediately: the homepage still requested PhotoSwipe. The reason is that **`import()` initiates the network request the moment it is called**, regardless of whether it is awaited. True lazy loading must put `import()` inside the callback for "when the user actually needs it"—the final solution was: load and initialize the lightbox only when an article image is clicked for the first time.
 
-**教训**：懒加载要验证到网络面板这一层，「改成动态导入」不等于「按需加载」。
+**Lesson**: Lazy loading must be verified all the way down to the network panel; "changing to a dynamic import" does not equal "loading on demand."
 
-## 3. 优化清单
+## 3. Optimization Checklist
 
-按收益和风险分成三批实施：
+Implemented in three batches according to benefit and risk:
 
-**P0（收益最大、风险低）**
+**P0 (largest benefit, low risk)**
 
-- Mermaid 改为「页面含图表才加载」，每页直接省下约 587KB
-- PhotoSwipe 改为「点击图片才加载」
-- 修复通知溢出与 viewport 配置
-- 构建命令补上搜索索引生成，并让索引在首次搜索交互时才加载
-- 主题色补充 `@supports` 静态回退 + 显式声明浏览器目标
+- Change Mermaid to "load only if the page contains diagrams," directly saving about 587KB per page
+- Change PhotoSwipe to "load only when an image is clicked"
+- Fix notification overflow and viewport configuration
+- Add search index generation to the build command, and make the index load only on the first search interaction
+- Add a `@supports` static fallback for theme colors + explicitly declare browser targets
 
-**P1（移动端体验）**
+**P1 (mobile experience)**
 
-- 字体改为仅打包 latin 子集（中文交给系统字体栈）
-- 封面图统一转 webp、删除 539KB 的无引用死资产、favicon 从 74KB 压到 1.7KB
-- 1280–1535 分辨率下目录改为折叠抽屉（此前直接不可见）；移动端新增目录抽屉与回到顶部按钮
-- 悬浮按钮/面板避开 iPhone 安全区，高度改用 dvh 兼容地址栏伸缩
-- 补 `prefers-reduced-motion` 支持、收敛全局过渡动画
-- 补 og:image / theme-color / apple-touch-icon 等 SEO 与分享元信息
+- Change fonts to bundle only the latin subset (Chinese is left to the system font stack)
+- Convert cover images uniformly to webp, delete 539KB of unreferenced dead assets, compress favicon from 74KB to 1.7KB
+- Change the table of contents at 1280–1535 resolution to a collapsible drawer (previously it was simply invisible); add a mobile table-of-contents drawer and a back-to-top button
+- Keep floating buttons/panels clear of the iPhone safe area, and switch heights to dvh to accommodate address-bar resizing
+- Add `prefers-reduced-motion` support and tighten global transition animations
+- Add SEO and sharing metadata such as og:image / theme-color / apple-touch-icon
 
-**P2（增强）**
+**P2 (enhancements)**
 
-- PWA：manifest + Service Worker（静态资源缓存优先、HTML 网络优先），弱网可读
-- AI 助手组件降级为 idle 水合，不阻塞首屏
-- 新增 Playwright 响应式冒烟测试接入 CI，PR 自动跑
+- PWA: manifest + Service Worker (cache-first for static assets, network-first for HTML), readable on weak networks
+- Downgrade the AI assistant component to idle hydration so it does not block the first screen
+- Add Playwright responsive smoke tests to CI, automatically run on PRs
 
-## 4. 结果对比
+## 4. Results Comparison
 
-| 指标 | 优化前 | 优化后 |
+| Metric | Before optimization | After optimization |
 | --- | --- | --- |
-| 每页首屏 JS | 约 700KB（gzip 约 200KB） | **约 110KB（gzip 约 45KB）** |
-| Mermaid（587KB） | 每页强制加载 | 仅含图表的页面按需加载；现已进一步改为构建期内联 SVG，浏览器端完全不加载 |
-| PhotoSwipe（46KB） | 每页加载 | 首次点击图片才加载 |
-| 搜索索引（250KB） | 每页加载且可能缺失 | 首次搜索才加载，构建必生成 |
-| 首页封面图 | 4 张 eager JPG | 1 张 eager + webp |
-| 字体 | 全部语言子集 | latin 子集 |
-| 搜索功能 | 死循环 bug | 正常，实测 4 条结果 |
+| First-screen JS per page | About 700KB (about 200KB gzip) | **About 110KB (about 45KB gzip)** |
+| Mermaid (587KB) | Force-loaded on every page | Loaded on demand only on pages containing diagrams; now further changed to build-time inline SVG, with no browser-side loading at all |
+| PhotoSwipe (46KB) | Loaded on every page | Loaded only on first image click |
+| Search index (250KB) | Loaded on every page and could be missing | Loaded only on first search, always generated at build time |
+| Homepage cover images | 4 eager JPGs | 1 eager + webp |
+| Fonts | All language subsets | latin subset |
+| Search feature | Infinite loop bug | Working normally, 4 results measured in practice |
 
-所有改动通过三层验证后才收工：
+All changes were only considered done after passing three layers of verification:
 
-- **类型检查**：0 错误
-- **28 项运行时验证**：懒加载是否生效、搜索全链路、字体子集、PWA 注册、SEO meta 逐项断言——全部通过
-- **45 项响应式断言**：九个宽度 × 五个路由，无横向溢出、无页面错误——全部通过
+- **Type checking**: 0 errors
+- **28 runtime verifications**: whether lazy loading takes effect, the full search flow, font subsets, PWA registration, SEO meta asserted item by item—all passed
+- **45 responsive assertions**: nine widths × five routes, no horizontal overflow, no page errors—all passed
 
-## 5. 可复用的经验
+## 5. Reusable Lessons
 
-1. **先量化再优化**：解包构建产物 + 网络面板抓包，比任何猜测都准确
-2. **懒加载三要素**：`import()` 放进事件回调、产物里确认 chunk 分离、运行时抓包确认没被预取
-3. **effect 慎用**：响应式 effect 里别读自己写的数据，交互逻辑优先用事件处理器
-4. **依赖关系要显式**：glob 引入的隐性依赖迟早反噬，改为显式导入后整个构建都变可预测
-5. **兼容性要有下限**：明确声明目标浏览器，再给新特性配回退，两头都安心
-6. **把验证固化成脚本**：优化完不是终点，CI 里的断言才是防回归的护栏
+1. **Quantify before optimizing**: unpacking build artifacts + capturing packets in the network panel is more accurate than any guess
+2. **Three essentials of lazy loading**: put `import()` inside event callbacks, confirm chunk splitting in the artifacts, and confirm via runtime packet capture that it is not being prefetched
+3. **Use effects cautiously**: do not read data you wrote yourself inside a reactive effect; prefer event handlers for interaction logic
+4. **Dependencies must be explicit**: hidden dependencies introduced by glob will backfire sooner or later; after switching to explicit imports, the entire build becomes predictable
+5. **Compatibility needs a floor**: clearly declare target browsers, then provide fallbacks for new features, so both ends feel secure
+6. **Turn verification into scripts**: finishing the optimization is not the endpoint; assertions in CI are the guardrail against regressions
 
-这次优化的全部改动和验证脚本都已开源在仓库里，感兴趣可以翻 commit 记录。如果你也在维护 Astro 博客，希望这份实战记录能帮你少踩几个坑。
+All changes and verification scripts from this optimization have been open-sourced in the repository; if you are interested, you can browse the commit history. If you also maintain an Astro blog, I hope this practical record helps you avoid a few pitfalls.

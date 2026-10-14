@@ -1,40 +1,38 @@
 ---
-title: WWDC26 上的 Web 技术革命：Safari 27 带来了什么
+title: 'The Web Technology Revolution at WWDC26: What Safari 27 Brings'
 published: 2026-06-16
-description: 'WWDC26 WebKit 专场发布了 Safari 27 的五大重磅特性：CSS Grid Lanes 原生瀑布流、完全自定义的 <select> 元素、<model> 3D 模型嵌入、visionOS 沉浸式网站环境，以及跨浏览器 Web Extensions 打包。本文逐一解析每个特性的用法与设计意图。'
+description: 'The WWDC26 WebKit session unveiled five major features in Safari 27: native masonry layout with CSS Grid Lanes, fully customizable <select> elements, <model> 3D model embedding, immersive website environments in visionOS, and cross-browser Web Extensions packaging. This article breaks down how each feature works and the design intent behind it.'
 image: ''
-tags: [Apple, Safari, CSS, Web, WWDC, 前端]
-category: '前端'
+tags: [Apple, Safari, CSS, Web, WWDC, Frontend]
+category: Frontend
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+In June 2026, at WWDC26, Apple's WebKit team brought a series of new Web platform features to Safari 27. Compared to the "incremental" pace of Safari updates in previous years, this year's Web technology session can be called a **minor explosion**—from CSS layout to form controls, from 3D content embedding to spatial computing web experiences, each one directly addressing pain points front-end developers have had for years.
+
+This article analyzes the five core features one by one, with code examples, to help you quickly understand how these new capabilities will change the way we develop.
+
 ---
 
-## 1. 引言
+## 2. Five Core Features
 
-2026 年 6 月，Apple 在 WWDC26 上由 WebKit 团队带来了 Safari 27 的一系列 Web 平台新特性。相比往年 Safari 更新的"挤牙膏"节奏，今年的 Web 技术专场堪称一场**小爆发**——从 CSS 布局到表单控件、从 3D 内容嵌入到空间计算 Web 体验，每一项都直击前端开发者多年来的痛点。
+### 2.1 CSS Grid Lanes — Native Masonry Layout
 
-本文逐项解析五大核心特性，并附上代码示例，帮助你快速理解这些新能力将如何改变我们的开发方式。
+This is the CSS new feature that drew the most attention from front-end developers at this WWDC. **Grid Lanes** gives the Web platform native support for Pinterest-style masonry layout—no JavaScript required, achievable with just a few lines of CSS.
 
----
+**Pain points of traditional solutions**
 
-## 2. 五大核心特性
+Before this, there were only two ways to implement masonry layout:
 
-### 2.1 CSS Grid Lanes — 原生瀑布流布局
-
-这是本次 WWDC 最受前端开发者关注的 CSS 新特性。**Grid Lanes** 让 Web 平台原生支持了 Pinterest 式的瀑布流/砖石（Masonry）布局——不需要任何 JavaScript，几行 CSS 即可实现。
-
-**传统方案的痛点**
-
-在此之前，实现瀑布流布局只有两条路：
-
-| 方案 | 问题 |
+| Solution | Problem |
 |------|------|
-| JavaScript 计算 | 性能差、窗口 resize 卡顿、需要 ResizeObserver + 绝对定位 |
-| CSS Grid + `grid-auto-rows: masonry` | 自 2020 年起一直是实验性提案，从未进入任何浏览器 |
+| JavaScript calculation | Poor performance, laggy on window resize, requires ResizeObserver + absolute positioning |
+| CSS Grid + `grid-auto-rows: masonry` | Has been an experimental proposal since 2020, never shipped in any browser |
 
-**Grid Lanes 的解决方案**
+**The Grid Lanes solution**
 
-Grid Lanes 引入了 `grid-template-columns` 的新语法 `lanes()`，让元素在列间自然流动：
+Grid Lanes introduces the new syntax `grid-template-columns` `lanes()`, allowing elements to flow naturally between columns:
 
 ```css
 .masonry {
@@ -51,22 +49,22 @@ Grid Lanes 引入了 `grid-template-columns` 的新语法 `lanes()`，让元素�
 }
 ```
 
-与之前被废弃的 `masonry` 关键词不同，Grid Lanes 的设计更通用——它不仅支持瀑布流，还支持**任何自定义的格子排列算法**，是一个远比"砖石布局"更大的概念。
+Unlike the previously abandoned `masonry` keyword, Grid Lanes is designed to be more general—it not only supports masonry, but also **any custom grid arrangement algorithm**, making it a much bigger concept than "masonry layout."
 
-**核心特点**：
-- **纯 CSS 实现**，零 JavaScript，浏览器原生渲染优化
-- **自适应**，配合 `auto-fill`、`minmax()` 即可响应式
-- **排序可控**，支持 `grid-lane-order: column | row | shortest-column` 等排列策略
+**Core characteristics**:
+- **Pure CSS implementation**, zero JavaScript, browser-native rendering optimization
+- **Adaptive**, responsive when combined with `auto-fill`, `minmax()`
+- **Controllable ordering**, supports arrangement strategies such as `grid-lane-order: column | row | shortest-column`
 
-在 WebKit 的演示中，一个 200 张图片的瀑布流页面，从 JS 方案切换到 Grid Lanes 后，布局计算耗时从 **~120ms 降至 ~4ms**。
+In WebKit's demo, for a masonry page with 200 images, after switching from the JS solution to Grid Lanes, layout computation time dropped from **~120ms to ~4ms**.
 
 ---
 
-### 2.2 完全自定义的 `<select>` 元素
+### 2.2 Fully Customizable `<select>` Element
 
-前端开发者与 `<select>` 元素的战争已经持续了二十多年。Safari 27 终于给出了原生解决方案：`appearance: base-select` + 一套全新的伪元素体系。
+The war between front-end developers and the `<select>` element has lasted for more than twenty years. Safari 27 finally provides a native solution: `appearance: base-select` + a brand-new pseudo-element system.
 
-**新伪元素体系**
+**New pseudo-element system**
 
 ```css
 /* 启用新的可样式化 select */
@@ -102,26 +100,26 @@ select::picker(select) option:checked {
 }
 ```
 
-**关键能力**
+**Key capabilities**
 
-| 伪元素 / 选择器 | 作用 |
+| Pseudo-element / Selector | Purpose |
 |---|---|
-| `::picker()` | 样式化下拉面板（背景、圆角、阴影、模糊） |
-| `::picker-icon` | 自定义下拉箭头图标 |
-| `::checkmark` | 自定义选中标记 |
-| `option:checked` | 当前选中项的样式 |
-| `option:hover` | hover 状态 |
-| `::picker(select)` 内的 flex/grid | 选项布局完全自由 |
+| `::picker()` | Style the dropdown panel (background, border radius, shadow, blur) |
+| `::picker-icon` | Custom dropdown arrow icon |
+| `::checkmark` | Custom selected marker |
+| `option:checked` | Style for the currently selected item |
+| `option:hover` | hover state |
+| flex/grid inside `::picker(select)` | Fully free option layout |
 
-这意味着终于可以抛弃那些动辄几十 KB 的自定义 select 库（如 Choices.js、Select2、react-select 等），用纯原生 CSS 实现设计稿级别的下拉选择器。
+This means we can finally abandon those custom select libraries that weigh tens of KB (such as Choices.js, Select2, react-select, etc.) and implement design-spec-level dropdown selectors with pure native CSS.
 
 ---
 
-### 2.3 `<model>` 元素 — 网页内嵌 3D 模型
+### 2.3 `<model>` Element — Embedding 3D Models in Web Pages
 
-Safari 27 新增了 `<model>` HTML 元素，允许在网页中直接嵌入交互式 3D 模型，无需任何 JavaScript 库或 WebGL 代码。
+Safari 27 adds the `<model>` HTML element, allowing interactive 3D models to be embedded directly in web pages without any JavaScript library or WebGL code.
 
-**基本用法**
+**Basic usage**
 
 ```html
 <model
@@ -136,21 +134,21 @@ Safari 27 新增了 `<model>` HTML 元素，允许在网页中直接嵌入交互
 </model>
 ```
 
-**支持的功能**
+**Supported features**
 
-| 属性 / 能力 | 说明 |
+| Attribute / Capability | Description |
 |---|---|
-| `src` | 模型文件 URL（支持 USDZ、glTF 2.0、OBJ） |
-| `camera-controls` | 用户可旋转/缩放/平移视角 |
-| `auto-rotate` | 自动缓慢旋转展示 |
-| `ar` | 点击可启动 AR 查看（iOS/iPadOS 上的 Quick Look） |
-| `environment` | 环境光照预设（`auto` / `studio` / `outdoor`） |
-| `poster` | 模型加载前的占位图 URL |
-| `loading` | 懒加载（`lazy` / `eager`） |
+| `src` | Model file URL (supports USDZ, glTF 2.0, OBJ) |
+| `camera-controls` | Users can rotate/zoom/pan the view |
+| `auto-rotate` | Automatically rotates slowly for display |
+| `ar` | Click to launch AR viewing (Quick Look on iOS/iPadOS) |
+| `environment` | Environment lighting presets (`auto` / `studio` / `outdoor`) |
+| `poster` | Placeholder image URL before the model loads |
+| `loading` | Lazy loading (`lazy` / `eager`) |
 
 **JavaScript API**
 
-`<model>` 元素暴露了完整的 JavaScript 控制接口：
+The `<model>` element exposes a complete JavaScript control interface:
 
 ```javascript
 const model = document.querySelector('model');
@@ -167,22 +165,22 @@ model.addEventListener('load', () => {
 model.camera.orbit(0, 45, 2);  // theta, phi, radius
 ```
 
-`<model>` 元素最早在 iOS 上的 Quick Look 中预览 USDZ 文件时就已埋下伏笔，现在正式进入 Web 标准。对于电商、教育、产品展示类网站，这是一个重要工具。
+The `<model>` element first hinted at this back when previewing USDZ files in Quick Look on iOS, and now it has officially entered the Web standard. For e-commerce, education, and product showcase websites, this is an important tool.
 
 ---
 
-### 2.4 visionOS 沉浸式网站环境
+### 2.4 visionOS Immersive Website Environments
 
-这是本次 WWDC 最具未来感的一项能力。Safari 27 在 visionOS 27 上支持**空间 Web 体验**：网站可以声明自己是"沉浸式"的，从而在 Apple Vision Pro 上以空间化的方式呈现。
+This is the most futuristic capability of this WWDC. Safari 27 supports **spatial web experiences** on visionOS 27: websites can declare themselves "immersive," and thus be presented in a spatial way on Apple Vision Pro.
 
-**声明沉浸式体验**
+**Declaring an immersive experience**
 
 ```html
 <meta name="apple-immersive" content="full">
 <meta name="apple-immersive-environment" content="starry-night">
 ```
 
-浏览器会将页面渲染为漂浮在用户空间中的面板，同时支持 **WebXR** 标准的空间交互：
+The browser renders the page as a panel floating in the user's space, while also supporting **WebXR** standard spatial interaction:
 
 ```javascript
 // 检测沉浸式 Web 支持
@@ -197,30 +195,30 @@ if ('xr' in navigator) {
 }
 ```
 
-WebKit 团队强调，这不是创造一套新的"visionOS-only"标准，而是在现有 **WebXR Device API** 标准上的扩展实现。这意味着同一个 WebXR 页面也可以在 Meta Quest、Pico 等设备上运行。
+The WebKit team emphasizes that this is not creating a new "visionOS-only" standard, but rather an extended implementation on top of the existing **WebXR Device API** standard. This means the same WebXR page can also run on devices such as Meta Quest and Pico.
 
-**实际应用场景**：
-- **产品展示**：家居品牌让用户在空间中查看家具
-- **数据可视化**：3D 图表和数据仪表盘
-- **在线教育**：解剖模型、分子结构等立体教学
-- **艺术展览**：空间化的 Web 艺术体验
+**Practical application scenarios**:
+- **Product showcase**: Furniture brands let users view furniture in space
+- **Data visualization**: 3D charts and data dashboards
+- **Online education**: Three-dimensional teaching such as anatomical models and molecular structures
+- **Art exhibitions**: Spatial web art experiences
 
 ---
 
-### 2.5 跨浏览器 Web Extensions 打包
+### 2.5 Cross-Browser Web Extensions Packaging
 
-Safari 27 大幅简化了 Safari 扩展的开发和分发流程。
+Safari 27 greatly simplifies the development and distribution process for Safari extensions.
 
-**主要变化**
+**Main changes**
 
-| 之前 | 之后（Safari 27） |
+| Before | After (Safari 27) |
 |------|-------------------|
-| 必须通过 Xcode 项目打包 | 直接提交扩展文件包，无需 Xcode |
-| 只能在 Mac 上构建和提交 | 任意平台均可构建和提交（通过 App Store Connect API） |
-| Safari 专用 API 差异大 | 更接近 Chrome/Firefox 扩展 API，遵循 W3C WebExtensions 社区组规范 |
-| 无法跨浏览器复用 | 一套代码 → Chrome + Firefox + Safari，零修改或极小修改 |
+| Must be packaged through an Xcode project | Submit the extension package directly, no Xcode required |
+| Can only be built and submitted on a Mac | Can be built and submitted on any platform (via App Store Connect API) |
+| Large differences in Safari-specific APIs | Closer to Chrome/Firefox extension APIs, following the W3C WebExtensions Community Group specification |
+| Cannot be reused across browsers | One codebase → Chrome + Firefox + Safari, with zero or minimal modifications |
 
-**新的打包方式**
+**New packaging approach**
 
 ```bash
 # 无需 Xcode，直接用命令行工具打包
@@ -234,41 +232,40 @@ xcrun altool --upload-app \
   --apiIssuer YOUR_ISSUER
 ```
 
-这对独立开发者和开源项目尤其友好——以前为 Safari 维护扩展需要一台 Mac 和一个 Apple Developer 账号，现在通过 CI/CD 就能完成提交。
+This is especially friendly to independent developers and open-source projects—previously, maintaining an extension for Safari required a Mac and an Apple Developer account, but now submission can be completed through CI/CD.
 
 ---
+## 3. What These Features Mean
 
-## 3. 这些特性的意义
+If you look at the five major features together, you'll see they all point in the same direction: **the Web platform is taking over more and more territory that originally belonged to "native."**
 
-如果你把五大特性放在一起看，会发现它们指向同一个方向：**Web 平台正在接管越来越多原本属于"原生"的领域**。
-
-| 特性 | 取代了什么 |
+| Feature | What it replaces |
 |------|-----------|
-| CSS Grid Lanes | Masonry.js 及其他 JS 布局库 |
-| 自定义 `<select>` | react-select、Choices.js、Select2 |
-| `<model>` 元素 | Three.js / model-viewer 的基础场景 |
-| 沉浸式 Web | 原生 visionOS / iOS App 的独占体验 |
-| Web Extensions 打包 | Xcode + Mac 的构建垄断 |
+| CSS Grid Lanes | Masonry.js and other JS layout libraries |
+| Custom `<select>` | react-select, Choices.js, Select2 |
+| `<model>` element | Basic scenes in Three.js / model-viewer |
+| Immersive Web | Exclusive experiences of native visionOS / iOS apps |
+| Web Extensions packaging | Xcode + Mac build monopoly |
 
-这是一种稳步推进的标准化策略：先让某个需求在社区中通过 JS 库解决（验证需求），再通过标准化 API 将其内建到平台中（提供原生性能和安全保障），让 JS 方案降级为降级兼容（polyfill）。
+This is a steadily advancing standardization strategy: first let a need be solved in the community through JS libraries (validating demand), then build it into the platform through standardized APIs (providing native performance and security guarantees), relegating the JS approach to fallback compatibility (polyfill).
 
 ---
 
-## 4. 什么时候能用
+## 4. When It Will Be Available
 
-WebKit 在 WWDC 现场的回应：
+WebKit's response at WWDC:
 
-| 时机 | 可用性 |
+| Timing | Availability |
 |------|--------|
-| **现在** | Safari Technology Preview 中可测试所有新特性 |
-| **2026 年 9 月** | Safari 27 随 iOS 27 / macOS 27 正式发布 |
-| **跨浏览器** | Grid Lanes 规范已进入 W3C CSS WG 的 ED 阶段；`<select>` 样式化在 Open UI CG 中有跨浏览器共识；`<model>` 在 Immersive Web CG 中推进 |
+| **Now** | All new features testable in Safari Technology Preview |
+| **September 2026** | Safari 27 officially released with iOS 27 / macOS 27 |
+| **Cross-browser** | The Grid Lanes spec has entered the ED stage of the W3C CSS WG; `<select>` styling has cross-browser consensus in the Open UI CG; `<model>` is advancing in the Immersive Web CG |
 
-需要注意的是，**CSS Grid Lanes** 和**自定义 `<select>`** 是最有可能快速跨浏览器跟进的两个特性——Chrome 和 Firefox 的工程师已经在相关标准讨论中表达了支持意向。`<model>` 元素目前在 Safari 独占，但 Google 在 Android 生态中有类似需求（Scene Viewer），标准化前景可期。
+It's worth noting that **CSS Grid Lanes** and **custom `<select>`** are the two features most likely to be quickly followed across browsers—engineers at Chrome and Firefox have already expressed support in related standards discussions. The `<model>` element is currently exclusive to Safari, but Google has similar needs in the Android ecosystem (Scene Viewer), so the prospects for standardization look promising.
 
 ---
 
-## 5. 参考资料
+## 5. References
 
 - [Web Technology Sessions at WWDC26 — WebKit Blog](https://webkit.org/blog/17974/web-technology-sessions-at-wwdc26/)
 - [CSS Grid Lanes Specification — W3C Editor's Draft](https://drafts.csswg.org/css-grid-3/)

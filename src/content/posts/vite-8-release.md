@@ -1,63 +1,61 @@
 ---
-title: Vite 8 正式发布：Rust 驱动的前端工业革命
+title: 'Vite 8 Officially Released: A Rust-Powered Frontend Industrial Revolution'
 published: 2026-04-20
-description: 'Vite 8 正式发布，这是第一个使用 Rust 打包器 Rolldown 驱动的稳定版本。构建速度暴涨 10 倍，统一开发和构建流程，标志着前端工程化进入新纪元。'
+description: Vite 8 is officially released, the first stable version powered by the Rust-based bundler Rolldown. Build speeds surge 10x, unifying development and build workflows, marking a new era for frontend engineering.
 image: ''
-tags: [Vite, 构建工具, 前端]
-category: '前端'
+tags: [Vite, Build Tools, Frontend]
+category: Frontend
 draft: false 
-lang: ''
+---
+## 1. Introduction
+
+2026 marked a milestone moment in the world of frontend build tools — **Vite 8 was officially released**. This is the first stable version powered by the Rust bundler Rolldown, signaling that frontend engineering has officially entered the Rust era.
+
+The Vite team announced that Vite 8 replaces the underlying `esbuild + rollup` dual-bundling mechanism with `Oxc + Rolldown`, boosting build speed by **10x**, while completely resolving the long-standing inconsistency between development and build.
+
 ---
 
-## 1. 引言
+## 2. Why Was Vite 8 Needed?
 
-2026年，前端构建工具领域迎来了一个里程碑式的时刻——**Vite 8 正式发布**。这是第一个使用 Rust 打包器 Rolldown 驱动的稳定版本，标志着前端工程化正式进入 Rust 时代。
+### 2.1 Architectural Pain Points of Vite 7 and Earlier
 
-Vite 团队官宣，Vite 8 将底层的 `esbuild + rollup` 双打包机制替换为 `Oxc + Rolldown`，构建速度暴涨 **10 倍**，同时彻底解决了长期存在的开发与构建不一致性问题。
+Before Vite 8, Vite used a dual-bundling mechanism:
 
----
-
-## 2. 为什么需要 Vite 8？
-
-### 2.1 Vite 7 及之前的架构痛点
-
-在 Vite 8 之前，Vite 采用双打包机制：
-
-| 阶段 | 工具 | 语言 | 特点 |
+| Phase | Tool | Language | Characteristics |
 |------|------|------|------|
-| 开发服务器 | esbuild | Go | 快速编译，不打包 |
-| 生产构建 | Rollup | JavaScript | 优化打包，速度较慢 |
+| Dev server | esbuild | Go | Fast compilation, no bundling |
+| Production build | Rollup | JavaScript | Optimized bundling, slower speed |
 
-这种架构虽然在当时是最佳选择，但存在一个根本性问题：**"天衣有缝"**。
+While this architecture was the best choice at the time, it had a fundamental problem: **"a crack in the armor."**
 
-两种流程始终存在不一致性：
-- 开发时能运行的代码，构建后可能报错
-- 插件在开发和构建阶段的行为可能不同
-- 开发者需要同时维护两套配置逻辑
+The two workflows always had inconsistencies:
+- Code that runs in development may error after building
+- Plugins may behave differently during development and build phases
+- Developers need to maintain two sets of configuration logic simultaneously
 
-### 2.2 Rust 工具链的崛起
+### 2.2 The Rise of the Rust Toolchain
 
-与此同时，Rust 在前端工具链领域迅速崛起：
+Meanwhile, Rust rose rapidly in the frontend toolchain space:
 
-- **esbuild**（Go）已经证明了编译型语言在构建工具上的性能优势
-- **Turbopack**（Rust）展示了增量编译的可能性
-- **Rspack**（Rust）证明了兼容 Webpack 生态的同时可以获得极致性能
+- **esbuild** (Go) had already proven the performance advantages of compiled languages in build tools
+- **Turbopack** (Rust) demonstrated the possibilities of incremental compilation
+- **Rspack** (Rust) proved thatextreme performance could be achieved while maintaining Webpack ecosystem compatibility
 
-Rust 以 **32%** 的项目占比，成为系统工具开发的首选语言。
+Rust, with a **32%** project share, has become the preferred language for systems tool development.
 
 ---
 
-## 3. Rolldown：统一 Vite 的核心引擎
+## 3. Rolldown: The Core Engine Unifying Vite
 
-### 3.1 什么是 Rolldown？
+### 3.1 What Is Rolldown?
 
-Rolldown 是由 Vite 作者尤雨溪发起的项目，目标是**用 Rust 重写 Rollup**，实现：
+Rolldown is a project initiated by Vite creator Evan You, with the goal of **rewriting Rollup in Rust**, achieving:
 
-1. **兼容 Rollup 插件 API**：无缝迁移现有生态
-2. **媲美 esbuild 的性能**：极致的构建速度
-3. **统一开发和构建流程**：消除不一致性
+1. **Rollup plugin API compatibility**: Seamless migration of the existing ecosystem
+2. **Performance rivaling esbuild**: Extreme build speed
+3. **Unified development and build workflow**: Eliminating inconsistencies
 
-### 3.2 Rolldown 的技术优势
+### 3.2 Rolldown's Technical Advantages
 
 ```
 Rolldown 架构
@@ -73,33 +71,33 @@ Rolldown 架构
     └── 生产构建
 ```
 
-**性能对比**：
+**Performance comparison**:
 
-| 指标 | Vite 7 (esbuild + Rollup) | Vite 8 (Rolldown) | 提升 |
+| Metric | Vite 7 (esbuild + Rollup) | Vite 8 (Rolldown) | Improvement |
 |------|---------------------------|-------------------|------|
-| 冷启动 | ~500ms | ~50ms | 10x |
+| Cold start | ~500ms | ~50ms | 10x |
 | HMR | ~100ms | ~10ms | 10x |
-| 生产构建 | ~30s | ~3s | 10x |
-| 内存占用 | ~500MB | ~200MB | 60%↓ |
+| Production build | ~30s | ~3s | 10x |
+| Memory usage | ~500MB | ~200MB | 60%↓ |
 
 ---
 
-## 4. Vite 8 新特性详解
+## 4. Vite 8 New Features in Detail
 
-### 4.1 开发体验提升
+### 4.1 Development Experience Improvements
 
 #### Vite Devtools
 
-新增内置的开发工具，可以直接从开发服务器调试应用：
+A new built-in development tool that allows debugging applications directly from the dev server:
 
-- 组件树查看
-- 状态检查
-- 性能分析
-- 网络请求监控
+- Component tree inspection
+- State inspection
+- Performance profiling
+- Network request monitoring
 
-#### 浏览器控制台转发
+#### Browser Console Forwarding
 
-支持将浏览器控制台输出转发到 CLI 终端，方便 AI 分析：
+Supports forwarding browser console output to the CLI terminal, making it convenient for AI analysis:
 
 ```bash
 # 终端中直接看到浏览器 console.log
@@ -110,9 +108,9 @@ $ pnpm dev
   → API response: 200 OK
 ```
 
-### 4.2 内置 TypeScript 支持
+### 4.2 Built-in TypeScript Support
 
-Vite 8 原生支持 TypeScript，无需额外配置：
+Vite 8 natively supports TypeScript with no additional configuration needed:
 
 ```typescript
 // tsconfig.json
@@ -128,11 +126,11 @@ Vite 8 原生支持 TypeScript，无需额外配置：
 
 ### 4.3 @vitejs/plugin-react v6
 
-React 插件迎来重大更新：
+The React plugin receives a major update:
 
-- **集成 Oxc**：不再依赖 Babel
-- **更快的编译速度**：Rust 驱动的转换
-- **更小的依赖体积**：减少 node_modules 大小
+- **Oxc integration**: No longer depends on Babel
+- **Faster compilation speed**: Rust-driven transformation
+- **Smaller dependency footprint**: Reduced node_modules size
 
 ```typescript
 // vite.config.ts
@@ -144,9 +142,9 @@ export default defineConfig({
 });
 ```
 
-### 4.4 WASM 支持增强
+### 4.4 Enhanced WASM Support
 
-`.wasm?init` 导入现在可以在 SSR 环境运行：
+`.wasm?init` imports can now run in SSR environments:
 
 ```typescript
 // 客户端和 SSR 都能正常工作
@@ -155,15 +153,15 @@ import init from './module.wasm?init';
 const instance = await init();
 ```
 
-### 4.5 Vite Plugin 官网
+### 4.5 Vite Plugin Official Website
 
-新增 [Vite Plugin 官网](https://vitejs.dev/plugins)，方便搜索 Vite 生态的插件。
+A new [Vite Plugin official website](https://vitejs.dev/plugins) has been added, making it easy to search for plugins in the Vite ecosystem.
 
 ---
 
-## 5. 迁移指南
+## 5. Migration Guide
 
-### 5.1 升级步骤
+### 5.1 Upgrade Steps
 
 ```bash
 # 1. 升级 Vite
@@ -176,15 +174,15 @@ npm install @vitejs/plugin-react@latest
 npx vite --config vite.config.ts
 ```
 
-### 5.2  breaking changes
+### 5.2 Breaking Changes
 
-| 变更 | 影响 | 解决方案 |
+| Change | Impact | Solution |
 |------|------|----------|
-| 移除 esbuild | 部分 esbuild 特定配置失效 | 使用 Rolldown 配置 |
-| Babel 移除 | @vitejs/plugin-react 不再使用 Babel | 更新 Babel 配置为 Oxc 兼容 |
-| 插件 API 调整 | 少数插件可能需要更新 | 联系插件作者 |
+| esbuild removed | Some esbuild-specific configs no longer work | Use Rolldown configuration |
+| Babel removed | @vitejs/plugin-react no longer uses Babel | Update Babel config to Oxc-compatible |
+| Plugin API adjustments | A few plugins may need updates | Contact plugin authors |
 
-### 5.3 配置示例
+### 5.3 Configuration Example
 
 ```typescript
 // vite.config.ts
@@ -216,89 +214,89 @@ export default defineConfig({
 
 ---
 
-## 6. 生态影响
+## 6. Ecosystem Impact
 
-### 6.1 对开发者的影响
+### 6.1 Impact on Developers
 
-- **更快的开发体验**：HMR 降至 ~10ms，几乎即时反馈
-- **更一致的构建**：开发和构建使用同一引擎
-- **更简单的配置**：无需维护两套配置
+- **Faster development experience**: HMR down to ~10ms, nearly instant feedback
+- **More consistent builds**: Development and build use the same engine
+- **Simpler configuration**: No need to maintain two sets of configs
 
-### 6.2 对框架的影响
+### 6.2 Impact on Frameworks
 
-| 框架 | 影响 |
+| Framework | Impact |
 |------|------|
-| Vue | Nuxt 已适配 Vite 8，性能显著提升 |
-| React | Next.js、Remix 等框架将受益于更快的构建 |
-| Svelte | SvelteKit 构建速度提升明显 |
+| Vue | Nuxt has adapted to Vite 8, with significant performance improvements |
+| React | Frameworks like Next.js and Remix will benefit from faster builds |
+| Svelte | SvelteKit build speed improved noticeably |
 
-### 6.3 对插件生态的影响
+### 6.3 Impact on the Plugin Ecosystem
 
-- 现有 Rollup 插件大多兼容
-- 新插件可以直接使用 Rolldown API
-- 插件性能普遍提升 5-10 倍
+- Most existing Rollup plugins are compatible
+- New plugins can directly use the Rolldown API
+- Plugin performance generally improved by 5-10x
 
 ---
 
-## 7. 性能实测
+## 7. Performance Benchmarks
 
-### 7.1 测试项目
+### 7.1 Test Project
 
-- **项目类型**：中大型 React 应用
-- **组件数量**：~500
-- **代码行数**：~100,000
-- **依赖数量**：~80
+- **Project type**: Medium-to-large React application
+- **Component count**: ~500
+- **Lines of code**: ~100,000
+- **Dependency count**: ~80
 
-### 7.2 测试结果
+### 7.2 Test Results
 
-| 操作 | Vite 7 | Vite 8 | 提升 |
+| Operation | Vite 7 | Vite 8 | Improvement |
 |------|--------|--------|------|
-| 冷启动 | 1.2s | 0.15s | 8x |
+| Cold start | 1.2s | 0.15s | 8x |
 | HMR | 150ms | 12ms | 12.5x |
-| 生产构建 | 45s | 4.2s | 10.7x |
-| 内存峰值 | 680MB | 220MB | 67%↓ |
+| Production build | 45s | 4.2s | 10.7x |
+| Peak memory | 680MB | 220MB | 67%↓ |
 
 ---
 
-## 8. 未来展望
+## 8. Future Outlook
 
-### 8.1 VoidZero 计划
+### 8.1 The VoidZero Plan
 
-尤雨溪领导的 VoidZero 计划正在推进：
+The VoidZero plan led by Evan You is advancing:
 
-- **Rolldown**：统一构建工具
-- **Oxc**：快速 JavaScript 工具链
-- **Nuxt 收购**：扩展 Vue 生态
+- **Rolldown**: Unified build tool
+- **Oxc**: Fast JavaScript toolchain
+- **Nuxt acquisition**: Expanding the Vue ecosystem
 
-### 8.2 Rust 工具链趋势
+### 8.2 The Rust Toolchain Trend
 
-2026 年前端工具链 Rust 化已成定局：
+The Rustification of frontend toolchains in 2026 is a foregone conclusion:
 
-| 工具 | 语言 | 状态 |
+| Tool | Language | Status |
 |------|------|------|
-| Rolldown | Rust | ✅ Vite 8 采用 |
-| Turbopack | Rust | ✅ Next.js 采用 |
-| Rspack | Rust | ✅ 字节跳动开源 |
-| Biome | Rust | ✅ ESLint/Prettier 替代 |
-| Lightning CSS | Rust | ✅ Vite 采用 |
+| Rolldown | Rust | ✅ Adopted by Vite 8 |
+| Turbopack | Rust | ✅ Adopted by Next.js |
+| Rspack | Rust | ✅ Open-sourced by ByteDance |
+| Biome | Rust | ✅ ESLint/Prettier alternative |
+| Lightning CSS | Rust | ✅ Adopted by Vite |
 
 ---
 
-## 9. 总结
+## 9. Summary
 
-Vite 8 的发布不仅仅是一个版本号的更新，它代表了前端工程化的一个重要转折点：
+The release of Vite 8 is not just a version number update — it represents an important turning point in frontend engineering:
 
-1. **Rust 成为基础设施语言**：性能不再是瓶颈
-2. **统一架构消除不一致性**：开发体验更流畅
-3. **AI 友好**：控制台转发、更快的反馈循环
+1. **Rust becomes the infrastructure language**: Performance is no longer a bottleneck
+2. **Unified architecture eliminates inconsistencies**: Smoother development experience
+3. **AI-friendly**: Console forwarding, faster feedback loops
 
-如果你还在使用 Vite 7 或更早版本，强烈建议升级到 Vite 8。构建速度的提升是实实在在的，而且迁移成本很低。
+If you're still using Vite 7 or earlier, upgrading to Vite 8 is strongly recommended. The build speed improvements are real, and the migration cost is low.
 
 ---
 
-## 参考资料
+## References
 
-- [Vite 8 官方公告](https://vitejs.dev/blog/)
+- [Vite 8 Official Announcement](https://vitejs.dev/blog/)
 - [Rolldown GitHub](https://github.com/rolldown/rolldown)
-- [VoidZero 计划](https://voidzero.dev/)
-- [2026 前端技术趋势解析](https://juejin.cn/post/7626192281234309147)
+- [VoidZero Plan](https://voidzero.dev/)
+- [2026 Frontend Technology Trends Analysis](https://juejin.cn/post/7626192281234309147)

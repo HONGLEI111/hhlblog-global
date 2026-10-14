@@ -1,67 +1,65 @@
 ---
-title: 苹果玻璃样式深度解析：从毛玻璃到 visionOS 的视觉设计哲学
+title: 'Apple Glass Style Deep Dive: From Frosted Glass to visionOS Visual Design Philosophy'
 published: 2026-06-01
-description: '深入分析苹果玻璃材质（Glass Morphism）设计语言从 iOS 7 到 visionOS 的演进历程，涵盖磨砂玻璃、动态模糊、色彩混合原理及 CSS/WebGL 实现方案'
+description: An in-depth analysis of the evolution of Apple's Glass Morphism design language from iOS 7 to visionOS, covering frosted glass, dynamic blur, color blending principles, and CSS/WebGL implementation approaches.
 image: ''
-tags: [设计, 苹果, CSS, 前端]
-category: '前端'
+tags: [Design, Apple, CSS, Frontend]
+category: Frontend
 draft: false
-lang: ''
 ---
+## 1. Introduction
 
-## 1. 引言
+Apple's Glass Morphism design language has undergone a transformation from controversial to industry benchmark since its introduction with iOS 7 in 2013. After the release of visionOS in 2024, glass materials were pushed to new heights—evolving from decorative elements on a two-dimensional plane to fundamental interactive interfaces in spatial computing environments.
 
-苹果的玻璃材质设计语言（Glass Morphism）自 2013 年 iOS 7 引入以来，经历了从备受争议到成为行业标杆的转变。2024 年 visionOS 发布后，玻璃材质更是被推向了新的高度——从二维平面的装饰性元素，升级为空间计算环境中的基本交互界面。
-
-本文将从设计哲学、视觉效果原理、技术实现三个维度，深度解析苹果玻璃样式背后的设计逻辑与工程实践。
-
----
-
-## 2. 苹果玻璃样式的三个阶段
-
-### 2.1 iOS 7 — 毛玻璃的诞生（2013）
-
-iOS 7 是苹果从拟物化（Skeuomorphism）转向扁平化（Flat Design）的转折点。约翰尼·艾维（Jony Ive）主导的设计团队引入了**高斯模糊叠加半透明**的毛玻璃效果，核心特征包括：
-
-- **控制中心/通知中心**：背景采用实时高斯模糊，模糊半径约 30-40px
-- **色彩吸取**：模糊层会从背景中进行色彩混合，而非简单叠加纯色
-- **层次感**：通过模糊强度区分内容层级，前景内容清晰锐利，背景柔和退远
-
-技术上，iOS 7 使用 `UIBlurEffect` + `UIVisualEffectView`，底层基于 Metal 的**实时帧缓冲采样**，对屏幕当前帧进行 GPU 加速的高斯模糊处理。
-
-### 2.2 macOS — 微妙的玻璃层次
-
-macOS 的玻璃样式更为内敛。Finder 侧边栏、Safari 工具栏等区域采用**半透明侧板**设计：
-
-- 模糊强度低于 iOS，避免干扰桌面生产力场景的内容识别
-- 桌面壁纸的色彩被轻度透出，营造环境融入感
-- **Vibrancy** 效果：前景文字的亮度/色彩根据背景自适应调整，确保可读性
-
-这是玻璃材质从视觉装饰向**功能性半透明**的关键转变——不是为了炫技，而是为了在有限屏幕空间中创造层次感。
-
-### 2.3 visionOS — 空间玻璃的全新维度（2024）
-
-visionOS 将玻璃设计推向了全新的空间维度。其设计文档明确指出玻璃材质在空间计算中的三个核心功能：
-
-**轻量化存在感**
-
-visionOS App 窗口使用**磨砂玻璃作为标准容器背景**。这不是为了好看，而是有明确的功能目的：允许用户透过 App 看到周围的物理环境，保持空间感知。玻璃材质让数字内容"浮"在真实世界之上而非完全遮挡。
-
-**深度暗示**
-
-玻璃的光线折射、边缘亮度、环境光反射共同构成了空间深度暗示（Depth Cues）。当用户在空间中移动时，玻璃材质与真实环境光线的交互变化，帮助大脑理解窗口在空间中的位置关系。
-
-**对比度自适应**
-
-visionOS 使用 `glassBackgroundEffect` 材质，系统会根据后方内容的复杂程度动态调整模糊半径和色调，确保文字始终可读——无论是面对纯色背景还是杂乱的客厅场景。
+This article will provide an in-depth analysis of the design logic and engineering practices behind Apple's glass style from three dimensions: design philosophy, visual effect principles, and technical implementation.
 
 ---
 
-## 3. 玻璃材质的光学原理
+## 2. The Three Phases of Apple's Glass Style
 
-### 3.1 三层叠加模型
+### 2.1 iOS 7 — The Birth of Frosted Glass (2013)
 
-苹果的玻璃效果本质上是**三层视觉信息的叠加**：
+iOS 7 was Apple's turning point from Skeuomorphism to Flat Design. The design team led by Jony Ive introduced the **Gaussian blur overlaid with translucency** frosted glass effect, with core characteristics including:
+
+- **Control Center/Notification Center**: Background uses real-time Gaussian blur, with a blur radius of approximately 30-40px
+- **Color Bleeding**: The blur layer performs color mixing from the background rather than simply overlaying a solid color
+- **Sense of Depth**: Content hierarchy is distinguished through blur intensity—foreground content is sharp and clear, while the background is soft and recedes
+
+Technically, iOS 7 used `UIBlurEffect` + `UIVisualEffectView`, with the underlying implementation based on Metal's **real-time framebuffer sampling**, performing GPU-accelerated Gaussian blur processing on the current screen frame.
+
+### 2.2 macOS — Subtle Glass Hierarchy
+
+macOS's glass style is more restrained. Areas such as the Finder sidebar and Safari toolbar adopt a **translucent panel** design:
+
+- Blur intensity is lower than iOS, avoiding interference with content recognition in desktop productivity scenarios
+- Desktop wallpaper colors are lightly revealed, creating a sense of environmental integration
+- **Vibrancy** effect: Foreground text brightness/color adaptively adjusts based on the background to ensure readability
+
+This is a key shift of glass material from visual decoration to **functional translucency**—not for showing off, but for creating a sense of hierarchy within limited screen space.
+
+### 2.3 visionOS — A Whole New Dimension for Spatial Glass (2024)
+
+visionOS pushed glass design into an entirely new spatial dimension. Its design documentation explicitly identifies three core functions of glass material in spatial computing:
+
+**Lightweight Presence**
+
+visionOS app windows use **frosted glass as the standard container background**. This isn't for aesthetics but serves a clear functional purpose: allowing users to see the surrounding physical environment through the app, maintaining spatial awareness. Glass material lets digital content "float" above the real world rather than completely obscuring it.
+
+**Depth Cues**
+
+Glass's light refraction, edge brightness, and ambient light reflection together constitute spatial depth cues. When users move through space, the interactive changes between glass material and real environmental lighting help the brain understand the positional relationships of windows in space.
+
+**Contrast Adaptation**
+
+visionOS uses `glassBackgroundEffect` material, and the system dynamically adjusts blur radius and tint based on the complexity of the content behind it, ensuring text is always readable—whether facing a solid color background or a cluttered living room scene.
+
+---
+
+## 3. Optical Principles of Glass Material
+
+### 3.1 Three-Layer Overlay Model
+
+Apple's glass effect is essentially a **three-layer overlay of visual information**:
 
 ```
 ┌──────────────────┐
@@ -73,39 +71,39 @@ visionOS 使用 `glassBackgroundEffect` 材质，系统会根据后方内容的�
 └──────────────────┘
 ```
 
-### 3.2 核心视觉参数
+### 3.2 Core Visual Parameters
 
-| 参数 | iOS 7-15 | macOS | visionOS |
+| Parameter | iOS 7-15 | macOS | visionOS |
 |------|----------|-------|----------|
-| 模糊半径 | 30-40px | 15-25px | 动态自适应 |
-| 背景透明度 | 0.6-0.85 | 0.7-0.9 | 0.3-0.6 |
-| 饱和度增强 | +20% | 0% | +30% |
-| 边框光效 | 无 | 细线高光 | 边缘折射光 |
-| 动态响应 | 滚动时更新 | 静态 | 头部追踪实时刷新 |
+| Blur Radius | 30-40px | 15-25px | Dynamic adaptive |
+| Background Opacity | 0.6-0.85 | 0.7-0.9 | 0.3-0.6 |
+| Saturation Boost | +20% | 0% | +30% |
+| Border Light Effect | None | Thin line highlight | Edge refraction light |
+| Dynamic Response | Updates on scroll | Static | Head tracking real-time refresh |
 
-### 3.3 色彩混合算法
+### 3.3 Color Mixing Algorithm
 
-苹果的玻璃材质并非简单叠加半透明白色。其核心算法包含三个步骤：
+Apple's glass material is not simply overlaying translucent white. Its core algorithm consists of three steps:
 
-1. **高斯模糊**：对背景区域进行高斯核卷积，核大小由模糊半径决定
-2. **饱和度调整**：使用色彩矩阵对模糊后的像素进行饱和度增强，补偿模糊造成的色彩稀释
-3. **Alpha 混合**：将调整后的背景与前景玻璃色进行 alpha 混合
+1. **Gaussian Blur**: Performing Gaussian kernel convolution on the background region, with kernel size determined by blur radius
+2. **Saturation Adjustment**: Using a color matrix to enhance saturation of blurred pixels, compensating for color dilution caused by blurring
+3. **Alpha Blending**: Alpha blending the adjusted background with the foreground glass color
 
-用数学表达即：
+Expressed mathematically:
 
 ```
 result = α · glass_color + (1 - α) · saturate(blur(background), s)
 ```
 
-其中 α 为玻璃透明度，s 为饱和度增强系数。
+Where α is glass opacity and s is the saturation enhancement coefficient.
 
 ---
 
-## 4. Web 端实现方案
+## 4. Web Implementation Approaches
 
-### 4.1 CSS backdrop-filter 方案
+### 4.1 CSS backdrop-filter Approach
 
-现代浏览器通过 `backdrop-filter` 原生支持毛玻璃效果，这是最直接的实现方式：
+Modern browsers natively support frosted glass effects through `backdrop-filter`, which is the most direct implementation method:
 
 ```css
 .glass-panel {
@@ -117,12 +115,12 @@ result = α · glass_color + (1 - α) · saturate(blur(background), s)
 }
 ```
 
-**优势**：GPU 加速，性能优异，代码量极少。
-**局限**：模糊效果取决于浏览器实现，不同浏览器效果差异较大；不支持 Safari 的部分旧版本。
+**Advantages**: GPU accelerated, excellent performance, minimal code.
+**Limitations**: Blur effects depend on browser implementation, with significant differences across browsers; not supported in some older versions of Safari.
 
-### 4.2 高级玻璃拟态（Glassmorphism）
+### 4.2 Advanced Glassmorphism
 
-完整的玻璃拟态效果需在基础毛玻璃之上叠加多层细节：
+A complete glassmorphism effect requires overlaying multiple layers of detail on top of basic frosted glass:
 
 ```css
 .glassmorphism-card {
@@ -149,9 +147,9 @@ result = α · glass_color + (1 - α) · saturate(blur(background), s)
 }
 ```
 
-### 4.3 visionOS 风格模拟
+### 4.3 visionOS Style Simulation
 
-visionOS 的玻璃材质更加复杂，需要多层叠加：
+visionOS's glass material is more complex, requiring multiple layers of overlay:
 
 ```css
 .visionos-glass {
@@ -187,14 +185,14 @@ visionOS 的玻璃材质更加复杂，需要多层叠加：
 }
 ```
 
-### 4.4 性能考量
+### 4.4 Performance Considerations
 
-玻璃效果的核心性能瓶颈在于 `backdrop-filter`：
+The core performance bottleneck of glass effects lies in `backdrop-filter`:
 
-- **模糊半径越大，GPU 开销越高**。40px 以上模糊在低端设备上可能引发掉帧
-- **嵌套玻璃层**：避免在已有 `backdrop-filter` 的元素内再嵌套模糊层，会触发二次采样
-- **will-change 提示**：对于动画中的玻璃元素，添加 `will-change: backdrop-filter` 提前分配 GPU 资源
-- **移动端降级**：建议对低性能设备提供纯色半透明降级方案
+- **The larger the blur radius, the higher the GPU overhead**. Blur above 40px may cause frame drops on low-end devices
+- **Nested glass layers**: Avoid nesting blur layers within elements that already have `backdrop-filter`, as this triggers secondary sampling
+- **will-change hint**: For glass elements in animations, add `will-change: backdrop-filter` to pre-allocate GPU resources
+- **Mobile degradation**: Recommend providing a solid-color translucent fallback for low-performance devices
 
 ```css
 /* 性能降级策略 */
@@ -208,33 +206,32 @@ visionOS 的玻璃材质更加复杂，需要多层叠加：
 
 ---
 
-## 5. 设计趋势与展望
+## 5. Design Trends and Outlook
 
-### 5.1 从装饰到功能
+### 5.1 From Decoration to Function
 
-苹果玻璃材质 11 年的演进揭示了一个清晰趋势：**半透明材质从视觉装饰逐步成为功能性界面元素**。在空间计算时代，玻璃材质不再只是"好看"，而是解决"如何让数字界面与物理空间共存"这一根本问题的答案。
+The 11-year evolution of Apple's glass material reveals a clear trend: **translucent materials are gradually becoming functional interface elements from visual decoration**. In the era of spatial computing, glass material is no longer just about "looking good"—it's the answer to the fundamental question of "how to make digital interfaces coexist with physical space."
 
-### 5.2 跨平台统一
+### 5.2 Cross-Platform Unification
 
-随着 visionOS、iOS、macOS 设计语言的持续融合，玻璃材质在不同设备上的表现正在趋同。Apple Design Resources 中已出现 `Glass Background` 通用材质，可跨平台使用。
+As the design languages of visionOS, iOS, and macOS continue to converge, the behavior of glass materials across different devices is becoming more uniform. `Glass Background` universal materials have already appeared in Apple Design Resources, usable across platforms.
 
-### 5.3 对 Web 设计的启示
+### 5.3 Implications for Web Design
 
-- **层次感优先于装饰**：半透明材质应服务于内容层级，而非单纯的视觉效果
-- **可访问性不可忽视**：始终提供 `prefers-reduced-transparency` 降级方案
-- **GPU 预算意识**：玻璃效果是昂贵的，需权衡效果与性能
-
----
-
-## 6. 结语
-
-苹果玻璃样式的设计哲学可以概括为一句话：**让界面变得轻盈，让内容成为唯一的主角**。从 iOS 7 的毛玻璃到 visionOS 的空间材质，苹果一直在追求一种"消失的 UI"——界面存在但不过度存在，容器可见但不遮挡背后。
-
-对于前端开发者，理解玻璃材质的设计原理不仅能写出更精致的 UI，更能提升对现代设计语言演进的洞察力。
+- **Hierarchy over decoration**: Translucent materials should serve content hierarchy, not mere visual effects
+- **Accessibility cannot be ignored**: Always provide `prefers-reduced-transparency` fallback solutions
+- **GPU budget awareness**: Glass effects are expensive; effects and performance must be balanced
 
 ---
 
-## 参考资料
+## 6. Conclusion
+
+The design philosophy of Apple's glass style can be summarized in one sentence: **Make the interface lightweight, and let content be the only protagonist**. From iOS 7's frosted glass to visionOS's spatial materials, Apple has been pursuing a kind of "disappearing UI"—the interface exists but doesn't over-exist, the container is visible but doesn't obscure what's behind it.
+
+For front-end developers, understanding the design principles of glass materials not only enables writing more refined UI but also enhances insight into the evolution of modern design languages.
+
+---
+## References
 
 - [Apple Human Interface Guidelines — Materials (visionOS)](https://developer.apple.com/design/human-interface-guidelines/materials)
 - [CSS backdrop-filter — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter)

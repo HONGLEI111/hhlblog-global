@@ -1,79 +1,77 @@
 ---
-title: Loop Engineering：当 AI Agent 能自己干活，人类开发者该做什么
+title: 'Loop Engineering: When AI Agents Can Work on Their Own, What Should Human Developers Do'
 published: 2026-06-16
-description: 'Loop Engineering 是 2026 年 AI 开发领域最火的新范式。本文深入解析其六大组件、四级演进脉络、典型工作流设计，以及三个你必须警惕的深坑——包括 Claude Code 负责人 Boris Cherny 和 Google Cloud AI 总监 Addy Osmani 的核心观点。'
+description: Loop Engineering is the hottest new paradigm in AI development in 2026. This article takes a deep dive into its six major components, four-stage evolution, typical workflow design, and three pitfalls you must watch out for—including key insights from Claude Code lead Boris Cherny and Google Cloud AI director Addy Osmani.
 image: ''
-tags: [AI, Agent, Loop Engineering, Claude Code, 开发范式]
+tags: [AI, Agent, Loop Engineering, Claude Code, Development Paradigm]
 category: 'AI'
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+In June 2026, the AI development community was flooded by one term: **Loop Engineering**.
+
+The tipping point was a series of voices from key industry figures. **Peter Steinberger** (founder of OpenClaw) posted a single line on X that garnered over **8 million views**:
+
+> "You shouldn't be writing prompts for your coding agent anymore. You should be designing Loops that write them for you."
+
+**Boris Cherny** (head of Anthropic Claude Code) followed up:
+
+> "I don't write prompts for Claude anymore. I have Loops running, and they decide what to do on their own. My job is writing Loops."
+
+He revealed that by 2026, he had **stopped writing a single line of code by hand**.
+
+Then **Addy Osmani** (Director of Google Cloud AI, former head of Chrome engineering) published a long-form article systematically laying out the complete framework of Loop Engineering. Silicon Valley's AI circle has since gained another keyword with the "Engineering" suffix.
+
+This article explains Loop Engineering clearly across four dimensions: conceptual origins, core components, practical patterns, and risk warnings.
+
 ---
 
-## 1. 引言
+## 2. The Evolution of Four Engineerings
 
-2026 年 6 月，AI 开发圈被一个词刷屏了：**Loop Engineering**（循环工程）。
+To understand why Loop Engineering is "the next stop," you first need to see the evolutionary path of AI development paradigms:
 
-引爆点是一连串来自行业核心人物的声音。**Peter Steinberger**（OpenClaw 创始人）在 X 上发了一句话，获得超过 **800 万次浏览**：
-
-> "你不该再亲自给编程 Agent 写提示词了。你应该设计 Loop，让 Loop 替你去写。"
-
-**Boris Cherny**（Anthropic Claude Code 负责人）紧接着表示：
-
-> "我已经不给 Claude 写提示词了。我有 Loop 在跑，它们自己决定该干什么。我的工作是写 Loop。"
-
-他透露到 2026 年，自己已经**不再手写一行代码**。
-
-随后，**Addy Osmani**（Google Cloud AI 总监、前 Chrome 工程负责人）发表长文，系统性地阐述了 Loop Engineering 的完整框架。硅谷 AI 圈从此又多了一个带 "Engineering" 后缀的关键词。
-
-本文从概念起源、核心组件、实践模式、风险警示四个维度，把 Loop Engineering 讲清楚。
-
----
-
-## 2. 四个 Engineering 的演进脉络
-
-要理解 Loop Engineering 为什么是"下一站"，需要先看清 AI 开发范式的演进路径：
-
-| 阶段 | 时间 | 核心问题 | 核心能力 | 类比 |
+| Stage | Time | Core Question | Core Capability | Analogy |
 |------|------|---------|---------|------|
-| **Prompt Engineering** | 2023 | 怎么问 AI | 语言表达、任务拆解 | 学会提问 |
-| **Context Engineering** | 2024 | 给 AI 看什么 | 信息筛选、上下文组织 | 学会备课 |
-| **Harness Engineering** | 2025 | 在哪里安全运行 | 系统设计、规则制定 | 学会搭台 |
-| **Loop Engineering** | 2026 | 怎么让它持续转 | 目标定义、流程设计 | 学会管理 |
+| **Prompt Engineering** | 2023 | How to ask AI | Language expression, task decomposition | Learning to ask questions |
+| **Context Engineering** | 2024 | What to show AI | Information filtering, context organization | Learning to prepare lessons |
+| **Harness Engineering** | 2025 | Where to run safely | System design, rule-making | Learning to build the stage |
+| **Loop Engineering** | 2026 | How to keep it spinning | Goal definition, process design | Learning to manage |
 
-这个演进有一个清晰的主线：**人的角色在持续向上移动**。
+This evolution has a clear throughline: **the human role keeps moving upward**.
 
-- Prompt Engineering 时代，人在**手动操控**每一个步骤
-- Context Engineering 时代，人开始思考**信息架构**
-- Harness Engineering 时代，人开始设计**约束系统**
-- Loop Engineering 时代，人只定义**目标和规则**，系统自己跑
+- In the Prompt Engineering era, humans **manually operated** every step
+- In the Context Engineering era, humans began thinking about **information architecture**
+- In the Harness Engineering era, humans began designing **constraint systems**
+- In the Loop Engineering era, humans only define **goals and rules**, and the system runs itself
 
-Boris Cherny 的原话点出了本质：**"我的工作是写 Loop"不是说工作变少了，而是说创造价值的杠杆点移动了。**
+Boris Cherny's words capture the essence: **"My job is writing Loops" doesn't mean there's less work — it means the leverage point for creating value has shifted.**
 
-用一个类比：早期工厂老板亲自操作机器，后来设计流水线，再后来设计自动化管理系统。Loop Engineering 就是 AI 时代的"设计流水线"——你不是在拧螺丝，你在设计整条流水线。
+An analogy: early factory owners operated machines themselves, then designed assembly lines, then designed automated management systems. Loop Engineering is the AI era's "designing assembly lines" — you're not tightening screws, you're designing the entire assembly line.
 
 ---
 
-## 3. Loop Engineering 的六大组件
+## 3. The Six Components of Loop Engineering
 
-Addy Osmani 将 Loop Engineering 拆解为六个核心模块。这六个模块缺一不可，各自解决一类问题。
+Addy Osmani breaks Loop Engineering into six core modules. All six are indispensable, each solving a distinct class of problems.
 
-### 3.1 自动化调度（Automations）—— Loop 的"心跳"
+### 3.1 Automations — The "Heartbeat" of the Loop
 
-Automations 负责让 Loop **自己启动**，而不是等人来喊。它包括两类触发方式：
+Automations are responsible for making the Loop **start itself**, rather than waiting for someone to call it. It includes two types of triggers:
 
-| 触发类型 | 示例 | Claude Code 对应 |
+| Trigger Type | Example | Claude Code Equivalent |
 |----------|------|-----------------|
-| **定时触发** | 每天早上 9 点扫描 Open Issues | `/loop`、`cron` |
-| **事件触发** | CI 失败自动启动诊断 Loop | Git hooks、GitHub Actions |
-| **目标驱动** | 设定大目标，Loop 自动拆分子任务 | `/goal` |
+| **Scheduled trigger** | Scan Open Issues every morning at 9 AM | `/loop`, `cron` |
+| **Event trigger** | CI failure automatically starts a diagnostic Loop | Git hooks, GitHub Actions |
+| **Goal-driven** | Set a big goal, the Loop automatically decomposes subtasks | `/goal` |
 
-关键设计原则：**不要让"人记得启动"成为系统的前提。**一个好的 Loop 应该是自驱动的。
+Key design principle: **Don't let "a human remembering to start it" become a precondition of the system.** A good Loop should be self-driving.
 
-### 3.2 工作树（Worktrees）—— 隔离运行环境
+### 3.2 Worktrees — Isolated Runtime Environments
 
-当多个 Agent 并行工作时，它们不能共享同一个文件系统——会互相覆盖对方的修改。
+When multiple Agents work in parallel, they can't share the same file system — they'd overwrite each other's changes.
 
-基于 Git 的 Worktree 机制解决了这个问题：
+Git's Worktree mechanism solves this problem:
 
 ```bash
 # 每个子任务在独立的 Worktree 中运行
@@ -82,16 +80,16 @@ cd ../fix-auth-bug
 # Agent 在此环境中工作，互不干扰
 ```
 
-Worktree 的三大价值：
-- **并行安全**：10 个 Agent 同时修 Bug 不会冲突
-- **可回滚**：Agent 改坏了直接删 Worktree，不影响主干
-- **可审查**：每个 Worktree 一个分支，改动隔离、可独立 Review
+The three major values of Worktrees:
+- **Parallel safety**: 10 Agents fixing bugs simultaneously won't conflict
+- **Rollback capability**: If an Agent breaks something, just delete the Worktree without affecting the main branch
+- **Reviewability**: One branch per Worktree, changes isolated and independently reviewable
 
-### 3.3 技能（Skills）—— 持久化项目知识
+### 3.3 Skills — Persistent Project Knowledge
 
-如果说 Context Engineering 解决的是"单次会话给 Agent 看什么"，Skills 解决的是**"跨会话如何积累知识"**。
+If Context Engineering solves "what to show the Agent in a single session," Skills solve **"how to accumulate knowledge across sessions."**
 
-Skills 是存放在项目中的 Markdown 文件，Agent 每轮自动加载。它们包含：
+Skills are Markdown files stored in the project that the Agent automatically loads each round. They contain:
 
 ```
 .claude/
@@ -105,11 +103,11 @@ Skills 是存放在项目中的 Markdown 文件，Agent 每轮自动加载。它
     └── pitfalls.md       # 踩过的坑
 ```
 
-你踩过的每一个坑、总结的每一条规范，都会沉淀为 Skill，成为后续所有 Agent 的"肌肉记忆"。**Skill 的质量决定了 Loop 产出的质量。**
+Every pitfall you've stepped into and every convention you've summarized settles into a Skill, becoming the "muscle memory" of all subsequent Agents. **The quality of Skills determines the quality of the Loop's output.**
 
-### 3.4 连接器（Connectors）—— 让 Agent 接入真实世界
+### 3.4 Connectors — Letting Agents Access the Real World
 
-基于 **MCP（Model Context Protocol）**，Agent 可以连接外部工具：
+Based on **MCP (Model Context Protocol)**, Agents can connect to external tools:
 
 ```
 Agent ←→ MCP Server ←→ 外部系统
@@ -120,11 +118,11 @@ Agent ←→ MCP Server ←→ 外部系统
                            └── Linear / Jira（更新工单状态）
 ```
 
-没有 Connectors，Agent 只是在"沙箱里自言自语"。有了 Connectors，它才能真正影响外部世界——开 PR、更新工单、通知团队。
+Without Connectors, an Agent is just "talking to itself in a sandbox." With Connectors, it can truly affect the outside world — opening PRs, updating tickets, notifying the team.
 
-### 3.5 子 Agent（Sub-agents）—— Maker/Checker 分离
+### 3.5 Sub-agents — Maker/Checker Separation
 
-这是 Loop Engineering 中最容易被低估但最重要的设计模式：**不要让同一个 Agent 既写代码又审查代码。**
+This is the most easily underestimated yet most important design pattern in Loop Engineering: **Don't let the same Agent both write code and review code.**
 
 ```javascript
 // 错误设计：一个 Agent 自产自审
@@ -135,21 +133,21 @@ const fix = await agent("修复这个 Bug", { role: "maker" });
 const review = await agent(`审查这个修复：${fix.diff}`, { role: "checker" });
 ```
 
-为什么要分离？
+Why separate them?
 
-| 同一 Agent 自审 | Maker/Checker 分离 |
+| Same Agent Self-reviewing | Maker/Checker Separation |
 |----------------|-------------------|
-| 倾向于"放自己一马" | 独立视角，找出盲区 |
-| 容易忽略安全问题 | Checker 被明确告知"你的任务是找问题" |
-| 缺乏对抗性验证 | 可以设计为"默认驳回，除非证明正确" |
+| Tends to "go easy on itself" | Independent perspective, finds blind spots |
+| Easily overlooks security issues | Checker is explicitly told "your job is to find problems" |
+| Lacks adversarial verification | Can be designed as "reject by default unless proven correct" |
 
-**Checker 应该被提示为"默认不信任，除非证明正确"，而不是"默认通过，除非明显有问题"。** 这个提示词的微小差别，决定了验证的有效性。
+**The Checker should be prompted with "default to distrust unless proven correct," not "default to pass unless there's an obvious problem."** This tiny difference in the prompt determines the effectiveness of verification.
 
-### 3.6 记忆 / 状态（Memory）—— 超越上下文窗口
+### 3.6 Memory / State — Beyond the Context Window
 
-Agent 的上下文窗口（Context Window）是有限的，但一个持续运行的 Loop 需要**记住已经做了什么、还剩什么没做**。
+An Agent's context window is limited, but a continuously running Loop needs to **remember what has been done and what remains to be done**.
 
-Memory 层的实现可以很简单：
+The Memory layer can be implemented very simply:
 
 ```markdown
 # state.md
@@ -166,13 +164,13 @@ Memory 层的实现可以很简单：
 - [ ] 升级 Node.js 到 v26 — 等待 LTS
 ```
 
-Osmani 强调：**"每个成功的 Loop 背后，都有一套默默工作的状态文件。"** 状态文件是 Loop 的"短期记忆"，Skills 是 Loop 的"长期记忆"。
+Osmani emphasizes: **"Behind every successful Loop, there's a set of quietly working state files."** State files are the Loop's "short-term memory," and Skills are the Loop's "long-term memory."
 
 ---
 
-## 4. 完整 Loop 示例：一条真实的工作流
+## 4. Complete Loop Example: A Real Workflow
 
-把六个组件串起来，一条典型的 CI 自动修复 Loop 长这样：
+Stringing the six components together, a typical CI auto-fix Loop looks like this:
 
 ```
 08:00  定时任务自动触发
@@ -197,48 +195,47 @@ Osmani 强调：**"每个成功的 Loop 背后，都有一套默默工作的状�
 第二天从状态文件继续。
 ```
 
-**全程开发者一个字都没有敲。** 你的工作是：
-1. 确保这条 Loop 的规则是合理的
-2. 审查 Checker Agent 通过但你觉得可疑的 PR
-3. 不断优化 Skills 中的项目规范
+**The developer doesn't type a single character throughout.** Your job is to:
+1. Ensure the rules of this Loop are reasonable
+2. Review PRs that the Checker Agent approved but you find suspicious
+3. Continuously refine the project conventions in Skills
 
 ---
+## 5. Loop Maturity Model
 
-## 5. Loop 成熟度模型
+In his article, Osmani proposed a six-level maturity model to help teams assess what stage they are at:
 
-Osmani 在文章中提出了一个六级成熟度模型，帮助团队评估自己处于什么阶段：
-
-| 等级 | 名称 | 特征 | 人的参与度 |
+| Level | Name | Characteristics | Human Involvement |
 |------|------|------|-----------|
-| **L0** | 人工逐轮提示 | 每次手动粘贴 Prompt | 100% |
-| **L1** | 脚本化重试 | 用脚本批量调用 Agent | 90% |
-| **L2** | 定时 Loop | 定时运行，只报告不自动修改 | 70% |
-| **L3** | 有状态 Loop | 进度跨会话持久化 | 40% |
-| **L4** | 自验证 Loop | 有确定性检查，Agent 能判断自己是否做对了 | 25% |
-| **L5** | 多 Agent 协作 | Maker/Checker 分离，专门化 Agent 分工 | 15% |
-| **L6** | 生产级监督 | 有安全护栏、自动回滚、异常升级机制 | 10% |
+| **L0** | Manual turn-by-turn prompting | Manually paste Prompt each time | 100% |
+| **L1** | Scripted retries | Use scripts to batch-call Agent | 90% |
+| **L2** | Scheduled Loop | Runs on a schedule, only reports without automatic modifications | 70% |
+| **L3** | Stateful Loop | Progress persists across sessions | 40% |
+| **L4** | Self-verifying Loop | Has deterministic checks, Agent can judge whether it did things correctly | 25% |
+| **L5** | Multi-Agent collaboration | Maker/Checker separation, specialized Agent division of labor | 15% |
+| **L6** | Production-grade supervision | Has safety guardrails, automatic rollback, exception escalation mechanisms | 10% |
 
-大多数团队目前处于 **L1-L2** 阶段。L4 以上的 Loop 已经具备了替代初-中级开发者的能力——这也是为什么 JetBrains 2026 Q2 调研显示**全球初级开发岗位需求同比暴跌 40%**。
+Most teams are currently at the **L1-L2** stage. Loops above L4 already have the capability to replace junior-to-mid-level developers—which is also why JetBrains' 2026 Q2 survey shows that **global demand for junior developer positions plummeted 40% year-over-year**.
 
 ---
 
-## 6. 三个你必须警惕的深坑
+## 6. Three Deep Pitfalls You Must Watch Out For
 
-Loop Engineering 不是银弹。Osmani 和 Cherny 都明确警示了三个核心风险。
+Loop Engineering is not a silver bullet. Both Osmani and Cherny explicitly warned about three core risks.
 
-### 6.1 验证仍是人的责任
+### 6.1 Verification Is Still a Human Responsibility
 
-Loop 可以自动完成"声明完成"，但**不能自动完成"证明正确"**。
+A Loop can automatically complete "declaring done," but it **cannot automatically complete "proving correct."**
 
-> "完成了"是一份声明。"做对了"是一个事实。声明不等于事实。——Addy Osmani
+> "Done" is a declaration. "Did it right" is a fact. A declaration is not a fact. —Addy Osmani
 
-Checker Agent 可以减少遗漏，但不能替代人的判断。安全变更、架构决策、用户体验问题——这些需要人的确认。
+A Checker Agent can reduce omissions, but it cannot replace human judgment. Security changes, architectural decisions, user experience issues—these require human confirmation.
 
-**原则**：Loop 可以自动处理你**充分理解**的问题；面对你不理解的问题，Loop 只是帮你把问题变得更清晰，决策仍然在你。
+**Principle**: A Loop can automatically handle problems you **fully understand**; for problems you do not understand, a Loop only helps you make the problem clearer, and the decision is still yours.
 
-### 6.2 理解债务（Comprehension Debt）
+### 6.2 Comprehension Debt
 
-这是 Osmani 提出的一个关键概念，比技术债务更隐蔽也更危险。
+This is a key concept proposed by Osmani, more hidden and more dangerous than technical debt.
 
 ```
 Loop 生成代码的速度
@@ -248,47 +245,47 @@ Loop 生成代码的速度
 理解债务在累积
 ```
 
-当 Loop 每天产出数万行代码，而你的理解速度是恒定的，**理解债务会以指数级增长**。总有一天，你会面对一个自己完全不知道如何运作的系统。
+When a Loop produces tens of thousands of lines of code every day, while your comprehension speed is constant, **comprehension debt will grow exponentially**. One day, you will face a system whose workings you have no idea about.
 
-**缓解策略**：
-- 设置 Loop 的"产出速率上限"——不是让它跑得越快越好
-- 定期停下来，人工 Review 近期所有自动变更
-- 对核心模块禁止 Loop 自动修改，只允许人工操作
+**Mitigation strategies**:
+- Set an "output rate cap" for the Loop—do not let it run as fast as possible
+- Periodically stop and manually review all recent automatic changes
+- Forbid the Loop from automatically modifying core modules; allow only manual operations
 
-### 6.3 认知投降（Cognitive Surrender）
+### 6.3 Cognitive Surrender
 
-这是最深刻的风险——**当系统能自己运转，人会本能地停止思考**。
+This is the most profound risk—**when the system can run on its own, people instinctively stop thinking**.
 
-Cherny 的原话：*"最舒服的姿势恰恰是最危险的。当你不再理解 Loop 在做什么但 Pipeline 还能跑的时候，你已经把工程师的核心能力交出去了。"*
+Cherny's exact words: *"The most comfortable posture is precisely the most dangerous one. When you no longer understand what the Loop is doing but the Pipeline can still run, you have already handed over the core capability of an engineer."*
 
-**对抗策略**：
-- **定期"离线日"**：每周有一天不用 Agent，纯手写，保持手感
-- **自问测试**：如果这个 Loop 明天消失了，你还能不能自己做完它做的事？
-- **保持"以工程师的身份"搭建 Loop**：你是在设计系统，不是在按"开始键"
+**Counter-strategies**:
+- **Regular "offline days"**: One day a week without using Agents, purely handwriting, to keep your skills sharp
+- **Self-questioning test**: If this Loop disappeared tomorrow, could you still do what it does on your own?
+- **Keep building Loops "as an engineer"**: You are designing a system, not pressing the "start button"
 
 ---
 
-## 7. 一句话总结不同角色如何面对 Loop Engineering
+## 7. One-Sentence Summary of How Different Roles Should Face Loop Engineering
 
-| 角色 | 你应该做什么 |
+| Role | What You Should Do |
 |------|------------|
-| **初级开发者** | 学会读懂 Loop 的产出，专注于理解而非堆砌代码 |
-| **中级开发者** | 把你的经验沉淀为 Skills，成为 Loop 的"教练" |
-| **高级 / 架构师** | 设计 Loop 的约束边界和验证规则，定义"完成"的标准 |
-| **技术管理者** | 重新思考团队结构和绩效衡量方式，代码量不再是好指标 |
+| **Junior developer** | Learn to read the Loop's output, focus on understanding rather than piling up code |
+| **Mid-level developer** | Distill your experience into Skills, become the Loop's "coach" |
+| **Senior / Architect** | Design the Loop's constraint boundaries and verification rules, define the standard for "done" |
+| **Technical manager** | Rethink team structure and performance measurement; lines of code are no longer a good metric |
 
-Addy Osmani 的最后一段话是最好的收尾：
+Addy Osmani's final paragraph is the best closing:
 
-> **"搭好你的 Loop，但要以一个打算继续当工程师的人去搭建它——不要做只会点'开始键'的人。"**
+> **"Build your Loop, but build it as someone who plans to remain an engineer—don't be the person who only knows how to press the 'start button.'"**
 
 ---
 
-## 8. 参考资料
+## 8. References
 
 - [Loop Engineering — Addy Osmani Blog](https://addyosmani.com/blog/loop-engineering/)
-- [Loop Engineering 崛起：当 AI Agent 能自己工作，Google 工程师点人类三大职责](https://techorange.com/2026/06/10/loop-engineering-ai-agent/)
-- [一文读懂 Loop Engineering：6 大板块和三个大坑](https://www.163.com/dy/article/KVG2KFMB051180F7.html)
-- [cobusgreyling/loop-engineering — GitHub 实用参考和模式](https://github.com/cobusgreyling/loop-engineering)
-- [ChaoYue0307/awesome-loop-engineering — 精选资源合集](https://github.com/ChaoYue0307/awesome-loop-engineering)
-- [AI Agent 的 4 个工程关键词：Prompt、Context、Loop、Harness](https://developer.aliyun.com/article/1740864)
-- [Harness 之后，硅谷 AI 圈又来新词了：Loop Engineering](https://hub.baai.ac.cn/view/55505)
+- [The Rise of Loop Engineering: When AI Agents Can Work on Their Own, a Google Engineer Points Out Three Major Human Responsibilities](https://techorange.com/2026/06/10/loop-engineering-ai-agent/)
+- [Understanding Loop Engineering in One Article: 6 Major Sections and Three Big Pitfalls](https://www.163.com/dy/article/KVG2KFMB051180F7.html)
+- [cobusgreyling/loop-engineering — GitHub Practical References and Patterns](https://github.com/cobusgreyling/loop-engineering)
+- [ChaoYue0307/awesome-loop-engineering — Curated Resource Collection](https://github.com/ChaoYue0307/awesome-loop-engineering)
+- [The 4 Engineering Keywords of AI Agents: Prompt, Context, Loop, Harness](https://developer.aliyun.com/article/1740864)
+- [After Harness, the Silicon Valley AI Circle Has a New Buzzword: Loop Engineering](https://hub.baai.ac.cn/view/55505)

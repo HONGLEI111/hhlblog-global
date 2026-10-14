@@ -1,17 +1,15 @@
 ---
-title: 跨域（CORS）问题排查完全指南
+title: A Complete Guide to Troubleshooting CORS Issues
 published: 2026-09-01
-description: '从同源策略讲起，拆解 CORS 的简单请求、预检请求与关键响应头，并用 Express、原生 Node、Nginx 三种后端配置实战排查「No Access-Control-Allow-Origin」等经典报错。'
+description: Starting from the same-origin policy, this guide breaks down CORS simple requests, preflight requests, and key response headers, then walks through practical troubleshooting of classic errors like "No Access-Control-Allow-Origin" using Express, native Node, and Nginx backend configurations.
 image: ''
-tags: [CORS, 跨域, HTTP, Web安全, 网站开发]
-category: '网站'
+tags: [CORS, Cross-Origin, HTTP, Web Security, Web Development]
+category: Web
 draft: false
-lang: ''
 ---
+## Introduction: The Red Line Every Frontend Developer Has Seen
 
-## 引言：每个前端都见过的那行红字
-
-如果你做过前后端分离的项目，几乎一定在控制台见过它：
+If you've ever worked on a project with a separated frontend and backend, you've almost certainly seen this in the console:
 
 ```
 Access to fetch at 'https://api.example.com/api/users' from origin
@@ -19,40 +17,40 @@ Access to fetch at 'https://api.example.com/api/users' from origin
 No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ```
 
-这就是跨域问题。它出现的频率极高，却总被当作「后端没配好」一笔带过。这篇文章把 CORS 的机制从头拆开，再落到三种后端框架的配置和排查上，让你下次看到这行红字时不再靠「加个 `*`」碰运气。
+This is the cross-origin problem. It shows up extremely often, yet it's always glossed over as "the backend isn't configured properly." This article takes apart the CORS mechanism from the ground up, then lands on configuration and troubleshooting for three backend frameworks, so that next time you see this red line, you won't be relying on "just add a `*`" and hoping for the best.
 
-## 1. 前置概念：同源策略
+## 1. Prerequisite Concept: Same-Origin Policy
 
-浏览器有一个铁律——**同源策略（Same-Origin Policy）**。它规定：一个页面里的脚本，只能读取「同源」资源的响应。
+Browsers have an iron rule—the **Same-Origin Policy**. It states: scripts in a page can only read responses from "same-origin" resources.
 
-「同源」的判定标准是三个部分完全一致：**协议（scheme）+ 主机（host）+ 端口（port）**。三者任一不同，就是跨域：
+The criterion for "same-origin" is that three parts match exactly: **scheme + host + port**. If any one of the three differs, it's cross-origin:
 
-| 当前页面 | 目标 URL | 是否同源 |
+| Current Page | Target URL | Same Origin? |
 |----------|----------|---------|
-| `https://app.example.com` | `https://app.example.com/api` | ✅ 同源 |
-| `https://app.example.com` | `https://app.example.com:8443/api` | ❌ 端口不同 |
-| `https://app.example.com` | `http://app.example.com/api` | ❌ 协议不同 |
-| `https://app.example.com` | `https://api.example.com/api` | ❌ 主机不同 |
+| `https://app.example.com` | `https://app.example.com/api` | ✅ Same origin |
+| `https://app.example.com` | `https://app.example.com:8443/api` | ❌ Different port |
+| `https://app.example.com` | `http://app.example.com/api` | ❌ Different scheme |
+| `https://app.example.com` | `https://api.example.com/api` | ❌ Different host |
 
-注意路径、查询参数都不参与同源判定——`/a` 和 `/b` 永远是同源的。
+Note that the path and query parameters do not participate in the same-origin determination—`/a` and `/b` are always same-origin.
 
-同源策略存在的意义是**安全**：没有它，任何网站都能用你的 Cookie 去请求你的网银、邮箱并读取结果。它是浏览器安全的基石，但同时也挡住了「合法」的前后端分离场景——前端跑在 `localhost:5173`，后端跑在 `localhost:3000`，端口不同就是跨域。
+The purpose of the same-origin policy is **security**: without it, any website could use your cookies to request your online banking, email, and read the results. It is the cornerstone of browser security, but at the same time it blocks the "legitimate" separated frontend-backend scenario—the frontend runs on `localhost:5173`, the backend runs on `localhost:3000`, and a different port means cross-origin.
 
-**CORS（Cross-Origin Resource Sharing，跨源资源共享）就是浏览器为「合法跨域」开的一扇门**：由服务器通过响应头明确声明「哪些来源可以访问我」。
+**CORS (Cross-Origin Resource Sharing) is the door the browser opens for "legitimate cross-origin"**: the server explicitly declares through response headers "which origins may access me."
 
-## 2. 两种请求：简单请求 vs 预检请求
+## 2. Two Kinds of Requests: Simple Requests vs Preflight Requests
 
-CORS 把跨域请求分成两类，处理方式完全不同，这是理解一切报错的关键。
+CORS divides cross-origin requests into two categories, handled in completely different ways, and this is the key to understanding all error messages.
 
-**简单请求（Simple Request）**——同时满足以下条件，浏览器直接发请求：
+**Simple Request**—when all of the following conditions are met, the browser sends the request directly:
 
-- 方法为 `GET`、`HEAD`、`POST` 之一；
-- 只使用「安全名单」里的请求头，如 `Accept`、`Accept-Language`、`Content-Language`，以及取值限于 `application/x-www-form-urlencoded`、`multipart/form-data`、`text/plain` 的 `Content-Type`；
-- 没有使用 `ReadableStream`、`XMLHttpRequest.upload` 事件监听等。
+- The method is one of `GET`, `HEAD`, `POST`;
+- Only request headers from the "safe list" are used, such as `Accept`, `Accept-Language`, `Content-Language`, and `Content-Type` whose values are limited to `application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`;
+- No `ReadableStream`, `XMLHttpRequest.upload` event listeners, etc. are used.
 
-简单请求不会触发额外请求，浏览器只是「先斩后奏」——**请求照发，但响应能不能被脚本读到，取决于返回头里有没有 `Access-Control-Allow-Origin`**。
+A simple request does not trigger an extra request; the browser simply "acts first and reports later"—**the request is sent as usual, but whether the response can be read by the script depends on whether the response headers include `Access-Control-Allow-Origin`**.
 
-**预检请求（Preflight Request）**——只要不满足上面任意一条，浏览器就会先发一个 `OPTIONS` 请求「探路」：
+**Preflight Request**—as long as any one of the above conditions is not met, the browser first sends a `OPTIONS` request to "scout the way":
 
 ```
 OPTIONS /api/users HTTP/1.1
@@ -61,32 +59,31 @@ Access-Control-Request-Method: PUT
 Access-Control-Request-Headers: content-type, authorization
 ```
 
-服务器必须对这个 `OPTIONS` 返回允许的方法和头，浏览器才会放行真正的请求。这就是为什么你在 Network 面板里常看到同一个接口出现两次请求、一次是 `OPTIONS`。
+The server must return the allowed methods and headers for this `OPTIONS`, and only then will the browser let the real request through. This is why you often see the same endpoint appear twice in the Network panel, one of them being `OPTIONS`.
 
-## 3. 关键响应头一览
+## 3. Overview of Key Response Headers
 
-CORS 的配置本质上就是设置下面这几个响应头：
+Configuring CORS is essentially just setting the following response headers:
 
-| 响应头 | 作用 |
+| Response Header | Purpose |
 |--------|------|
-| `Access-Control-Allow-Origin` | 允许的来源，`*` 或具体 origin。**必填**，缺了就直接报错 |
-| `Access-Control-Allow-Methods` | 预检时允许的方法列表 |
-| `Access-Control-Allow-Headers` | 预检时允许的请求头列表 |
-| `Access-Control-Allow-Credentials` | 是否允许带 Cookie/凭证，值为 `true` |
-| `Access-Control-Expose-Headers` | 允许前端 JS 读取的**响应头**（默认只能读到少数几个） |
-| `Access-Control-Max-Age` | 预检结果可缓存的秒数 |
+| `Access-Control-Allow-Origin` | Allowed origins, `*` or a specific origin. **Required**; if missing, it errors out immediately |
+| `Access-Control-Allow-Methods` | List of allowed methods during preflight |
+| `Access-Control-Allow-Headers` | List of allowed request headers during preflight |
+| `Access-Control-Allow-Credentials` | Whether to allow cookies/credentials, with the value `true` |
+| `Access-Control-Expose-Headers` | **Response headers** that frontend JS is allowed to read (by default only a few can be read) |
+| `Access-Control-Max-Age` | Number of seconds the preflight result can be cached |
 
-有两个容易忽略的点：
+There are two easily overlooked points:
 
-1. **`Access-Control-Expose-Headers` 管的是「读响应头」**。默认情况下，跨域响应的 `Content-Type`、`Cache-Control` 等少数头可以被 JS 读到，但你自定义的 `X-Total-Count`、`X-RateLimit-Remaining` 等是**读不到的**——除非在 `Access-Control-Expose-Headers` 里列出来。
+1. **`Access-Control-Expose-Headers` governs "reading response headers."** By default, a few headers such as `Content-Type` and `Cache-Control` in a cross-origin response can be read by JS, but your custom `X-Total-Count`, `X-RateLimit-Remaining`, etc. **cannot be read**—unless they are listed in `Access-Control-Expose-Headers`.
 
-2. **`Access-Control-Max-Age` 管的是「预检缓存」**。预检请求本身有开销，浏览器会缓存预检结果，最长缓存 `Access-Control-Max-Age` 指定的秒数（Chromium 实际上限约 2 小时）。这既是性能优化，也是「改了配置却不生效」的常见元凶。
+2. **`Access-Control-Max-Age` governs "preflight caching."** The preflight request itself has overhead, so the browser caches the preflight result, for at most the number of seconds specified by `Access-Control-Max-Age` (the actual upper limit in Chromium is about 2 hours). This is both a performance optimization and a common culprit behind "I changed the config but it didn't take effect."
+## 4. Server-Side Practical Configuration
 
-## 4. 服务端实战配置
+### 4.1 Express + cors Middleware
 
-### 4.1 Express + cors 中间件
-
-`cors` 是 Node 生态最常用的中间件，能覆盖绝大多数场景：
+`cors` is the most commonly used middleware in the Node ecosystem, covering the vast majority of scenarios:
 
 ```javascript
 const express = require('express');
@@ -111,9 +108,9 @@ app.get('/api/users', (req, res) => {
 app.listen(3000);
 ```
 
-### 4.2 原生 Node（不用任何依赖）
+### 4.2 Native Node (Without Any Dependencies)
 
-理解原理最好的方式是自己写一遍。核心逻辑是：**先处理 `OPTIONS` 预检，再给普通请求回显 `Origin`**。
+The best way to understand the principles is to write it yourself. The core logic is: **first handle the `OPTIONS` preflight, then echo `Origin` for regular requests**.
 
 ```javascript
 const http = require('http');
@@ -152,11 +149,11 @@ const server = http.createServer((req, res) => {
 server.listen(3000);
 ```
 
-注意上面反复出现的 `Vary: Origin`：当响应内容会根据 `Origin` 变化时（白名单回显就是这种情况），必须加 `Vary: Origin`，否则 CDN / 中间缓存可能把 A 源的响应缓存下来发给了 B 源，造成「串源」的诡异 bug。
+Note the `Vary: Origin` that appears repeatedly above: when the response content varies based on `Origin` (which is exactly the case with whitelist echoing), you must add `Vary: Origin`. Otherwise, a CDN or intermediate cache might cache the response for origin A and serve it to origin B, causing a bizarre "cross-origin mix-up" bug.
 
-### 4.3 Nginx 反向代理
+### 4.3 Nginx Reverse Proxy
 
-很多生产环境用 Nginx 做网关，跨域头在网关层统一加：
+Many production environments use Nginx as a gateway, adding CORS headers uniformly at the gateway layer:
 
 ```nginx
 location /api/ {
@@ -175,13 +172,13 @@ location /api/ {
 }
 ```
 
-`add_header` 末尾的 `always` 很关键：没有它，Nginx 在 4xx/5xx 等非 200 响应上不会加这些头——而恰恰是「后端报错了」时，前端最需要这些头才能读到错误信息。
+The `always` at the end of `add_header` is crucial: without it, Nginx won't add these headers on non-200 responses like 4xx/5xx—and it's precisely when "the backend throws an error" that the frontend needs these headers most to read the error information.
 
-## 5. 带凭证（Cookie）的跨域
+## 5. Cross-Origin with Credentials (Cookies)
 
-默认情况下，跨域请求**不会**携带 Cookie。如果接口依赖 Cookie 做会话，需要两端配合：
+By default, cross-origin requests do **not** carry cookies. If your API relies on cookies for sessions, both sides need to cooperate:
 
-**前端**：`fetch` 里设 `credentials: 'include'`（或 axios 里设 `withCredentials: true`）：
+**Frontend**: Set `credentials: 'include'` in `fetch` (or set `withCredentials: true` in axios):
 
 ```javascript
 fetch('https://api.example.com/api/me', {
@@ -191,56 +188,55 @@ fetch('https://api.example.com/api/me', {
   .then((data) => console.log(data));
 ```
 
-**后端**：必须回显**具体的 origin**，并加 `Access-Control-Allow-Credentials: true`。
+**Backend**: Must echo the **specific origin** and add `Access-Control-Allow-Credentials: true`.
 
-这里有一个高频陷阱：**带凭证时，`Access-Control-Allow-Origin` 不能是 `*`**。规范要求「要么回显具体来源，要么不能带凭证」，二者互斥。你会在控制台看到这样一条明确的报错：
+Here's a high-frequency trap: **when credentials are included, `Access-Control-Allow-Origin` cannot be `*`**. The spec requires "either echo a specific origin, or don't allow credentials"—the two are mutually exclusive. You'll see a clear error like this in the console:
 
 ```
 The value of the 'Access-Control-Allow-Origin' header in the response
 must not be the wildcard '*' when the request's credentials mode is 'include'.
 ```
 
-解决办法就是前面示例里的白名单回显写法：拿到 `Origin`，判断是否在白名单，是则原样回显。
+The solution is the whitelist echo approach from the earlier example: grab `Origin`, check if it's in the whitelist, and if so, echo it back as-is.
 
-## 6. 经典报错对照表
+## 6. Classic Error Reference Table
 
-| 控制台报错 | 原因 | 解决 |
+| Console Error | Cause | Solution |
 |-----------|------|------|
-| `No 'Access-Control-Allow-Origin' header is present` | 服务器没返回该头，或来源不在白名单 | 后端返回正确的 `Access-Control-Allow-Origin` |
-| `must not be the wildcard '*' when credentials mode is 'include'` | 带凭证时用了 `*` | 回显具体 origin + `Allow-Credentials: true` |
-| `Method PUT is not allowed by Access-Control-Allow-Methods` | 预检返回的方法列表缺这个 | 在 `Allow-Methods` 里加上 |
-| `Request header field x-auth-token is not allowed by Access-Control-Allow-Headers` | 自定义头未被允许 | 在 `Allow-Headers` 里加上 |
-| 改完配置还是报错 | 预检结果被缓存 | 等待缓存过期，或手动调小 `Max-Age` |
+| `No 'Access-Control-Allow-Origin' header is present` | Server didn't return the header, or the origin isn't in the whitelist | Backend returns the correct `Access-Control-Allow-Origin` |
+| `must not be the wildcard '*' when credentials mode is 'include'` | Used `*` with credentials | Echo the specific origin + `Allow-Credentials: true` |
+| `Method PUT is not allowed by Access-Control-Allow-Methods` | The method is missing from the preflight's returned method list | Add it to `Allow-Methods` |
+| `Request header field x-auth-token is not allowed by Access-Control-Allow-Headers` | Custom header not allowed | Add it to `Allow-Headers` |
+| Still erroring after config change | Preflight result is cached | Wait for cache to expire, or manually reduce `Max-Age` |
 
-排查时还有两个「真相」值得记牢：
+There are two "truths" worth remembering when troubleshooting:
 
-1. **CORS 是浏览器行为，不是服务器行为**。用 curl 或 Postman 请求接口永远「通」，因为它们根本不执行同源策略。所以「Postman 能通、浏览器不通」不代表后端坏了，只能说明 CORS 头没配。
+1. **CORS is browser behavior, not server behavior**. Requesting the API with curl or Postman always "works" because they don't enforce the same-origin policy at all. So "Postman works but the browser doesn't" doesn't mean the backend is broken—it just means the CORS headers aren't configured.
 
-2. **简单请求是「发了但读不到」**。浏览器把请求发出去了，服务器也处理了，只是响应被浏览器拦下不交给 JS。所以简单请求的跨域问题，看 Network 面板里请求是成功的（200），但控制台报 CORS——别被「请求成功了呀」误导。
+2. **Simple requests are "sent but unreadable"**. The browser sends the request, the server processes it, but the response is blocked by the browser and not handed to JS. So for simple request cross-origin issues, you'll see the request succeed (200) in the Network panel but CORS errors in the console—don't be misled by "but the request succeeded!"
 
-## 7. 两个进阶陷阱
+## 7. Two Advanced Traps
 
-**陷阱一：`null` origin。**
+**Trap 1: `null` origin.**
 
-当页面从 `file://` 协议打开，或位于 `sandbox` 的 iframe 里时，请求的 `Origin` 头是字符串 `"null"`。如果你的白名单是 `Set(['https://app.example.com'])`，它当然不匹配——但有些粗心的配置会写 `origin: 'null'` 来「放行」，这其实等于向任何从 `file://` 打开的恶意本地页面敞开了大门，是安全隐患。正确做法是不要接受 `null` 作为可信来源。
+When a page is opened via the `file://` protocol, or is inside an iframe with `sandbox`, the request's `Origin` header is the string `"null"`. If your whitelist is `Set(['https://app.example.com'])`, it naturally won't match—but some careless configurations write `origin: 'null'` to "allow" it, which effectively opens the door to any malicious local page opened from `file://`, creating a security vulnerability. The correct approach is to never accept `null` as a trusted origin.
 
-**陷阱二：盲目 `*` 的代价。**
+**Trap 2: The cost of blindly using `*`.**
 
-开发时图省事写 `Access-Control-Allow-Origin: *` 确实能立刻让报错消失，但它同时意味着**任何网站**都能读取该接口的公开响应。对于纯公开、不涉及凭证和敏感数据的接口（如公共 API、静态资源）`*` 是可以接受的；一旦接口涉及用户数据，就应该用白名单。
+Writing `Access-Control-Allow-Origin: *` during development to save effort does make the errors disappear immediately, but it also means **any website** can read the public responses from that API. For purely public APIs that don't involve credentials or sensitive data (such as public APIs and static resources), `*` is acceptable; once an API involves user data, you should use a whitelist.
 
-## 结语
+## Conclusion
 
-CORS 的难点从来不在「加个头」——而在理解它背后的三个层次：**同源策略为什么要拦、简单请求和预检请求的区别、以及浏览器 vs 服务器的责任边界**。理清这三点，绝大多数跨域报错都能在五分钟内定位。
+The difficulty of CORS was never about "adding a header"—it's about understanding the three layers behind it: **why the same-origin policy blocks requests, the difference between simple requests and preflight requests, and the boundary of responsibility between browser vs. server**. Once you clarify these three points, the vast majority of cross-origin errors can be diagnosed within five minutes.
 
-一个实用的收尾建议：开发期与其到处配 CORS，不如用前端 dev server 的**代理**把 `/api` 转发到后端（Vite、webpack、CRA 都内置了 `proxy` 配置），让浏览器视角里前后端「同源」，从根上绕过跨域；生产环境再老老实实在网关层配好白名单。这样开发体验干净，生产又安全。
+A practical closing suggestion: during development, instead of configuring CORS everywhere, use the frontend dev server's **proxy** to forward `/api` to the backend (Vite, webpack, and CRA all have built-in `proxy` configuration), making the frontend and backend appear "same-origin" from the browser's perspective, bypassing cross-origin issues at the root; then in production, properly configure the whitelist at the gateway layer. This way, the development experience is clean and production is secure.
 
 ---
-
-## 参考来源
+## References
 
 - [MDN - Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
 - [MDN - Same-origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)
 - [RFC 6454 - The Web Origin Concept](https://datatracker.ietf.org/doc/html/rfc6454)
-- [Fetch 规范 - CORS protocol](https://fetch.spec.whatwg.org/#http-cors-protocol)
-- [cors - Node.js 中间件官方文档](https://www.npmjs.com/package/cors)
-- [web.dev - 从浏览器看 CORS 与安全性](https://web.dev/articles/cross-origin-resource-sharing)
+- [Fetch Specification - CORS protocol](https://fetch.spec.whatwg.org/#http-cors-protocol)
+- [cors - Node.js middleware official documentation](https://www.npmjs.com/package/cors)
+- [web.dev - CORS and security from the browser's perspective](https://web.dev/articles/cross-origin-resource-sharing)

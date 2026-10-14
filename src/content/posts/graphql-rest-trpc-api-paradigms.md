@@ -1,33 +1,31 @@
 ---
-title: GraphQL vs REST vs tRPC：API 设计范式对比
+title: 'GraphQL vs REST vs tRPC: Comparing API Design Paradigms'
 published: 2026-09-16
-description: '同一个博客系统，用 REST、GraphQL、tRPC 三种范式各实现一遍，对比它们在数据获取、类型安全、缓存与演进成本上的真实差异，并给出一张可执行的选型决策表。'
+description: The same blog system implemented three times with REST, GraphQL, and tRPC, comparing their real differences in data fetching, type safety, caching, and evolution cost, plus an actionable decision table for choosing between them.
 image: ''
-tags: [GraphQL, REST, tRPC, API, 互联网]
-category: '互联网'
+tags: [GraphQL, REST, tRPC, API, Internet]
+category: Internet
 draft: false
-lang: ''
 ---
+## Introduction: Three Paradigms, Three Kinds of "Who Gets to Decide"
 
-## 引言：三种范式，三种「谁说了算」
+API design debates are rarely about technical superiority—they're more about **who holds the control**:
 
-API 设计的争论很少是技术优劣之争，更多是**控制权归属**之争：
+- **REST**: The server decides. The server defines resource endpoints one by one, and the client can only fetch data in the shape of those endpoints—too much wastes bandwidth, too little requires another request.
+- **GraphQL**: The client decides. The client submits a query tree, and the server returns data shaped exactly like that tree—not one field more, not one field less.
+- **tRPC**: The type system decides. No IDL, no schema files—the server's function signatures compile directly into the client's type hints. Rename a field, and the frontend immediately fails to compile.
 
-- **REST**：服务端说了算。服务端定义好一个个资源端点，客户端只能按端点的形状取数据——多了浪费带宽，少了要再发一次请求。
-- **GraphQL**：客户端说了算。客户端提交一棵查询树，服务端照着这棵树的形状返回，多一个字段不要，少一个字段不行。
-- **tRPC**：类型系统说了算。没有 IDL、没有 schema 文件，服务端的函数签名直接编译成客户端的类型提示，改一个字段名，前端立刻编译报错。
+The latter two both solve REST's most criticized problems—**over-fetching and under-fetching**—but they take two completely opposite paths: GraphQL trades a runtime interpreter for flexibility, while tRPC trades away cross-language capability for zero-cost type safety.
 
-后两者都在解决 REST 最被诟病的问题——**over-fetching（取多了）与 under-fetching（取少了）**，但走的是两条完全相反的路：GraphQL 用一套运行时解释器换灵活性，tRPC 用放弃跨语言能力换零成本类型安全。
+Below, the same business scenario is written out in all three paradigms.
 
-下面用同一个业务场景把三种范式各写一遍。
+## Unified Scenario: Blog Detail Page
 
-## 统一场景：博客详情页
+The page needs to display an article's title, body, author name, and the latest 3 comments. The data lives in three tables: `posts`, `users`, `comments`.
 
-页面需要展示一篇文章的标题、正文、作者名，以及最新 3 条评论。数据存在三张表：`posts`、`users`、`comments`。
+### The REST Approach
 
-### REST 的写法
-
-REST 把每个资源建模成一个 URL，用 HTTP 动词表达操作：
+REST models each resource as a URL and uses HTTP verbs to express operations:
 
 ```http
 GET /api/posts/42 HTTP/1.1
@@ -43,18 +41,18 @@ Accept: application/json
 }
 ```
 
-问题立刻出现：客户端拿到了 `authorId`，但**要的是作者名**。于是它必须再发两个请求：
+The problem immediately appears: the client gets `authorId`, but **what it needs is the author name**. So it must send two more requests:
 
 ```http
 GET /api/users/7
 GET /api/posts/42/comments?limit=3&sort=desc
 ```
 
-一个页面渲染，三个 HTTP 往返。这就是 under-fetching。
+One page render, three HTTP round trips. This is under-fetching.
 
-工程上通常用两种办法补救：
+In practice, two approaches are typically used to remedy this:
 
-**方案 A：聚合端点（BFF 模式）**
+**Approach A: Aggregation Endpoint (BFF Pattern)**
 
 ```js
 // GET /api/post-page/42
@@ -78,17 +76,17 @@ app.get('/api/post-page/:id', async (req, res) => {
 });
 ```
 
-**方案 B：稀疏字段集（Sparse Fieldsets）**
+**Approach B: Sparse Fieldsets**
 
 ```http
 GET /api/posts/42?include=author,comments&fields=title,body&comments.limit=3
 ```
 
-方案 A 的问题是端点会爆炸——每加一个页面就要加一个聚合端点，服务端变成前端需求的传声筒。方案 B 的问题是查询参数解析逻辑会慢慢长成一个失控的小语言。
+The problem with Approach A is that endpoints explode—every new page requires a new aggregation endpoint, and the server becomes a mouthpiece for frontend requirements. The problem with Approach B is that query parameter parsing logic slowly grows into an out-of-control mini-language.
 
-### GraphQL 的写法
+### The GraphQL Approach
 
-GraphQL 换了个思路：只暴露**一张**端点 `POST /graphql`，形状由查询决定。先定义类型（Schema）：
+GraphQL takes a different approach: it exposes only **one** endpoint, `POST /graphql`, and the shape is determined by the query. First, define the types (Schema):
 
 ```graphql
 type User {
@@ -118,7 +116,7 @@ type Query {
 }
 ```
 
-客户端一次请求，形状自己拼：
+The client makes one request and assembles the shape itself:
 
 ```graphql
 query PostPage($id: ID!) {
@@ -134,7 +132,7 @@ query PostPage($id: ID!) {
 }
 ```
 
-服务端需要一个解析器（resolver）。这里藏着 GraphQL 最经典的坑——**N+1 查询**：如果 `Post.comments` 和 `Comment.author` 各自去查一次数据库，10 条评论就是 1 + 1 + 10 次查询。
+The server needs a resolver. Here lies GraphQL's most classic pitfall—**the N+1 query problem**: if `Post.comments` and `Comment.author` each hit the database separately, 10 comments means 1 + 1 + 10 queries.
 
 ```js
 const resolvers = {
@@ -152,7 +150,7 @@ const resolvers = {
 };
 ```
 
-标准解法是 **DataLoader**：把同一轮事件循环内的 `findById` 调用聚合成一次 `WHERE id IN (...)`：
+The standard solution is **DataLoader**: batching `findById` calls within the same event loop tick into a single `WHERE id IN (...)`:
 
 ```js
 import DataLoader from 'dataloader';
@@ -170,11 +168,11 @@ Comment: {
 }
 ```
 
-DataLoader 是**按请求创建**的，不能全局复用——否则不同用户之间的缓存会互相污染，这是一个真实的安全事故来源。
+DataLoader is **created per request** and must not be reused globally—otherwise caches between different users contaminate each other, which is a real source of security incidents.
 
-### tRPC 的写法
+### The tRPC Approach
 
-tRPC 的前提是你**前后端都是 TypeScript**，且共享类型。它没有 schema 文件，服务端代码本身就是契约：
+tRPC assumes that **both your frontend and backend are TypeScript** and share types. It has no schema files—the server code itself is the contract:
 
 ```ts
 // server/router.ts
@@ -207,7 +205,7 @@ export const appRouter = t.router({
 export type AppRouter = typeof appRouter;
 ```
 
-客户端不需要生成代码，也不需要手写类型，`AppRouter` 的**类型**经 `import type` 传入即可：
+The client doesn't need generated code or hand-written types; the **type** of `AppRouter` is passed in via `import type`:
 
 ```ts
 // client.ts
@@ -223,28 +221,27 @@ page.authorName;   // ✅ 自动补全，类型是 string
 page.author;       // ❌ 编译错误：Property 'author' does not exist
 ```
 
-把 `authorName` 改名成 `author`，只需改服务端一处，所有前端调用点立刻在编译期报错。这就是 tRPC 最大的卖点：**重构成本从「运行时 500」降到「编译期红波浪线」**。
+Rename `authorName` to `author`, and you only need to change one place on the server—all frontend call sites immediately fail at compile time. This is tRPC's biggest selling point: **refactoring cost drops from "runtime 500" to "compile-time red squiggly line"**.
 
-代价同样明确：一旦你的消费方是 iOS、Android、Python 脚本或第三方合作伙伴，tRPC 就直接出局——那些环境拿不到你的 TypeScript 类型。
+The trade-off is equally clear: once your consumers are iOS, Android, Python scripts, or third-party partners, tRPC is immediately out of the picture—those environments can't access your TypeScript types.
+## Side-by-Side Comparison
 
-## 横向对比
-
-| 维度 | REST | GraphQL | tRPC |
+| Dimension | REST | GraphQL | tRPC |
 |------|------|---------|------|
-| 客户端控制返回形状 | 否（需聚合端点/稀疏字段） | 是 | 部分（每个 procedure 一个形状） |
-| 请求次数 | 多资源需多次 | 一次 | 一次（可用 batch link 合并多个） |
-| 类型安全 | 需 OpenAPI + 代码生成 | 需 codegen（如 GraphQL Code Generator） | 天然内建，零生成 |
-| HTTP 缓存 | ✅ 直接可用 CDN/浏览器缓存 | ⚠️ 基本只能 POST，需持久化查询或 CDN 特殊支持 | ⚠️ 默认 POST，需自行处理 |
-| 跨语言消费方 | ✅ 任何语言 | ✅ 任何语言 | ❌ 仅 TypeScript |
-| 版本演进 | URL 版本（/v2/）或 Header | 字段级 `@deprecated`，无需版本号 | 编译期同步，无版本概念 |
-| 学习曲线 | 低 | 高（Schema、解析器、N+1、权限） | 低（会 TS 就会） |
-| 典型复杂查询成本 | 低 | 高（需查询深度限制、复杂度分析） | 低（形状固定） |
+| Client controls response shape | No (requires aggregation endpoints/sparse fieldsets) | Yes | Partial (one shape per procedure) |
+| Number of requests | Multiple for multiple resources | One | One (can use batch link to merge multiple) |
+| Type safety | Requires OpenAPI + code generation | Requires codegen (e.g., GraphQL Code Generator) | Built-in natively, zero generation |
+| HTTP caching | ✅ CDN/browser cache works directly | ⚠️ Basically POST-only, requires persisted queries or special CDN support | ⚠️ POST by default, needs manual handling |
+| Cross-language consumers | ✅ Any language | ✅ Any language | ❌ TypeScript only |
+| Version evolution | URL versioning (/v2/) or Header | Field-level `@deprecated`, no version numbers needed | Compile-time sync, no versioning concept |
+| Learning curve | Low | High (Schema, resolvers, N+1, authorization) | Low (if you know TS, you know it) |
+| Typical complex query cost | Low | High (requires query depth limits, complexity analysis) | Low (fixed shape) |
 
-## 各自的真实坑
+## The Real Pitfalls of Each
 
-**REST 的坑在演进。** 删除一个字段几乎不可能——你永远不知道哪个调用方还在读它。`GET /api/posts/42` 返回的 `authorId` 一旦公开就是事实上的契约。实践中用「加字段自由、删字段慎重、破坏性变更走新版本」来应对。
+**REST's pitfall is evolution.** Deleting a field is nearly impossible—you never know which caller is still reading it. Once the `authorId` returned by `GET /api/posts/42` is public, it's a de facto contract. In practice, the approach is "adding fields freely, deleting fields cautiously, breaking changes go through a new version."
 
-**GraphQL 的坑在运行时成本。** 客户端能自由拼查询树，也就能拼出一棵恶意的树：
+**GraphQL's pitfall is runtime cost.** Clients can freely compose query trees, which means they can also compose a malicious one:
 
 ```graphql
 query Evil {
@@ -252,33 +249,33 @@ query Evil {
 }
 ```
 
-循环嵌套查询能把数据库打穿。生产环境必须做三件事：**查询深度限制**、**基于节点数的复杂度评分**（拒绝超过阈值的查询）、**强制持久化查询**（只允许执行预先注册的查询文本）。另外 GraphQL 的授权也更棘手——`post(id: 1) { author { email } }` 需要在每个字段解析器里做权限判断，而不是在路由层一次性判断。
+Cyclic nested queries can bring down your database. In production you must do three things: **query depth limiting**, **node-count-based complexity scoring** (rejecting queries that exceed a threshold), and **mandatory persisted queries** (only allowing execution of pre-registered query texts). Additionally, GraphQL authorization is trickier—`post(id: 1) { author { email } }` needs permission checks in each field resolver, rather than a one-time check at the routing layer.
 
-**tRPC 的坑在边界。** 它把「前后端同仓库、同语言」当成默认前提。一旦你要开放 API 给外部，就得在 tRPC 之外再写一套 REST 或 GraphQL 网关——而这时你会开始怀疑当初是否该直接上 OpenAPI。
+**tRPC's pitfall is boundaries.** It assumes "same repo, same language for frontend and backend" as a default premise. Once you want to expose an API to external parties, you have to write a separate REST or GraphQL gateway alongside tRPC—and at that point you'll start wondering whether you should have just gone with OpenAPI in the first place.
 
-## 选型决策
+## Choosing Your Approach
 
-按顺序回答下面几个问题，基本只有一个答案会剩下：
+Answer the following questions in order, and basically only one answer will remain:
 
-1. **消费方只有你自己的 TypeScript 前端吗？** → 是则 **tRPC**，开发体验碾压另外两个。
-2. **有非 JS 消费方（移动端、第三方、合作方）吗？** → 是则排除 tRPC。
-3. **客户端的数据需求差异很大，或页面数量多到聚合端点维护不过来吗？** → 是则 **GraphQL**（典型场景：多端共用一套 API、前端字段需求频繁变动）。
-4. **其余情况** → **REST + OpenAPI**。它是最无聊也最稳的选择：CDN 缓存直接可用、调试靠 curl 就够、任何语言、任何年代都能接。无聊在这里是优点。
+1. **Are the only consumers your own TypeScript frontend?** → If yes, **tRPC**—the developer experience crushes the other two.
+2. **Are there non-JS consumers (mobile, third parties, partners)?** → If yes, rule out tRPC.
+3. **Do client data requirements vary widely, or are there so many pages that aggregation endpoints can't keep up?** → If yes, **GraphQL** (typical scenarios: multiple clients sharing one API, frontend field requirements changing frequently).
+4. **Everything else** → **REST + OpenAPI**. It's the most boring and most stable choice: CDN caching works directly, debugging with curl is enough, any language, any era can integrate. Boring is a virtue here.
 
-一个务实的组合是**分层**：对外暴露 REST 或 GraphQL，内部前后端同构的部分用 tRPC；GraphQL 网关再聚合下游的 REST 微服务。这三种范式不是互斥的宗教，而是不同边界上的不同工具。
+A pragmatic combination is **layering**: expose REST or GraphQL externally, use tRPC internally for the parts where frontend and backend are isomorphic; the GraphQL gateway then aggregates downstream REST microservices. These three paradigms are not mutually exclusive religions, but different tools at different boundaries.
 
-## 结语
+## Conclusion
 
-三种范式的分歧点其实只有一个：**返回数据的形状，由谁在什么时候决定？** REST 由服务端在部署时决定，GraphQL 由客户端在请求时决定，tRPC 由类型系统在编译时决定。想清楚你的系统里「谁最清楚数据形状」以及「这个形状变化的频率」，选型就不再是站队问题。
+The point of divergence among the three paradigms is really just one: **Who decides the shape of the returned data, and when?** REST has the server decide at deploy time, GraphQL has the client decide at request time, and tRPC has the type system decide at compile time. Once you think clearly about "who best understands the data shape" in your system and "how frequently that shape changes," choosing becomes less a matter of taking sides.
 
 ---
 
-## 参考来源
+## References
 
-- [GraphQL 官方文档 — Introduction to GraphQL](https://graphql.org/learn/)
-- [GraphQL 官方文档 — Security: Query Depth and Complexity Limiting](https://graphql.org/learn/security/)
-- [DataLoader — GitHub 官方仓库（解决 N+1 查询）](https://github.com/graphql/dataloader)
-- [tRPC 官方文档 — Introduction](https://trpc.io/docs/)
+- [GraphQL Official Docs — Introduction to GraphQL](https://graphql.org/learn/)
+- [GraphQL Official Docs — Security: Query Depth and Complexity Limiting](https://graphql.org/learn/security/)
+- [DataLoader — Official GitHub Repository (solving N+1 queries)](https://github.com/graphql/dataloader)
+- [tRPC Official Docs — Introduction](https://trpc.io/docs/)
 - [OpenAPI Specification 3.1](https://spec.openapis.org/oas/v3.1.0)
 - [Microsoft Azure Architecture Center — API design best practices](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design)
-- [GraphQL over HTTP 规范](https://graphql.github.io/graphql-over-http/draft/)
+- [GraphQL over HTTP Specification](https://graphql.github.io/graphql-over-http/draft/)

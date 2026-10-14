@@ -1,19 +1,17 @@
 ---
-title: 那些年我们写过的「注释」——代码注释奇葩大赏
+title: 'Code Comments We''ve Written Over the Years: A Hilarious Collection'
 published: 2026-08-10
-description: '盘点程序员在代码中留下的那些令人啼笑皆非的注释，从甩锅到自嘲，每一种你都可能写过。'
+description: A roundup of the laugh-out-loud comments programmers have left in their code, from blame-shifting to self-deprecation—you've probably written one of each.
 image: ''
-tags: [代码注释, 程序员笑话, 编程趣闻]
-category: '其他'
+tags: [code comments, programmer humor, programming anecdotes]
+category: Other
 draft: false
-lang: ''
 ---
+The original intent of code comments is simple: to explain what a piece of code is doing. But in reality, comments often become programmers' emotional outlets, disclaimers, or even performance art. Open any project that has existed for more than two years, and chances are you'll find content in the comments that's more entertaining than the code itself.
 
-代码注释的初衷很简单：解释这段代码在干什么。但现实中，注释往往成了程序员的情绪出口、免责声明，甚至是行为艺术。打开任何一个存在超过两年的项目，你大概率能在注释里找到比代码本身更精彩的内容。
+## 1. The Blame-Shifting Type: "This Is Not My Problem"
 
-## 甩锅型：「这不是我的问题」
-
-这类注释的核心诉求是——如果出了问题，别找我。
+The core demand of this type of comment is—if something goes wrong, don't come looking for me.
 
 ```javascript
 // 这段代码是我凌晨三点写的，我当时不知道为什么这样写，
@@ -28,11 +26,11 @@ const magicNumber = 42;
 apply_discount_logic()
 ```
 
-更精炼的版本：「_If you remove this line, the program will crash. Don't ask me why._」
+A more refined version: "_If you remove this line, the program will crash. Don't ask me why._"
 
-## 自嘲型：「我知道我很菜」
+## 2. The Self-Deprecating Type: "I Know I Suck"
 
-自嘲是程序员的传统美德。这类注释往往带着三分无奈、七分真诚。
+Self-deprecation is a traditional virtue among programmers. This type of comment often carries three parts resignation and seven parts sincerity.
 
 ```java
 // 以下代码使用了「暴力枚举法」
@@ -47,7 +45,7 @@ for (int i = 0; i < list.size(); i++) {
 }
 ```
 
-另一个经典：
+Another classic:
 
 ```rust
 // TODO: 重构这段代码
@@ -56,11 +54,11 @@ for (int i = 0; i < list.size(); i++) {
 // —— 2024年3月15日
 ```
 
-而这个 TODO 对应的日期，往往比项目的第一个 commit 还早。
+And the date corresponding to this TODO is often earlier than the project's first commit.
 
-## 诚实型：「说出来你可能不信」
+## 3. The Honest Type: "You Might Not Believe It If I Told You"
 
-有时候，真相就是这么朴实无华。
+Sometimes, the truth is just that plain and unadorned.
 
 ```css
 /* 
@@ -73,7 +71,7 @@ for (int i = 0; i < list.size(); i++) {
 .modal { z-index: 99999; }
 ```
 
-还有这种：
+And this kind too:
 
 ```
 // 我承认这一段是从 Stack Overflow 复制的
@@ -81,9 +79,9 @@ for (int i = 0; i < list.size(); i++) {
 // 我现在看不懂，但能跑就行
 ```
 
-诚实得让人不忍责备。
+So honest it's hard to blame them.
 
-## 过度防御型：「我预判了你的预判」
+## 4. The Overly Defensive Type: "I've Predicted Your Prediction"
 
 ```
 // ======================================================
@@ -94,17 +92,17 @@ for (int i = 0; i < list.size(); i++) {
 // ======================================================
 ```
 
-有些防御型注释甚至比被它保护的代码还长。
+Some defensive comments are even longer than the code they're protecting.
 
-## 结语
+## Conclusion
 
-代码注释就像程序员的名片——有人用来自嘲，有人用来甩锅，有人默默留下"此处有坑"的警示。无论哪种风格，它们都让冰冷的代码多了一点温度。当然，最好的注释，其实是**不需要注释的代码**。但在那之前，至少让我们写得有趣一点。
+Code comments are like a programmer's business card—some use them for self-deprecation, some for blame-shifting, and some quietly leave a "pitfall here" warning. Whichever style, they all add a bit of warmth to cold code. Of course, the best comment is actually **code that doesn't need comments**. But until then, at least let's write them in a more interesting way.
 
-> 你的项目中藏着哪些有趣的注释？欢迎分享。
+> What interesting comments are hidden in your project? Feel free to share.
 
 ---
 
-**参考来源**
+**References**
 
-- [The Funniest Code Comments on GitHub](https://github.com/nickmilo/funny-comments) — GitHub 趣味注释收集
-- [What is the funniest comment you've encountered in source code?](https://stackoverflow.com/questions/184618/what-is-the-best-comment-in-source-code-you-have-ever-encountered) — Stack Overflow 经典讨论
+- [The Funniest Code Comments on GitHub](https://github.com/nickmilo/funny-comments) — A collection of funny comments on GitHub
+- [What is the funniest comment you've encountered in source code?](https://stackoverflow.com/questions/184618/what-is-the-best-comment-in-source-code-you-have-ever-encountered) — A classic Stack Overflow discussion

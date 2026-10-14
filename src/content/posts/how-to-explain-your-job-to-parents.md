@@ -1,103 +1,102 @@
 ---
-title: 如何向爸妈解释你的工作：为什么你妈至今以为你在修电脑
+title: 'Explaining Your Job to Your Parents: Why Your Mum Still Thinks You Fix Computers'
 published: 2026-10-04
-description: '「在哪儿上班？」「修电脑的吧？」「帮我看下手机」——向爸妈解释程序员的工作，难的不是技术名词，而是你交付的东西在他们眼里根本看不见。用「敲桌子实验」和一条翻译函数，聊聊怎么把不可见的工作说成人话。'
+description: '"Where do you work?" "You fix computers, right?" "Can you look at my phone?" — The hard part of explaining a programmer''s job to your parents is not the jargon; it is that what you deliver is invisible to them. A tapping experiment and one translation function, on turning invisible work into plain language.'
 image: ''
-tags: [程序员笑话, 职场, 沟通, 家庭]
-category: '其他'
+tags: [Programmer Humour, Career, Communication, Family]
+category: 'Other'
 draft: false
-lang: ''
 ---
 
-过年回家，饭桌上第三杯茶下肚，你妈终于问出了那个每年都要问一次的问题：
+You go home for the holidays. Three cups of tea into dinner, your mum finally asks the question she asks once a year:
 
-「你那个工作，到底是干啥的？」
+"So what is it that you actually do?"
 
-你深吸一口气，决定这次一定讲清楚。四十分钟后，你妈点了点头，很欣慰地说：「行，妈知道了，你就是修电脑的。」
+You take a deep breath and decide that this time you will explain it properly. Forty minutes later she nods, warmly: "Alright, I've got it. You fix computers."
 
-## 1. 亲戚问答：一套流传二十年的题库
+## 1. The Relative Questionnaire: Twenty Years of the Same Exam
 
-这套题库几乎全国统一命题，题干略有出入，考点完全一致：
+The paper is set nationally, the wording varies slightly and the question bank never changes:
 
-| 亲戚提问 | 你内心 | 你嘴上 |
+| What the relative asks | What you think | What you say |
 | --- | --- | --- |
-| 在哪个单位？ | 我没有单位，我只有 Slack | 「一家互联网公司」 |
-| 是修电脑的吗？ | 我上一次装系统是 2009 年 | 「……差不多吧」 |
-| 帮我看下手机为啥卡 | 我是写后端的 | 「好，我看看」 |
-| 这行能干到多少岁？ | 我也想知道 | 「看个人」 |
-| AI 出来你们是不是要失业了 | 我今天刚用它写完一个模块 | 「还好，还好」 |
-| 一个月挣多少？ | —— | 「够花」 |
+| Which company are you at? | I don't have a company, I have Slack | "An internet company" |
+| Do you fix computers? | The last time I installed an OS was 2009 | "…more or less" |
+| Have a look at why my phone is slow | I write backend code | "Sure, let me see" |
+| How long can you do this until? | I'd love to know too | "Depends on the person" |
+| With AI out, are you all going to be unemployed? | I finished a module with it today | "We're fine, we're fine" |
+| How much do you make a month? | — | "Enough" |
 
-「修电脑的」这个标签生命力惊人。它不是爸妈的误会，而是他们能想到的、离你最近的一个职业。你爸见过修电脑的：那人拎着包上门，插个 U 盘，二十分钟后电脑能用了——**有过程、有交付、看得见**。而你上周做的事是「把鉴权模块重构成统一的中台能力」，交付物是三个不存在的文件夹和一份没人读的文档。
+"Someone who fixes computers" has astonishing staying power. It is not a misunderstanding on your parents' part; it is the nearest occupation they can picture. Your dad has *seen* a computer repair person: they turn up with a bag, plug in a USB stick, and twenty minutes later the machine works — **there is a process, a deliverable, something visible**. What you did last week was "refactor the auth module into a shared platform capability", and the deliverable was three folders that do not exist and a document nobody reads.
 
-讲不通的地方，从来不是技术含量，而是**可见度**。
+The part that fails to land was never the technical difficulty. It is **visibility**.
 
-## 2. 你不是不会讲，是中了「诅咒知识」的招
+## 2. You Don't Explain Badly — You're Cursed With Knowledge
 
-1990 年，斯坦福的心理学家 Elizabeth Newton 做过一个实验。她把受试者分成两组：一组用手指在桌上敲出一首人人都会的歌（比如《生日快乐》），另一组负责听，然后猜歌名。
+In 1990 the Stanford psychologist Elizabeth Newton ran an experiment. She split her subjects into two groups: one tapped out a well-known song on a table (something like "Happy Birthday"), while the other listened and guessed the tune.
 
-敲的人脑子里有完整的旋律，他们乐观地估计：听的人大概能猜对一半。实际结果是：**120 首里只猜对了 3 首，2.5%**。
+The tappers had the full melody in their heads, and estimated optimistically that listeners would get about half right. The actual result: **3 out of 120, or 2.5%**.
 
-这就是「诅咒知识」（curse of knowledge）：一旦你知道了某件事，就再也回不到不知道的状态。你敲桌子时听到的是交响乐，你妈听到的是——敲桌子。
+This is the curse of knowledge: once you know something, you cannot get back to not knowing it. When you tap, you hear a symphony. Your mum hears — tapping.
 
-你向她解释「我把一个定时任务改成了事件驱动」，你脑子里浮现的是架构图、是那个凌晨三点的告警、是改完之后延迟从 30 秒降到 200 毫秒；她接收到的声音是：任务、事件、驱动，以及「哦」。
+You explain that "I changed a scheduled job to be event-driven". In your head: an architecture diagram, the 3am page, the latency dropping from 30 seconds to 200 milliseconds. What she receives is: job, event, driven, and "oh".
 
-所以问题不是「怎么把技术讲得更简单」，而是**先承认对方手里只有一张白纸**。
+So the problem is not "how do I make the technical part simpler". It is **accepting first that the other person is holding a blank sheet of paper**.
 
-## 3. 其实「修电脑的」是一次成功的翻译
+## 3. "Someone Who Fixes Computers" Is Actually a Successful Translation
 
-别急着反驳这个标签。管理学里，彼得·德鲁克在 1959 年的《明日的地标》（*Landmarks of Tomorrow*）里第一次提出「知识工作者」这个词——那时候他点名的例子是程序员、系统分析师、技术文档作者。快七十年过去，社会学家阿琳·丹尼尔斯 1987 年提出的另一个词反而更贴切：**不可见的工作**（invisible work）——干的人天天在做，看的人完全看不见。
+Don't rush to argue with the label. In management writing, Peter Drucker coined "knowledge worker" in his 1959 book *Landmarks of Tomorrow* — and the examples he named were programmers, systems analysts and technical writers. Nearly seventy years later, a different term from the sociologist Arlene Kaplan Daniels (1987) fits better: **invisible work** — done every day by the person doing it, entirely unseen by the person looking.
 
-不可见的工作最难解释，因为解释的素材本来就不在你手上。你以为你要讲的是技术，其实你要交付的是一次**翻译**。
+Invisible work is the hardest to explain, because the raw material for the explanation was never in your hands. You think you need to explain technology. What you actually need to deliver is a **translation**.
 
-而「修电脑的」之所以能活二十年，恰恰因为它翻译对了：它把「电脑坏了 → 有人来修 → 又能用了」这条你妈熟悉的因果链，套在了你的工作外面。虽然不准，但能用。
+And "someone who fixes computers" has survived twenty years precisely because it translates correctly: it maps the causal chain your mum already knows — *the computer broke → someone came → it works again* — onto the outside of your job. It is not accurate, but it is usable.
 
-真正的翻译指南只有四条：
+There are only four rules in a real translation guide:
 
-**一、说影响，不说技术。** 「重构了鉴权模块」→「把家里的门锁换了，之前那把钥匙被很多人配过」。「做了性能优化」→「以前你点一下要等三秒，现在不用等了」。爸妈不关心你怎么做的，他们关心这事有什么用。
+**One: talk about impact, not technology.** "I refactored the auth module" becomes "I changed the locks at home; too many people had copies of the old key". "I did a performance optimisation" becomes "it used to take three seconds when you clicked, now you don't wait at all". Your parents do not care how you did it. They care what it was for.
 
-**二、类比只用一层，别套娃。** 「后端就是餐厅后厨、前端是服务员」是好的；「容器就像集装箱，编排就像码头调度，而 CI/CD 就像……」——三句话以后，你已经在教人家码头物流了。类比的保鲜期很短，用完就撤。
+**Two: one layer of analogy, no nesting.** "The backend is the kitchen, the frontend is the waiter" is good. "Containers are like shipping containers, orchestration is like dock scheduling, and CI/CD is like…" — three sentences in, you are teaching them port logistics. Analogies have a short shelf life. Use them and put them away.
 
-**三、给一个能指认的产物。** 所有解释都不如一句：「你手机上那个 XX，你点这个按钮，出来那张表，是我做的。」**可见的产物是唯一能穿透抽象层级的东西。**
+**Three: give them something they can point at.** No explanation beats one sentence: "That thing on your phone — you tap this button, that table comes up, and I built it." **A visible artefact is the only thing that cuts through every layer of abstraction.**
 
-**四、允许自己讲不清。** 有些事就是没有类比，这时候说「这个我也讲不明白」比现编一个假类比要诚实得多——反正你妈也会接受，她只是想跟你多说两句话。
+**Four: allow yourself to fail to explain.** Some things simply have no analogy, and in that moment "I can't explain this one either" is far more honest than inventing a fake one — your mum will accept it anyway. She just wanted a few more minutes of talking to you.
 
-如果一定要写成代码，这份翻译表大概长这样：
+If it really has to be code, the translation table looks roughly like this:
 
 ```ts
-// 家庭版术语翻译器：入参是你说的话，出参是你妈能听懂的话
-const 人话: Record<string, string> = {
-  '重构了鉴权模块': '把家里门锁换了，旧钥匙作废了',
-  '做了性能优化': '以前要等三秒，现在不用等了',
-  '增加了一套监控告警': '装了烟雾报警器，出事会响',
-  '上线了一个灰度开关': '新菜先给一桌客人试吃，不好吃就撤',
-  '修复了一个并发 bug': '两个人同时抢一个厕所的问题，修好了',
+// Family-edition jargon translator: you pass in what you said, it returns what your mum can follow
+const plainLanguage: Record<string, string> = {
+  'I refactored the auth module': 'I changed the locks; the old keys no longer work',
+  'I did a performance optimisation': 'It used to take three seconds, now you do not wait',
+  'I added monitoring and alerts': 'I fitted a smoke alarm — it goes off when something burns',
+  'I shipped a canary release toggle': 'The new dish goes to one table first; if it is bad, we take it back',
+  'I fixed a concurrency bug': 'Two people kept fighting over one toilet. Fixed.',
 }
 
-function 翻译(原话: string): string {
-  // 命中就翻译；没命中就承认讲不清 —— 这比编一个假类比体面
-  return 人话[原话] ?? '这个我真解释不太明白，反正没坏事儿'
+function translate(whatYouSaid: string): string {
+  // Translate on a hit; admit defeat on a miss — that beats inventing a fake analogy
+  return plainLanguage[whatYouSaid] ?? "I honestly can't explain this one, but nothing is broken"
 }
 
-console.log(翻译('重构了鉴权模块')) // 把家里门锁换了，旧钥匙作废了
-console.log(翻译('写了个 quorum 协议')) // 这个我真解释不太明白，反正没坏事儿
+console.log(translate('I refactored the auth module')) // I changed the locks; the old keys no longer work
+console.log(translate('I wrote a quorum protocol')) // I honestly can't explain this one, but nothing is broken
 ```
 
-这张表最大的价值不是它翻得多准，而是它逼你在开口前先想一遍：**这句话翻译成「修电脑」那套语言，会变成什么？** 想不出来，说明你自己可能也没想清楚这件事到底解决了谁的什么问题。
+The table's real value is not how accurately it translates. It is that it forces you to run the sentence once before you open your mouth: **what does this become in the language of "fixing computers"?** If you cannot produce anything, you may not have worked out whose problem it solved either.
 
-## 写在最后
+## In Closing
 
-还有一个很少被提的反向时刻：当爸妈跟你讲他们单位的事——谁跟谁不对付、为什么那个报告要改七遍、为什么今年评优没轮到老张——你其实也一样听不懂。你也只能点头，然后在心里想：这有什么难的。
+There is a reverse moment that rarely gets mentioned: when your parents talk about their own workplace — who has fallen out with whom, why that report has to be rewritten seven times, why old Zhang missed the award this year — you don't understand it either. You nod along and think: what's so hard about that?
 
-所以下次你妈再说「你就是修电脑的」，别急着纠正。她是用她唯一有的那张地图，在努力走到你身边。
+So the next time your mum says "you just fix computers", don't rush to correct her. She is using the only map she has, trying to walk over to where you are.
 
-点个头，说「对，差不多」，然后帮她把手机卡的问题看一下。这次的交付物，是真看得见的。
+Nod, say "yeah, more or less", and take a look at why her phone is slow. This time the deliverable really is visible.
 
-## 参考来源
+## Sources
 
-- [The Landmarks of Tomorrow — Peter F. Drucker（1959）](https://en.wikipedia.org/wiki/The_Landmarks_of_Tomorrow)：首次提出「知识工作者」，并点名程序员、系统分析师等职业
-- [Invisible Work — Arlene Kaplan Daniels, *Social Problems*, 34(5): 403–415（1987）](https://doi.org/10.2307/800538)：提出「不可见的工作」，指那些被看见却不算作工作的劳动
-- [Innovative Minds Don't Think Alike — The New York Times（2007-12-30）](https://www.nytimes.com/2007/12/30/business/30know.html)：介绍 Elizabeth Newton 的「敲桌子」实验（120 首猜对 3 首）与「诅咒知识」现象
-- [Office Space (1999) — Bob Slydell 的角色台词页，IMDb](https://www.imdb.com/title/tt0151804/characters/nm0001525)：「What would you say you do here?」——回答不上来「你到底是做什么的」，是喜剧，也是当代打工人的日常
+- [The Landmarks of Tomorrow — Peter F. Drucker (1959)](https://en.wikipedia.org/wiki/The_Landmarks_of_Tomorrow): first proposed "knowledge worker", naming programmers and systems analysts among others
+- [Invisible Work — Arlene Kaplan Daniels, *Social Problems*, 34(5): 403–415 (1987)](https://doi.org/10.2307/800538): introduced "invisible work" for labour that is seen but not counted as work
+- [Innovative Minds Don't Think Alike — The New York Times (2007-12-30)](https://www.nytimes.com/2007/12/30/business/30know.html): on Elizabeth Newton's tapping experiment (3 of 120) and the curse of knowledge
+- [Office Space (1999) — Bob Slydell's quotes, IMDb](https://www.imdb.com/title/tt0151804/characters/nm0001525): "What would you say you do here?" — being unable to answer "what do you actually do" is comedy, and also the modern worker's daily life
 
-延伸阅读：本博客里也有几篇在讲「工作如何被看见、又如何被误解」——[《技术黑话词典：从「在我机器上是好的」到「这是个特性」》](/posts/tech-jargon-dictionary)、[《程序员与咖啡因：续命水的一百种喝法》](/posts/programmer-and-caffeine)、以及[《技术债的识别与管理：别再用「代码烂」当借口》](/posts/technical-debt-identification-and-management)。
+Further reading: a few other posts here are about how work gets seen, and misread — [Tech Jargon Dictionary](/posts/tech-jargon-dictionary), [Programmers and Caffeine](/posts/programmer-and-caffeine), and [Identifying and Managing Technical Debt](/posts/technical-debt-identification-and-management).

@@ -1,19 +1,17 @@
 ---
-title: Redis 缓存设计与常见陷阱：穿透、击穿、雪崩与一致性
+title: 'Redis Cache Design and Common Pitfalls: Penetration, Breakdown, Avalanche, and Consistency'
 published: 2026-09-30
-description: '把缓存当成「可以随时丢掉的副本」是设计的第一原则。本文用可运行的 Node.js 代码拆开缓存穿透、击穿、雪崩的根因差异，讲清为什么「先更新库再删缓存」优于「更新缓存」、volatile-* 淘汰策略为什么会把写入打死，以及命中率异常时该看哪几个 INFO 字段。'
+description: Treating the cache as a disposable copy is the first principle of design. This article uses runnable Node.js code to break down the root-cause differences between cache penetration, breakdown, and avalanche, explains why "update the database first, then delete the cache" beats "update the cache," why volatile-* eviction policies can kill writes, and which INFO fields to check when hit rate looks abnormal.
 image: ''
-tags: [Redis, 缓存, 高并发, 后端, 架构, 性能优化]
-category: '互联网'
+tags: [Redis, Caching, High Concurrency, Backend, Architecture, Performance Optimization]
+category: Internet
 draft: false
-lang: ''
 ---
+## 1. A cache with a "99% hit rate" that still brings down the database
 
-## 1. 一个「命中率 99%」却仍然打垮数据库的缓存
+Let's start with the conclusion: **a cache is not an accelerator for the database, it is a disposable copy of the database**. This statement defines the boundary for all the design that follows—a copy can be discarded at any time, so any logic where "losing it causes an incident" should never live in the cache.
 
-先说结论：**缓存不是数据库的加速器，它是数据库的一份可丢弃副本**。这句话决定了后面所有设计的边界——副本可以随时丢，所以任何「丢了就出事故」的逻辑都不该放在缓存里。
-
-绝大多数项目用的都是 Cache-Aside（旁路缓存）模式，读路径就三行：
+The vast majority of projects use the Cache-Aside pattern, and the read path is just three lines:
 
 ```js
 async function getUserCached(id) {
@@ -27,21 +25,21 @@ async function getUserCached(id) {
 }
 ```
 
-这段代码在演示里永远是对的，在生产里会以三种完全不同的方式失效。而它们的**根因彼此无关，修法也互不通用**——把它们统称为「缓存问题」一并「加个锁」或「加个布隆过滤器」，是线上事故最常见的起点。
+This code is always correct in a demo, but in production it fails in three completely different ways. And their **root causes are unrelated to each other, and the fixes are not interchangeable**—lumping them all together as "cache problems" and "just add a lock" or "just add a Bloom filter" is the most common starting point for production incidents.
 
-下面这张表是全文的骨架：
+The table below is the skeleton of this article:
 
-| 问题 | 触发条件 | 特征 | 对症手段 |
+| Problem | Trigger condition | Characteristics | Targeted remedy |
 | --- | --- | --- | --- |
-| **穿透** | 查一个**根本不存在**的数据 | 缓存和数据库**都没命中**，每次都打到 DB | 空值缓存、布隆过滤器、参数校验 |
-| **击穿** | **单个热点 Key** 恰好过期 | 瞬时并发全部落到**同一行**数据上 | 互斥锁、逻辑过期、本地缓存 |
-| **雪崩** | **大量 Key 同时失效** 或集群整体不可用 | 请求**无差别**压向 DB | TTL 打散、高可用架构、熔断降级 |
+| **Penetration** | Querying data that **simply doesn't exist** | **Neither** the cache **nor** the database hits, every request hits the DB | Null-value caching, Bloom filter, parameter validation |
+| **Breakdown** | A **single hot Key** happens to expire | Instantaneous concurrency all lands on the **same row** of data | Mutex lock, logical expiration, local cache |
+| **Avalanche** | **A large number of Keys expire at the same time** or the cluster becomes entirely unavailable | Requests **indiscriminately** hammer the DB | TTL jitter, high-availability architecture, circuit breaking and degradation |
 
-注意「穿透」和「击穿」只差一个字，但前者是**数据不存在**，后者是**数据存在但缓存刚过期**。用布隆过滤器去治击穿是无效的（那个 Key 在数据库里明明存在），用互斥锁去治穿透也是无效的（锁释放后下一次请求照样未命中）。这是最容易搞反的一对。
+Note that "penetration" and "breakdown" differ by only one character, but the former is **data that doesn't exist**, while the latter is **data that exists but whose cache just expired**. Using a Bloom filter to treat breakdown is ineffective (that Key clearly exists in the database), and using a mutex lock to treat penetration is also ineffective (after the lock is released, the next request still misses). This is the pair most easily confused.
 
-## 2. 穿透：当数据「根本不存在」
+## 2. Penetration: when the data "simply doesn't exist"
 
-恶意请求或脏数据参数（`id=-1`、`id=999999999`）会稳定地绕过缓存。空值缓存是最省事的方案：
+Malicious requests or dirty-data parameters (`id=-1`, `id=999999999`) will reliably bypass the cache. Null-value caching is the least troublesome solution:
 
 ```js
 const NULL_SENTINEL = "\u0000null"; // 用一个不可能出现在业务 JSON 里的哨兵值
@@ -62,9 +60,9 @@ async function getUserWithNullCache(id) {
 }
 ```
 
-**空值的 TTL 必须远短于正常数据。** 它的作用只是「把 N 次穿透压缩成 1 次回源」，而不是长期保存一个否定结论——否则一旦这个 ID 对应的数据被创建出来，你会在 TTL 内持续返回「不存在」。30 秒到 5 分钟是常见区间。
+**The TTL for null values must be far shorter than that for normal data.** Its purpose is merely to "compress N penetrations into 1 origin fetch", not to store a negative conclusion for the long term—otherwise, once the data corresponding to this ID is created, you will keep returning "doesn't exist" for the duration of the TTL. 30 seconds to 5 minutes is a common range.
 
-代价是：如果攻击者每次都用不同的随机 ID，空值缓存会被写爆，反而变成一种内存攻击。这时候要上**布隆过滤器**做前置拦截。Redis 8 起布隆过滤器已经是内置数据结构，不再需要单独安装 Redis Stack 或 RedisBloom 模块（[RedisBloom v2.8.20 发布说明](https://github.com/RedisBloom/RedisBloom/releases/tag/v2.8.20)明确写了这一点）：
+The cost is: if an attacker uses a different random ID every time, the null-value cache will be flooded, turning into a memory attack instead. In that case you need a **Bloom filter** as a front-line interception. Since Redis 8, the Bloom filter has been a built-in data structure, and you no longer need to install Redis Stack or the RedisBloom module separately (the [RedisBloom v2.8.20 release notes](https://github.com/RedisBloom/RedisBloom/releases/tag/v2.8.20) state this explicitly):
 
 ```text
 BF.RESERVE user:exists 0.01 1000000   # 误判率 1%，容量 100 万
@@ -76,22 +74,22 @@ BF.EXISTS user:exists 9999
 (integer) 0
 ```
 
-读结果的语义要记牢，这是布隆过滤器的全部要害：
+You must remember the semantics of the read result—this is the entire crux of the Bloom filter:
 
-- 返回 `0` → **一定不存在**，可以直接返回空，不查数据库；
-- 返回 `1` → **只是可能存在**，仍要回源确认。
+- Returns `0` → **definitely doesn't exist**, you can return empty directly without querying the database;
+- Returns `1` → **only possibly exists**, you still need to go back to the origin to confirm.
 
-代价是它有误判率、并且标准布隆过滤器**不支持删除**（要删除得换 Cuckoo Filter）。所以它适合「只增不删」的 ID 集合，一旦业务上存在删除，就必须接受「删了之后一段时间内仍然被判为存在」——这通常是可以接受的，因为回源会兜住。
+The cost is that it has a false-positive rate, and a standard Bloom filter **does not support deletion** (to support deletion you'd have to switch to a Cuckoo Filter). So it is suitable for ID sets that "only grow and never shrink". Once deletion exists in the business, you must accept that "for a period after deletion it is still judged as existing"—this is usually acceptable, because the origin fetch will cover it.
 
 :::note
-拦截器要放在**最外层**：网关层先做参数格式校验（正整数、长度上限、ID 范围），再做布隆过滤，最后才进应用逻辑。放到业务代码深处，等于把无效请求的解析开销也一并付了。
+The interceptor must be placed at the **outermost layer**: the gateway layer first does parameter format validation (positive integer, length limit, ID range), then does Bloom filtering, and only then enters the application logic. Placing it deep inside the business code means you also pay the parsing overhead of invalid requests.
 :::
 
-## 3. 击穿：一个热点 Key 过期的瞬间
+## 3. Breakdown: the instant a single hot Key expires
 
-击穿的关键词是「单个」和「瞬时」。典型场景是一个爆款商品的详情页——缓存里就一个 Key，QPS 却有几万。它过期的那 10 毫秒内，所有并发都会去查同一行数据库记录。
+The keywords of breakdown are "single" and "instantaneous". A typical scenario is the detail page of a hit product—there is just one Key in the cache, yet the QPS is in the tens of thousands. Within the 10 milliseconds when it expires, all concurrency will query the same row of the database record.
 
-方案一是**互斥重建**，只放一个请求去回源：
+Solution one is **mutual-exclusion rebuild**, letting only one request go back to the origin:
 
 ```js
 const UNLOCK = `
@@ -131,18 +129,18 @@ async function getHotProduct(id, retries = 3) {
 }
 ```
 
-两个容易被忽略的细节：
+Two details that are easily overlooked:
 
-1. **解锁必须比对 token。** 如果只是 `DEL lock:key`，一个因为超时而早被释放的锁，可能被后来的持有者误删——你的业务代码执行到一半，锁已经不属于自己了。`SET NX EX` + Lua 比对删除是标准写法，`EX` 是防死锁的兜底。
-2. **重试一定要有上限和退避。** 上面那个递归如果去掉 `retries`，未抢到锁的请求会形成同步重试风暴——**你本来是为了防击穿，结果亲手造了一次雪崩**。
+1. **Unlocking must compare the token.** If you just do `DEL lock:key`, a lock that was released early due to a timeout might be mistakenly deleted by a later holder—your business code is halfway through execution, and the lock no longer belongs to you. `SET NX EX` + Lua comparison-and-delete is the standard approach, and `EX` is the fallback against deadlock.
+2. **Retries must have an upper limit and backoff.** If the recursion above removes `retries`, requests that fail to acquire the lock will form a synchronous retry storm—**you originally intended to prevent breakdown, but ended up personally causing an avalanche**.
 
-方案二是**逻辑过期**：物理上永不过期，把过期时间写进 value 里，读到时若已逻辑过期，就返回旧值并异步触发一次刷新。它的取舍很清楚——**牺牲一致性换取零等待**，适合能容忍短暂陈旧的热点数据（排行榜、推荐位）。对账、库存这类数据不能用。
+Solution two is **logical expiration**: physically it never expires, and the expiration time is written into the value. When read and found to be logically expired, it returns the old value and asynchronously triggers a refresh. Its trade-off is very clear—**sacrificing consistency in exchange for zero waiting**, suitable for hot data that can tolerate brief staleness (leaderboards, recommendation slots). It cannot be used for data such as reconciliation or inventory.
 
-## 4. 雪崩：批量失效与集群宕机
+## 4. Avalanche: batch invalidation and cluster downtime
 
-雪崩有两种来源，修法完全不同。
+An avalanche has two sources, and the fixes are completely different.
 
-**来源一：TTL 撞车。** 如果一批数据在同一个时间点被批量写入（比如凌晨跑批预热），TTL 又都设成固定的 3600 秒，那它们会在同一个秒级窗口集体失效。修法是在 TTL 上叠加随机抖动：
+**Source one: TTL collision.** If a batch of data is written in bulk at the same point in time (for example, a preheating batch job run in the early morning), and the TTLs are all set to a fixed 3600 seconds, then they will all expire together within the same second-level window. The fix is to add random jitter on top of the TTL:
 
 ```js
 function jitter(baseSeconds, ratio = 0.1) {
@@ -154,42 +152,41 @@ await redis.set(key, JSON.stringify(data), { EX: jitter(3600) });
 // 3600s ± 360s，把失效点摊平到 12 分钟窗口内
 ```
 
-**来源二：Redis 整体不可用。** 这种抖动救不了，只能靠架构和降级：主从 + 哨兵或 Cluster 分片保证可用性；客户端对慢请求和故障要有熔断；最外层要有本地缓存或兜底数据。华为云 DCS 的业务使用规范里有一条值得抄下来——**客户端重试时间不要设得过短（例如低于 200ms），过短的重试极易引发重试风暴，反而把业务层打成雪崩**。也就是说，Redis 宕机时最危险的不是 Redis 本身，而是你的客户端决定集体重试。
+**Source two: Redis becomes entirely unavailable.** This kind of jitter can't save you; you can only rely on architecture and degradation: master-replica + Sentinel or Cluster sharding to ensure availability; the client must have circuit breaking for slow requests and failures; the outermost layer must have a local cache or fallback data. There is one item in Huawei Cloud DCS's business usage guidelines worth copying down—**do not set the client retry time too short (for example, below 200ms); too short a retry very easily triggers a retry storm, which instead hammers the business layer into an avalanche**. In other words, when Redis goes down, the most dangerous thing is not Redis itself, but your clients deciding to retry en masse.
+## 5. What's truly hard isn't these three things, it's "inconsistency"
 
-## 5. 真正难的不是这三件事，是「不一致」
+The three problems above all have clear engineering answers. But "cache and database inconsistency" has no silver bullet, only trade-offs.
 
-上面三个问题都有明确的工程答案。而「缓存和数据库不一致」没有银弹，只有取舍。
+First, let's be clear about one thing: **the write path should be "update the database first, then delete the cache," not "update the cache."**
 
-先明确一条：**写路径应该是「先更新数据库，再删除缓存」，而不是「更新缓存」。**
+Why "delete" instead of "update"? Because updating the cache means writing a **computed result** into the cache, and concurrent writes can land in the wrong order: request A computes a new value, request B also computes a new value, B writes first, A writes after, and the cache ends up holding A's stale result. Deletion, on the other hand, hands the semantics of "recompute on the next read" to the cache system itself—it's naturally idempotent and won't leave dirty data behind when the computation logic changes.
 
-为什么是「删除」而不是「更新」？因为更新缓存意味着把一份**计算结果**写进缓存，而并发写会以错误的顺序落盘：请求 A 算出新值、请求 B 也算出新值，B 先写入、A 后写入，缓存里最终留下的是 A 的旧结果。删除则把「下次读的时候再算」的语义交给缓存系统本身，天然幂等，也不会因为计算逻辑变更留下脏数据。
+So is "delete the cache first, then update the database" acceptable? No. After the deletion and before the update there's a window during which an incoming read request will reload the **old value** into the cache, and it won't be invalidated by the subsequent update—the dirty data will linger until the TTL expires. So the order is "database first, then delete."
 
-那「先删缓存再更新库」行不行？不行。删除之后、更新之前有一个窗口，此时进来的读请求会把**旧值**重新加载进缓存，而它不会因为随后的更新而失效——脏数据会一直留到 TTL 到期。所以顺序是「先库后删」。
+What remains is what to do when the deletion fails. A common industry remedy is **delayed double deletion**: update the database, delete the cache, wait a short while (say 500ms), then delete again, to cover the case where "a stale value is read back after the first deletion but before replication completes." But it's essentially gambling on a delay, and **it can't cover fluctuations in replication lag or GC pauses**.
 
-剩下的是删除失败怎么办。业界常见的补救是**延迟双删**：更新库、删缓存、等一小段时间（比如 500ms）再删一次，用来兜住「第一次删除后、主从复制完成前被读回脏值」的情况。但它本质上是靠延时去赌，**覆盖不了主从复制延迟波动和 GC 停顿**。
+The truly reliable approach is to pull cache deletion out of the business code—**subscribe to the database binlog (tools like Canal, Debezium)**, and have an independent consumer drive cache invalidation after data changes. The benefits: cache invalidation no longer depends on whether the business code remembered to write it or wrote it correctly, and it covers all write paths (including manual data changes by ops).
 
-真正可靠的做法是把删缓存从业务代码里拿出来——**订阅数据库 binlog（Canal、Debezium 这类工具）**，由独立的消费者在数据变更后驱动缓存失效。它的好处是：缓存失效不再依赖业务代码有没有记得写、写没写错，而且能覆盖所有写入路径（包括运维手工改数据）。
+## 6. Memory: the cost of choosing the wrong eviction policy
 
-## 6. 内存：淘汰策略选错的代价
+`maxmemory` determines how much memory Redis can use, and `maxmemory-policy` determines what happens when the limit is exceeded (the [official Key eviction documentation](https://redis.io/docs/latest/develop/reference/eviction/) gives the full list):
 
-`maxmemory` 决定 Redis 能用多少内存，`maxmemory-policy` 决定超限时怎么办（[官方 Key eviction 文档](https://redis.io/docs/latest/develop/reference/eviction/)给了完整清单）：
-
-| 策略 | 淘汰范围 |
+| Policy | Eviction scope |
 | --- | --- |
-| `noeviction` | **不淘汰**，写入命令直接返回错误（默认值） |
-| `allkeys-lru` / `allkeys-lfu` / `allkeys-random` | 全部 Key |
-| `volatile-lru` / `volatile-lfu` / `volatile-random` / `volatile-ttl` | 仅淘汰**设置了过期时间**的 Key |
+| `noeviction` | **No eviction**, write commands return an error directly (the default) |
+| `allkeys-lru` / `allkeys-lfu` / `allkeys-random` | All keys |
+| `volatile-lru` / `volatile-lfu` / `volatile-random` / `volatile-ttl` | Only evict keys **with an expiration time set** |
 
-这里埋着一个非常经典的坑：**`volatile-*` 系列在「没有任何 Key 设置过期时间」时，行为等同于 `noeviction`**——也就是写入全部失败。如果你把会话、排行榜这类无 TTL 数据和生产缓存放在同一个实例里，某天缓存 Key 被清空后，剩下的全是无 TTL 的 Key，你就会看到一个「内存没满却写不进去」的诡异故障。
+There's a very classic pitfall buried here: **the `volatile-*` family behaves identically to `noeviction` when "no key has an expiration time set"**—that is, all writes fail. If you put session data, leaderboards, and other TTL-less data in the same instance as production cache, then one day after the cache keys are cleared, all that's left are TTL-less keys, and you'll see a bizarre failure where "memory isn't full but you can't write."
 
-两个直接可用的结论：
+Two directly usable conclusions:
 
-- **选不准就用 `allkeys-lru`。** 官方文档也是这么建议的（请求分布通常是幂律分布），而且它不依赖 `expire` 字段，比 `volatile-*` 更省内存。
-- **缓存和其它用途的 Key 分开实例。** 用 `volatile-*` 的典型理由就是「一个实例同时放缓存和持久数据」，而官方文档明确说拆成两个实例通常更好。
+- **If you can't decide, use `allkeys-lru`.** The official documentation recommends this too (request distributions are usually power-law), and it doesn't depend on the `expire` field, making it more memory-efficient than `volatile-*`.
+- **Keep cache and other-purpose keys in separate instances.** The typical reason to use `volatile-*` is "one instance holding both cache and persistent data," and the official documentation explicitly says splitting into two instances is usually better.
 
-## 7. 命中率不对时，先看这几个字段
+## 7. When the hit rate looks wrong, check these fields first
 
-缓存的观测几乎全在 `INFO` 里，第一件事是算出真实命中率：
+Cache observability lives almost entirely in `INFO`, and the first thing to do is compute the real hit rate:
 
 ```text
 INFO stats
@@ -198,28 +195,28 @@ keyspace_misses: 5770
 → 命中率 = 94230 / (94230 + 5770) ≈ 94.2%
 ```
 
-注意 `EXISTS` 报告 Key 不存在时也计入 miss——所以用 `EXISTS` 做存在性判断的代码会拉低这个数字，阅读指标时要心里有数。命中率低于预期时，往下对照两个字段：
+Note that `EXISTS` counts a missing key as a miss too—so code that uses `EXISTS` for existence checks will drag this number down, so keep that in mind when reading the metric. When the hit rate is below expectations, compare against two fields:
 
-- `evicted_keys` 偏高 → 内存不够，**正在被淘汰的 Key 里有你需要的那些**。这时候要么扩容，要么换 LRU/LFU 策略（官方文档的建议：命中率低且 `evicted_keys` 高，`allkeys-lru` 往往是个好选择）。
-- `expired_keys` 偏高 → TTL 设得太短，或者过期时间分布有问题（回到第四节的 TTL 抖动）。
+- `evicted_keys` is high → not enough memory, **and the keys being evicted include the ones you need**. Either scale up or switch to an LRU/LFU policy (the official documentation's advice: when the hit rate is low and `evicted_keys` is high, `allkeys-lru` is often a good choice).
+- `expired_keys` is high → the TTL is set too short, or the expiration time distribution is problematic (back to the TTL jitter in section 4).
 
-另外 `commandstats` 里能看到命令被拒绝的次数——在 `noeviction` 或 `volatile-*` 策略下，这是发现「写入静默失败」的唯一途径。
+Also, `commandstats` shows the number of rejected commands—under the `noeviction` or `volatile-*` policy, this is the only way to discover "silent write failures."
 
-## 8. 小结
+## 8. Summary
 
-- **缓存是可丢弃的副本。** Cache-Aside 的读路径只有三行，但穿透、击穿、雪崩的根因互不相关：穿透是数据不存在，击穿是单个热点 Key 过期，雪崩是批量失效或集群宕机。**修法不通用，别一把梭。**
-- **空值缓存的 TTL 要短，布隆过滤器放在最外层，** 并且记住它的语义：`0` 一定不存在，`1` 只是可能存在，且标准布隆过滤器不支持删除。
-- **互斥重建的两个必写项**：锁的 value 用唯一 token，解锁用 Lua 比对后再删；重试必须有上限和退避。
-- **写路径是「先更新库，再删缓存」。** 延迟双删靠延时赌博，订阅 binlog 才是把一致性从业务代码里拿出去的办法。
-- **`volatile-*` 在没有 TTL Key 时等同 `noeviction`**，会表现为「内存没满却写不进去」。选不准就用 `allkeys-lru`。
-- **命中率异常先看 `evicted_keys` 和 `expired_keys`**，它们分别指向内存不足和 TTL 分布问题。
+- **The cache is a disposable copy.** The read path of Cache-Aside is only three lines, but the root causes of penetration, breakdown, and avalanche are unrelated to each other: penetration is data that doesn't exist, breakdown is a single hot key expiring, and avalanche is mass invalidation or a cluster outage. **The fixes aren't interchangeable, so don't apply one blindly.**
+- **The TTL for null-value caching should be short, and the Bloom filter goes on the outermost layer,** and remember its semantics: `0` definitely doesn't exist, `1` only might exist, and a standard Bloom filter doesn't support deletion.
+- **Two must-dos for mutex-based rebuilding**: use a unique token as the lock's value, and unlock via a Lua compare-then-delete; retries must have an upper bound and backoff.
+- **The write path is "update the database first, then delete the cache."** Delayed double deletion gambles on a delay; subscribing to the binlog is the way to move consistency out of the business code.
+- **`volatile-*` is equivalent to `noeviction` when there are no TTL keys**, and it manifests as "memory isn't full but you can't write." If you can't decide, use `allkeys-lru`.
+- **When the hit rate is abnormal, check `evicted_keys` and `expired_keys` first**—they point to insufficient memory and TTL distribution problems respectively.
 
-和[《HTTP 缓存策略完全指南》](/posts/http-caching-guide)那篇放在一起看会更清楚：**那一层是协议规定的缓存语义（`Cache-Control`、`ETag`、CDN），语义由浏览器和 RFC 保证；这一层是你自己实现的缓存，语义全靠代码纪律保证。**HTTP 缓存配错了顶多是「用户看到旧页面」，Redis 缓存配错了是「数据库被打穿」——这也是为什么这一层更值得花时间把边界想清楚。
+Reading this alongside [The Complete Guide to HTTP Caching Strategies: From Browser to CDN](/posts/http-caching-guide/) makes things clearer: **that layer is the caching semantics defined by the protocol (`Cache-Control`, `ETag`, CDN), with semantics guaranteed by the browser and the RFC; this layer is a cache you implement yourself, with semantics guaranteed entirely by code discipline.** Misconfiguring HTTP caching at worst means "users see a stale page," but misconfiguring Redis caching means "the database gets hammered through"—which is exactly why this layer is worth the time to think through its boundaries clearly.
 
-## 参考资料
+## References
 
-- [Redis 官方文档：Key eviction（`maxmemory` 与 `maxmemory-policy` 全部策略、近似 LRU 实现、命中率诊断）](https://redis.io/docs/latest/develop/reference/eviction/)
-- [Redis 官方文档：Client-side caching / 分布式锁等客户端模式](https://redis.io/docs/latest/develop/clients/patterns/)
-- [RedisBloom v2.8.20 发布说明：自 Redis 8 起概率数据结构已内置于 Redis，无需单独安装模块](https://github.com/RedisBloom/RedisBloom/releases/tag/v2.8.20)
-- [Microsoft Azure Architecture Center：Caching best practices（Cache-Aside、TTL 设置、缓存与 CAP 取舍）](https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching)
-- [华为云 DCS 业务使用规范：防止缓存击穿、防止缓存穿透、过期时间打散、重试时间不宜过短](https://support.huaweicloud.com/bestpractice-dcs/bestpractice-dcs-pdf.pdf)
+- [Redis official documentation: Key eviction (all `maxmemory` and `maxmemory-policy` policies, approximate LRU implementation, hit rate diagnostics)](https://redis.io/docs/latest/develop/reference/eviction/)
+- [Redis official documentation: Client-side caching / distributed locks and other client-side patterns](https://redis.io/docs/latest/develop/clients/patterns/)
+- [RedisBloom v2.8.20 release notes: since Redis 8, probabilistic data structures are built into Redis, no separate module installation needed](https://github.com/RedisBloom/RedisBloom/releases/tag/v2.8.20)
+- [Microsoft Azure Architecture Center: Caching best practices (Cache-Aside, TTL settings, cache and CAP trade-offs)](https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching)
+- [Huawei Cloud DCS usage guidelines: preventing cache breakdown, preventing cache penetration, spreading out expiration times, retry times should not be too short](https://support.huaweicloud.com/bestpractice-dcs/bestpractice-dcs-pdf.pdf)

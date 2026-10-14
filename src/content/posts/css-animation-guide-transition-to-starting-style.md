@@ -1,19 +1,17 @@
 ---
-title: CSS 动画终极指南：从 transition 到 @starting-style
+title: 'The Ultimate Guide to CSS Animation: From transition to @starting-style'
 published: 2026-09-14
-description: '从 transition、@keyframes 一路讲到 @starting-style 与 allow-discrete，用一套可运行的弹层代码讲清「元素从无到有」的动画到底该怎么做。'
+description: From transition and @keyframes all the way to @starting-style and allow-discrete, this guide uses a runnable popover example to explain how to animate elements appearing from nothing.
 image: ''
-tags: [CSS, 动画, 前端, Web平台]
-category: '前端'
+tags: [CSS, Animation, Frontend, Web Platform]
+category: Frontend
 draft: false
-lang: ''
 ---
+## A Problem: Why Does the Animation Disappear When `display: none` Is Toggled Back?
 
-## 一个问题：为什么 `display: none` 切回来就没动画了
+Almost everyone who has written front-end interactions has hit this wall: you write a `transition: opacity .3s` for a popover, set it to `display: none` when closing, and when you open it again—it appears out of nowhere, and the animation is gone.
 
-几乎所有写过前端交互的人都撞过这堵墙：你给一个弹层写好 `transition: opacity .3s`，关闭时把它设成 `display: none`，再打开时——它凭空出现了，动画没了。
-
-原因很直白：**`display: none` 的元素根本不在渲染树里**。元素还没被渲染，自然没有「从旧状态到新状态」可言，浏览器连起始样式都无从计算。于是过去十几年的通用做法是用 JS 打补丁：
+The reason is straightforward: **elements with `display: none` are not in the render tree at all**. The element hasn't been rendered yet, so naturally there's no "from old state to new state" to speak of—the browser can't even compute a starting style. So for the past decade or so, the common approach has been to patch it with JS:
 
 ```js
 // 经典 hack：先删类，强制回流，再加类
@@ -22,19 +20,19 @@ void panel.offsetWidth; // 强制同步布局，逼迫浏览器「看到」初�
 panel.classList.add('is-open');
 ```
 
-这段代码能跑，但代价是每次开关都触发一次强制同步布局（forced reflow），而且把「动画」这件本该由 CSS 描述的事拆散到了两个语言里。
+This code works, but the cost is that every toggle triggers a forced synchronous layout (forced reflow), and it splits "animation"—something that should be described by CSS—across two languages.
 
-CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从最基础的 `transition` 讲起，一路把这套新工具串成一条完整的链路。
+CSS now has a first-class solution: **`@starting-style`**. This article starts from the most basic `transition` and threads these new tools together into a complete chain.
 
-## 第一层：transition —— 两点之间的插值
+## 1. Layer One: transition — Interpolation Between Two Points
 
-`transition` 描述的是「同一个属性在两个已知值之间如何平滑过渡」，它需要三个条件同时成立：
+`transition` describes "how the same property smoothly transitions between two known values," and it requires three conditions to hold simultaneously:
 
-1. 属性本身是**可插值**的（`opacity`、`transform`、`color` 可以；`display`、`content` 不行）
-2. 元素在过渡前后**都处于已渲染状态**
-3. 属性值**发生了实际变化**（从 `opacity: 1` 到 `opacity: 1` 不会有任何反应）
+1. The property itself is **interpolable** (`opacity`, `transform`, `color` can; `display`, `content` cannot)
+2. The element is **in a rendered state both before and after** the transition
+3. The property value **actually changes** (going from `opacity: 1` to `opacity: 1` won't trigger anything)
 
-第三点常被忽略，但它解释了一个经典困惑：为什么 `height: auto` 过渡不了？因为 `auto` 不是数值，浏览器无法在 `auto` 和 `200px` 之间求中间值。直到 `calc-size()` 与 `interpolate-size: allow-keywords` 出现，这个问题才有了纯 CSS 的答案——但那是另一个话题了。
+The third point is often overlooked, but it explains a classic confusion: why can't `height: auto` transition? Because `auto` is not a numeric value, and the browser cannot find an intermediate value between `auto` and `200px`. It wasn't until `calc-size()` and `interpolate-size: allow-keywords` appeared that this problem had a pure-CSS answer—but that's another topic.
 
 ```css
 .card {
@@ -49,11 +47,11 @@ CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从�
 }
 ```
 
-注意这里只动 `opacity` 和 `transform`。这不是审美偏好，而是性能约束：这两个属性可以由合成器（compositor）线程独立处理，不触发重排与重绘。动 `height`、`margin`、`top` 会让浏览器每帧重新计算布局，在低端设备上立刻掉帧。
+Note that only `opacity` and `transform` are animated here. This isn't an aesthetic preference but a performance constraint: these two properties can be handled independently by the compositor thread, without triggering reflow or repaint. Animating `height`, `margin`, `top` forces the browser to recalculate layout every frame, which immediately drops frames on low-end devices.
 
-## 第二层：@keyframes —— 描述一条时间线
+## 2. Layer Two: @keyframes — Describing a Timeline
 
-`transition` 只能描述「A → B」，当你要的是多段编排（先放大再回弹、无限旋转、骨架屏闪烁），就得换成 `animation`：
+`transition` can only describe "A → B." When what you want is multi-stage choreography (scale up then bounce back, infinite rotation, skeleton screen shimmer), you need to switch to `animation`:
 
 ```css
 @keyframes pulse {
@@ -77,11 +75,11 @@ CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从�
 }
 ```
 
-`animation` 与 `transition` 的关键区别在于**控制权**：`transition` 由属性值的变化驱动，`animation` 由元素被挂上动画名驱动。这也意味着 `@keyframes` 能表达「进入」这个动作——只要你愿意在元素渲染后立刻挂上它。
+The key difference between `animation` and `transition` lies in **control**: `transition` is driven by changes in property values, while `animation` is driven by the element having an animation name attached. This also means `@keyframes` can express the action of "entering"—as long as you're willing to attach it immediately after the element is rendered.
 
-## 第三层：@starting-style —— 让「首次渲染」也有起点
+## 3. Layer Three: @starting-style — Giving "First Render" a Starting Point
 
-现在回到开头的问题。`@starting-style` 做的事情可以一句话概括：**为元素「第一次被渲染时」提供一个起始样式**，让浏览器知道该从哪里开始过渡。
+Now back to the problem from the beginning. What `@starting-style` does can be summed up in one sentence: **it provides a starting style for when an element is "rendered for the first time,"** letting the browser know where to begin the transition from.
 
 ```css
 .panel {
@@ -99,13 +97,13 @@ CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从�
 }
 ```
 
-关键点在于：`@starting-style` 里的声明**只用于计算过渡的起始值，不会最终生效**。浏览器把它当作「如果这个元素此刻是初始状态，它应该长什么样」，然后立刻过渡到常规规则里的终值。
+The key point is: declarations inside `@starting-style` **are only used to compute the starting value of the transition and do not take effect in the end**. The browser treats it as "what this element should look like if it were in its initial state right now," then immediately transitions to the final value in the regular rules.
 
-但它单独用还不够——因为 `display: none` 的问题还没解决。
+But using it alone isn't enough—because the problem of `display: none` hasn't been solved yet.
 
-## 第四层：allow-discrete —— 让离散属性也能参与过渡
+## 4. Layer Four: allow-discrete — Letting Discrete Properties Participate in Transitions Too
 
-`display` 是离散属性：它要么是 `none`，要么不是，中间没有 50% 的 `display`。所以浏览器默认拒绝为它做过渡。`transition-behavior: allow-discrete` 改变了这条规则，它允许离散属性在过渡的**两端**发生翻转，而不是平滑插值：
+`display` is a discrete property: it's either `none` or it isn't, with no 50% `display` in between. So the browser refuses to transition it by default. `transition-behavior: allow-discrete` changes this rule, allowing discrete properties to flip at the **two endpoints** of the transition rather than interpolating smoothly:
 
 ```css
 .panel {
@@ -126,11 +124,11 @@ CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从�
 }
 ```
 
-这里的语义值得拆开看：关闭时，`display` 从 `block` 翻到 `none` 被推迟到过渡结束才发生（否则元素会瞬间消失，看不到淡出）；打开时，`display` 立刻变成 `block`，从而让 `opacity` 和 `transform` 有机会过渡。这正是过去那几行 JS hack 想模拟的效果。
+The semantics here are worth unpacking: when closing, `display` flipping from `block` to `none` is deferred until the transition ends (otherwise the element would vanish instantly and you wouldn't see the fade-out); when opening, `display` immediately becomes `block`, giving `opacity` and `transform` a chance to transition. This is exactly the effect those few lines of JS hack were trying to simulate in the past.
 
-## 完整示例：一个不写一行 JS 动画的 Toast
+## 5. Complete Example: A Toast with Zero Lines of JS Animation
 
-把四层拼起来，就是一个完整的、由开关一个类名驱动的弹层：
+Putting the four layers together gives you a complete popover driven by toggling a single class name:
 
 ```html
 <div class="toast" id="toast">已保存到草稿箱</div>
@@ -186,15 +184,15 @@ CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从�
 }
 ```
 
-注意 `@starting-style` 选择器里写的是 `.toast.is-open`——因为只有「打开」这个状态才需要起点。如果写成 `.toast`，关闭方向也会被赋予一个起始样式，反而会干扰过渡。
+Note that the `@starting-style` selector uses `.toast.is-open`—because only the "open" state needs a starting point. If you wrote `.toast`, the closing direction would also be given a starting style, which would actually interfere with the transition.
 
-同样的模式可以直接套用到 `<dialog>`、`popover`、汉堡菜单、下拉面板上。尤其是在 popover API 里，`popover` 的显示隐藏本身就切换 `display`，两者配合起来是当前最省事的弹层动画方案。
+The same pattern can be applied directly to `<dialog>`, `popover`, hamburger menus, and dropdown panels. Especially with the popover API, where `popover`'s show/hide itself toggles `display`—combining the two is currently the least effort-intensive popover animation solution.
 
-## 浏览器支持与回退
+## 6. Browser Support and Fallback
 
-截至 2026 年，`@starting-style` 与 `transition-behavior: allow-discrete` 已在 Chrome 117+、Safari 17.4+、Firefox 129+ 全量可用，主流浏览器的新版本都已覆盖。
+As of 2026, `@starting-style` and `transition-behavior: allow-discrete` are fully available in Chrome 117+, Safari 17.4+, and Firefox 129+, and new versions of all mainstream browsers have coverage.
 
-对仍需要兼容旧内核的场景，推荐用 `@supports` 做渐进增强，而不是退回 JS hack：
+For scenarios that still need to support older engines, it's recommended to use `@supports` for progressive enhancement rather than falling back to JS hacks:
 
 ```css
 @supports (transition-behavior: allow-discrete) {
@@ -208,24 +206,23 @@ CSS 现在有了一等公民的解法：**`@starting-style`**。这篇文章从�
 }
 ```
 
-这样旧浏览器得到的是「不淡入但有淡出」的可用版本，新浏览器得到完整动画——没有任何一段 JS，也没有强制回流。
+This way, old browsers get a usable version with "fade-out but no fade-in," and new browsers get the full animation—without a single line of JS and without forced reflow.
+## Final Thoughts
 
-## 写在最后
+These four layers actually correspond to progressively deeper questions:
 
-这四层其实对应着递进的问题：
-
-| 你想做的事 | 用什么 |
+| What you want to do | What to use |
 |---|---|
-| 两个已知状态之间平滑切换 | `transition` |
-| 多段编排、循环、复杂时间线 | `@keyframes` |
-| 元素首次出现时也要有起点 | `@starting-style` |
-| 让 `display` 这类离散属性参与切换 | `transition-behavior: allow-discrete` |
+| Smoothly switch between two known states | `transition` |
+| Multi-segment choreography, loops, complex timelines | `@keyframes` |
+| Elements that need a starting point the first time they appear | `@starting-style` |
+| Let discrete properties like `display` participate in transitions | `transition-behavior: allow-discrete` |
 
-过去我们把「进入动画」交给 JS，不是因为 CSS 做不到，而是因为 CSS 缺少描述「无」的语言。`@starting-style` 补上的正是这一块：它让「什么都不存在」也成为一种可以插值的状态。从那以后，弹层动画就只是两个类名之间的事了。
+In the past, we handed "enter animations" off to JS, not because CSS couldn't do it, but because CSS lacked the language to describe "nothing." `@starting-style` fills in exactly that gap: it makes "nothing exists" a state that can be interpolated. From then on, popover animations became nothing more than a matter of two class names.
 
 ---
 
-## 参考来源
+## References
 
 - [MDN — `@starting-style`](https://developer.mozilla.org/en-US/docs/Web/CSS/@starting-style)
 - [MDN — `transition-behavior`](https://developer.mozilla.org/en-US/docs/Web/CSS/transition-behavior)

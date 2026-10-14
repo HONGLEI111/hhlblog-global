@@ -1,61 +1,59 @@
 ---
-title: TypeScript 6.0 正式发布：最后一个 JS 版本，为 Go 原生 7.0 铺路
+title: 'TypeScript 6.0 Officially Released: The Last JS Version, Paving the Way for Go-Native 7.0'
 published: 2026-03-23
-description: 'TypeScript 6.0 正式发布，这是基于 JavaScript 代码库构建的最后一个主版本。strict 默认开启、types 默认清空、ES2025 支持、Temporal API，同时为即将到来的 Go 重写版 TypeScript 7.0 铺平道路。'
+description: TypeScript 6.0 has been officially released, marking the last major version built on the JavaScript codebase. It enables strict by default, clears types by default, adds ES2025 support and the Temporal API, while paving the way for the upcoming Go rewrite, TypeScript 7.0.
 image: ''
-tags: [TypeScript, 前端, JavaScript]
-category: '前端'
+tags: [TypeScript, Frontend, JavaScript]
+category: Frontend
 draft: false 
-lang: ''
+---
+## 1. Introduction
+
+On March 23, 2026, Microsoft officially released **TypeScript 6.0**, announced by TypeScript Chief Product Manager Daniel Rosenwasser on the official DevBlog. This is a **milestone release** in TypeScript's evolution, bridging the past and the future.
+
+TypeScript 6.0 has a very special identity—**it is the last major version built on the existing JavaScript codebase**. Microsoft has confirmed that TypeScript 7.0 will use the **Go language** to completely rewrite the compiler and language service, codenamed **"Project Corsa"**, with an expected **10x improvement** in compilation speed.
+
+The core mission of TypeScript 6.0 is: before fully migrating to the Go native compiler, clean up as much historical debt as possible, adjust default behaviors, and introduce new type system capabilities, allowing developers to **smoothly transition** to the upcoming TypeScript 7.0 era.
+
 ---
 
-## 1. 引言
+## 2. Core Positioning: A "Bridge Version" Connecting Past and Future
 
-2026年3月23日，微软正式发布了 **TypeScript 6.0**，由 TypeScript 首席产品经理 Daniel Rosenwasser 在官方 DevBlog 上宣布。这是 TypeScript 发展历程中一个承前启后的**里程碑版本**。
+### 2.1 Why Is It the Last JS Version?
 
-TypeScript 6.0 有一个非常特殊的身份——**这是基于现有 JavaScript 代码库构建的最后一个主版本**。微软已确认，TypeScript 7.0 将使用 **Go 语言**全面重写编译器和语言服务，代号 **"Project Corsa"**，预计编译速度将**提升 10 倍**。
+Since its inception, TypeScript's compiler has been self-hosted using TypeScript/JavaScript. As project scale grew and the user base expanded (over **10 million** developers worldwide), the performance bottleneck of JS single-threading became increasingly prominent.
 
-TypeScript 6.0 的核心使命是：在彻底迁移到 Go 原生编译器之前，尽可能多地清理历史债务、调整默认行为、引入新的类型系统能力，让开发者**平稳过渡**到即将到来的 TypeScript 7.0 时代。
+Microsoft launched **Project Corsa** in 2025—rewriting the TypeScript compiler core in Go:
 
----
-
-## 2. 核心定位：承前启后的「桥梁版本」
-
-### 2.1 为什么是最后一个 JS 版本？
-
-TypeScript 自诞生以来，编译器一直使用 TypeScript/JavaScript 自举实现。随着项目规模的增长和用户基数的膨胀（全球超过 **1000 万**开发者），JS 单线程性能瓶颈日益凸显。
-
-微软在 2025 年启动了 **Project Corsa**——使用 Go 语言重写 TypeScript 编译器核心：
-
-| 维度 | 当前 JS 编译器 | 即将到来的 Go 编译器 |
+| Dimension | Current JS Compiler | Upcoming Go Compiler |
 |------|---------------|-------------------|
-| 并发模型 | 单线程 + Worker | 共享内存多线程 |
-| 编译速度 | 基准线 | 提升 **10 倍** |
-| 内存效率 | JS GC 管理 | 原生内存管理 |
-| LSP 响应 | 取决于项目大小 | 极低延迟 |
+| Concurrency Model | Single-threaded + Worker | Shared-memory multi-threading |
+| Compilation Speed | Baseline | **10x** improvement |
+| Memory Efficiency | JS GC managed | Native memory management |
+| LSP Response | Depends on project size | Extremely low latency |
 
-### 2.2 7.0 的开发进度
+### 2.2 Development Progress of 7.0
 
-TypeScript 7.0 已经"非常接近完成"，Nightly Build 可通过以下方式提前体验：
+TypeScript 7.0 is "very close to completion," and Nightly Builds can be experienced early through the following:
 
 ```bash
 npm install -D @typescript/native-preview
 ```
 
-同时 VS Code 用户可安装对应的 Nightly 扩展，在大型代码库上测试 Go 原生编译器的实际表现。
+Meanwhile, VS Code users can install the corresponding Nightly extension to test the actual performance of the Go native compiler on large codebases.
 
 ---
 
-## 3. 全新特性
+## 3. New Features
 
 ### 3.1 `es2025` Target / Lib
 
-TypeScript 6.0 新增了 `es2025` 作为编译目标和库选项。`es2025` 类型的核心内容来自已进入 **Stage 4** 的 TC39 提案：
+TypeScript 6.0 adds `es2025` as a compilation target and library option. The core content of the `es2025` type comes from TC39 proposals that have reached **Stage 4**:
 
-- **`RegExp.escape()`**：安全转义正则表达式中的特殊字符
-- **`Promise.try()`**：统一同步/异步函数调用的 Promise 包装
-- **Iterator 辅助方法**：`Iterator.prototype.map/filter/take/drop` 等链式操作
-- **Set 方法**：`Set.prototype.union/intersection/difference/symmetricDifference` 等集合运算
+- **`RegExp.escape()`**: Safely escape special characters in regular expressions
+- **`Promise.try()`**: Unified Promise wrapping for sync/async function calls
+- **Iterator helper methods**: Chained operations like `Iterator.prototype.map/filter/take/drop`
+- **Set methods**: Set operations like `Set.prototype.union/intersection/difference/symmetricDifference`
 
 ```typescript
 // es2025 新增能力示例
@@ -68,9 +66,9 @@ const evens = new Set([2, 4, 6]);
 const union = nums.union(evens);  // Set {1, 2, 3, 4, 6}
 ```
 
-### 3.2 Temporal API 类型支持
+### 3.2 Temporal API Type Support
 
-`Temporal` API 已进入 Stage 4，将成为 JavaScript 标准的日期时间处理方案。TypeScript 6.0 通过 `esnext.temporal` lib 提供完整类型支持：
+The `Temporal` API has reached Stage 4 and will become the standard date-time handling solution for JavaScript. TypeScript 6.0 provides full type support through the `esnext.temporal` lib:
 
 ```typescript
 // Temporal API — 现代 JavaScript 日期处理
@@ -81,12 +79,12 @@ const duration = meeting.since(now);
 console.log(duration.toString()); // "PT2H30M"
 ```
 
-### 3.3 Map "Upsert" 方法
+### 3.3 Map "Upsert" Methods
 
-TypeScript 6.0 为 `Map` 新增了两个实用的类型方法：
+TypeScript 6.0 adds two practical type methods to `Map`:
 
-- **`getOrInsert(key, value)`**：键不存在时插入默认值并返回
-- **`getOrInsertComputed(key, factory)`**：键不存在时通过工厂函数计算并插入
+- **`getOrInsert(key, value)`**: Insert a default value when the key doesn't exist and return it
+- **`getOrInsertComputed(key, factory)`**: Compute and insert via a factory function when the key doesn't exist
 
 ```typescript
 const cache = new Map<string, number[]>();
@@ -104,7 +102,7 @@ const items = cache.getOrInsertComputed("key", () => []);
 
 ### 3.4 Subpath Imports (`#/`)
 
-TypeScript 6.0 在 `nodenext` 和 `bundler` 模块解析模式下，正式支持 Node.js 风格的包内导入路径：
+TypeScript 6.0 officially supports Node.js-style in-package import paths under `nodenext` and `bundler` module resolution modes:
 
 ```json
 // package.json
@@ -122,39 +120,39 @@ import { formatDate } from "#utils/date";
 import { Button } from "#components/Button";
 ```
 
-### 3.5 `--stableTypeOrdering` 标志
+### 3.5 `--stableTypeOrdering` Flag
 
-TypeScript 6.0 新增了 `--stableTypeOrdering` 迁移诊断标志。启用后，6.0 的类型排序算法与 7.0 的**确定性排序算法**保持一致。
+TypeScript 6.0 adds the `--stableTypeOrdering` migration diagnostic flag. When enabled, 6.0's type ordering algorithm aligns with 7.0's **deterministic ordering algorithm**.
 
-> ⚠️ 注意：此标志可能导致类型检查速度降低 **25%**，仅在准备迁移到 7.0 时使用。
+> ⚠️ Note: This flag may reduce type-checking speed by **25%**. Only use it when preparing to migrate to 7.0.
 
-### 3.6 DOM 类型合并
+### 3.6 DOM Type Merging
 
-`dom.iterable` 和 `dom.asynciterable` 的内容已合并入 `dom` lib，开发者不再需要为可迭代 DOM 类型单独声明。
+The contents of `dom.iterable` and `dom.asynciterable` have been merged into the `dom` lib, and developers no longer need to separately declare iterable DOM types.
 
 ---
 
-## 4. 重大 Breaking Changes
+## 4. Major Breaking Changes
 
-### 4.1 默认值变更一览
+### 4.1 Overview of Default Value Changes
 
-这是 TypeScript 6.0 中影响最为广泛的变更——**多个历史默认值被一举翻转**：
+This is the most far-reaching change in TypeScript 6.0—**multiple historical defaults were flipped all at once**:
 
-| 配置项 | 旧默认值 | 新默认值 | 影响 |
+| Config Option | Old Default | New Default | Impact |
 |--------|---------|----------|------|
-| `strict` | `false` | **`true`** | 所有严格检查默认开启 |
-| `types` | 自动爬取 `@types` | **`[]`（空数组）** | 不再自动加载全局类型 |
-| `module` | `commonjs` | **`esnext`** | 默认输出 ESM |
-| `target` | `es5` | **`es2025`** | 默认目标最新标准 |
-| `rootDir` | 自动推断 | **`.`** | 输出结构明确控制 |
+| `strict` | `false` | **`true`** | All strict checks enabled by default |
+| `types` | Auto-crawl `@types` | **`[]` (empty array)** | No longer auto-loads global types |
+| `module` | `commonjs` | **`esnext`** | Outputs ESM by default |
+| `target` | `es5` | **`es2025`** | Defaults to the latest standard target |
+| `rootDir` | Auto-inferred | **`.`** | Output structure explicitly controlled |
 
-### 4.2 `types: []` 的巨大影响
+### 4.2 The Huge Impact of `types: []`
 
-最受关注的变化当属 `types` 默认值改为空数组。这意味着 **`@types` 包不再被自动发现并加载**，需要通过 `types` 字段显式声明。
+The most closely watched change is `types` defaulting to an empty array. This means **`@types` packages are no longer automatically discovered and loaded**, and must be explicitly declared via the `types` field.
 
-**微软团队透露，部分项目的冷构建时间因此缩短了 20%-50%。**
+**The Microsoft team revealed that some projects saw cold build times reduced by 20%-50% as a result.**
 
-升级后必须立即检查 `tsconfig.json`：
+After upgrading, you must immediately check `tsconfig.json`:
 
 ```json
 {
@@ -164,11 +162,11 @@ TypeScript 6.0 新增了 `--stableTypeOrdering` 迁移诊断标志。启用后�
 }
 ```
 
-否则会出现大量 `Cannot find name 'console'`、`Cannot find name 'process'` 等标识符缺失错误。
+Otherwise, you'll encounter numerous missing identifier errors such as `Cannot find name 'console'` and `Cannot find name 'process'`.
 
-### 4.3 `rootDir` 默认改为 `.`
+### 4.3 `rootDir` Defaults to `.`
 
-这一变更会影响输出目录结构：
+This change affects the output directory structure:
 
 ```bash
 # 旧行为（rootDir 自动推断为 src/）
@@ -178,7 +176,7 @@ TypeScript 6.0 新增了 `--stableTypeOrdering` 迁移诊断标志。启用后�
 # 输出：dist/src/index.js   ← 多了一层！
 ```
 
-升级时建议显式设置：
+When upgrading, it's recommended to explicitly set:
 
 ```json
 {
@@ -188,9 +186,9 @@ TypeScript 6.0 新增了 `--stableTypeOrdering` 迁移诊断标志。启用后�
 }
 ```
 
-### 4.4 `strict: true` 默认开启
+### 4.4 `strict: true` Enabled by Default
 
-TypeScript 6.0 默认开启 `strict: true`，这意味着以下所有子选项均默认启用：
+TypeScript 6.0 enables `strict: true` by default, meaning all of the following sub-options are enabled by default:
 
 - `strictNullChecks`
 - `strictBindCallApply`
@@ -201,37 +199,36 @@ TypeScript 6.0 默认开启 `strict: true`，这意味着以下所有子选项�
 - `alwaysStrict`
 - `useUnknownInCatchVariables`
 
-如果你的项目之前未启用 strict 模式，升级后可能会看到大量新的类型错误。**大多数错误是合理的**，反映了代码中潜在的 bug。
+If your project previously did not enable strict mode, you may see numerous new type errors after upgrading. **Most errors are legitimate**, reflecting potential bugs in the code.
 
 ---
+## 5. Deprecated Configuration (to be completely removed in 7.0)
 
-## 5. 已弃用配置（7.0 中将彻底移除）
+Options marked as **deprecated** in TypeScript 6.0 will be **completely removed in 7.0**. Developers should migrate as early as possible:
 
-TypeScript 6.0 中标记为**弃用**的选项，将在 **7.0 中彻底移除**。开发者应尽早迁移：
+### 5.1 Compiler Options
 
-### 5.1 编译器选项
-
-| 弃用项 | 替代方案 |
+| Deprecated Item | Replacement |
 |--------|---------|
-| `target: es5` | 使用 `es2015` 或更高版本 |
-| `--downlevelIteration` | 配合新 target 使用原生迭代 |
-| `module: amd / umd / systemjs` | 使用 `esnext` 或其他标准模块格式 |
+| `target: es5` | Use `es2015` or higher |
+| `--downlevelIteration` | Use native iteration with the new target |
+| `module: amd / umd / systemjs` | Use `esnext` or another standard module format |
 | `--moduleResolution node` (node10) | `node16` / `nodenext` / `bundler` |
-| `--moduleResolution classic` | 任何现代解析策略 |
-| `--baseUrl` | 使用 `paths` 替代 |
-| `--outFile` | 使用打包工具 |
-| `--esModuleInterop false` | 统一启用 `esModuleInterop` |
-| `--allowSyntheticDefaultImports false` | 统一启用默认导入 |
-| `--alwaysStrict false` | 遵守新的 `strict` 默认值 |
+| `--moduleResolution classic` | Any modern resolution strategy |
+| `--baseUrl` | Use `paths` instead |
+| `--outFile` | Use a bundler |
+| `--esModuleInterop false` | Enable `esModuleInterop` uniformly |
+| `--allowSyntheticDefaultImports false` | Enable default imports uniformly |
+| `--alwaysStrict false` | Comply with the new `strict` defaults |
 
-### 5.2 语法弃用
+### 5.2 Syntax Deprecations
 
-- **模块命名空间语法**：`module Foo { }` → 使用 `namespace Foo { }`
-- **Import Assertions**：`import ... assert { type: "json" }` → 使用 `import ... with { type: "json" }`
+- **Module namespace syntax**: `module Foo { }` → Use `namespace Foo { }`
+- **Import Assertions**: `import ... assert { type: "json" }` → Use `import ... with { type: "json" }`
 
-### 5.3 如何应对
+### 5.3 How to Cope
 
-在 6.0 中，可通过配置暂时抑制弃用错误：
+In 6.0, you can temporarily suppress deprecation errors via configuration:
 
 ```json
 {
@@ -241,15 +238,15 @@ TypeScript 6.0 中标记为**弃用**的选项，将在 **7.0 中彻底移除**�
 }
 ```
 
-但请注意：**7.0 将完全不再支持这些选项**，`ignoreDeprecations: "6.0"` 届时也将失效。
+But note: **7.0 will no longer support these options at all**, and `ignoreDeprecations: "6.0"` will also cease to work by then.
 
 ---
 
-## 6. 升级指南
+## 6. Upgrade Guide
 
-### 6.1 最小化迁移步骤
+### 6.1 Minimal Migration Steps
 
-将现有项目升级到 TypeScript 6.0 的建议流程：
+The recommended process for upgrading an existing project to TypeScript 6.0:
 
 ```bash
 # 1. 升级 TypeScript
@@ -259,9 +256,9 @@ npm install -D typescript@latest
 npx tsc --version
 ```
 
-### 6.2 必需配置调整
+### 6.2 Required Configuration Adjustments
 
-升级后，大多数项目需要**立即进行两项配置调整**：
+After upgrading, most projects need **two configuration adjustments immediately**:
 
 ```json
 {
@@ -275,7 +272,7 @@ npx tsc --version
 }
 ```
 
-### 6.3 推荐迁移路径
+### 6.3 Recommended Migration Path
 
 ```
 现有项目
@@ -288,40 +285,40 @@ npx tsc --version
   └── 准备迎接 TypeScript 7.0 Go 编译器
 ```
 
-### 6.4 在大型项目中渐进式迁移
+### 6.4 Incremental Migration in Large Projects
 
-对于大型代码库，建议：
+For large codebases, it is recommended to:
 
-1. **先在 CI 中单独运行 6.0 编译**，不阻塞主流程
-2. **逐步修复 strict 错误**，按文件或目录分批进行
-3. **使用 `ignoreDeprecations` 争取时间**，但要有明确的消除计划
-4. **尝鲜 `@typescript/native-preview`**，提前评估 7.0 的兼容性
+1. **First run 6.0 compilation separately in CI**, without blocking the main workflow
+2. **Gradually fix strict errors**, batch by file or directory
+3. **Use `ignoreDeprecations` to buy time**, but have a clear plan for eliminating them
+4. **Try out `@typescript/native-preview` early**, to assess 7.0 compatibility in advance
 
 ---
 
-## 7. 发布历程与展望
+## 7. Release Timeline and Outlook
 
-### 7.1 时间线
+### 7.1 Timeline
 
-| 日期 | 里程碑 |
+| Date | Milestone |
 |------|--------|
-| 2026年2月11日 | TypeScript 6.0 **Beta** 发布 |
-| 2026年3月6日 | TypeScript 6.0 **RC** 发布 |
-| **2026年3月23日** | **TypeScript 6.0 正式 GA** |
-| 未来几个月 | TypeScript 7.0 稳定版预计发布 |
+| February 11, 2026 | TypeScript 6.0 **Beta** released |
+| March 6, 2026 | TypeScript 6.0 **RC** released |
+| **March 23, 2026** | **TypeScript 6.0 officially GA** |
+| Coming months | TypeScript 7.0 stable release expected |
 
-### 7.2 对 TypeScript 7.0 的展望
+### 7.2 Outlook for TypeScript 7.0
 
-TypeScript 7.0 将是一次**彻底的编译器重写**——不是增量改进，而是用 Go 语言重新构建整个编译管线：
+TypeScript 7.0 will be a **complete compiler rewrite**—not an incremental improvement, but a rebuild of the entire compilation pipeline in Go:
 
-- **共享内存多线程**：充分利用多核 CPU，而非 Worker 线程通信
-- **原生代码性能**：远离 JS GC，获得确定性的内存管理
-- **10 倍编译速度**：大型项目的编译时间将从分钟级降至秒级
-- **极低 LSP 延迟**：代码补全、错误提示、重构——一切都将更快
+- **Shared-memory multithreading**: Full utilization of multi-core CPUs, rather than Worker thread communication
+- **Native code performance**: Moving away from JS GC, achieving deterministic memory management
+- **10x compilation speed**: Compilation times for large projects will drop from minutes to seconds
+- **Extremely low LSP latency**: Code completion, error hints, refactoring—everything will be faster
 
-### 7.3 生态影响
+### 7.3 Ecosystem Impact
 
-TypeScript 的 Go 重写不仅仅是一次性能升级，更标志着 JavaScript 工具链的**系统编程语言化**趋势：
+TypeScript's Go rewrite is not just a performance upgrade; it also marks a **systems-programming-language-ification** trend in the JavaScript toolchain:
 
 ```
 工具链演进趋势：
@@ -335,19 +332,19 @@ JavaScript → TypeScript（自举）→ Go/Rust/Zig（系统语言）
 🔄 TypeScript（Go） — 编译器 7.0
 ```
 
-这一趋势意味着，前端工程化正在从 "够用即可" 转向 "原生性能"，开发者体验将迎来质的飞跃。
+This trend means that frontend engineering is shifting from "good enough" to "native performance," and the developer experience will see a qualitative leap.
 
 ---
 
-## 8. 总结
+## 8. Summary
 
-TypeScript 6.0 是一个**大胆而务实**的版本：
+TypeScript 6.0 is a **bold yet pragmatic** release:
 
-| 维度 | 评价 |
+| Dimension | Assessment |
 |------|------|
-| **新能力** | ES2025、Temporal API、Subpath Imports——保持与标准同步 |
-| **默认值翻转** | strict/types/module/target——一次性清理历史包袱 |
-| **弃用清理** | 移除过时的模块格式和解析策略——为 Go 重写减负 |
-| **桥梁角色** | `stableTypeOrdering`、`ignoreDeprecations`——平滑过渡 |
+| **New capabilities** | ES2025, Temporal API, Subpath Imports—staying in sync with standards |
+| **Default flips** | strict/types/module/target—clearing out historical baggage in one go |
+| **Deprecation cleanup** | Removing outdated module formats and resolution strategies—reducing the burden for the Go rewrite |
+| **Bridge role** | `stableTypeOrdering`, `ignoreDeprecations`—smooth transition |
 
-**TypeScript 6.0 是终点，也是起点。** 它终结了 TypeScript 的 JavaScript 自举时代，同时开启了 Go 原生编译器的全新时代。对于开发者而言，现在就该开始升级和适配——因为当 TypeScript 7.0 到来时，你将站在一个**快 10 倍的起跑线上**。
+**TypeScript 6.0 is both an endpoint and a starting point.** It ends the era of TypeScript's JavaScript self-hosting, while opening a new era of the Go-native compiler. For developers, now is the time to start upgrading and adapting—because when TypeScript 7.0 arrives, you will be standing at a **10x faster starting line**.

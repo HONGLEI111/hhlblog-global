@@ -1,33 +1,31 @@
 ---
-title: Ant Design X 2.7 发布：RICH 范式与 Hybrid UI 重塑 AI 界面开发
+title: 'Ant Design X 2.7 Released: RICH Paradigm and Hybrid UI Reshape AI Interface Development'
 published: 2026-05-21
-description: 'Ant Design X 是 Ant Design 生态面向 AI 驱动界面的 React 组件库，基于 RICH 交互范式与 Hybrid UI 理念，提供流式 Markdown 渲染、A2UI 动态卡片、AI SDK 等完整解决方案。'
+description: Ant Design X is a React component library in the Ant Design ecosystem for AI-driven interfaces. Built on the RICH interaction paradigm and Hybrid UI concept, it offers streaming Markdown rendering, A2UI dynamic cards, AI SDK, and other complete solutions.
 image: ''
-tags: [Ant Design X, React, AI, 前端]
-category: '前端'
+tags: [Ant Design X, React, AI, Frontend]
+category: Frontend
 draft: false
-lang: ''
 ---
+## 1. What Is Ant Design X?
 
-## 1. 什么是 Ant Design X？
+Ant Design X (`@ant-design/x`) is a **React component library for AI-driven interfaces** launched by the Ant Design team. It is not a replacement for Ant Design 5, but rather a new component system built on top of the existing design system, specifically designed for scenarios such as AI chat, intelligent assistants, and Agent consoles.
 
-Ant Design X（`@ant-design/x`）是 Ant Design 团队推出的**面向 AI 驱动界面的 React 组件库**。它并不是 Ant Design 5 的替代品，而是在原有设计体系之上，专为构建 AI 聊天、智能助手、Agent 控制台等场景设计的一套新组件体系。
+On April 30, 2026, Ant Design X released version **v2.7.0**, and its ecosystem now encompasses 5 core packages:
 
-2026 年 4 月 30 日，Ant Design X 发布了 **v2.7.0** 版本，生态已涵盖 5 个核心包：
-
-| 包名 | 用途 | 最新版本 |
+| Package Name | Purpose | Latest Version |
 |------|------|----------|
-| `@ant-design/x` | 核心 AI 界面组件库 | 2.7.0 |
-| `@ant-design/x-markdown` | 流式 Markdown 渲染器 | 2.7.0 |
-| `@ant-design/x-sdk` | AI 数据流管理 SDK | 2.7.0 |
-| `@ant-design/x-card` | A2UI 动态卡片渲染 | 2.7.0 |
-| `@ant-design/x-skill` | AI 编码助手技能库 | 2.7.0 |
+| `@ant-design/x` | Core AI interface component library | 2.7.0 |
+| `@ant-design/x-markdown` | Streaming Markdown renderer | 2.7.0 |
+| `@ant-design/x-sdk` | AI data stream management SDK | 2.7.0 |
+| `@ant-design/x-card` | A2UI dynamic card rendering | 2.7.0 |
+| `@ant-design/x-skill` | AI coding assistant skill library | 2.7.0 |
 
 ---
 
-## 2. 设计哲学：RICH 交互范式
+## 2. Design Philosophy: The RICH Interaction Paradigm
 
-Ant Design X 的核心设计理念是 **RICH 范式**，它将 AI 交互拆解为四个阶段：
+The core design philosophy of Ant Design X is the **RICH paradigm**, which breaks down AI interaction into four stages:
 
 ```
 RICH 交互流程
@@ -53,31 +51,31 @@ RICH 交互流程
     └── CodeHighlighter 代码高亮
 ```
 
-RICH 不是线性流程，而是**可组合的交互单元**。你可以单独使用某个阶段的组件，也可以将它们组合成完整的 AI 应用。
+RICH is not a linear process, but rather **composable interaction units**. You can use components from a single stage independently, or combine them into a complete AI application.
 
 ---
 
-## 3. Hybrid UI：融合 GUI 与自然语言
+## 3. Hybrid UI: Merging GUI with Natural Language
 
-Ant Design X 提出的 **Hybrid UI (HUI)** 概念试图解决一个核心矛盾：传统 GUI 操作效率高但学习成本大，自然语言交互灵活但意图表达模糊。
+The **Hybrid UI (HUI)** concept proposed by Ant Design X attempts to resolve a core contradiction: traditional GUI operations are efficient but have a high learning curve, while natural language interaction is flexible but expresses intent ambiguously.
 
-HUI 将交互模式分为三种：
+HUI divides interaction modes into three types:
 
-| 模式 | 特点 | 适用场景 |
-|------|------|----------|
-| **Do-heavy** | GUI 为主，AI 辅助 | 结构化表单、数据录入 |
-| **Chat-heavy** | 自然语言为主 | 开放式问答、内容生成 |
-| **HUI 混合** | GUI + Chat 自由切换 | 智能客服、Agent 控制台 |
+| Mode | Characteristics | Use Cases |
+|------|----------|----------|
+| **Do-heavy** | GUI-dominant, AI-assisted | Structured forms, data entry |
+| **Chat-heavy** | Natural language-dominant | Open-ended Q&A, content generation |
+| **HUI Hybrid** | Free switching between GUI + Chat | Intelligent customer service, Agent consoles |
 
-这种设计让同一个界面既能通过传统表单精准操作，也能通过自然语言灵活表达，「鱼与熊掌兼得」。
+This design allows the same interface to perform precise operations through traditional forms while also expressing flexibly through natural language — "having your cake and eating it too."
 
 ---
 
-## 4. 核心组件速览
+## 4. Core Components at a Glance
 
-### 4.1 Bubble — 对话气泡
+### 4.1 Bubble — Conversation Bubble
 
-`Bubble` 是展示对话内容的基础组件，支持多种角色和内容类型：
+`Bubble` is the foundational component for displaying conversation content, supporting multiple roles and content types:
 
 ```tsx
 import { Bubble } from '@ant-design/x';
@@ -89,9 +87,9 @@ import { Bubble } from '@ant-design/x';
 />
 ```
 
-### 4.2 Sender — 输入框
+### 4.2 Sender — Input Box
 
-`Sender` 是一个增强型输入组件，支持附件上传、语音输入和快捷建议：
+`Sender` is an enhanced input component that supports file attachments, voice input, and quick suggestions:
 
 ```tsx
 import { Sender } from '@ant-design/x';
@@ -102,9 +100,9 @@ import { Sender } from '@ant-design/x';
 />
 ```
 
-### 4.3 ThoughtChain — 思维链
+### 4.3 ThoughtChain — Chain of Thought
 
-展示 AI Agent 的思考过程，让用户理解 AI 的推理路径：
+Displays the thinking process of an AI Agent, allowing users to understand the AI's reasoning path:
 
 ```tsx
 import { ThoughtChain } from '@ant-design/x';
@@ -118,9 +116,9 @@ import { ThoughtChain } from '@ant-design/x';
 />
 ```
 
-### 4.4 Sources — 引用来源
+### 4.4 Sources — Cited Sources
 
-展示 AI 回答的参考来源，增强可信度：
+Displays the reference sources for AI responses, enhancing credibility:
 
 ```tsx
 import { Sources } from '@ant-design/x';
@@ -135,13 +133,13 @@ import { Sources } from '@ant-design/x';
 
 ---
 
-## 5. XMarkdown：流式 Markdown 渲染
+## 5. XMarkdown: Streaming Markdown Rendering
 
-`@ant-design/x-markdown` 是一个专为 AI 流式输出优化的 Markdown 渲染引擎。它解决了传统 Markdown 渲染器在流式场景下的三个核心问题：
+`@ant-design/x-markdown` is a Markdown rendering engine optimized specifically for AI streaming output. It solves three core problems that traditional Markdown renderers face in streaming scenarios:
 
-### 5.1 不完整语法容错
+### 5.1 Incomplete Syntax Fault Tolerance
 
-当 AI 流式输出 `$$E = mc^`（公式未闭合）时，XMarkdown 不会崩溃，而是优雅降级渲染：
+When AI streams output `$$E = mc^` (unclosed formula), XMarkdown does not crash, but instead gracefully degrades the rendering:
 
 ```tsx
 import { XMarkdown } from '@ant-design/x-markdown';
@@ -152,9 +150,9 @@ import { XMarkdown } from '@ant-design/x-markdown';
 />
 ```
 
-### 5.2 自定义流式尾部指示器
+### 5.2 Custom Streaming Tail Indicator
 
-v2.6.0 新增的 `streaming.tail` 配置支持自定义闪烁光标：
+The `streaming.tail` configuration added in v2.6.0 supports a custom blinking cursor:
 
 ```tsx
 <XMarkdown
@@ -166,9 +164,9 @@ v2.6.0 新增的 `streaming.tail` 配置支持自定义闪烁光标：
 />
 ```
 
-### 5.3 安全渲染
+### 5.3 Safe Rendering
 
-v2.3.0 新增 `escapeRawHtml` 属性，防止 XSS 攻击：
+The `escapeRawHtml` property added in v2.3.0 prevents XSS attacks:
 
 ```tsx
 <XMarkdown
@@ -179,11 +177,11 @@ v2.3.0 新增 `escapeRawHtml` 属性，防止 XSS 攻击：
 
 ---
 
-## 6. X SDK：AI 数据流管理
+## 6. X SDK: AI Data Stream Management
 
-`@ant-design/x-sdk` 封装了与 AI 模型交互的完整数据流：
+`@ant-design/x-sdk` encapsulates the complete data flow for interacting with AI models:
 
-### 6.1 XRequest — 请求管理
+### 6.1 XRequest — Request Management
 
 ```tsx
 import { XRequest } from '@ant-design/x-sdk';
@@ -195,7 +193,7 @@ const request = XRequest({
 });
 ```
 
-v2.2.0 支持**断线重连**和**自定义流分隔符**：
+v2.2.0 supports **reconnection** and **custom stream delimiters**:
 
 ```tsx
 XRequest({
@@ -207,7 +205,7 @@ XRequest({
 });
 ```
 
-### 6.2 useXChat — 会话管理
+### 6.2 useXChat — Conversation Management
 
 ```tsx
 import { useXChat } from '@ant-design/x-sdk';
@@ -220,9 +218,9 @@ const { messages, onRequest } = useXChat({
 
 ---
 
-## 7. X Card：A2UI 动态卡片
+## 7. X Card: A2UI Dynamic Cards
 
-v2.5.0 发布的 `@ant-design/x-card` 是整个生态最亮眼的新成员。它基于 **A2UI 协议**，允许 AI Agent 动态生成结构化 UI：
+The `@ant-design/x-card` released in v2.5.0 is the most eye-catching new member of the entire ecosystem. It is based on the **A2UI protocol**, allowing AI Agents to dynamically generate structured UI:
 
 ```tsx
 import { XCard } from '@ant-design/x-card';
@@ -234,13 +232,12 @@ import { XCard } from '@ant-design/x-card';
 />
 ```
 
-A2UI 的核心价值在于：**AI 不只是返回文本，而是返回可交互的卡片**。例如，AI 可以返回一个包含表单、图表、按钮的完整交互界面，而不仅仅是文字描述。
+The core value of A2UI lies in this: **AI doesn't just return text — it returns interactive cards**. For example, AI can return a complete interactive interface containing forms, charts, and buttons, rather than just a text description.
 
 ---
+## 8. Quick Start
 
-## 8. 快速上手
-
-### 8.1 安装
+### 8.1 Installation
 
 ```bash
 # 核心组件库
@@ -253,7 +250,7 @@ npm install @ant-design/x-markdown
 npm install @ant-design/x-sdk
 ```
 
-### 8.2 一个完整的 AI 聊天应用
+### 8.2 A Complete AI Chat Application
 
 ```tsx
 import {
@@ -299,59 +296,59 @@ export default function ChatApp() {
 }
 ```
 
-不到 40 行代码，就实现了一个带有流式 Markdown 渲染、会话管理、AI 对话的完整聊天应用。
+In under 40 lines of code, a complete chat application with streaming Markdown rendering, session management, and AI conversation is implemented.
 
 ---
 
-## 9. 2026 年版本演进
+## 9. 2026 Version Evolution
 
-Ant Design X 在 2026 年保持了**月度 minor 版本**的发布节奏：
+Ant Design X maintained a **monthly minor version** release cadence in 2026:
 
-| 版本 | 日期 | 关键更新 |
+| Version | Date | Key Updates |
 |------|------|----------|
-| **v2.7.0** | 4 月 30 日 | XProvider `zeroRuntime`、XCard 路径引用解析 |
-| **v2.6.0** | 4 月 17 日 | XMarkdown 尾部指示器组件、x-components/x-card skill |
-| **v2.5.0** | 3 月 31 日 | 🔥 X Card 动态卡片模块发布 |
-| **v2.4.0** | 3 月 13 日 | 🔥 Folder 文件树组件、x-markdown skill |
-| **v2.3.0** | 2 月 26 日 | useXChat `queueRequest`、XMarkdown `escapeRawHtml` |
-| **v2.2.0** | 1 月 | Mermaid 配置、XRequest 重连、XMarkdown 性能测试 |
+| **v2.7.0** | April 30 | XProvider `zeroRuntime`, XCard path reference resolution |
+| **v2.6.0** | April 17 | XMarkdown tail indicator component, x-components/x-card skill |
+| **v2.5.0** | March 31 | 🔥 X Card dynamic card module released |
+| **v2.4.0** | March 13 | 🔥 Folder file tree component, x-markdown skill |
+| **v2.3.0** | February 26 | useXChat `queueRequest`, XMarkdown `escapeRawHtml` |
+| **v2.2.0** | January | Mermaid configuration, XRequest reconnection, XMarkdown performance testing |
 
-可以看到，团队在持续探索 **AI 界面即代码** 的边界——从流式 Markdown 到动态卡片渲染，每一步都在降低 AI 应用的开发门槛。
+As can be seen, the team continues to explore the boundaries of **AI interface as code**—from streaming Markdown to dynamic card rendering, every step is lowering the barrier to AI application development.
 
 ---
 
-## 10. 与竞品对比
+## 10. Comparison with Competitors
 
-| 维度 | Ant Design X | Vercel AI SDK | LangChain |
+| Dimension | Ant Design X | Vercel AI SDK | LangChain |
 |------|-------------|--------------|-----------|
-| 定位 | UI 组件库 + 数据流 | 数据流 + 轻量 UI | AI 编排框架 |
-| UI 体系 | ✅ 完整组件库 | ⚠️ 基础组件 | ❌ 无 |
-| 流式 Markdown | ✅ XMarkdown | ⚠️ 基础支持 | ❌ 无 |
-| 混合界面 | ✅ Hybrid UI | ❌ | ❌ |
-| 框架绑定 | React 专属 | React/Vue/Svelte | 跨平台 |
+| Positioning | UI component library + data flow | Data flow + lightweight UI | AI orchestration framework |
+| UI system | ✅ Complete component library | ⚠️ Basic components | ❌ None |
+| Streaming Markdown | ✅ XMarkdown | ⚠️ Basic support | ❌ None |
+| Hybrid UI | ✅ Hybrid UI | ❌ | ❌ |
+| Framework binding | React-exclusive | React/Vue/Svelte | Cross-platform |
 
-Ant Design X 的差异化优势在于**完整的 UI 组件体系 + 流式渲染引擎**，而不仅仅是数据流管理层。
-
----
-
-## 11. 总结
-
-Ant Design X 的定位非常清晰：**不是又一个 AI SDK，而是一套完整的 AI 界面解决方案**。它的核心价值在于：
-
-1. **RICH 范式**提供了 AI 交互的标准化设计语言
-2. **Hybrid UI**打破了 GUI 和 Chat 的界限
-3. **XMarkdown**解决了流式渲染的核心痛点
-4. **X Card**开启了 AI 动态生成 UI 的可能性
-5. **开箱即用**：与 Ant Design 生态无缝集成，React 开发者零学习成本
-
-如果你正在开发 AI 聊天产品、Agent 控制台或智能助手界面，Ant Design X 是目前 React 生态中最成熟、最完整的选择。
+Ant Design X's differentiated advantage lies in its **complete UI component system + streaming rendering engine**, not just data flow management.
 
 ---
 
-## 参考资料
+## 11. Summary
 
-- [Ant Design X 官网](https://x.ant.design)
+Ant Design X's positioning is very clear: **it is not yet another AI SDK, but a complete AI interface solution**. Its core value lies in:
+
+1. The **RICH paradigm** provides a standardized design language for AI interaction
+2. **Hybrid UI** breaks down the boundary between GUI and Chat
+3. **XMarkdown** solves the core pain points of streaming rendering
+4. **X Card** opens up the possibility of AI dynamically generating UI
+5. **Out-of-the-box**: seamless integration with the Ant Design ecosystem, zero learning curve for React developers
+
+If you are developing an AI chat product, Agent console, or intelligent assistant interface, Ant Design X is currently the most mature and complete choice in the React ecosystem.
+
+---
+
+## References
+
+- [Ant Design X Official Website](https://x.ant.design)
 - [Ant Design X GitHub](https://github.com/ant-design/x)
-- [Ant Design X 更新日志](https://x.ant.design/changelog)
-- [RICH 交互范式介绍](https://ant-design-x.antgroup.com/docs/spec/hybrid-ui-design)
+- [Ant Design X Changelog](https://x.ant.design/changelog)
+- [RICH Interaction Paradigm Introduction](https://ant-design-x.antgroup.com/docs/spec/hybrid-ui-design)
 - [npm @ant-design/x](https://www.npmjs.com/package/@ant-design/x)

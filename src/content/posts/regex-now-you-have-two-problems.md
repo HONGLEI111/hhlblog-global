@@ -1,39 +1,35 @@
 ---
-title: 正则表达式笑话：Now You Have Two Problems
+title: 'Regex Joke: Now You Have Two Problems'
 published: 2026-08-09
-description: '为什么说"用正则表达式解决问题后，你就有了两个问题"——编程界最经典的自嘲之一'
+description: Why does solving a problem with regular expressions leave you with two problems? One of programming's most classic self-deprecating jokes.
 image: ''
-tags: [正则表达式, 编程笑话, 调试]
-category: '前端'
+tags: [regex, programming jokes, debugging]
+category: Frontend
 draft: false
-lang: ''
 ---
-
-程序员圈子里流传着这样一句话：
+There's a saying that circulates in programmer circles:
 
 > Some people, when confronted with a problem, think "I know, I'll use regular expressions." Now they have two problems.
 
-翻译过来就是：**"有些人遇到问题时，心想'我知道，用正则表达式！'——现在他们有了两个问题。"**
+This quote comes from the famous open-source hacker Jamie Zawinski (jwz), first posted on Usenet in August 1997. More than twenty years later, this quote remains one of the most frequently cited self-deprecating sayings among programmers.
 
-这句话出自著名的开源黑客 Jamie Zawinski（jwz），最早于 1997 年 8 月在 Usenet 上发布。二十多年过去了，这句话依然是程序员之间引用频率最高的自黑名言之一。
+## Why do regular expressions attract so much hate?
 
-## 为什么正则表达式这么"招黑"？
-
-先来看一段真实的正则表达式——这是 RFC 5322 中用于验证电子邮件地址的官方正则：
+Let's look at a real regular expression first — this is the official regex from RFC 5322 for validating email addresses:
 
 ```regex
 (?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])
 ```
 
-看到这行代码的第一反应：这是不小心把猫放在了键盘上吗？
+Your first reaction upon seeing this line of code: did someone accidentally leave their cat on the keyboard?
 
-更讽刺的是，即使这么复杂的正则，**它也没法 100% 正确验证所有合法邮箱**。比如带注释的邮箱地址 `user@domain`（没错，域名也可以不带点）、或者包含特殊 Unicode 字符的邮箱，这个正则统统会拒绝。
+What's more ironic is that even with all this complexity, **it still can't 100% correctly validate all legitimate email addresses**. For example, email addresses with comments `user@domain` (yes, domains don't have to have dots), or emails containing special Unicode characters — this regex will reject them all.
 
-## 经典翻车现场
+## Classic failure moments
 
-### "我只需要匹配 HTML 标签"
+### "I just need to match HTML tags"
 
-几乎每个前端开发者都踩过这个坑。你只是想用正则提取 `<div>` 标签里的内容：
+Almost every front-end developer has fallen into this trap. You just want to use regex to extract the content inside `<div>` tags:
 
 ```javascript
 const html = '<div>第一层 <div>嵌套内容</div></div>'
@@ -41,16 +37,16 @@ const match = html.match(/<div>(.*)<\/div>/)
 console.log(match[1]) // "第一层 <div>嵌套内容"  —— 意料之外！
 ```
 
-**正则表达式在默认情况下是贪婪匹配的。** 加上 `?` 改成非贪婪模式？还是不行——嵌套标签是上下文无关文法，正则表达式这种有限状态自动机在理论上就无法完美处理。
+**Regular expressions are greedy by default.** Add `?` to switch to non-greedy mode? Still doesn't work — nested tags are a context-free grammar, and regex, being a finite state automaton, theoretically cannot handle them perfectly.
 
-正确的答案早已被刻在 Stack Overflow 的神回复上（获得了超过 4000 个赞）：
+The correct answer has long been enshrined in a legendary Stack Overflow response (which received over 4,000 upvotes):
 
 > You can't parse [X]HTML with regex. Because HTML can't be parsed by regex. Regex is not a tool that can be used to correctly parse HTML.  
-> —— Stack Overflow 用户 bobince
+> —— Stack Overflow user bobince
 
-原帖回答长达数千字，措辞之激动宛如一位饱受折磨的程序员在深夜的呐喊。如果你没读过，它值得你花五分钟全文阅读。
+The original answer is thousands of words long, with a tone so impassioned it reads like the late-night cry of a tormented programmer. If you haven't read it, it's worth five minutes of your time.
 
-### "验证日期格式很简单"
+### "Validating date formats is simple"
 
 ```javascript
 // 你以为这样就够了
@@ -60,32 +56,32 @@ dateRegex.test('2026-13-01') // true —— 13月？
 dateRegex.test('0000-00-00') // true —— 混沌初开？
 ```
 
-正则只判断格式，不判断语义。想用正则完整验证日期合法性？恭喜你，你需要处理闰年、大小月、以及 1582 年 10 月少了 10 天这种历史遗留问题。
+Regex only checks format, not semantics. Want to fully validate date legitimacy with regex? Congratulations, you'll need to handle leap years, months with different lengths, and the historical quirk of October 1582 missing 10 days.
 
-### 正则求偶
+### Regex matchmaking
 
-Reddit 上还有个经典帖子：有人用正则表达式在 OkCupid 相亲网站上搜索匹配对象。他的搜索条件是：
+There's also a classic Reddit post: someone used a regular expression to search for matches on the OkCupid dating site. His search criteria were:
 
 ```regex
 (?:engineer|developer|programmer|coder|hacker) (?!.*(?:politics|religion|vegan|gluten))
 ```
 
-翻译：找一个工程师/开发者/程序员，但不要整天谈政治、宗教、素食主义或无麸质饮食的。
+Translation: find an engineer/developer/programmer, but not one who talks about politics, religion, vegetarianism, or gluten-free diets all day.
 
-效果如何？帖子没有后续更新，大概率——**他现在有三个问题了**。
+How did it work out? The post was never updated, so most likely — **now he has three problems**.
 
-## 正则不是坏工具，但它是危险工具
+## Regex isn't a bad tool, but it's a dangerous one
 
-说到底，正则表达式是一门**"写起来爽，读起来火葬场"**的语言。它能用一行代码解决几百行解析逻辑，但两个月后连你自己都看不懂。
+At the end of the day, regular expressions are a language that's **"fun to write, a nightmare to read."** It can replace hundreds of lines of parsing logic with a single line, but two months later even you can't understand it.
 
-最佳实践很简单：**用正则做匹配和简单提取，用解析器做结构化解析。** 当你发现正则写到第二十个字符还停不下来时——停手，想想是不是该换工具了。
+The best practice is simple: **use regex for matching and simple extraction, use parsers for structured parsing.** When you find yourself writing a regex and can't stop after the twentieth character — stop, and think about whether it's time to switch tools.
 
-正则表达式，就像一个黑洞——你越靠近它，它就越容易把你吸进去。明智的程序员懂得保持安全距离。
+Regular expressions are like a black hole — the closer you get to it, the more easily it sucks you in. Wise programmers know to keep a safe distance.
 
 ---
 
-**参考来源：**
+**References:**
 
-- [Jamie Zawinski 原始 Usenet 帖子 (1997)](http://regex.info/blog/2006-09-15/247) — Jeffrey Friedl 的博客存档了这句名言
-- [You Can't Parse HTML With Regex](https://stackoverflow.com/a/1732454) — Stack Overflow 传奇回答
-- [Regular-Expressions.info](https://www.regular-expressions.info/) — 正则表达式权威学习资源
+- [Jamie Zawinski's original Usenet post (1997)](http://regex.info/blog/2006-09-15/247) — Jeffrey Friedl's blog archived this famous quote
+- [You Can't Parse HTML With Regex](https://stackoverflow.com/a/1732454) — The legendary Stack Overflow answer
+- [Regular-Expressions.info](https://www.regular-expressions.info/) — The authoritative learning resource for regular expressions

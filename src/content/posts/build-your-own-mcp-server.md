@@ -1,25 +1,23 @@
 ---
-title: 构建你自己的 MCP Server：从零到一的实践指南
+title: 'Build Your Own MCP Server: A Practical Guide from Zero to One'
 published: 2026-08-06
-description: '手把手教你用 Python 构建一个 MCP Server，让 Claude 等 LLM 通过标准协议调用你的自定义工具和数据源。'
+description: A step-by-step guide to building an MCP Server in Python, enabling Claude and other LLMs to call your custom tools and data sources through a standard protocol.
 image: ''
-tags: [MCP, AI, LLM, Python, 工具开发]
+tags: [MCP, AI, LLM, Python, Tool Development]
 category: 'AI'
 draft: false
-lang: ''
 ---
+## 1. Introduction
 
-## 1. 引言
+MCP (Model Context Protocol) is a standard protocol open-sourced by Anthropic at the end of 2024, designed to enable large language models (LLMs) to access external tools and data sources in a unified way. If the LLM is the brain, MCP is the nervous system—it gives the model the ability to "do things," not just "talk."
 
-MCP（Model Context Protocol，模型上下文协议）是 Anthropic 于 2024 年底开源的一套标准协议，目的是让大语言模型（LLM）能够以统一的方式访问外部工具和数据源。如果说 LLM 是大脑，MCP 就是神经系统——它让模型拥有了「做事」的能力，而不仅仅是「说话」。
+In 2026, the MCP ecosystem has matured considerably: mainstream AI tools like Claude Desktop, Claude Code, Cursor, and Continue all have built-in MCP support. But more importantly, **you can write your own MCP Server**—exposing your company's internal APIs, database queries, document retrieval, or even smart home control capabilities to AI in a standardized way.
 
-2026 年，MCP 生态已经相当成熟：Claude Desktop、Claude Code、Cursor、Continue 等主流 AI 工具都已内置 MCP 支持。但更重要的是，**你可以自己写 MCP Server**——把公司的内部 API、数据库查询、文档检索、甚至是控制智能家居的能力，以标准化的方式暴露给 AI。
+This article will take you from zero to building a complete MCP Server in Python.
 
-本文将带你从零开始，用 Python 构建一个完整的 MCP Server。
+## 2. MCP Architecture at a Glance
 
-## 2. MCP 架构速览
-
-在动手之前，先理解 MCP 的核心架构：
+Before diving in, let's understand the core architecture of MCP:
 
 ```
 ┌──────────────┐     MCP Protocol     ┌──────────────┐
@@ -34,20 +32,20 @@ MCP（Model Context Protocol，模型上下文协议）是 Anthropic 于 2024 �
                                       └─────────┘
 ```
 
-MCP Server 提供三种原语：
-- **Tools**：模型可调用的函数，类似 OpenAI Function Calling
-- **Resources**：模型可读取的只读数据，类似 REST API 的 GET 端点
-- **Prompts**：预定义的提示模板，帮助用户快速开始
+An MCP Server provides three primitives:
+- **Tools**: Functions the model can call, similar to OpenAI Function Calling
+- **Resources**: Read-only data the model can read, similar to REST API GET endpoints
+- **Prompts**: Predefined prompt templates that help users get started quickly
 
-通信方式有两种：
-- **stdio**：通过标准输入/输出，适合本地进程间通信
-- **SSE（Server-Sent Events）**：通过 HTTP，适合远程服务
+There are two communication methods:
+- **stdio**: Via standard input/output, suitable for local inter-process communication
+- **SSE (Server-Sent Events)**: Via HTTP, suitable for remote services
 
-本文将使用 stdio 模式，这是最常见也最简单的集成方式。
+This article will use stdio mode, which is the most common and simplest integration method.
 
-## 3. 环境准备
+## 3. Environment Setup
 
-### 3.1 安装依赖
+### 3.1 Installing Dependencies
 
 ```bash
 mkdir my-mcp-server && cd my-mcp-server
@@ -56,9 +54,9 @@ source venv/bin/activate
 pip install mcp
 ```
 
-核心依赖只需要一个包：`mcp`，它是 Anthropic 官方提供的 Python SDK。
+The only core dependency you need is one package: `mcp`, the official Python SDK provided by Anthropic.
 
-### 3.2 项目结构
+### 3.2 Project Structure
 
 ```
 my-mcp-server/
@@ -73,11 +71,11 @@ my-mcp-server/
 └── pyproject.toml
 ```
 
-## 4. 编写第一个 MCP Server
+## 4. Writing Your First MCP Server
 
-### 4.1 最简示例
+### 4.1 Minimal Example
 
-先写一个最简的 MCP Server，只暴露一个工具：
+Let's start with a minimal MCP Server that exposes just one tool:
 
 ```python
 # server.py
@@ -106,15 +104,15 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-这段代码做了什么：
-1. `Server("my-first-mcp-server")` 创建一个 MCP Server 实例
-2. `@server.tool()` 装饰器将一个 Python 函数注册为 MCP Tool
-3. 函数 docstring `"""获取当前系统时间"""` 自动成为工具描述——**写好 docstring 至关重要**，因为 LLM 就是根据它来决定何时调用这个工具
-4. `stdio_server()` 通过标准输入/输出与客户端通信
+What this code does:
+1. `Server("my-first-mcp-server")` creates an MCP Server instance
+2. The `@server.tool()` decorator registers a Python function as an MCP Tool
+3. The function docstring `"""获取当前系统时间"""` automatically becomes the tool description—**writing a good docstring is crucial**, because the LLM uses it to decide when to call this tool
+4. `stdio_server()` communicates with the client via standard input/output
 
-### 4.2 配置 Claude Desktop
+### 4.2 Configuring Claude Desktop
 
-要让 Claude Desktop 识别你的 MCP Server，编辑 Claude Desktop 配置文件：
+To make Claude Desktop recognize your MCP Server, edit the Claude Desktop configuration file:
 
 ```json
 // macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
@@ -129,11 +127,11 @@ if __name__ == "__main__":
 }
 ```
 
-重启 Claude Desktop 后，点击输入框旁的 🔌 图标，就能看到 `get_current_time` 工具已经可用。
+After restarting Claude Desktop, click the 🔌 icon next to the input box, and you'll see the `get_current_time` tool is now available.
 
-### 4.3 在 Claude Code 中使用
+### 4.3 Using in Claude Code
 
-Claude Code 的配置更简单——直接编辑项目根目录的 `.mcp.json`：
+Claude Code's configuration is even simpler—just edit the `.mcp.json` in the project root directory:
 
 ```json
 {
@@ -150,13 +148,12 @@ Claude Code 的配置更简单——直接编辑项目根目录的 `.mcp.json`�
 }
 ```
 
-配置完成后，Claude Code 会在启动时自动连接你的 MCP Server。
+Once configured, Claude Code will automatically connect to your MCP Server on startup.
+## 5. Hands-On: Building a Weather Query MCP Server
 
-## 5. 实战：构建天气查询 MCP Server
+Now let's look at a more realistic example—building an MCP Server that supports weather queries for multiple cities.
 
-现在来一个更真实的例子——构建一个支持多城市天气查询的 MCP Server。
-
-### 5.1 完整代码
+### 5.1 Complete Code
 
 ```python
 # server.py
@@ -244,23 +241,23 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### 5.2 关键设计要点
+### 5.2 Key Design Points
 
-**1. 类型注解决定参数 Schema**
+**1. Type Annotations Determine the Parameter Schema**
 
-MCP Python SDK 会自动从函数签名中提取参数 schema。`city: str` → 字符串参数，`unit: Optional[str] = "celsius"` → 可选的字符串参数带默认值。不需要手写 JSON Schema——但前提是类型注解要准确。
+The MCP Python SDK automatically extracts the parameter schema from the function signature. `city: str` → string parameter, `unit: Optional[str] = "celsius"` → optional string parameter with a default value. No need to hand-write JSON Schema—but only if the type annotations are accurate.
 
-**2. Docstring 是 Prompt Engineering**
+**2. Docstrings Are Prompt Engineering**
 
-工具的 docstring 会直接发送给 LLM，作为它判断「何时调用该工具」的依据。遵循 Google 风格（Args/Returns）能让描述结构化且清晰。
+A tool's docstring is sent directly to the LLM as the basis for it to decide "when to call this tool." Following the Google style (Args/Returns) keeps descriptions structured and clear.
 
-**3. 返回值是纯文本**
+**3. Return Values Are Plain Text**
 
-MCP Tool 的返回值是 `str` 类型。你可以在返回值中使用 emoji、格式化文本、甚至 Markdown——LLM 会原样展示给用户。这让输出既有信息量又有可读性。
+An MCP Tool's return value is of type `str`. You can use emoji, formatted text, or even Markdown in the return value—the LLM will display it to the user as-is. This makes the output both informative and readable.
 
-## 6. 进阶：添加 Resources
+## 6. Advanced: Adding Resources
 
-除了可调用的 Tools，MCP Server 还能暴露 Resources——模型可以主动读取的只读数据：
+Besides callable Tools, an MCP Server can also expose Resources—read-only data that the model can proactively read:
 
 ```python
 from mcp.server import Server
@@ -292,15 +289,14 @@ async def main():
         )
 ```
 
-配置好之后，当 Claude 需要读取项目 README 时，它会自动调用 `docs://readme` 资源。注意 `docs://api/{endpoint}` 中的 `{endpoint}` 是**路径参数**——MCP 会将其提取并传入函数。
+Once configured, when Claude needs to read the project README, it will automatically call the `docs://readme` resource. Note that `{endpoint}` in `docs://api/{endpoint}` is a **path parameter**—MCP will extract it and pass it into the function.
+## 7. Best Practices
 
-## 7. 最佳实践
+Through building the above examples, I've summarized five best practices for MCP Server development:
 
-通过构建上述示例，我总结了五条 MCP Server 开发最佳实践：
+### 7.1 One Server, One Responsibility
 
-### 7.1 一个 Server 一个职责
-
-不要把天气查询、数据库操作、文件管理全塞进一个 Server。保持每个 MCP Server 职责单一——
+Don't cram weather queries, database operations, and file management all into one Server. Keep each MCP Server focused on a single responsibility——
 
 ```json
 {
@@ -312,11 +308,11 @@ async def main():
 }
 ```
 
-这样出问题时更容易定位，也更方便复用。
+This makes it easier to pinpoint issues when they arise, and easier to reuse.
 
-### 7.2 做好错误处理
+### 7.2 Handle Errors Well
 
-LLM 调用工具时可能会传奇怪的参数。做好边界检查：
+The LLM may pass strange parameters when calling tools. Do proper boundary checks:
 
 ```python
 @server.tool()
@@ -338,18 +334,18 @@ async def query_database(sql: str) -> str:
         return f"❌ 查询失败：{str(e)}"
 ```
 
-### 7.3 工具描述要具体
+### 7.3 Tool Descriptions Should Be Specific
 
-比较以下两种描述：
+Compare the following two types of descriptions:
 
-| ❌ 差的描述 | ✅ 好的描述 |
+| ❌ Bad description | ✅ Good description |
 |------------|------------|
-| "查询数据" | "在 MySQL 只读副本上执行 SELECT 查询。支持标准的 SQL 语法，返回前 100 行结果。" |
-| "获取天气" | "查询指定城市的实时天气，包含温度（°C/°F）、湿度、天气状况。支持的城市列表见参数说明。" |
+| "Query data" | "Execute a SELECT query on a MySQL read replica. Supports standard SQL syntax, returns the first 100 rows." |
+| "Get weather" | "Query real-time weather for a specified city, including temperature (°C/°F), humidity, and weather conditions. See the parameter description for the list of supported cities." |
 
-详细的描述帮助 LLM 准确判断何时该调用你的工具——这直接决定了用户体验。
+Detailed descriptions help the LLM accurately determine when to call your tool—this directly determines the user experience.
 
-### 7.4 利用环境变量管理敏感信息
+### 7.4 Use Environment Variables to Manage Sensitive Information
 
 ```python
 import os
@@ -362,7 +358,7 @@ async def search_knowledge_base(query: str) -> str:
     # ... 调用 API
 ```
 
-在 `.mcp.json` 中注入环境变量，避免硬编码：
+Inject environment variables in `.mcp.json` to avoid hardcoding:
 
 ```json
 {
@@ -380,9 +376,9 @@ async def search_knowledge_base(query: str) -> str:
 }
 ```
 
-### 7.5 写测试
+### 7.5 Write Tests
 
-MCP Server 本质上是一个异步函数集合，完全可以做单元测试：
+An MCP Server is essentially a collection of async functions, so it can absolutely be unit tested:
 
 ```python
 import pytest
@@ -400,18 +396,18 @@ async def test_get_weather_unknown_city():
     assert "未找到" in result
 ```
 
-工具逻辑与 MCP 协议层解耦后，测试就和普通 Python 函数一样简单。
+Once the tool logic is decoupled from the MCP protocol layer, testing becomes as simple as testing ordinary Python functions.
 
-## 8. 结语
+## 8. Conclusion
 
-MCP 正在成为 AI 应用开发的基础设施——就像 HTTP 之于 Web，SQL 之于数据库。掌握 MCP Server 的开发能力，意味着你可以让 AI 真正「动手做事」——不管是查天气、读文档，还是操控公司内部的业务系统。
+MCP is becoming the infrastructure for AI application development—just as HTTP is to the Web, and SQL is to databases. Mastering MCP Server development means you can make AI truly "get things done"—whether it's checking the weather, reading documents, or operating a company's internal business systems.
 
-顺着本文的思路，你从今天开始就能构建自己的 MCP Server。建议先从一个简单的工具入手（比如获取 Git 提交记录、查询 Jira Issue），逐步扩展到更复杂的场景。
+Following the approach in this article, you can start building your own MCP Server today. It's recommended to start with a simple tool (such as fetching Git commit records or querying Jira Issues), then gradually expand to more complex scenarios.
 
 ---
 
-**参考来源**
-- [Model Context Protocol 官方文档](https://modelcontextprotocol.io/)
+**References**
+- [Model Context Protocol Official Documentation](https://modelcontextprotocol.io/)
 - [MCP Python SDK - GitHub](https://github.com/modelcontextprotocol/python-sdk)
-- [Claude Code MCP 集成指南](https://docs.anthropic.com/en/docs/claude-code/mcp)
-- [Anthropic MCP 介绍博文](https://www.anthropic.com/news/model-context-protocol)
+- [Claude Code MCP Integration Guide](https://docs.anthropic.com/en/docs/claude-code/mcp)
+- [Anthropic MCP Introduction Blog Post](https://www.anthropic.com/news/model-context-protocol)

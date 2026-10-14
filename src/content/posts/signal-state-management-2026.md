@@ -1,31 +1,29 @@
 ---
-title: 前端状态管理 2026：Signal 时代的到来
+title: 'Frontend State Management 2026: The Arrival of the Signal Era'
 published: 2026-08-11
-description: '深入解读 Signal（信号）这一新型响应式原语如何重塑前端状态管理格局，涵盖 Solid.js、Svelte 5 Runes、Angular Signals、Preact Signals 的核心用法与 TC39 标准化进展'
+description: An in-depth look at how Signals, a new reactive primitive, are reshaping frontend state management, covering core usage in Solid.js, Svelte 5 Runes, Angular Signals, and Preact Signals, along with TC39 standardization progress.
 image: ''
-tags: [前端, 状态管理, Signal, JavaScript, React]
-category: '前端'
+tags: [frontend, state management, Signals, JavaScript, React]
+category: Frontend
 draft: false
-lang: ''
 ---
+## From Store to Signal: A Paradigm Shift
 
-## 从 Store 到 Signal：一次范式转移
+Front-end state management has undergone several paradigm shifts over the past decade: from direct DOM manipulation in the jQuery era, to Backbone's event model, to Redux's single Store + immutable data flow. Each pattern solved the pain points of the previous one, but also introduced new complexity.
 
-前端状态管理在过去十年经历了数次范式转移：从 jQuery 时代的 DOM 直接操作，到 Backbone 的事件模型，再到 Redux 的单一 Store + 不可变数据流。每一种模式都在解决前一种模式的痛点，但同时也引入了新的复杂度。
+In 2026, **Signal** has become the mainstream paradigm for front-end state management. It didn't appear overnight—Knockout.js had the concept of "observables" back in 2010, but it wasn't until Solid.js pushed it to extreme performance in 2021, and subsequently Svelte 5, Angular, Preact, Qwik, and other frameworks built in support, that Signal truly "broke out."
 
-2026 年，**Signal（信号）** 已经成为前端状态管理的主流范式。它并非一夜之间出现——2010 年 Knockout.js 就有了"可观察对象"的概念，但直到 Solid.js 在 2021 年将其推向极致性能，以及随后 Svelte 5、Angular、Preact、Qwik 等框架纷纷内建支持，Signal 才真正"出圈"了。
+So what exactly is a Signal? Why does it make state management simpler and more efficient?
 
-那么，Signal 到底是什么？它为什么能让状态管理变得更简单、更高效？
+## The Core Idea of Signal
 
-## Signal 的核心思想
+A Signal is essentially an **automatically dependency-tracking reactive value container**. It consists of three parts:
 
-Signal 本质上是一个**自动追踪依赖的响应式值容器**。它由三个部分组成：
+1. **Signal**: a reactive container that holds a value
+2. **Derived**: a read-only value computed from other Signals
+3. **Effect**: a function that automatically executes when its dependent Signals change
 
-1. **Signal（信号）**：持有值的响应式容器
-2. **Derived（派生）**：基于其他 Signal 计算得出的只读值
-3. **Effect（副作用）**：当依赖的 Signal 变化时自动执行的函数
-
-用最简单的伪代码表示：
+Represented in the simplest pseudocode:
 
 ```js
 const count = signal(0)           // 创建信号
@@ -36,13 +34,13 @@ count.value = 1  // 输出: 2
 count.value = 2  // 输出: 4
 ```
 
-与传统方案（如 React 的 `useState` + `useEffect`）的关键区别在于：**Signal 不需要声明依赖数组**。框架在运行时自动追踪哪些 Signal 被读取，从而建立精准的依赖关系图，实现**细粒度更新**——只有真正依赖变化数据的 DOM 节点才会重新渲染，而不是整个组件树。
+The key difference from traditional approaches (such as React's `useState` + `useEffect`) is that **Signals don't require declaring dependency arrays**. The framework automatically tracks which Signals are read at runtime, thereby building a precise dependency graph and achieving **fine-grained updates**—only the DOM nodes that actually depend on the changed data re-render, rather than the entire component tree.
 
-## 主流框架的 Signal 实现
+## Signal Implementations in Mainstream Frameworks
 
-### Solid.js：Signal 的原生家园
+### Solid.js: The Native Home of Signal
 
-Solid.js 是第一个将 Signal 作为一等公民的现代前端框架。它没有虚拟 DOM，编译后的 JSX 直接操作真实 DOM，Signal 的变化只会触发最细粒度的 DOM 更新。
+Solid.js is the first modern front-end framework to treat Signal as a first-class citizen. It has no virtual DOM; compiled JSX directly manipulates the real DOM, and changes to a Signal only trigger the most fine-grained DOM updates.
 
 ```jsx
 import { createSignal, createMemo, createEffect } from 'solid-js'
@@ -65,11 +63,11 @@ function Counter() {
 }
 ```
 
-注意：Signal 的读取是通过**函数调用** `count()` 完成的，这是 Solid 实现自动追踪的关键——函数调用会被 Proxy 拦截，从而记录依赖关系。
+Note: reading a Signal is done through a **function call** `count()`, which is the key to Solid's automatic tracking—the function call is intercepted by a Proxy, thereby recording the dependency relationship.
 
-### Svelte 5：Runes 的魔力
+### Svelte 5: The Magic of Runes
 
-Svelte 5 引入了 **Runes** 语法，用 `$state`、`$derived`、`$effect` 来替代此前的 `let` + 编译器魔法。在 `.svelte.js` 文件中，Runes 甚至可以脱离组件单独使用，实现框架无关的响应式逻辑。
+Svelte 5 introduced **Runes** syntax, using `$state`, `$derived`, `$effect` to replace the previous `let` + compiler magic. In `.svelte.js` files, Runes can even be used independently of components, enabling framework-agnostic reactive logic.
 
 ```svelte
 <script>
@@ -86,9 +84,9 @@ Svelte 5 引入了 **Runes** 语法，用 `$state`、`$derived`、`$effect` 来�
 </button>
 ```
 
-Svelte 5 的 Runes 在设计上吸收了 Solid 的细粒度更新理念，但保留了 Svelte 的编译时优化传统。`$state` 声明的变量会被编译器转换为 Signal，使得重新赋值也能触发响应式更新——这在 Svelte 4 中是无法做到的（只有 `let` + 赋值触发，函数参数传递则丢失响应性）。
+Svelte 5's Runes absorbed Solid's fine-grained update philosophy in design, but retained Svelte's tradition of compile-time optimization. Variables declared with `$state` are converted into Signals by the compiler, so that reassignment can also trigger reactive updates—something that was impossible in Svelte 4 (only `let` + assignment triggered updates, and reactivity was lost when passed as function arguments).
 
-一个重要的变化是 Runes 让响应式逻辑**可提取、可复用**：
+An important change is that Runes make reactive logic **extractable and reusable**:
 
 ```js
 // counter.svelte.js
@@ -108,9 +106,9 @@ export function createCounter(initial = 0) {
 }
 ```
 
-### Preact Signals：跨框架的最小侵入方案
+### Preact Signals: The Least Intrusive Cross-Framework Solution
 
-Preact 团队开发了 `@preact/signals-core`，一个**与框架无关**的 Signal 库，然后通过 `@preact/signals-react` 桥接到 React，让 React 开发者无需离开熟悉的 JSX 就能享受 Signal 的细粒度更新：
+The Preact team developed `@preact/signals-core`, a **framework-agnostic** Signal library, and then bridged it to React via `@preact/signals-react`, allowing React developers to enjoy Signal's fine-grained updates without leaving familiar JSX:
 
 ```jsx
 import { signal, computed } from '@preact/signals-react'
@@ -129,11 +127,11 @@ function Counter() {
 }
 ```
 
-这里的关键是：`count` 和 `doubled` 是**组件外部**创建的 Signal，但 React 组件仍然能正确响应其变化。`@preact/signals-react` 通过 Babel 插件在 JSX 中注入 `.value` 读取的拦截逻辑，绕过了 React 的"不可变数据"限制。更妙的是，Signal 的变化**不会触发整个组件重新渲染**——只有读取了该 Signal 的具体 DOM 节点会更新。
+The key here is: `count` and `doubled` are Signals created **outside the component**, yet React components can still correctly respond to their changes. `@preact/signals-react` injects interception logic for `.value` reads into JSX via a Babel plugin, bypassing React's "immutable data" limitation. Even better, changes to a Signal **do not trigger a re-render of the entire component**—only the specific DOM nodes that read that Signal update.
 
-### Angular Signals：企业级 Signal 方案
+### Angular Signals: The Enterprise-Grade Signal Solution
 
-Angular 在 v16 中引入了 Signal（开发者预览），到 v19 时已经稳定，标志着这个"重装框架"全面拥抱细粒度响应式：
+Angular introduced Signal in v16 (developer preview), and by v19 it had stabilized, marking this "heavyweight framework's" full embrace of fine-grained reactivity:
 
 ```typescript
 import { Component, signal, computed, effect } from '@angular/core'
@@ -162,11 +160,10 @@ export class CounterComponent {
 }
 ```
 
-Angular 的 Signal 与 Zone.js 解耦，带来了变革性的性能提升：当使用 `signal()` 时，Angular 不再需要遍历整个组件树来做脏检查，而是精确地只更新绑定了变化 Signal 的视图节点。结合 `OnPush` 策略，Angular 应用可以实现接近原生 DOM 操作的更新效率。
+Angular's Signal is decoupled from Zone.js, bringing transformative performance improvements: when using `signal()`, Angular no longer needs to traverse the entire component tree for dirty checking, but instead precisely updates only the view nodes bound to changed Signals. Combined with the `OnPush` strategy, Angular applications can achieve update efficiency approaching native DOM operations.
+## Signal vs Traditional Approaches: A Practical Comparison
 
-## Signal vs 传统方案：实战对比
-
-让我们用同一个场景——一个带乐观更新的待办事项列表——来对比不同方案：
+Let's use the same scenario—a todo list with optimistic updates—to compare different approaches:
 
 ### React (useState + Context)
 
@@ -192,9 +189,9 @@ function TodoProvider({ children }) {
 }
 ```
 
-问题：每次 `todos` 变化，所有消费 `TodoContext` 的组件都会重新渲染，即便只关心列表中某一项的状态。
+Problem: Every time `todos` changes, all components consuming `TodoContext` re-render, even if they only care about the state of a single item in the list.
 
-### 用 Signal 重构
+### Refactoring with Signal
 
 ```js
 // store.js（框架无关的 Signal store）
@@ -221,13 +218,13 @@ function toggleTodo(id) {
 export { todos, doneCount, totalCount, addTodo, toggleTodo }
 ```
 
-使用 Signal 后，列表组件中的单个 TODO 组件只在自己对应数据变化时才会更新，其他项完全不受影响。`doneCount` 也只在相关 TODO 的 `done` 状态变化时才重新计算。
+With Signals, individual TODO components in the list only update when their own corresponding data changes, while other items remain completely unaffected. `doneCount` also only recalculates when the `done` state of the relevant TODO changes.
 
-## TC39 Signals 提案：走向标准化
+## TC39 Signals Proposal: Toward Standardization
 
-2024 年 4 月，多位框架作者（包括 Solid.js 的 Ryan Carniato、Svelte 的 Rich Harris、Preact 的 Marvin Hagemeister 等）联合向 TC39 提交了 [**Signals 标准化提案**](https://github.com/tc39/proposal-signals)，目前处于 Stage 1 阶段。
+In April 2024, several framework authors (including Ryan Carniato of Solid.js, Rich Harris of Svelte, Marvin Hagemeister of Preact, and others) jointly submitted the [**Signals standardization proposal**](https://github.com/tc39/proposal-signals) to TC39, which is currently at Stage 1.
 
-提案的核心 API 设计：
+The proposal's core API design:
 
 ```js
 // 创建 Signal（通过 Signal.State 实例）
@@ -248,32 +245,32 @@ const watcher = new Signal.subtle.Watcher(() => {
 })
 ```
 
-提案的一个重要设计决策是**不依赖 Proxy**，而是通过显式的 `.get()` / `.set()` API 来实现依赖追踪。这使得 Signal 可以在不支持 Proxy 的环境（如 older browsers）中使用，也让依赖关系更容易静态分析和调试。
+An important design decision of the proposal is to **not rely on Proxy**, but instead implement dependency tracking through explicit `.get()` / `.set()` APIs. This allows Signals to be used in environments that don't support Proxy (such as older browsers), and also makes dependency relationships easier to statically analyze and debug.
 
-## 如何选择？
+## How to Choose?
 
-| 方案 | 适用场景 | 学习成本 | 生态成熟度 |
+| Approach | Use Case | Learning Curve | Ecosystem Maturity |
 |------|----------|----------|------------|
-| Solid.js Signals | 新项目，追求极致性能 | 中等 | ★★★★☆ |
-| Svelte 5 Runes | Svelte 项目 | 低 | ★★★★☆ |
-| Preact Signals | 已有 React 项目渐进式迁移 | 低 | ★★★☆☆ |
-| Angular Signals | Angular 项目 | 中 | ★★★★★ |
-| Vue ref/reactive | Vue 项目 | 低 | ★★★★★ |
+| Solid.js Signals | New projects, pursuing ultimate performance | Medium | ★★★★☆ |
+| Svelte 5 Runes | Svelte projects | Low | ★★★★☆ |
+| Preact Signals | Gradual migration of existing React projects | Low | ★★★☆☆ |
+| Angular Signals | Angular projects | Medium | ★★★★★ |
+| Vue ref/reactive | Vue projects | Low | ★★★★★ |
 
-需要指出的是，Vue 3 的 `ref()` 和 `reactive()` 在概念上与 Signal 高度一致——它们都是响应式原语，自动追踪依赖、支持派生计算、驱动副作用。Vue 的响应式系统基于 Proxy，这是它与 Solid 等框架的差异点之一，但设计理念完全在同一方向上。
+It should be noted that Vue 3's `ref()` and `reactive()` are conceptually highly consistent with Signals—they are all reactive primitives that automatically track dependencies, support derived computations, and drive side effects. Vue's reactivity system is based on Proxy, which is one of the differences between it and frameworks like Solid, but the design philosophy is entirely in the same direction.
 
-## 结语
+## Conclusion
 
-2026 年，Signal 已经不是"是否使用"的问题，而是"你的框架已经支持了，你是否在用"的问题。从 Solid.js 的一鸣惊人，到 Svelte 5 的全面拥抱，再到 TC39 的标准化推进，Signal 正在成为 Web 平台的响应式基础设施。
+In 2026, Signal is no longer a question of "whether to use it," but rather "your framework already supports it—are you using it?" From Solid.js's meteoric rise, to Svelte 5's full embrace, to TC39's standardization push, Signal is becoming the reactive infrastructure of the Web platform.
 
-对于开发者而言，现在学习 Signal 是最佳时机：概念简单、模式统一、跨框架可迁移。当 TC39 提案最终落地，理解 Signal 将像理解 Promise 一样，成为每一个 JavaScript 开发者的必备技能。
+For developers, now is the best time to learn Signals: the concepts are simple, the patterns are unified, and they're transferable across frameworks. When the TC39 proposal finally lands, understanding Signals will become an essential skill for every JavaScript developer, just like understanding Promises.
 
 ---
 
-**参考来源：**
+**References:**
 
-- [TC39 Proposal: Signals](https://github.com/tc39/proposal-signals) — Signals 标准化提案（Stage 1）
-- [Solid.js 官方文档：Signals](https://docs.solidjs.com/concepts/intro-to-reactivity)
-- [Svelte 5 Runes 文档](https://svelte.dev/docs/svelte/$state)
-- [Preact Signals 官方指南](https://preactjs.com/guide/v10/signals/)
-- [Angular Signals 文档](https://angular.dev/guide/signals)
+- [TC39 Proposal: Signals](https://github.com/tc39/proposal-signals) — Signals standardization proposal (Stage 1)
+- [Solid.js Official Docs: Signals](https://docs.solidjs.com/concepts/intro-to-reactivity)
+- [Svelte 5 Runes Documentation](https://svelte.dev/docs/svelte/$state)
+- [Preact Signals Official Guide](https://preactjs.com/guide/v10/signals/)
+- [Angular Signals Documentation](https://angular.dev/guide/signals)

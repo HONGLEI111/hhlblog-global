@@ -1,90 +1,87 @@
 ---
-title: 如何科学评测一个 LLM 应用：基准、A/B 与人工评估
+title: 'How to Scientifically Evaluate an LLM Application: Benchmarks, A/B, and Human Evaluation'
 published: 2026-10-08
-description: '把「感觉这次好多了」换成可复现的数字：从公共基准的局限、自建评测集与 LLM-as-a-Judge 的偏差，到配对显著性检验与线上 A/B，附一个带位置交换和置信区间的 TypeScript 判官。'
+description: 'Replace "this feels much better" with reproducible numbers: from the limitations of public benchmarks, custom eval sets, and biases in LLM-as-a-Judge, to paired significance testing and online A/B, plus a TypeScript judge with position swapping and confidence intervals.'
 image: ''
-tags: [LLM, 评测, Evals, LLM-as-a-Judge, A/B 测试, 统计, AI]
+tags: [LLM, Evaluation, Evals, LLM-as-a-Judge, A/B Testing, Statistics, AI]
 category: 'AI'
 draft: false
-lang: ''
 ---
+You changed a version of the system prompt, ran five or six questions off the cuff, and the answers did look better, so you merged and shipped it. Two weeks later, customer support starts forwarding complaint emails—the model has learned, in the new version, to make "I'm not sure" sound more like "I'm very sure."
 
-你改了一版系统提示词，随手跑了五六个问题，答案确实更顺眼了，于是合并上线。两周后客服开始转来投诉邮件——模型在新版本里学会了把「我不确定」说得更像「我很确定」。
+The problem isn't that this change was wrong, it's that **you never measured anything from start to finish**. "Looks better" is a human intuition based on five samples, not evidence. This article aims to make clear: to judge whether a change to an LLM application counts as "better" or "no change," you need to leave numbers behind at several levels.
 
-问题不在于这一改动是错的，而在于**你从头到尾没有测量**。「看起来更好」是人类在五条样本上的直觉，不是证据。这篇文章想讲清楚：要把一次 LLM 应用的改动判断成「变好」还是「没变」，需要在哪几个层次上留下数字。
+## 1. Public benchmarks: what they can prove, what they can't
 
-## 1. 公共基准：能证明什么，不能证明什么
+Let's start with the conclusion: public benchmarks like MMLU, MT-Bench, and HumanEval **can almost never be used to judge whether your application has gotten better**.
 
-先说结论：MMLU、MT-Bench、HumanEval 这类公共基准，**几乎不能用来判断你的应用变好了没有**。
+What they answer is "roughly where does this model's general capability water level sit," and their role is to help you cross off a batch of obviously hopeless candidates during the model selection stage. Once you enter the stage of "prompt A vs. prompt B" or "with retrieval vs. without retrieval," they stop being useful—your scenario is specific: a fixed set of question types, a specific response format, specific refusal boundaries, and no general benchmark covers any of that.
 
-它们回答的是「这个模型在通用能力上的水位大概在哪」，作用是在选型阶段帮你划掉一批明显不行的候选。一旦进入「A 提示词 vs B 提示词」「加检索 vs 不加检索」的阶段，它们就失效了——你的场景是特定的：固定的几类问题、特定的回复格式、特定的拒答边界，没有任何通用基准覆盖得到。
+What's more troublesome is **data contamination**: the questions have long been sitting in the training corpus, and the model may have simply seen the answers. Add to that Goodhart's Law—when the score becomes the target, score-gaming tactics (guessing on multiple choice, boilerplate formatting) will overshadow real capability. So public benchmark scores are only suitable for **coarse screening**, not for **acceptance**. An evaluation set that can actually serve for acceptance must be built by yourself.
 
-更麻烦的是**数据污染**：题目早就躺在训练语料里了，模型可能只是见过答案。再加上 Goodhart 定律——当分数成为目标，刷分手段（选择题猜答、格式套话）就会盖过真实能力。所以公共基准的分只适合**粗筛**，不适合**验收**。能验收的评测集，必须自己建。
+An evaluation set that can truly serve for acceptance must be built by yourself.
 
-真正能验收的评测集，必须自己建。
+## 2. Building your own evaluation set: from "I think" to "I measured"
 
-## 2. 自建评测集：从「我觉得」到「我测过」
+A self-built evaluation set doesn't need hundreds of items. A minimal evaluation set that actually works is usually enough with 50–200 items, and the key is that **every item comes from a real scenario**. The best source of samples is online logs—fish out the places users actually asked about and actually got stuck, de-identify them, and add them to the set; the next best is manually constructed edge cases, those tricky inputs where "the model is bound to answer wrong," which are far more valuable than ordinary questions casually made up.
 
-自建评测集不需要几百条。一个能生效的最小评测集，通常 50～200 条就够，关键是**每条都来自真实场景**。最好的样本来源是线上日志——把用户真实问过、真实卡住的地方捞出来脱敏入集；其次是手工构造的边界案例，那些「模型一定会答错」的刁钻输入，价值远高于随手编的常规问题。
+Each sample = one input + one judgment criterion. There are two granularities of judgment criteria:
 
-每条样本 = 一个输入 + 一个判定标准。判定标准有两种粒度：
+- **Pass/fail**: whether the answer contains the amount, whether it refused this unauthorized request, whether the JSON is parseable. Binary judgments have the smallest variance and can directly undergo statistical testing.
+- **Scoring** (1–5 points): suitable for dimensions like "usefulness" where there is no unique answer, but it introduces rater noise and must be paired with the consistency check in Section 3.
 
-- **通过/不通过**（pass/fail）：答案里是否包含金额、是否拒绝了这次越权请求、JSON 是否可解析。二值判定方差最小，能直接做统计检验。
-- **打分**（1～5 分）：适合「有用性」这类没有唯一答案的维度，但它引入了评分者噪声，必须配合第三节的一致性检查。
+There's also a rule that's easy to forget: **the holdout set**. If you repeatedly tune prompts on the evaluation set, the evaluation set itself starts to become overfit. Split the samples into two piles—the **development set** for iteration, and the **holdout set** run only once before you're ready to merge. This is the same principle as the train/test split in machine learning, it's just that many people forget it applies equally in prompt engineering.
 
-还有一条容易被忘的规矩：**留出集**。如果你在评测集上反复调提示词，评测集本身就开始被过拟合。把样本分成两堆——**开发集**用于迭代，**留出集**只在准备合并前跑一次。这和机器学习里 train/test 的分法是同一个道理，只是很多人忘了它在提示词工程里同样成立。
+## 3. LLM-as-a-Judge: cheap, but with systematic bias
 
-## 3. LLM-as-a-Judge：便宜，但有系统性偏差
+Fifty samples times ten iterations, and human evaluation quickly becomes an impossible task. Using a strong model as the judge is currently the most practical way to scale this up.
 
-50 条样本乘以十次迭代，人工评测很快就变成了不可能完成的任务。用强模型来当判官，是目前最实用的放大手段。
+The paper "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena" validated the feasibility of this approach: **a GPT-4-level judge agrees with human preferences at over 80%, already comparable to the agreement rate among human reviewers**. The paper divides judge usage into three categories:
 
-《Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena》这篇论文验证了这个做法的可行性：**GPT-4 级别的判官与人类偏好的一致率超过 80%，已经和人类评审之间的一致率相当**。论文把判官用法分成三类：
+1. **Pairwise comparison**: give two answers and choose the better one.
+2. **Single-answer grading**: give one answer an absolute score.
+3. **Reference-guided**: also provide the standard answer, especially necessary for math and reasoning tasks.
 
-1. **成对比较**（pairwise）：给两个回答，选更好的那个。
-2. **单答案打分**（single-answer grading）：给一个回答打绝对分。
-3. **参考答案辅助**（reference-guided）：同时给出标准答案，在数学、推理类任务上尤其必要。
+But the paper also names three **systematic biases** that you must actively counter:
 
-但论文同样点名了三种**系统性偏差**，你必须主动对付：
+- **Position bias**: the judge tends to choose the first (or second) one. The mitigation is to **swap the order and judge once each**, and if the two conclusions disagree, record it as a tie.
+- **Verbosity bias**: longer answers are more likely to be considered better. This is especially fatal for reasoning questions—the model can game the score with waffle.
+- **Self-preference**: the judge tends to favor its own outputs. Using a judge different from the model under test can mitigate this to some extent.
 
-- **位置偏差**：判官倾向于选第一个（或第二个）。缓解办法是**交换顺序各判一次**，两次结论不一致就记为平局。
-- **冗长偏差**：更长的回答更容易被认为更好。对推理类问题尤其致命——模型可以靠废话刷分。
-- **自我偏好**：判官倾向于自己的输出。用与被测模型不同的判官可以在一定程度上缓解。
+There's also a practical principle: **your judge must first be evaluated itself**. The method is to sample 30–50 high-quality human-labeled examples, run the judge once, and see its agreement rate with humans. If the agreement rate is below 75%, then all conclusions the judge gives are noise—fix the judge first, then talk about conclusions.
 
-还有一条实践原则：**你的判官必须自己先被评测过**。做法是抽 30～50 条人工标过的高质量样本，跑一遍判官，看它和人工的一致率。如果一致率低于 75%，那么判官给出的所有结论都是噪声——先修判官，再谈结论。
+## 4. Don't mistake noise for improvement
 
-## 4. 别把噪声当成提升
+This is the link most easily overlooked and most likely to lead people to wrong conclusions.
 
-这是最容易被忽视、也最容易让人得出错误结论的一环。
+A score from one evaluation is essentially a sample drawn from the invisible population of "all possible questions." The sample mean naturally carries a **standard error** (SEM), and the standard error decreases with sample size much more slowly than intuition suggests—increasing the number of questions from 50 to 200 (a fourfold increase) only halves the standard error.
 
-一次评测得到的分数，本质上是从「所有可能的问题」这个看不见的总体里抽了一个样本。样本均值天然带着**标准误**（SEM），而标准误随样本量下降得比直觉慢得多——把问题数从 50 增加到 200（翻四倍），标准误才减半。
+The approach summarized by Anthropic based on Evan Miller's paper "Adding Error Bars to Evals" is worth copying directly:
 
-Anthropic 基于 Evan Miller 的论文《Adding Error Bars to Evals》总结的做法值得直接照搬：
+- **Report the standard error, not just the mean**. The 95% confidence interval is "mean ± 1.96 × standard error." If A is 71% and B is 73%, but the confidence intervals overlap substantially, then **nothing has been proven**.
+- **Clustered standard errors**. In many evaluation sets, several questions revolve around the same piece of material (the same article, the same document); they are not independent, and the naive formula will underestimate the standard error—the paper points out that on some benchmarks the clustered standard error is **more than three times** the naive value.
+- **Do paired difference analysis**. The two models run the same batch of questions; comparing "the per-question score difference" is better than comparing "the two overall means" at canceling out fluctuations caused by question difficulty. The correlation coefficient of question scores between frontier models is roughly **0.3–0.7**, and pairing is nearly free noise reduction.
+- **Do a power analysis first**. First state the effect size you want to verify (for example, "A is 3 percentage points higher than B"), then work backward to how many questions you need, rather than running it first and then looking at the results.
 
-- **报告标准误，而不只是均值**。95% 置信区间就是「均值 ± 1.96 × 标准误」。如果 A 是 71%、B 是 73%，但置信区间大面积重叠，那就**什么都没证明**。
-- **聚类标准误**。很多评测集里若干问题围绕同一段材料（同一篇文章、同一份文档），它们不独立，朴素公式会低估标准误——论文指出某些基准上聚类标准误会是朴素值的**三倍以上**。
-- **做配对差分析**。两个模型跑的是同一批题目，比较「逐题的得分差」比比较「两个总均值」更能消掉题目难度带来的波动。前沿模型之间的题目得分相关系数大致在 **0.3～0.7**，配对是近乎免费的降噪。
-- **先做功效分析**。先说出你想验证的效应量（比如「A 比 B 高 3 个百分点」），再反推需要多少题目，而不是先跑完再看结果。
+## 5. Online A/B: good offline ≠ good online
 
-## 5. 线上 A/B：离线好 ≠ 线上好
+No matter how comprehensive the offline evaluation set is, it cannot predict how real users will use you. Online A/B is the final gate that cannot be skipped. Metrics should be chosen that **reflect value**, not the ones easiest to measure:
 
-离线评测集再全，也预测不了真实用户怎么用你。线上 A/B 是不可省的最后一关。指标要选**能反映价值的**，而不是最容易测的：
+- Adoption rate / copy rate: whether users actually used the answer it gave
+- Follow-up rate and retry rate: if the answer is bad, users will rephrase and ask again
+- Task completion rate: if it's an Agent, this is the end-to-end success rate
+- Cost and latency: P95 latency, token cost per session
 
-- 采纳率 / 复制率：用户是否真的用了它给的答案
-- 追问率与重试率：答得不好，用户会换个说法再问
-- 任务完成率：如果是 Agent，就是端到端成功率
-- 成本与延迟：P95 延迟、每次会话的 token 花费
+There's also an iron rule: **don't peek midway**. Repeatedly checking A/B results and stopping as soon as you see "significant" is the classic **peeking** problem, and it inflates the false positive rate far beyond 5%. Either calculate the sample size in advance and run to completion, or switch to statistical methods designed for this, such as sequential testing.
 
-还有一条铁律：**别中途偷看**。反复查看 A/B 结果、看到「显著」就停，是典型的**偷看偏差**（peeking），会把假阳性率放大到远超 5%。要么事先算好样本量跑满，要么改用序贯检验这类专为此设计的统计方法。
+## 6. Human evaluation: when it can't be skipped
 
-## 6. 人工评估：什么时候不能省
+No matter how cheap the LLM judge is, there are questions it cannot answer: **safety boundaries, brand tone, subtle offense**. These "only understandable by feel" dimensions must be left to humans.
 
-LLM 判官再便宜，也有它答不了的题：**安全边界、品牌语气、微妙的冒犯**。这类「只能意会」的维度必须留给人。
+What human evaluation must pass is **annotation consistency**. If two annotators' judgments on the same batch of samples differ greatly, the problem lies in the scoring criteria, not the model. Use a consistency coefficient like **Cohen's kappa** to measure it: if it's below 0.6, go back and write the rubric in more detail, making clear "what counts as a violation," rather than continuing to add annotators.
+## A Minimal Working Implementation
 
-人工评估要过的关是**标注一致性**。两个标注员对同一批样本的判定如果差异很大，问题出在评分标准上，不在模型上。用 **Cohen's kappa** 这类一致性系数衡量：低于 0.6 就回去把 rubric 写细，讲清楚「什么算违规」，而不是继续加标注员。
-
-## 一个可运行的最小实现
-
-下面这个脚本实现了成对评测里最要紧的两件事：**位置交换**（消除位置偏差）和**置信区间**（别把噪声当提升）。用 TypeScript 写，判官模型部分用一个可替换的 `judge` 函数抽象掉。
+The script below implements the two most important things in pairwise evaluation: **position swapping** (eliminating position bias) and **confidence intervals** (don't mistake noise for improvement). Written in TypeScript, with the judge model portion abstracted away behind a replaceable `judge` function.
 
 ```ts
 type Pair = { id: string; input: string; a: string; b: string };
@@ -140,7 +137,7 @@ export async function runEval(judge: Judge, pairs: Pair[]) {
 }
 ```
 
-用法和解读：
+Usage and interpretation:
 
 ```ts
 const result = await runEval(myJudge, pairs);
@@ -149,25 +146,25 @@ console.log(`A 胜率 ${(result.winRate * 100).toFixed(1)}%  ` +
 // 区间完全在 0.5 以上，才敢说 A 真的更好；否则继续加样本。
 ```
 
-注意最后那个 `significant` 判据：**只有当整个置信区间都落在 0.5 的同侧时，才能宣称有提升**。这是把「我看到了 55% 的胜率」和「我证明了 A 更好」区分开的唯一一行代码。
+Note the final `significant` criterion: **only when the entire confidence interval falls on the same side of 0.5 can you claim an improvement**. This is the one line of code that separates "I saw a 55% win rate" from "I proved A is better."
 
-## 五个反复踩的坑
+## Five Pitfalls You'll Keep Stepping Into
 
-1. **只报均值，不报区间**：71% 和 73% 的差别，在 50 条样本上通常是纯噪声。
-2. **拿开发集当验收集**：调了十轮提示词的评测集，已经不能用来证明任何东西了。
-3. **判官没校准就用**：判官自身和人工的一致率不达标时，它输出的所有数字都不可信。
-4. **指标之间打架时只看一个**：准确率涨了但拒答率崩了，是典型的「赢了指标输了业务」。
-5. **泄露测试集**：把留出集的样本贴进提示词当 few-shot 示例，等于亲手废掉唯一的验收标准。
+1. **Reporting only the mean, not the interval**: The difference between 71% and 73% is usually pure noise on 50 samples.
+2. **Using the dev set as the validation set**: An eval set you've tuned prompts against for ten rounds can no longer prove anything.
+3. **Using an uncalibrated judge**: When the judge's own agreement rate with humans falls short, every number it outputs is untrustworthy.
+4. **Looking at only one metric when metrics conflict**: Accuracy went up but the refusal rate collapsed — a classic case of "winning the metric, losing the business."
+5. **Leaking the test set**: Pasting holdout samples into the prompt as few-shot examples is equivalent to single-handedly destroying your only acceptance criterion.
 
-## 结语
+## Conclusion
 
-评测不是写完代码之后补的一道流程，它其实是**产品决策的证据链**。公共基准负责粗筛，自建评测集负责离线验收，LLM 判官负责放大样本量，显著性检验负责区分信号与噪声，A/B 负责最后的真实世界验证，人工评估负责兜住那些只能意会的边界。
+Evaluation isn't a process you tack on after writing the code — it's actually the **evidence chain for product decisions**. Public benchmarks handle coarse screening, custom eval sets handle offline acceptance, LLM judges handle scaling up sample size, significance testing handles distinguishing signal from noise, A/B handles the final real-world validation, and human evaluation handles catching all those boundaries that can only be grasped intuitively.
 
-这套东西加起来并不复杂，难的是承认一件事：**在你测过之前，「感觉更好了」和「什么都没变」是无法区分的**。
+Put together, this whole thing isn't complicated. What's hard is admitting one thing: **before you've tested it, "it feels better" and "nothing changed" are indistinguishable**.
 
-## 参考来源
+## References
 
-- Zheng et al. · [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685)（arXiv:2306.05685，判官与人类一致率、三类用法与三种偏差的原始出处）
-- Evan Miller · [Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations](https://arxiv.org/abs/2411.00640)（arXiv:2411.00640，标准误、聚类标准误与配对差分析）
-- Anthropic · [A statistical approach to model evaluations](https://www.anthropic.com/research/statistical-approach-to-model-evals)（对上述论文五条建议的工程化总结）
-- OpenAI · [Graders 官方指南](https://developers.openai.com/api/docs/guides/graders)（`string_check` / `text_similarity` / `python` / `label_model` / `score_model` 等判官类型，以及 grader hacking 的检测思路）
+- Zheng et al. · [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685) (arXiv:2306.05685, the original source for judge-human agreement rates, three usage patterns, and three types of bias)
+- Evan Miller · [Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations](https://arxiv.org/abs/2411.00640) (arXiv:2411.00640, standard errors, clustered standard errors, and paired difference analysis)
+- Anthropic · [A statistical approach to model evaluations](https://www.anthropic.com/research/statistical-approach-to-model-evals) (an engineering-oriented summary of the five recommendations from the above paper)
+- OpenAI · [Graders Official Guide](https://developers.openai.com/api/docs/guides/graders) (judge types such as `string_check` / `text_similarity` / `python` / `label_model` / `score_model`, and approaches for detecting grader hacking)

@@ -1,36 +1,34 @@
 ---
-title: TLS 1.3 握手过程详解：一次往返的秘密
+title: 'TLS 1.3 Handshake Explained: The Secret of a Single Round Trip'
 published: 2026-08-19
-description: '从 TLS 1.2 的两次往返到 TLS 1.3 的单次握手，图解密钥协商、证书验证与 0-RTT 的完整过程，附带 OpenSSL 抓包实战。'
+description: From TLS 1.2's two round trips to TLS 1.3's single handshake, this guide illustrates key negotiation, certificate verification, and 0-RTT with packet capture examples using OpenSSL.
 image: ''
-tags: [TLS, HTTPS, 安全, 网络协议, 加密]
-category: '互联网'
+tags: [TLS, HTTPS, Security, Network Protocols, Encryption]
+category: Internet
 draft: false
-lang: ''
 ---
+## Introduction: The Invisible Protocol Behind HTTPS
 
-## 引言：HTTPS 背后的隐形协议
+We use HTTPS to visit websites every day, but few people truly understand what happens behind that "little green lock." The encryption layer of HTTPS is handled by the TLS (Transport Layer Security) protocol, whose core task is to allow a client and server to securely negotiate a session key—known only to the two parties—over an untrusted network.
 
-我们每天都在用 HTTPS 访问网站，但很少有人真正理解「那个绿色小锁」背后发生了什么。HTTPS 的加密层由 TLS（Transport Layer Security）协议负责，它的核心任务是在一条不可信的网络上，让客户端和服务端安全地协商出一把只有双方知道的会话密钥。
+In 2018, TLS 1.3 (RFC 8446) was officially released. Compared with its predecessor TLS 1.2, TLS 1.3 accomplished something that seemed impossible: **compressing the handshake from two round trips (2-RTT) to one round trip (1-RTT)**. This means the time to establish an HTTPS connection is nearly halved, and pages load faster.
 
-2018 年，TLS 1.3（RFC 8446）正式发布。与它的前任 TLS 1.2 相比，TLS 1.3 做了一件看似不可能的事：**把握手从两次往返（2-RTT）压缩到一次往返（1-RTT）**。这意味着建立 HTTPS 连接的时间几乎减半，页面加载更快。
+This article doesn't pile on cryptographic jargon. Instead, it uses diagrams and packet captures to explain exactly what happens during a TLS 1.3 handshake.
 
-本文不堆砌密码学术语，而是用图解和抓包的方式，讲清楚 TLS 1.3 握手到底发生了什么。
+## Why the Handshake Matters So Much
 
-## 为什么握手如此重要
+Before understanding TLS 1.3, consider a question: the client and server have never met before—how can they negotiate a key without being eavesdropped on?
 
-在理解 TLS 1.3 之前，先想一个问题：客户端和服务端从未见过面，如何在不被窃听的情况下协商出一把密钥？
+This is the classic "chicken-and-egg" problem—secure communication requires a key, but transmitting the key requires secure communication. TLS breaks this deadlock with a combination of **asymmetric encryption + symmetric encryption**:
 
-这正是经典的「鸡生蛋」难题——要安全通信就需要密钥，但要传递密钥又需要安全通信。TLS 用**非对称加密 + 对称加密**的组合破解了这个死循环：
+1. Use asymmetric encryption (public/private keys) to securely negotiate a temporary key
+2. Subsequent data transmission switches to symmetric encryption (such as AES-GCM), which is fast and secure
 
-1. 用非对称加密（公钥/私钥）安全地协商出一把临时密钥
-2. 之后的数据传输改用对称加密（如 AES-GCM），快且安全
+The handshake is the "negotiation" process of step 1.
 
-握手，就是第 1 步的「协商」过程。
+## TLS 1.2's Two Round Trips
 
-## TLS 1.2 的两次往返
-
-先看 TLS 1.2 的握手流程，理解 TLS 1.3 到底优化了什么：
+First, let's look at the TLS 1.2 handshake flow to understand what exactly TLS 1.3 optimized:
 
 ```
 客户端                    服务端
@@ -48,13 +46,13 @@ lang: ''
   │  ── 应用数据 ──────────→ │   (第 3 个 RTT 才能发数据)
 ```
 
-TLS 1.2 完整握手需要 **2 个 RTT**，加上 TCP 三次握手的 1 个 RTT，用户实际要等 **3 个 RTT** 才能发出第一个 HTTP 请求。在高延迟网络（如移动网络 100ms 延迟）下，仅握手就浪费了 300ms。
+A full TLS 1.2 handshake requires **2 RTTs**, plus 1 RTT for the TCP three-way handshake, meaning users actually have to wait **3 RTTs** before sending the first HTTP request. On high-latency networks (such as mobile networks with 100ms latency), the handshake alone wastes 300ms.
 
-更糟的是，TLS 1.2 支持一大堆过时且危险的算法——RSA 密钥交换、CBC 模式加密、SHA-1 哈希等。这些历史包袱是 BEAST、POODLE、FREAK 等著名攻击的温床。
+Worse still, TLS 1.2 supports a whole pile of outdated and dangerous algorithms—RSA key exchange, CBC mode encryption, SHA-1 hashing, and so on. These historical burdens are the breeding ground for famous attacks such as BEAST, POODLE, and FREAK.
 
-## TLS 1.3：删繁就简的一次往返
+## TLS 1.3: One Round Trip by Cutting the Clutter
 
-TLS 1.3 的握手被精简成下面这样：
+The TLS 1.3 handshake has been streamlined into the following:
 
 ```
 客户端                    服务端
@@ -69,17 +67,17 @@ TLS 1.3 的握手被精简成下面这样：
   │  ── 应用数据 ──────────→ │   (第 1 个 RTT 即可发数据!)
 ```
 
-注意花括号 `{}`：从 ServerHello 之后，服务端的**所有消息都已经被加密了**。这是 TLS 1.3 的一个关键改进——握手本身尽可能少地暴露明文。
+Note the curly braces `{}`: after ServerHello, **all of the server's messages are already encrypted**. This is a key improvement of TLS 1.3—the handshake itself exposes as little plaintext as possible.
 
-整个过程只有 **1 个 RTT**，加上 TCP 的 1 个 RTT，总共 **2 个 RTT** 就能发送 HTTP 请求，比 TLS 1.2 快了整整三分之一。
+The entire process takes only **1 RTT**, plus 1 RTT for TCP, for a total of **2 RTTs** before an HTTP request can be sent—a full one-third faster than TLS 1.2.
 
-### 关键改进一：只保留安全的密钥交换
+### Key Improvement One: Keep Only Secure Key Exchange
 
-TLS 1.3 砍掉了 RSA 密钥交换和静态 DH，只保留**带前向保密（Forward Secrecy）的 (EC)DHE**。这意味着即使服务器的私钥将来泄露，历史流量也无法被解密——这是 TLS 1.3 最本质的安全提升。
+TLS 1.3 removes RSA key exchange and static DH, keeping only **(EC)DHE with Forward Secrecy**. This means that even if the server's private key is leaked in the future, historical traffic cannot be decrypted—this is the most fundamental security improvement of TLS 1.3.
 
-### 关键改进二：key_share 猜一把
+### Key Improvement Two: Guess with key_share
 
-这是 1-RTT 的核心技巧。客户端在 ClientHello 里直接带上自己猜测的密钥交换参数（如 X25519 公钥），而不是像 TLS 1.2 那样等服务端选定算法后再交换：
+This is the core trick behind 1-RTT. The client directly includes its guessed key exchange parameters (such as an X25519 public key) in the ClientHello, rather than waiting for the server to select an algorithm before exchanging, as in TLS 1.2:
 
 ```
 ClientHello:
@@ -91,32 +89,32 @@ ServerHello:
   key_share:     (X25519, 服务端的临时公钥)   ← 直接响应
 ```
 
-如果客户端猜对了算法，双方立刻就能计算出共享密钥，省掉一次往返。如果猜错了，服务端会发一个 `HelloRetryRequest` 让客户端重试——这是极少数情况。
+If the client guesses the algorithm correctly, both sides can immediately compute the shared key, saving a round trip. If the guess is wrong, the server sends a `HelloRetryRequest` to let the client retry—this is an extremely rare case.
 
-## 握手的三把「锁」
+## The Three "Locks" of the Handshake
 
-TLS 1.3 的握手实际上完成了三件事：
+The TLS 1.3 handshake actually accomplishes three things:
 
-1. **密钥协商**：通过 (EC)DHE 计算出共享密钥 `shared_secret`
-2. **身份认证**：服务端用证书证明「我就是 example.com」
-3. **密钥派生**：从 `shared_secret` 派生出多个用途不同的密钥
+1. **Key negotiation**: Compute the shared key `shared_secret` via (EC)DHE
+2. **Identity authentication**: The server uses a certificate to prove "I am example.com"
+3. **Key derivation**: Derive multiple keys for different purposes from `shared_secret`
 
-其中密钥派生最容易被忽视，却最能体现 TLS 1.3 的设计哲学。它使用 **HKDF（HMAC-based Key Derivation Function）**，从一份主密钥派生出四把用途各异的密钥：
+Among these, key derivation is the most easily overlooked, yet it best reflects the design philosophy of TLS 1.3. It uses **HKDF (HMAC-based Key Derivation Function)** to derive four keys with different purposes from a single master key:
 
-| 密钥 | 用途 |
+| Key | Purpose |
 |------|------|
-| `client_handshake_traffic_secret` | 客户端握手流量加密 |
-| `server_handshake_traffic_secret` | 服务端握手流量加密 |
-| `client_application_traffic_secret` | 客户端应用数据加密 |
-| `server_application_traffic_secret` | 服务端应用数据加密 |
+| `client_handshake_traffic_secret` | Client handshake traffic encryption |
+| `server_handshake_traffic_secret` | Server handshake traffic encryption |
+| `client_application_traffic_secret` | Client application data encryption |
+| `server_application_traffic_secret` | Server application data encryption |
 
-「一钥一用」的原则确保某一把密钥泄露不会波及其他用途。
+The principle of "one key, one use" ensures that the leakage of one key will not affect other purposes.
 
-## 实战：用 OpenSSL 观察 1-RTT 握手
+## Hands-On: Observing the 1-RTT Handshake with OpenSSL
 
-理论讲完了，我们动手验证。OpenSSL 自 1.1.1 起支持 TLS 1.3，可以用一条命令直观看到握手过程。
+Now that the theory is covered, let's verify it in practice. OpenSSL has supported TLS 1.3 since 1.1.1, and you can intuitively see the handshake process with a single command.
 
-**1. 查看服务端是否支持 TLS 1.3：**
+**1. Check whether the server supports TLS 1.3:**
 
 ```bash
 # 强制使用 TLS 1.3 连接
@@ -127,13 +125,13 @@ echo | openssl s_client -connect www.cloudflare.com:443 -tls1_3 2>&1 | grep -E "
 # Cipher    : TLS_AES_256_GCM_SHA384
 ```
 
-**2. 查看完整的握手消息：**
+**2. View the complete handshake messages:**
 
 ```bash
 echo | openssl s_client -connect www.cloudflare.com:443 -tls1_3 -msg 2>&1 | head -40
 ```
 
-`-msg` 参数会打印每一帧握手消息的十六进制内容。你会看到：
+The `-msg` parameter prints the hexadecimal contents of each handshake message frame. You will see:
 
 ```
 >>> TLS 1.3, Handshake [length 0231], ClientHello
@@ -142,9 +140,9 @@ echo | openssl s_client -connect www.cloudflare.com:443 -tls1_3 -msg 2>&1 | head
 <<< TLS 1.3, Application Data [length 00ea]   ← 加密后的握手消息
 ```
 
-关键观察点：**ServerHello 之后紧跟的不是明文 Certificate，而是加密的 Application Data**。这正是 TLS 1.3 把证书、签名全部塞进加密通道的证据。
+Key observation: **What immediately follows ServerHello is not a plaintext Certificate, but encrypted Application Data**. This is precisely the evidence that TLS 1.3 stuffs the certificate and signature entirely into the encrypted channel.
 
-**3. 生成自签名证书测试本地服务端：**
+**3. Generate a self-signed certificate to test a local server:**
 
 ```bash
 # 生成私钥和自签名证书
@@ -153,9 +151,9 @@ openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
   -subj "/CN=localhost"
 ```
 
-## 实战：Node.js 构建 TLS 1.3 服务端
+## Hands-On: Building a TLS 1.3 Server with Node.js
 
-下面用 Node.js 的 `tls` 模块创建一个强制 TLS 1.3 的服务端，直观展示协议配置：
+Below, we use Node.js's `tls` module to create a server that enforces TLS 1.3, intuitively demonstrating the protocol configuration:
 
 ```js
 import tls from 'node:tls';
@@ -188,40 +186,39 @@ server.listen(8443, () => {
 });
 ```
 
-用浏览器或 curl 验证：
+Verify with a browser or curl:
 
 ```bash
 curl --tlsv1.3 -k https://localhost:8443
 # 输出: Hello TLS 1.3!
 ```
 
-`--tlsv1.3` 强制客户端使用 TLS 1.3，`-k` 跳过自签名证书校验（仅本地测试用，生产环境切勿使用）。
+`--tlsv1.3` forces the client to use TLS 1.3, and `-k` skips self-signed certificate verification (for local testing only—never use this in production).
+## 0-RTT: The Ultimate Form of Session Resumption
 
-## 0-RTT：会话恢复的终极形态
-
-如果客户端和服务端之前握过手，TLS 1.3 还支持**更极致的 0-RTT**——客户端在第一次往返中直接带上应用数据：
+If the client and server have handshaked before, TLS 1.3 also supports an **even more extreme 0-RTT**—the client directly includes application data in the first round trip:
 
 ```
 客户端 ── ClientHello + 0-RTT 应用数据 ──────→ 服务端
 客户端 ←── ServerHello + {Finished} ────────── 服务端
 ```
 
-0-RTT 依赖「预共享密钥」（PSK，即上次会话保存的密钥），适用于需要极低延迟的场景。但它有一个著名的安全代价：**0-RTT 数据无法保证防重放（Replay）**。攻击者可以截获并重放 0-RTT 请求。因此 0-RTT 只应被用于**幂等**的请求（如 GET），绝不要用于转账、下单等有副作用的操作。
+0-RTT relies on a "pre-shared key" (PSK, i.e., the key saved from the previous session), and is suitable for scenarios that require extremely low latency. But it has a well-known security cost: **0-RTT data cannot be guaranteed to be replay-proof**. An attacker can intercept and replay 0-RTT requests. Therefore, 0-RTT should only be used for **idempotent** requests (such as GET), and must never be used for operations with side effects such as transfers or placing orders.
 
-## 总结
+## Summary
 
-TLS 1.3 的核心思想可以浓缩为一句话：**砍掉所有不安全的算法，把能提前的东西都提前**。它带来的收益是双重的：
+The core idea of TLS 1.3 can be condensed into one sentence: **cut out all insecure algorithms, and move everything that can be moved earlier to be earlier**. The benefits it brings are twofold:
 
-- **性能**：握手从 2-RTT 降到 1-RTT，0-RTT 更进一步
-- **安全**：废弃 RSA 密钥交换和 CBC 模式，强制前向保密，握手后立即加密
+- **Performance**: the handshake drops from 2-RTT to 1-RTT, and 0-RTT goes even further
+- **Security**: RSA key exchange and CBC mode are deprecated, forward secrecy is enforced, and encryption begins immediately after the handshake
 
-根据 Cloudflare 的数据，TLS 1.3 部署后，建立连接的平均时间减少了约 100ms。截至 2026 年，TLS 1.3 已经覆盖了超过 95% 的全球 HTTPS 流量——它在极短的时间内完成了从「新标准」到「默认配置」的转变。
+According to Cloudflare's data, after TLS 1.3 was deployed, the average time to establish a connection decreased by about 100ms. As of 2026, TLS 1.3 already covers more than 95% of global HTTPS traffic—it completed the transition from "new standard" to "default configuration" in an extremely short time.
 
-理解 TLS 1.3 握手，不仅是为了读懂抓包工具的输出，更是理解现代互联网安全设计的一个绝佳入口：**好的协议设计，从来都是在安全与性能之间找到最优雅的平衡点**。
+Understanding the TLS 1.3 handshake is not only about being able to read the output of packet capture tools, but also an excellent entry point for understanding modern internet security design: **good protocol design has always been about finding the most elegant balance between security and performance**.
 
 ---
 
-**参考来源：**
+**References:**
 
 - [RFC 8446 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446)
 - [Cloudflare — A Detailed Look at the TLS 1.3 Handshake](https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/)

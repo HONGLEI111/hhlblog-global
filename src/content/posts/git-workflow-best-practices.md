@@ -1,29 +1,27 @@
 ---
-title: Git 工作流最佳实践：从 rebase 到 squash
+title: 'Git Workflow Best Practices: From Rebase to Squash'
 published: 2026-08-15
-description: '系统梳理 Git 工作流的最佳实践：Conventional Commits 提交规范、分支模型、rebase 与 squash 的区别与正确用法，以及合并冲突的优雅处理方式。'
+description: 'A systematic overview of Git workflow best practices: Conventional Commits conventions, branching models, the differences between rebase and squash and how to use them correctly, plus elegant ways to handle merge conflicts.'
 image: ''
-tags: [Git, 工作流, rebase, squash, 版本控制, 最佳实践]
-category: '后端'
+tags: [Git, Workflow, Rebase, Squash, Version Control, Best Practices]
+category: Backend
 draft: false
-lang: ''
 ---
+## Why Git History Deserves Serious Attention
 
-## 为什么 Git 历史值得认真对待
+Many people treat Git as just a tool for "saving code"—as long as you commit, it doesn't matter if the history is messy. But in collaborative projects, Git history is the team's second document: it's the entry point for newcomers to understand the project's evolution, the raw material for `git bisect` when investigating regressions, and the basis for reviewers to quickly locate changes during Code Review.
 
-很多人把 Git 只当成「保存代码」的工具——提交了就行，历史乱不乱无所谓。但在协作项目中，Git 历史是团队的第二份文档：它是新人理解项目演进的入口，是排查回归时 `git bisect` 的原材料，也是 Code Review 时审阅者快速定位改动的依据。
+A messy history (say, 20 commits of `fix`, `update`, `tmp`) brings real costs:
 
-一条混乱的历史（比如 20 条 `fix`、`update`、`tmp` 提交）会带来真实成本：
+- Hard to understand "what exactly did this change do, and why was it done this way";
+- Unable to use `git blame` to quickly locate the background of when a piece of code was introduced;
+- When rolling back a feature, you need to search through a pile of scattered commits like finding a needle in a haystack.
 
-- 难以理解「这次改动到底做了什么、为什么这么做」；
-- 无法用 `git blame` 快速定位某段代码的引入背景；
-- 回滚一个功能时，需要在一堆零散提交里大海捞针。
+This article will lay out a practical Git workflow: from commit conventions, to branching models, to the correct usage of rebase and squash.
 
-本文将梳理一套可落地的 Git 工作流：从提交规范，到分支模型，再到 rebase 与 squash 的正确用法。
+## Step 1: A Unified Commit Convention
 
-## 第一步：统一的提交规范
-
-提交信息是历史可读性的基石。目前社区最主流的规范是 [Conventional Commits](https://www.conventionalcommits.org/)，它的格式如下：
+Commit messages are the cornerstone of history readability. Currently the most mainstream convention in the community is [Conventional Commits](https://www.conventionalcommits.org/), and its format is as follows:
 
 ```
 <type>(<scope>): <subject>
@@ -33,26 +31,26 @@ lang: ''
 [optional footer]
 ```
 
-`type` 常见取值：
+Common values for `type`:
 
-| type | 含义 |
+| type | meaning |
 | --- | --- |
-| `feat` | 新功能 |
-| `fix` | 修复 bug |
-| `docs` | 文档变更 |
-| `refactor` | 重构（不改变行为） |
-| `perf` | 性能优化 |
-| `test` | 测试相关 |
-| `chore` | 构建/工具等杂项 |
-| `style` | 代码格式（不影响逻辑） |
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation changes |
+| `refactor` | Refactoring (no behavior change) |
+| `perf` | Performance optimization |
+| `test` | Test-related |
+| `chore` | Build/tooling and other miscellaneous |
+| `style` | Code formatting (doesn't affect logic) |
 
-一条好的提交信息长这样：
+A good commit message looks like this:
 
 ```bash
 git commit -m "fix(cache): 修复并发下 ETag 校验竞态导致 304 返回过期内容"
 ```
 
-主体（body）用于解释**为什么**要做这个改动，而不是复述 diff 里已经看得出的「做了什么」。例如：
+The body is used to explain **why** the change is being made, rather than restating the "what" that's already visible in the diff. For example:
 
 ```
 feat(payment): 支持微信支付渠道
@@ -63,51 +61,51 @@ feat(payment): 支持微信支付渠道
 Refs: #1234
 ```
 
-规范的价值不只是「好看」：它能被工具消费。配合 [semantic-release](https://semantic-release.gitbook.io/) 或 `standard-version`，可以自动生成 CHANGELOG 并计算版本号。
+The value of the convention isn't just that it "looks good": it can be consumed by tools. Combined with [semantic-release](https://semantic-release.gitbook.io/) or `standard-version`, it can automatically generate a CHANGELOG and calculate version numbers.
 
-## 第二步：选择合适的分支模型
+## Step 2: Choose an Appropriate Branching Model
 
-分支模型没有银弹，取决于团队规模和发布节奏。两种主流模型：
+There's no silver bullet for branching models—it depends on team size and release cadence. Two mainstream models:
 
-**Git Flow**：`main` + `develop` + `feature/*` + `release/*` + `hotfix/*`。适合有明确版本发布周期、需要长期维护多个版本的产品（比如桌面软件、SDK）。代价是分支多、合并路径长。
+**Git Flow**: `main` + `develop` + `feature/*` + `release/*` + `hotfix/*`. Suitable for products with a clear version release cycle and the need to maintain multiple versions long-term (such as desktop software, SDKs). The cost is many branches and long merge paths.
 
-**Trunk-Based Development（主干开发）**：所有人基于 `main` 短分支开发，小步快跑，通过 Feature Flag 控制未完成功能的上线。适合持续部署的 SaaS 团队，也是 GitHub Flow 背后的思想——分支生命周期尽量短，通常不超过 1~2 天。
+**Trunk-Based Development**: Everyone develops on short branches based on `main`, taking small rapid steps, and controlling the release of unfinished features through Feature Flags. Suitable for SaaS teams doing continuous deployment, and it's also the philosophy behind GitHub Flow—keep branch lifetimes as short as possible, usually no more than 1–2 days.
 
-对于大多数现代 Web 项目，我推荐从简：**一个 `main` + 短生命周期的 `feature/*` 分支**，合并用 Pull Request 完成。这套模型足够应付 90% 的场景，复杂度也最低。
+For most modern Web projects, I recommend keeping it simple: **one `main` + short-lived `feature/*` branches**, with merges done via Pull Request. This model is enough to handle 90% of scenarios, and has the lowest complexity.
 
-## rebase vs merge：一个关键抉择
+## rebase vs merge: A Key Decision
 
-分支合并回主干时，有两种基本方式，它们产生截然不同的历史形态。
+When merging a branch back to the mainline, there are two basic approaches, and they produce completely different history shapes.
 
-**`git merge`** 会创建一个合并提交（merge commit），保留两条分支的完整历史：
+**`git merge`** creates a merge commit, preserving the full history of both branches:
 
 ```bash
 git checkout main
 git merge feature/awesome
 ```
 
-历史呈「网」状，能看到功能分支的起点和合并点。优点是保留了真实的时间线，缺点是长期下来历史像蜘蛛网，`git log --oneline` 难以快速扫读。
+The history takes on a "web" shape, where you can see the starting point and merge point of the feature branch. The advantage is that it preserves the real timeline; the disadvantage is that over time the history looks like a spider web, and `git log --oneline` becomes hard to scan quickly.
 
-**`git rebase`** 会把你的提交「搬」到目标分支的最新提交之上，重写成一条线性历史：
+**`git rebase`** "moves" your commits on top of the latest commit of the target branch, rewriting them into a linear history:
 
 ```bash
 git checkout feature/awesome
 git rebase main
 ```
 
-线性历史的好处是清晰：`git log` 一条直线看下来就是项目演进的全貌，`git bisect` 定位问题也更容易。
+The benefit of linear history is clarity: `git log` following a straight line shows the full picture of the project's evolution, and `git bisect` locating problems is also easier.
 
-**我的实践建议**：
+**My practical recommendations**:
 
-- **功能分支合并回主干时用 `--squash` 或 GitHub 的「Squash and merge」**——把一个功能的所有零散提交压缩成一条，历史干净；
-- **保持功能分支与主干同步时用 `rebase`**——避免反复 merge 主干产生噪音；
-- **只在私有分支上 rebase**——如果分支已被其他人拉取，rebase 会改写提交 SHA，等同于「改写历史」，会让协作者陷入混乱。
+- **When merging a feature branch back to the mainline, use `--squash` or GitHub's "Squash and merge"**—compress all the scattered commits of a feature into one, keeping the history clean;
+- **When keeping a feature branch in sync with the mainline, use `rebase`**—avoid the noise from repeatedly merging the mainline;
+- **Only rebase on private branches**—if the branch has already been pulled by others, rebase will rewrite the commit SHA, which amounts to "rewriting history" and will throw collaborators into confusion.
 
-## squash：把一地的脚印合成一步
+## squash: Combining a Trail of Footprints into One Step
 
-开发一个功能时，我们往往会有一堆过程提交：`wip`、`try xxx`、`fix typo`、`revert last`……这些过程足迹对未来的读者没有价值，反而制造噪音。Squash 就是把这些提交合成一条语义完整的提交。
+When developing a feature, we often end up with a bunch of process commits: `wip`, `try xxx`, `fix typo`, `revert last`… These process footprints have no value for future readers, and instead create noise. Squash is about combining these commits into one semantically complete commit.
 
-以 GitHub 为例，合并 PR 时选择 **Squash and merge**，整个 PR 会变成一条提交，提交信息默认是 PR 标题。命令行里等价的操作是：
+Taking GitHub as an example, when merging a PR, choose **Squash and merge**, and the entire PR becomes one commit, with the commit message defaulting to the PR title. The equivalent operation on the command line is:
 
 ```bash
 git checkout main
@@ -115,13 +113,13 @@ git merge --squash feature/awesome
 git commit -m "feat(user): 新增用户资料页与头像上传"
 ```
 
-如果希望更精细地控制（保留其中一两个独立提交、重写某个提交信息），用交互式 rebase：
+If you want more fine-grained control (keeping one or two independent commits, rewriting a certain commit message), use interactive rebase:
 
 ```bash
 git rebase -i main
 ```
 
-会打开一个编辑器，列出该分支上所有提交：
+This opens an editor listing all commits on that branch:
 
 ```
 pick 3f2a1c1 feat: 完成用户资料页骨架
@@ -129,7 +127,7 @@ pick 9b8c2d2 wip: 头像上传调试中
 pick 5e1d3a3 fix: 修复上传后刷新不显示的问题
 ```
 
-把想要合并的提交前面的 `pick` 改成 `squash`（或简写 `s`），它们就会被压进上一条提交：
+Change the `pick` in front of the commits you want to combine to `squash` (or the shorthand `s`), and they will be squashed into the previous commit:
 
 ```
 pick 3f2a1c1 feat: 完成用户资料页骨架
@@ -137,11 +135,11 @@ squash 9b8c2d2 wip: 头像上传调试中
 squash 5e1d3a3 fix: 修复上传后刷新不显示的问题
 ```
 
-保存后 Git 会让你合并三者的提交信息，最终得到一条干净的提交。
+After saving, Git will ask you to combine the commit messages of the three, ultimately producing one clean commit.
 
-## 处理合并冲突：rebase 时的正确姿势
+## Handling Merge Conflicts: The Right Posture During rebase
 
-合并冲突是绕不开的。用 rebase 同步主干时，冲突的处理方式和 merge 略有不同：
+Merge conflicts are unavoidable. When using rebase to sync with the mainline, conflict handling is slightly different from merge:
 
 ```bash
 git checkout feature/awesome
@@ -149,7 +147,7 @@ git rebase main
 # CONFLICT (content): Merge conflict in src/user.ts
 ```
 
-此时 Git 会暂停 rebase，进入冲突解决状态：
+At this point Git will pause the rebase and enter a conflict resolution state:
 
 ```bash
 # 1. 手动编辑冲突文件，解决 <<<<<<< 与 >>>>>>> 标记
@@ -160,13 +158,13 @@ git add src/user.ts
 git rebase --continue
 ```
 
-如果中途想放弃这次 rebase：
+If you want to abandon this rebase midway:
 
 ```bash
 git rebase --abort
 ```
 
-一个实用的调试命令 `git reflog` 值得记住——即使 rebase 翻车，`reflog` 里也保留了操作前的引用，可以随时恢复：
+One practical debugging command, `git reflog`, is worth remembering—even if the rebase goes off the rails, `reflog` retains the reference from before the operation, so you can restore at any time:
 
 ```bash
 git reflog
@@ -174,9 +172,9 @@ git reflog
 git reset --hard HEAD@{2}
 ```
 
-## 实用别名：让高频操作更顺手
+## Practical Aliases: Making High-Frequency Operations More Convenient
 
-把常用命令配成别名能显著减少敲键盘的负担：
+Configuring aliases for commonly used commands can significantly reduce the burden of typing:
 
 ```bash
 git config --global alias.lg "log --oneline --graph --decorate --all"
@@ -187,22 +185,22 @@ git config --global alias.unstage "reset HEAD --"
 git config --global alias.last "log -1 HEAD --stat"
 ```
 
-之后 `git lg` 就能以树状图查看全部分支历史，比裸的 `git log` 直观得多。
+After that, `git lg` lets you view the entire branch history as a tree graph, which is much more intuitive than bare `git log`.
 
-## 小结
+## Summary
 
-Git 工作流的核心不是记住多少命令，而是形成一套团队共识：
+The core of a Git workflow isn't how many commands you memorize, but forming a set of team consensus:
 
-1. **提交规范**：用 Conventional Commits 写清「改了什么、为什么」；
-2. **分支从简**：短生命周期 feature 分支 + PR 合并，避免过度设计；
-3. **历史干净**：私有分支用 rebase 同步，合并回主干用 squash 压缩；
-4. **冲突淡定**：`rebase --continue` / `rebase --abort` / `reflog` 是三条保命命令。
+1. **Commit convention**: Use Conventional Commits to clearly write "what changed and why";
+2. **Keep branching simple**: Short-lived feature branches + PR merges, avoiding over-engineering;
+3. **Clean history**: Use rebase to sync private branches, use squash to compress when merging back to the mainline;
+4. **Stay calm with conflicts**: `rebase --continue` / `rebase --abort` / `reflog` are the three life-saving commands.
 
-工具是为协作服务的。在开始争论「rebase 还是 merge」之前，先和团队约定一套大家都能遵守的规则，比选哪边更重要。
+Tools serve collaboration. Before starting to argue about "rebase or merge," agreeing with your team on a set of rules everyone can follow is more important than choosing a side.
 
-## 参考来源
+## References
 
-- [Pro Git 中文版 — 3.6 变基（Rebasing）](https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA)
-- [Conventional Commits 规范](https://www.conventionalcommits.org/zh-hans/)
-- [Atlassian Git 教程 — Merging vs. Rebasing](https://www.atlassian.com/git/tutorials/merging-vs-rebasing)
+- [Pro Git Chinese Edition — 3.6 Rebasing](https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA)
+- [Conventional Commits Specification](https://www.conventionalcommits.org/zh-hans/)
+- [Atlassian Git Tutorial — Merging vs. Rebasing](https://www.atlassian.com/git/tutorials/merging-vs-rebasing)
 - [Trunk Based Development](https://trunkbaseddevelopment.com/)

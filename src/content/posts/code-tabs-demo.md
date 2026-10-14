@@ -1,17 +1,16 @@
 ---
-title: Code Tabs 多语言代码选项卡使用指南
+title: Code Tabs Multi-Language Code Tabs Usage Guide
 published: 2026-08-10
-description: 使用 :::code-tabs 指令在博文中展示多语言版本的代码示例，支持选项卡切换和语言偏好记忆。
+description: Use the :::code-tabs directive to display multi-language code examples in blog posts, with tab switching and language preference memory.
 tags: [Demo, Markdown]
-category: 示例
+category: Examples
 draft: false
 ---
+HHLBlog has added a **Code Tabs** feature that lets you display implementations in multiple programming languages within a single code block, with readers switching freely via tabs. It's especially suited for technical blog posts that need to compare how different languages/frameworks write things.
 
-HHLBlog 新增了 **Code Tabs** 功能，可以在一个代码块中同时展示多种编程语言的实现，读者通过选项卡自由切换。特别适合技术博文中需要对比不同语言/框架写法的场景。
+## Quick Start
 
-## 快速开始
-
-使用 `:::code-tabs` 容器指令包裹多个 fenced code block，每个 code block 的语言会被自动识别并显示为选项卡标签：
+Use the `:::code-tabs` container directive to wrap multiple fenced code blocks; each code block's language is automatically detected and displayed as a tab label:
 
 :::code-tabs
 ```js
@@ -31,11 +30,11 @@ console.log(greet("World"));
 ```
 :::
 
-语法非常简单 —— 就像平时写 fenced code block 一样，只是用 `:::code-tabs` 把它们包起来。
+The syntax is very simple — just like writing fenced code blocks normally, except you wrap them with `:::code-tabs`.
 
-## 指定默认语言
+## Specifying the Default Language
 
-使用 `default` 属性可以预设默认显示的选项卡：
+Use the `default` attribute to preset which tab is displayed by default:
 
 :::code-tabs{default="cpp"}
 ```c title="C"
@@ -89,9 +88,9 @@ func main() {
 ```
 :::
 
-## 使用 title 自定义标签名
+## Using title to Customize Tab Names
 
-通过 fenced code block 的 `title` 属性可以自定义选项卡的显示名称：
+You can customize the display name of a tab via the `title` attribute of a fenced code block:
 
 :::code-tabs
 ```bash title="npm"
@@ -111,9 +110,9 @@ bun add lodash
 ```
 :::
 
-## 实际场景示例
+## Real-World Examples
 
-### 场景一：HTTP 请求
+### Example 1: HTTP Requests
 
 :::code-tabs{default="ts"}
 ```js title="Fetch API"
@@ -156,7 +155,7 @@ func main() {
 ```
 :::
 
-### 场景二：读取文件
+### Example 2: Reading Files
 
 :::code-tabs{default="py"}
 ```py title="Python"
@@ -200,7 +199,7 @@ func main() {
 ```
 :::
 
-### 场景三：React / Vue / Svelte 组件对比
+### Example 3: React / Vue / Svelte Component Comparison
 
 :::code-tabs{default="tsx"}
 ```tsx title="React"
@@ -242,24 +241,24 @@ const count = ref(0);
 ```
 :::
 
-## 语言偏好记忆
+## Language Preference Memory
 
-Code Tabs 会通过浏览器的 `localStorage` 记住你最近选择的语言偏好。当你切换过某个选项卡后，浏览其他文章时，页面中所有包含该语言的 Code Tabs 都会自动切换到对应标签页。
+Code Tabs remembers your most recently selected language preference via the browser's `localStorage`. Once you've switched a tab, when you browse other articles, all Code Tabs containing that language on the page will automatically switch to the corresponding tab.
 
-## 语法参考
+## Syntax Reference
 
 ```
 :::code-tabs{default="语言标识"}
-​```语言标识 title="显示名称"
-代码内容
+​```language identifier title="display name"
+code content
 ​```
 
-​```另一个语言 title="显示名称"
-代码内容
+​```another language title="display name"
+code content
 ​```
 :::
 ```
 
-- `default` — 可选，指定默认激活的选项卡语言
-- `title` — 可选，自定义选项卡的显示名称（不设置则自动根据语言标识映射）
-- 至少需要 **2 个** fenced code block
+- `default` — optional, specifies the language of the tab to activate by default
+- `title` — optional, customizes the tab's display name (if not set, it is automatically mapped based on the language identifier)
+- At least **2** fenced code blocks are required

@@ -1,60 +1,58 @@
 ---
-title: 程序员转行图鉴：从写代码到卖烤串
+title: 'Programmer Career Change Illustrated: From Writing Code to Selling Skewers'
 published: 2026-10-05
-description: '深夜群里一句「不行就回老家卖烤串」，能收到一整排「带我一个」。把这份转行图鉴摊开来看，每个选项背后藏着的，到底是对另一种生活的向往，还是对当下处境的逃跑。'
+description: A late-night message in a group chat saying "if it doesn't work out, I'll go back home and sell skewers" can get a whole row of "take me with you." Unfold this career change guide, and what lies behind each option—is it longing for another kind of life, or escaping the current situation?
 image: ''
-tags: [程序员笑话, 职业发展, 转行, 职场]
-category: '其他'
+tags: [programmer humor, career development, career change, workplace]
+category: Other
 draft: false
-lang: ''
 ---
+At one in the morning, someone posted in the group chat: "Brothers, I'm getting ready to go back to my hometown and sell skewers."
 
-凌晨一点，群里有人发了句：「兄弟们，我准备回老家卖烤串了。」
+Three seconds later, a row of replies appeared below in perfect unison: "Take me with you."
 
-三秒钟后，下面齐刷刷一排：「带我一个。」
+The status of this sentence in programmer circles is roughly equivalent to the status of the blue screen in Windows circles—its frequency of appearance is directly proportional to how much overtime the person in question has been working recently.
 
-这句话在程序员圈子里的地位，大概相当于蓝屏在 Windows 圈子里的地位——它出现的频率，和当事人最近的加班时长成正比。
+## 1. Career Change Illustrated Guide: Five Official Tracks
 
-## 1. 转行图鉴：五个官方赛道
+**Food and Beverage Track**: Selling skewers, opening a café, setting up a stall selling jianbing. The three ultimate careers for programmers, with the entry barrier reading two big words: "Not hard." The actual barrier is written in the ingredient wholesale market at four in the morning.
 
-**餐饮赛道**：卖烤串、开咖啡馆、摆摊卖煎饼。程序员三大终极职业，入行门槛写着两个大字「不难」，实际门槛写在凌晨四点的食材批发市场里。
+**Transportation Track**: Driving for Didi, delivering food. The shared selling point of both is "flexible hours"—so flexible that you can decide for yourself whether to drive twelve hours today or fourteen hours tomorrow.
 
-**出行赛道**：开滴滴、送外卖。这两条的共同卖点是「时间自由」——自由到你可以自己决定，是今天开十二小时，还是明天开十四小时。
+**Agriculture Track**: Going back to your hometown to farm, raise chickens, or lease a fish pond. Our parents struggled to get into the city, and we struggle to get back—the spiral of history can be genuinely funny sometimes.
 
-**农业赛道**：回老家种地、养鸡、包个鱼塘。父辈拼命进城，我们拼命想回去，历史的螺旋有时候真的挺幽默。
+**Government Track**: Taking the civil service exam, the public institution exam, becoming a middle school teacher. "The end of the universe is a government post"—it only took a few years for this to go from a joke to a belief.
 
-**体制赛道**：考公、考编、当中学老师。「宇宙的尽头是编制」，这句话从段子变成信仰，只用了几年。
+**Pseudo Career Change Track**: Switching to product, switching to pre-sales, switching to management. Calling it a career change, but really it's just switching desks to keep attending meetings—from the person who says "it can't be done" to the person who says "this requirement isn't feasible."
 
-**伪转行赛道**：转产品、转售前、转管理。说是转行，其实是换了个工位继续开会——从「实现不了」的人，变成说「这个需求做不了」的人。
+## 2. Why These Five?
 
-## 2. 为什么偏偏是这几个？
+Laying out the illustrated guide flat, the five tracks share one eerie commonality: **low barrier, fast feedback, no need to read other people's code**.
 
-把图鉴摊平了看，五个赛道有个诡异的一致点：**门槛低、反馈快、不用读别人的代码**。
+What drains people most about writing code was never "difficulty"—it's "uncertainty." Requirements change, production crashes, and the line of code you're modifying might have been left by someone who quit three years ago. Skewers are different: whether the meat is cooked, one bite tells you; how much you sold today, one tally at closing time makes it clear.
 
-写代码最消耗人的，从来不是「难」，而是「不确定」——需求会变、线上会崩、你改的这行代码可能是三年前某个已经离职的人留下的。而烤串不一样：肉熟没熟，一口就知道；今天卖了多少，收摊一算就清楚。
+What the career change meme is really shouting is: "I want to do something where effort is proportional to results."
 
-转行梗真正在喊的，是「我想做一件努力和结果成正比的事」。
+Unfortunately, that's a filter. Didi drivers' revenue has to deduct gas money, vehicle depreciation, and platform commissions; skewer vendors' pre-dawn ingredient sourcing, daytime skewering, and nighttime closing is a three-shift rotation starting at fourteen hours. **Mistaking "exhaustion" for "freedom" is the biggest Bug in this illustrated guide.**
 
-可惜这是滤镜。开滴滴的流水里要扣油钱、车损和平台抽成；烤串的凌晨备货、白天串签、夜里收摊，是十四小时起步的三班倒。**把「累」误认成「自由」，是这份图鉴最大的 Bug。**
+## 3. The Reality Beyond a Dark Joke
 
-## 3. 一句冷笑话之外的现实
+In Stack Overflow's [2025 Developer Survey](https://survey.stackoverflow.co/2025/) ([official press release](https://stackoverflow.co/company/press/archive/stack-overflow-2025-developer-survey/)), there's an interesting detail: although AI tool usage has risen to 84%, **64% of developers still don't believe AI threatens their jobs**. What actually makes people consider changing careers is often not the technology itself, but structural anxieties like overtime, chaotic management, and the "age 35" problem.
 
-Stack Overflow 的 [2025 年度开发者调查](https://survey.stackoverflow.co/2025/)（[官方新闻稿](https://stackoverflow.co/company/press/archive/stack-overflow-2025-developer-survey/)）里有个细节挺有意思：尽管 AI 工具的使用率已经升到 84%，但仍有 **64% 的开发者不认为 AI 威胁到自己的工作**。真正让人动念转行的，往往不是技术本身，而是加班、管理混乱、「35 岁」这类结构性的焦虑。
+In other words, most people who want to sell skewers don't hate writing code—they hate everything that comes with writing code.
 
-也就是说，想卖烤串的人，多数并不讨厌写代码——他们讨厌的是写代码之外的那些事。
+## 4. So, Take Me With You?
 
-## 4. 所以，带我一个吗？
+Sure, but distinguish between two kinds of career changes:
 
-可以，但分清楚两种转行：
+- **Escape-driven career change**: You want to leave because today sucks. On the new track, the suck comes back in a different form.
+- **Plan-driven career change**: You've thought clearly about what you want to change—income structure, pace of life, or identity—and then you change it.
 
-- **逃离式转行**：因为今天很烦，所以想走。到了新赛道，烦会以另一种形式回来。
-- **规划式转行**：想清楚了要换的是什么——是收入结构、是生活节奏、还是身份认同，再去换。
+The illustrated guide can serve as an emotional outlet, but don't use it as a basis for decisions. After all, the asset you can truly take with you isn't those thousand commits on GitHub, but the ability to "break a vague problem into deliverable steps." That ability is valuable when writing code, and equally valuable at a skewer stall—product selection, standardization, calculating table turnover rates are essentially the same problem.
 
-图鉴可以当情绪出口，别当决策依据。毕竟真正能带走的资产，不是 GitHub 上那一千次提交，而是「把一个模糊问题拆成可交付步骤」的能力。这能力在写代码时值钱，在烤串摊上也一样值钱——选品、标准化、算翻台率，本质上都是同一道题。
+As for me, I'm not switching for now. Let me finish fixing this Bug first—though it might be like skewers, always missing that final burst of flame.
 
-至于我，先不转。等我把这个 Bug 修完——虽然它可能和烤串一样，永远差最后一把火。
+## References
 
-## 参考来源
-
-- [Stack Overflow Developer Survey 2025（官方结果）](https://survey.stackoverflow.co/2025/)
-- [Stack Overflow 2025 Developer Survey 官方新闻稿](https://stackoverflow.co/company/press/archive/stack-overflow-2025-developer-survey/)
+- [Stack Overflow Developer Survey 2025 (official results)](https://survey.stackoverflow.co/2025/)
+- [Stack Overflow 2025 Developer Survey official press release](https://stackoverflow.co/company/press/archive/stack-overflow-2025-developer-survey/)

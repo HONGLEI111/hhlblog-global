@@ -1,27 +1,25 @@
 ---
-title: DNS 工作原理与常见问题排查
+title: How DNS Works and Troubleshooting Common Issues
 published: 2026-08-26
-description: '从根域名服务器到本地缓存，图解一次域名解析的完整链路，并用 dig 与 Node.js 实战排查 NXDOMAIN、SERVFAIL、TTL 不生效等经典故障。'
+description: A visual walkthrough of the full domain resolution path from root servers to local caches, plus hands-on troubleshooting of classic failures like NXDOMAIN, SERVFAIL, and TTL not taking effect using dig and Node.js.
 image: ''
-tags: [DNS, 网络协议, 运维, 故障排查, 互联网]
-category: '互联网'
+tags: [DNS, Network Protocols, Operations, Troubleshooting, Internet]
+category: Internet
 draft: false
-lang: ''
 ---
+## Introduction: The "It's Always DNS" Meme
 
-## 引言：那个「永远是 DNS 的问题」的梗
+In ops circles, there's a long-running self-deprecating joke: *It's always DNS*. A service goes down, a deployment becomes unreachable, half your users report errors after a CDN switch—and after a full round of troubleshooting, the culprit is usually this system we almost never pay attention to.
 
-运维圈有一句流传已久的自嘲：*It's always DNS*（永远是 DNS 的锅）。服务挂了、部署上线后访问不通、CDN 切换后一半用户报错——排查一圈下来，罪魁祸首往往是这个我们平时几乎不会注意的系统。
+DNS gets "blamed" so often because it's the first link in the entire internet access chain, yet it's also the link with the most cache layers and the hardest-to-observe state. This article starts from the resolution chain, takes apart how DNS works, and then lands on concrete troubleshooting techniques.
 
-DNS 之所以频繁「背锅」，是因为它是整个互联网访问链路的第一环，却又是缓存层级最多、状态最难观测的一环。这篇文章从解析链路讲起，把 DNS 的工作机制拆开，再落到具体的排查手法上。
+## 1. What Exactly Is DNS
 
-## 1. DNS 到底是什么
+DNS (Domain Name System) is essentially a **globally distributed key-value database** that maps human-readable domain names to machine-routable IP addresses. Its design has two key points:
 
-DNS（Domain Name System）本质上是一个**全球分布式的键值数据库**，把人类可读的域名映射成机器可路由的 IP 地址。它的设计有两个关键点：
+**1. Tree-like hierarchical structure**
 
-**1. 树状层级结构**
-
-域名从右往左读，是一棵倒置的树：
+Domain names are read from right to left, forming an inverted tree:
 
 ```
                     . (根域)
@@ -33,15 +31,15 @@ DNS（Domain Name System）本质上是一个**全球分布式的键值数据库
                 www         baidu
 ```
 
-`www.example.com.` 末尾那个点代表根域，平时被浏览器省略了。每一层由不同的机构管理：根域由 13 组根服务器（`a.root-servers.net` 到 `m.root-servers.net`）负责，`.com` 由 Verisign 管理，`example.com` 则由你自己的域名服务商托管。
+`www.example.com.` The trailing dot represents the root domain, which browsers normally omit. Each level is managed by a different organization: the root domain is handled by 13 sets of root servers (`a.root-servers.net` to `m.root-servers.net`), `.com` is managed by Verisign, and `example.com` is hosted by your own domain registrar.
 
-**2. 授权与委派**
+**2. Authorization and delegation**
 
-上一级并不存储下一级的全部记录，只存储「谁负责下一级」的指针（NS 记录）。这种委派机制让 DNS 能承载数十亿域名而不需要任何单点保存全量数据。
+Each level doesn't store all records of the level below it—it only stores a pointer (NS record) to "who is responsible for the next level." This delegation mechanism allows DNS to carry billions of domain names without any single point holding the full dataset.
 
-## 2. 一次完整解析的链路
+## 2. The Chain of a Complete Resolution
 
-假设你在浏览器输入 `www.example.com`，背后发生的事情按顺序是：
+Suppose you type `www.example.com` into your browser. What happens behind the scenes, in order, is:
 
 ```
 浏览器缓存 → 操作系统缓存(hosts + stub resolver)
@@ -52,31 +50,31 @@ DNS（Domain Name System）本质上是一个**全球分布式的键值数据库
     ← 逐层返回并缓存
 ```
 
-这里有个容易混淆的概念：**递归查询 vs 迭代查询**。
+There's an easily confused concept here: **recursive query vs. iterative query**.
 
-- 你的设备向递归解析器发的是**递归查询**：「你负责给我最终答案，别让我自己找」。
-- 递归解析器向各级权威服务器发的是**迭代查询**：「你知道就给答案，不知道就告诉我该问谁」。
+- What your device sends to the recursive resolver is a **recursive query**: "You're responsible for giving me the final answer, don't make me look it up myself."
+- What the recursive resolver sends to authoritative servers at each level is an **iterative query**: "If you know, give me the answer; if not, tell me who to ask."
 
-真正干活跑遍全球的是递归解析器，你的设备只发了一个包。
+The one actually doing the work and traversing the globe is the recursive resolver—your device only sent a single packet.
 
-## 3. 常见记录类型速查
+## 3. Common Record Types Quick Reference
 
-| 类型 | 作用 | 示例值 |
+| Type | Purpose | Example Value |
 |------|------|--------|
-| `A` | 域名 → IPv4 | `93.184.216.34` |
-| `AAAA` | 域名 → IPv6 | `2606:2800:220:1:248:1893::` |
-| `CNAME` | 域名 → 另一个域名（别名） | `cdn.example.net.` |
-| `NS` | 指定该域的权威服务器 | `ns1.example.com.` |
-| `MX` | 邮件服务器（带优先级） | `10 mail.example.com.` |
-| `TXT` | 任意文本，常用于域名验证、SPF | `"v=spf1 include:_spf.google.com ~all"` |
-| `SOA` | 该域的起始授权信息，含 negative TTL | — |
-| `CAA` | 限定哪些 CA 可以为该域签发证书 | `0 issue "letsencrypt.org"` |
+| `A` | Domain → IPv4 | `93.184.216.34` |
+| `AAAA` | Domain → IPv6 | `2606:2800:220:1:248:1893::` |
+| `CNAME` | Domain → another domain (alias) | `cdn.example.net.` |
+| `NS` | Specifies the authoritative servers for the domain | `ns1.example.com.` |
+| `MX` | Mail server (with priority) | `10 mail.example.com.` |
+| `TXT` | Arbitrary text, often used for domain verification, SPF | `"v=spf1 include:_spf.google.com ~all"` |
+| `SOA` | Start of authority info for the domain, including negative TTL | — |
+| `CAA` | Restricts which CAs can issue certificates for the domain | `0 issue "letsencrypt.org"` |
 
-## 4. TTL 与缓存：故障的高发区
+## 4. TTL and Caching: The High-Risk Zone for Failures
 
-每条 DNS 记录都带一个 TTL（Time To Live），单位是秒，告诉下游「这个答案你可以缓存多久」。TTL 是 DNS 里最反直觉的部分——**你改了记录，不代表用户立刻能看到**。
+Every DNS record carries a TTL (Time To Live) in seconds, telling downstream "how long you may cache this answer." TTL is the most counterintuitive part of DNS—**just because you changed a record doesn't mean users will see it immediately**.
 
-一次 DNS 变更真正全网生效，需要等待链路上**所有**缓存层过期：
+For a DNS change to truly take effect across the internet, you need to wait for **all** cache layers along the chain to expire:
 
 ```
 权威服务器(立即生效)
@@ -85,15 +83,15 @@ DNS（Domain Name System）本质上是一个**全球分布式的键值数据库
       → 浏览器缓存(Chrome 默认约 60s，且不总是尊重 TTL)
 ```
 
-所以正确的切换姿势是：**提前 24~48 小时把 TTL 降到 60 秒，切换完成、观察稳定后再调回 3600**。很多人在切换当天才想起改 TTL，那时旧的高 TTL 已经被缓存出去了，为时已晚。
+So the correct switching approach is: **lower the TTL to 60 seconds 24–48 hours in advance, and after the switch is complete and observed to be stable, set it back to 3600**. Many people only remember to change the TTL on the day of the switch—by then the old high TTL has already been cached out, and it's too late.
 
-还有一个坑是 **negative caching**（负缓存）：当解析失败返回 NXDOMAIN 时，这个「不存在」的结论同样会被缓存，时长由 SOA 记录的最后一个字段决定。这就是为什么「记录明明加上了，还是解析不到」——你在添加记录之前的那次失败查询，把 NXDOMAIN 缓存住了。
+Another pitfall is **negative caching**: when resolution fails and returns NXDOMAIN, this "does not exist" conclusion is also cached, for a duration determined by the last field of the SOA record. This is why "the record is clearly added, but it still won't resolve"—the failed query you made before adding the record cached the NXDOMAIN.
 
-## 5. 实战排查：dig 才是正确工具
+## 5. Hands-On Troubleshooting: dig Is the Right Tool
 
-`ping` 只能告诉你通不通，`nslookup` 输出信息太少。排查 DNS 请直接用 `dig`。
+`ping` can only tell you whether it's reachable, and `nslookup` outputs too little information. For DNS troubleshooting, go straight to `dig`.
 
-**基础查询：**
+**Basic query:**
 
 ```bash
 # 查 A 记录
@@ -104,7 +102,7 @@ dig example.com A +short
 dig example.com A
 ```
 
-关注输出中的三个关键点：
+Pay attention to three key points in the output:
 
 ```
 ;; ANSWER SECTION:
@@ -115,9 +113,9 @@ example.com.    3600    IN    A    93.184.216.34
 ;; flags: qr rd ra;        ← ra 表示该服务器支持递归
 ```
 
-**绕过缓存，直接问权威服务器：**
+**Bypass the cache and ask the authoritative server directly:**
 
-这是判断「是记录没配好，还是缓存没过期」的决定性手段：
+This is the decisive method for determining "is the record misconfigured, or has the cache not expired":
 
 ```bash
 # 1. 先找出权威服务器
@@ -128,17 +126,17 @@ dig example.com NS +short
 dig @ns1.example.com example.com A
 ```
 
-如果权威服务器返回了正确结果，而 `8.8.8.8` 没有，那就是纯粹的缓存问题，等 TTL 即可。
+If the authoritative server returns the correct result but `8.8.8.8` doesn't, then it's purely a caching issue—just wait for the TTL.
 
-**逐级追踪完整委派链：**
+**Trace the complete delegation chain level by level:**
 
 ```bash
 dig example.com +trace
 ```
 
-这条命令会从根服务器开始，把每一级委派完整打印出来。当你怀疑 NS 记录配错、或者域名在注册商和 DNS 服务商之间「脱节」时，`+trace` 能立刻定位断在哪一层。
+This command starts from the root servers and prints out every level of delegation in full. When you suspect the NS records are misconfigured, or the domain is "disconnected" between the registrar and the DNS provider, `+trace` can immediately pinpoint which layer the break is at.
 
-**对比不同解析器（排查 DNS 污染 / 分区解析）：**
+**Compare different resolvers (troubleshoot DNS poisoning / split-horizon resolution):**
 
 ```bash
 for s in 8.8.8.8 1.1.1.1 223.5.5.5 114.114.114.114; do
@@ -147,20 +145,19 @@ for s in 8.8.8.8 1.1.1.1 223.5.5.5 114.114.114.114; do
 done
 ```
 
-## 6. 四类经典故障对照表
+## 6. Four Classic Failure Types Comparison Table
 
-| 现象 | 大概率原因 | 验证方法 |
+| Symptom | Most Likely Cause | Verification Method |
 |------|-----------|---------|
-| `NXDOMAIN` | 记录不存在，或负缓存未过期 | `dig @权威NS` 直查确认记录是否真的存在 |
-| `SERVFAIL` | 权威服务器不可达 / DNSSEC 校验失败 | `dig +cd`（关闭校验）再试，通了就是 DNSSEC 问题 |
-| 改了记录不生效 | TTL 未过期 | 看 `ANSWER SECTION` 的 TTL 剩余值 |
-| 部分用户能访问 | 不同递归解析器缓存不一致 | 用上面的多解析器对比脚本 |
+| `NXDOMAIN` | Record doesn't exist, or negative cache hasn't expired | `dig @权威NS` direct query to confirm whether the record actually exists |
+| `SERVFAIL` | Authoritative server unreachable / DNSSEC validation failure | `dig +cd` (disable validation) and retry; if it works, it's a DNSSEC issue |
+| Changed record doesn't take effect | TTL hasn't expired | Check the remaining TTL value of `ANSWER SECTION` |
+| Some users can access, others can't | Different recursive resolvers have inconsistent caches | Use the multi-resolver comparison script above |
 
-另外一个高频陷阱：**根域（apex domain）不能配 CNAME**。RFC 1034 规定 CNAME 记录不能与其他记录共存，而根域必须有 SOA 和 NS 记录，因此 `example.com` 本身无法配 CNAME，只有 `www.example.com` 可以。想让根域指向 CDN，需要用云厂商提供的 `ALIAS` / `ANAME` / `CNAME flattening` 这类非标准扩展。
+Another high-frequency trap: **the apex domain cannot have a CNAME**. RFC 1034 stipulates that a CNAME record cannot coexist with other records, and the apex domain must have SOA and NS records. Therefore `example.com` itself cannot have a CNAME—only `www.example.com` can. To point the apex domain at a CDN, you need non-standard extensions like `ALIAS` / `ANAME` / `CNAME flattening` provided by cloud vendors.
+## 7. Write a Diagnostic Script
 
-## 7. 写一个诊断脚本
-
-Node.js 的 `dns` 模块内置了两套 API：`dns.lookup()` 走操作系统解析（会读 hosts 文件），`dns.resolve*()` 直接发 DNS 查询。排查时必须用后者，否则你测的是系统缓存而不是 DNS。
+Node.js's `dns` module has two built-in sets of APIs: `dns.lookup()` goes through the operating system resolver (it reads the hosts file), while `dns.resolve*()` sends DNS queries directly. When troubleshooting, you must use the latter, otherwise you're testing the system cache rather than DNS.
 
 ```javascript
 import { Resolver } from 'node:dns/promises';
@@ -213,41 +210,41 @@ async function diagnose(domain) {
 await diagnose(process.argv[2] ?? 'example.com');
 ```
 
-运行 `node dns-check.mjs example.com`，就能一次性看到 TTL 剩余量和跨解析器的一致性——这两个信息覆盖了日常八成的 DNS 故障判断。
+Run `node dns-check.mjs example.com`, and you can see at a glance both the remaining TTL and consistency across resolvers—these two pieces of information cover eighty percent of everyday DNS fault diagnosis.
 
-## 8. 加密 DNS：DoH 与 DoT
+## 8. Encrypted DNS: DoH and DoT
 
-传统 DNS 查询走 UDP 53 端口，**完全明文**。这意味着链路上任何一跳都能看到你访问了哪些域名，甚至伪造响应（这正是 DNS 劫持与污染的技术基础）。
+Traditional DNS queries go over UDP port 53, **completely in plaintext**. This means any hop along the path can see which domains you're visiting, and can even forge responses (this is precisely the technical basis for DNS hijacking and poisoning).
 
-两种主流加密方案：
+Two mainstream encryption schemes:
 
-- **DoT（DNS over TLS，RFC 7858）**：走 853 端口，在 TLS 隧道里跑标准 DNS 协议。端口独立，便于网络管理员统一管控。
-- **DoH（DNS over HTTPS，RFC 8484）**：把查询封装成 HTTPS 请求走 443 端口，与普通网页流量混在一起，难以被识别和阻断。
+- **DoT (DNS over TLS, RFC 7858)**: uses port 853, running the standard DNS protocol inside a TLS tunnel. The dedicated port makes it easy for network administrators to manage and control uniformly.
+- **DoH (DNS over HTTPS, RFC 8484)**: encapsulates queries as HTTPS requests over port 443, blending in with ordinary web traffic, making it hard to identify and block.
 
-DoH 可以直接用 curl 验证：
+DoH can be verified directly with curl:
 
 ```bash
 curl -s -H 'accept: application/dns-json' \
   'https://cloudflare-dns.com/dns-query?name=example.com&type=A' | jq
 ```
 
-需要注意的是，加密 DNS 解决的是**传输链路**的隐私与完整性，不解决**解析器本身**是否可信——你的查询记录依然完整暴露给了那家 DoH 服务商。这是一个信任转移，而不是信任消除。
+It's worth noting that encrypted DNS solves the privacy and integrity of the **transmission link**, but does not solve whether the **resolver itself** is trustworthy—your query records are still fully exposed to that DoH provider. This is a transfer of trust, not an elimination of trust.
 
-## 结语
+## Conclusion
 
-DNS 的复杂性不在协议本身——它的报文格式几十年没大改过——而在于那条横跨浏览器、操作系统、递归解析器、权威服务器的多级缓存链路。排查时记住一条主线就够了：
+DNS's complexity doesn't lie in the protocol itself—its message format hasn't changed much in decades—but in the multi-level cache chain spanning browsers, operating systems, recursive resolvers, and authoritative servers. When troubleshooting, just remember one main thread:
 
-> **从权威服务器往回查。** 先用 `dig @权威NS` 确认源头数据对不对，再逐层往下判断是哪一级缓存拖住了。
+> **Query backward from the authoritative server.** First use `dig @权威NS` to confirm whether the source data is correct, then work down layer by layer to determine which level of cache is holding things up.
 
-搞清楚这一点，「It's always DNS」就从玄学变成了三条命令能定位的日常问题。
+Once you understand this, "It's always DNS" goes from being mysticism to an everyday problem that three commands can pinpoint.
 
 ---
 
-## 参考来源
+## References
 
 - [RFC 1034 - Domain Names: Concepts and Facilities](https://datatracker.ietf.org/doc/html/rfc1034)
 - [RFC 1035 - Domain Names: Implementation and Specification](https://datatracker.ietf.org/doc/html/rfc1035)
 - [RFC 2308 - Negative Caching of DNS Queries](https://datatracker.ietf.org/doc/html/rfc2308)
 - [RFC 8484 - DNS Queries over HTTPS (DoH)](https://datatracker.ietf.org/doc/html/rfc8484)
 - [Cloudflare Learning - What is DNS?](https://www.cloudflare.com/learning/dns/what-is-dns/)
-- [Node.js DNS 模块官方文档](https://nodejs.org/api/dns.html)
+- [Node.js DNS Module Official Documentation](https://nodejs.org/api/dns.html)

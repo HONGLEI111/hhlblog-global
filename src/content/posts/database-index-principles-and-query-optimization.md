@@ -1,51 +1,49 @@
 ---
-title: 数据库索引原理与查询优化：B+ 树、最左前缀与 EXPLAIN 实战
+title: 'Database Indexing Principles and Query Optimization: B+ Trees, Leftmost Prefix, and EXPLAIN in Practice'
 published: 2026-09-23
-description: '用可复现的实测数据讲清索引为什么快、又为什么常常静默失效：从 B+ 树的高度与回表代价，到最左前缀、覆盖索引、函数包列与 LIKE 前缀四种失效场景，每种都附真实的 EXPLAIN 输出与耗时对比。'
+description: 'Using reproducible benchmark data, this post explains why indexes are fast and why they often silently fail: from B+ tree height and the cost of lookups back to the table, to four failure scenarios involving the leftmost prefix, covering indexes, wrapping columns in functions, and LIKE prefixes, each with real EXPLAIN output and timing comparisons.'
 image: ''
-tags: [数据库, 索引, 查询优化, SQL, SQLite, 互联网]
-category: '互联网'
+tags: [Database, Indexing, Query Optimization, SQL, SQLite, Internet]
+category: Internet
 draft: false
-lang: ''
 ---
+## 1. The Same Query, a 6000x Difference
 
-## 1. 同一个查询，6000 倍的差距
+The same point lookup, differing by just one index, measured a time difference of three orders of magnitude.
 
-同一个点查，只差一个索引，实测耗时差三个数量级。
+A `orders` table with 200,000 rows, querying `WHERE user_id = 12345`:
 
-20 万行的 `orders` 表，查 `WHERE user_id = 12345`：
-
-| 情况 | 执行计划 | 单次耗时 |
+| Case | Execution Plan | Time per Query |
 | --- | --- | --- |
-| 无索引 | `SCAN orders` | 15.80 ms |
-| 有索引，但需回表 | `SEARCH orders USING INDEX ix_user_amount (user_id=?)` | 0.0041 ms |
-| 有索引，且被覆盖 | `SEARCH orders USING COVERING INDEX ix_user_amount (user_id=?)` | 0.0026 ms |
+| No index | `SCAN orders` | 15.80 ms |
+| Index present, but requires table lookup | `SEARCH orders USING INDEX ix_user_amount (user_id=?)` | 0.0041 ms |
+| Index present, and covered | `SEARCH orders USING COVERING INDEX ix_user_amount (user_id=?)` | 0.0026 ms |
 
-比「没加索引」更常见、也更麻烦的是**加了索引但没生效**。比如这条：
+More common and more troublesome than "no index added" is **an index was added but didn't take effect**. For example, this one:
 
 ```sql
 SELECT COUNT(*) FROM o WHERE created_at LIKE '2026-06%';
 ```
 
-`created_at` 上明明有索引，`EXPLAIN QUERY PLAN` 给出的却是：
+There's clearly an index on `created_at`, yet `EXPLAIN QUERY PLAN` gives:
 
 ```text
 SCAN o USING COVERING INDEX ix_c
 ```
 
-整棵索引被扫了一遍，**18.5 ms**。而语义上几乎等价的写法：
+The entire index was scanned, **18.5 ms**. Yet a semantically almost equivalent formulation:
 
 ```sql
 SELECT COUNT(*) FROM o WHERE created_at BETWEEN '2026-06-01' AND '2026-06-30';
 ```
 
-计划变成 `SEARCH o USING COVERING INDEX ix_c (created_at>? AND created_at<?)`，**0.97 ms**。19 倍差距，只差一个写法的选择（原因在第五节）。
+The plan becomes `SEARCH o USING COVERING INDEX ix_c (created_at>? AND created_at<?)`, **0.97 ms**. A 19x difference, just from the choice of formulation (the reason is in Section 5).
 
 :::note
-**实验环境**：SQLite 3.42（Python 内置 `sqlite3` 模块，内存库），`orders` 表 20 万行随机数据，固定 seed 保证可复现。选 SQLite 是因为零依赖、结论可当场验证。**原理部分对 MySQL、PostgreSQL 同样成立，但执行计划的输出格式和若干优化细节因引擎而异**——第八节给出对照。内存库没有磁盘 I/O，所以下面的绝对耗时都偏乐观，回表代价尤其被低估。
+**Experimental environment**: SQLite 3.42 (Python's built-in `sqlite3` module, in-memory database), `orders` table with 200,000 rows of random data, fixed seed to ensure reproducibility. SQLite was chosen because it has zero dependencies and the conclusions can be verified on the spot. **The principles also hold for MySQL and PostgreSQL, but the execution plan output format and several optimization details vary by engine**—Section 8 provides a comparison. The in-memory database has no disk I/O, so the absolute timings below are all optimistic, and the cost of table lookups is especially underestimated.
 :::
 
-复现用的建表与造数脚本：
+The table creation and data generation script for reproduction:
 
 ```python
 import sqlite3, random
@@ -73,44 +71,44 @@ cur.execute("ANALYZE")       # 更新统计信息，否则代价模型可能在�
 con.commit()
 ```
 
-## 2. B+ 树：索引快在哪
+## 2. B+ Tree: Where the Speed Comes From
 
-索引的本质，是把「逐行扫描」换成「树查找」。B+ 树有三条关键性质：
+The essence of an index is replacing "row-by-row scanning" with "tree lookup." A B+ tree has three key properties:
 
-1. **只有叶子节点存数据**（或指向数据的指针），内部节点只存键和子指针；
-2. **叶子节点之间用链表相连**，天然支持范围扫描和顺序遍历；
-3. **所有叶子节点深度相同**，查询路径长度可预测，不存在「运气好就快」的情况。
+1. **Only leaf nodes store data** (or pointers to data); internal nodes store only keys and child pointers;
+2. **Leaf nodes are linked by a linked list**, naturally supporting range scans and sequential traversal;
+3. **All leaf nodes have the same depth**, so the query path length is predictable—there's no "lucky and fast" scenario.
 
-第 1 条决定了树能有多矮。以 InnoDB 为例，一个页 16 KB，主键为 bigint（8 字节）加上页内指针（约 6 字节），一个内部节点能放约 `16KB / 14B ≈ 1170` 个键值对；叶子页按每行 1 KB 估算约能放 16 行。于是：
+Property 1 determines how short the tree can be. Taking InnoDB as an example, a page is 16 KB, the primary key is a bigint (8 bytes) plus an in-page pointer (about 6 bytes), so an internal node can hold about `16KB / 14B ≈ 1170` key-value pairs; a leaf page, estimating 1 KB per row, can hold about 16 rows. Thus:
 
-| 树高 | 可容纳行数（量级估算） |
+| Tree Height | Rows Accommodated (order-of-magnitude estimate) |
 | --- | --- |
-| 2 | 1170 × 16 ≈ 1.9 万 |
-| 3 | 1170² × 16 ≈ 2190 万 |
+| 2 | 1170 × 16 ≈ 19,000 |
+| 3 | 1170² × 16 ≈ 21.9 million |
 
-也就是说，两千万行的表从根走到叶子不过 3 次页访问。这是 B+ 树相对 B 树的决定性优势：**内部节点不携带数据，同样的页能装下更多分叉**，树就更矮——而树高每减少一层，就少一次随机 I/O。哈希索引虽然能做到 O(1) 等值查找，却完全不支持范围与排序，因此无法取代 B+ 树做通用索引。
+In other words, a table with twenty million rows takes only 3 page accesses to go from root to leaf. This is the decisive advantage of B+ trees over B trees: **internal nodes carry no data, so the same page can hold more branches**, making the tree shorter—and each level reduced in tree height means one fewer random I/O. Although hash indexes can achieve O(1) equality lookups, they completely lack support for ranges and sorting, so they cannot replace B+ trees as general-purpose indexes.
 
 :::tip
-上面的行数是量级估算，实际取决于页大小、行宽和主键类型。记住「三层能装千万级」这个直觉就够了，别把具体数字当结论。
+The row counts above are order-of-magnitude estimates; the actual numbers depend on page size, row width, and primary key type. Just remember the intuition that "three levels can hold tens of millions"—don't treat the specific numbers as conclusions.
 :::
 
-### 数据到底存在哪：聚簇索引与回表
+### Where the Data Actually Lives: Clustered Indexes and Table Lookups
 
-「回表」的代价有多大，取决于引擎怎么组织数据：
+How costly a "table lookup" is depends on how the engine organizes data:
 
-| 引擎 | 主键索引 | 二级索引叶子存什么 | 回表的动作 |
+| Engine | Primary Key Index | What Secondary Index Leaves Store | Table Lookup Action |
 | --- | --- | --- | --- |
-| InnoDB | 聚簇索引，行数据就在主键 B+ 树叶子 | 主键值 | 拿主键再走一次主键 B+ 树 |
-| PostgreSQL | 堆表，没有聚簇索引 | 行的物理位置 `ctid` | 按 `ctid` 访问堆页 |
-| SQLite | rowid 表，`INTEGER PRIMARY KEY` 即 rowid | rowid | 按 rowid 回查表 |
+| InnoDB | Clustered index, row data is in the primary key B+ tree leaves | Primary key value | Take the primary key and traverse the primary key B+ tree again |
+| PostgreSQL | Heap table, no clustered index | Row's physical location `ctid` | Access the heap page by `ctid` |
+| SQLite | rowid table, `INTEGER PRIMARY KEY` is the rowid | rowid | Look up the table by rowid |
 
-这张表顺带解释了一个常见困惑：为什么主键查询总是最快？因为在 InnoDB 里，主键查询**根本不需要回表**——它拿到的就是行本身。
+This table incidentally explains a common confusion: why are primary key queries always the fastest? Because in InnoDB, a primary key query **doesn't need a table lookup at all**—what it retrieves is the row itself.
 
-## 3. 最左前缀：联合索引的列顺序就是规则
+## 3. Leftmost Prefix: The Column Order of a Composite Index Is the Rule
 
-联合索引 `(user_id, status, amount)` 在 B+ 树里按这个顺序排序：先比 `user_id`，相同再比 `status`，再比 `amount`。由此得到一条硬规则：**索引只能被「从最左列开始连续匹配」的条件用于查找**。
+A composite index `(user_id, status, amount)` is sorted in the B+ tree in this order: first compare `user_id`, if equal then compare `status`, then compare `amount`. This yields a hard rule: **an index can only be used for lookup by conditions that "match consecutively starting from the leftmost column."**
 
-实测（索引为 `(user_id, status, amount)`）：
+Measured (index is `(user_id, status, amount)`):
 
 ```text
 WHERE user_id = 1
@@ -129,11 +127,11 @@ WHERE amount > 100
   -> SCAN orders USING COVERING INDEX idx_user_status_amount    ← 注意这句
 ```
 
-最后一条特别值得盯着看：它不是「用了索引查找」，而是**把整棵索引扫了一遍**。索引比表小，所以扫索引仍然比扫表划算，但这依然是 O(n)。**`SEARCH`（树查找）和 `SCAN ... USING INDEX`（整索引扫描）是两件完全不同的事**，看执行计划时务必分清——这也是很多人误以为「索引生效了」的地方。
+The last one is particularly worth staring at: it's not "using the index for lookup," but **scanning the entire index**. The index is smaller than the table, so scanning the index is still cheaper than scanning the table, but it's still O(n). **`SEARCH` (tree lookup) and `SCAN ... USING INDEX` (full index scan) are two completely different things**—be sure to distinguish them when reading execution plans. This is also where many people mistakenly believe "the index took effect."
 
-### 范围条件会截断后面的列
+### Range Conditions Truncate Subsequent Columns
 
-这是最容易被误解的一条。对比这两条只差一个运算符的查询：
+This is the most easily misunderstood point. Compare these two queries that differ by only one operator:
 
 ```text
 WHERE user_id = 1 AND status > 'paid' AND amount = 500
@@ -143,18 +141,17 @@ WHERE user_id = 1 AND status = 'paid' AND amount = 500
   -> SEARCH ... (user_id=? AND status=? AND amount=?)  ← 三列都用上了
 ```
 
-原因在于 B+ 树的定位依赖「有序」：`status > 'paid'` 命中一片**范围**，而在这个范围内 `amount` 并不有序，无法再用它继续收窄查找。此时 `amount = 500` 只能退化为逐行过滤条件（residual filter；InnoDB 会把这种过滤下推到索引层，即 index condition pushdown，省掉一部分回表，但**不减少需要检查的行数**）。
+The reason lies in the fact that B+ tree positioning relies on "order": `status > 'paid'` hits a **range**, and within that range `amount` is not ordered, so it cannot be used to further narrow the lookup. At this point `amount = 500` can only degrade to a row-by-row filter condition (residual filter; InnoDB pushes this filtering down to the index layer, i.e., index condition pushdown, saving some table lookups, but **not reducing the number of rows that need to be checked**).
 
-由此得到联合索引的列顺序原则：
+From this we get the principles for column order in a composite index:
 
-1. **等值条件放最左**；
-2. **范围条件放在等值条件之后**；
-3. **排序列放最后**（见第六节）；
-4. 选择性高的列尽量靠左，但要让位于前三条。
+1. **Equality conditions go leftmost**;
+2. **Range conditions go after equality conditions**;
+3. **Sort columns go last** (see Section 6);
+4. High-selectivity columns should be as far left as possible, but must yield to the first three rules.
+## 4. Covering Indexes: Eliminating Table Lookups
 
-## 4. 覆盖索引：消灭回表
-
-如果一条查询需要的列全都在索引里，引擎就不必回表。SQLite 会在计划里明确写出 `USING COVERING INDEX`：
+If all the columns a query needs are in the index, the engine doesn't have to go back to the table. SQLite will explicitly write `USING COVERING INDEX` in the plan:
 
 ```text
 SELECT user_id, amount FROM orders WHERE user_id = 12345
@@ -165,22 +162,22 @@ SELECT user_id, amount, note FROM orders WHERE user_id = 12345
                                                        ↑ 少了 COVERING，需要回表
 ```
 
-在这个内存库的微基准里，回表只贵了约 1.6 倍——但这恰恰是**被内存抹平后的假象**：内存库没有磁盘随机 I/O，而回表的本质代价就是「按主键/物理位置随机访问」。真实存储上，这个差距常常是几十倍量级，这也是「把查询需要的列都放进索引」成为最有效优化手段之一的原因。
+In the microbenchmark on this in-memory database, the table lookup was only about 1.6 times more expensive—but this is precisely **an illusion flattened out by memory**: an in-memory database has no random disk I/O, and the essential cost of a table lookup is "random access by primary key/physical location." On real storage, this gap is often on the order of dozens of times, which is also why "put all the columns the query needs into the index" has become one of the most effective optimization techniques.
 
-硬币的另一面是：覆盖索引通常意味着更宽的索引，占更多空间、写更慢（第七节）。另外 PostgreSQL 的 index-only scan 还需要 visibility map 支持——**只有被 VACUUM 标记过的页才能完全避免访问堆**，刚批量写入的表往往享受不到这个优化。
+The other side of the coin is: a covering index usually means a wider index, taking up more space and writing more slowly (Section 7). In addition, PostgreSQL's index-only scan also requires visibility map support—**only pages marked by VACUUM can completely avoid accessing the heap**, and tables that have just been bulk-written often cannot enjoy this optimization.
 
-## 5. 四种让索引静默失效的写法
+## 5. Four Ways to Silently Invalidate an Index
 
-### 1. 在索引列上套函数
+### 1. Wrapping a Function Around an Indexed Column
 
 ```text
 WHERE substr(created_at,1,4) = '2026'      -- created_at 上有索引
   -> SCAN orders USING COVERING INDEX idx_created
 ```
 
-引擎比较的是 `substr(created_at,1,4)` 的计算结果，而不是 `created_at` 本身，B+ 树里没有这个值的位置。
+The engine compares the computed result of `substr(created_at,1,4)`, not `created_at` itself, and there is no place for this value in the B+ tree.
 
-解法之一是**表达式索引**（也叫函数索引）。建好之后再跑同一条 SQL：
+One solution is an **expression index** (also called a function index). After creating it, run the same SQL again:
 
 ```sql
 CREATE INDEX idx_year ON orders(substr(created_at,1,4));
@@ -189,7 +186,7 @@ CREATE INDEX idx_year ON orders(substr(created_at,1,4));
 -- SEARCH orders USING INDEX idx_year (<expr>=?)
 ```
 
-MySQL 8.0.13+ 和 PostgreSQL 都支持函数索引。但更好的做法通常是**改写 SQL**，不改 schema 就能命中已有索引：
+MySQL 8.0.13+ and PostgreSQL both support function indexes. But a better approach is usually to **rewrite the SQL**, so that the existing index can be hit without changing the schema:
 
 ```sql
 -- 不要这样写
@@ -198,42 +195,42 @@ WHERE substr(created_at,1,4) = '2026'
 WHERE created_at >= '2026-01-01' AND created_at < '2027-01-01'
 ```
 
-### 2. LIKE 前缀匹配：一个依赖引擎默认值的坑
+### 2. LIKE Prefix Matching: A Trap That Depends on an Engine Default
 
-写这篇文章时，我在这一条上被结结实实绊了一下。`created_at` 上有索引，`LIKE '2026-06%'` 是最标准的前缀匹配，理论上完全能走索引——实测却是 18.5 ms 的整索引扫描，而等价的 `BETWEEN` 只要 0.97 ms。
+While writing this article, I was tripped up hard by this one. There is an index on `created_at`, and `LIKE '2026-06%'` is the most standard prefix match, which in theory can absolutely use the index—but in practice it was an 18.5 ms full index scan, while the equivalent `BETWEEN` took only 0.97 ms.
 
-根因在排序规则（collation）与 LIKE 的语义：**SQLite 默认 `case_sensitive_like=OFF`**，LIKE 对 ASCII 大小写不敏感，因此不能直接用一个 BINARY 排序的索引来加速。显式打开这个开关后，同一条 SQL 立刻变成范围查找：
+The root cause lies in collation and the semantics of LIKE: **SQLite defaults to `case_sensitive_like=OFF`**, and LIKE is case-insensitive for ASCII, so it cannot directly use a BINARY-collated index for acceleration. After explicitly turning this switch on, the same SQL immediately became a range lookup:
 
 ```sql
 PRAGMA case_sensitive_like = ON;
 -- 之后：SEARCH o USING COVERING INDEX ix_c (created_at>? AND created_at<?)
 ```
 
-PostgreSQL 有类似约束：`LIKE 'abc%'` 只有在索引使用 C 排序规则、或建索引时指定 `text_pattern_ops` 时才能走 B-tree。MySQL 的行为则取决于列的 collation。
+PostgreSQL has a similar constraint: `LIKE 'abc%'` can use a B-tree only when the index uses the C collation, or when `text_pattern_ops` is specified at index creation time. MySQL's behavior depends on the column's collation.
 
-结论：**LIKE 前缀匹配能否走索引是一个必须实测的引擎细节，不能假设**。拿不准时，一律改写成显式的范围条件。
+Conclusion: **Whether LIKE prefix matching can use an index is an engine detail that must be tested in practice and cannot be assumed**. When in doubt, always rewrite it as an explicit range condition.
 
-### 3. 让索引列参与运算或类型转换
+### 3. Letting an Indexed Column Participate in an Operation or Type Conversion
 
 ```text
 WHERE user_id + 0 = 1        -> SCAN orders USING COVERING INDEX ...
 ```
 
-任何把索引列包进表达式的写法都会破坏有序性。更隐蔽的版本是类型不一致：**字符串列与数字比较时，引擎可能对列做隐式转换，索引随之失效**。规矩很简单——比较双方的类型要和列的声明类型一致。
+Any form of wrapping an indexed column in an expression destroys its ordering. A more subtle version is type inconsistency: **when a string column is compared with a number, the engine may perform an implicit conversion on the column, and the index then becomes unusable**. The rule is simple—the types on both sides of the comparison must match the column's declared type.
 
-### 4. 前导通配符
+### 4. Leading Wildcard
 
 ```text
 WHERE created_at LIKE '%06-12%'   -- 包含前导 %
 ```
 
-前导 `%` 意味着起点未知，「有序」帮不上任何忙。这类需求应该交给全文索引或搜索引擎，而不是硬撑 B-tree。
+A leading `%` means the starting point is unknown, and "ordering" cannot help at all. This kind of requirement should be handed to a full-text index or a search engine, rather than forcing a B-tree to do the job.
 
-## 6. 排序、分页与索引
+## 6. Sorting, Pagination, and Indexes
 
-B+ 树的叶子是有序的，所以**排序列如果能顺着索引顺序走，就能省掉一次额外排序**。SQLite 会用 `USE TEMP B-TREE FOR ORDER BY` 明确告诉你它多排了一次。
+The leaves of a B+ tree are ordered, so **if the sort columns can follow the index order, an extra sort can be avoided**. SQLite will explicitly tell you with `USE TEMP B-TREE FOR ORDER BY` that it sorted one extra time.
 
-在 `user_id = 1` 的前提下、索引为 `(user_id, status, amount)` 时：
+Under the premise of `user_id = 1`, when the index is `(user_id, status, amount)`:
 
 ```text
 ORDER BY status
@@ -248,19 +245,19 @@ ORDER BY created_at
   -> USE TEMP B-TREE FOR ORDER BY
 ```
 
-原因：`user_id` 固定后，索引里剩余的顺序是 `(status, amount)`。`ORDER BY status` 正好顺着这个顺序；`ORDER BY amount` 跳过了 `status`，顺序就不再有任何保证。
+Reason: once `user_id` is fixed, the remaining order in the index is `(status, amount)`. `ORDER BY status` follows exactly this order; `ORDER BY amount` skips `status`, and the order is no longer guaranteed in any way.
 
-这解释了为什么**排序列应该放在联合索引的最后**：等值条件锁定前缀，排序列顺着索引走，中间不能断。
+This explains why **sort columns should be placed at the end of a composite index**: equality conditions lock down the prefix, the sort columns follow the index order, and there must be no break in between.
 
-### 深分页：OFFSET 的成本不在索引
+### Deep Pagination: The Cost of OFFSET Is Not in the Index
 
 ```sql
 SELECT id, amount FROM orders ORDER BY id LIMIT 20 OFFSET 100000;
 ```
 
-问题不在索引，而在 OFFSET 的语义：引擎必须**先定位并丢弃前 100000 行**才能返回这 20 行。索引让定位变快了，但「丢弃」的工作量一点没少，而且随页码线性增长。
+The problem is not the index, but the semantics of OFFSET: the engine must **first locate and discard the first 100,000 rows** before it can return these 20 rows. The index makes locating faster, but the work of "discarding" is not reduced at all, and it grows linearly with the page number.
 
-解法是**键集分页（keyset pagination）**，用「上一页最后一条的位置」代替偏移量：
+The solution is **keyset pagination**, replacing the offset with "the position of the last row on the previous page":
 
 ```sql
 SELECT id, amount FROM orders
@@ -269,71 +266,70 @@ ORDER BY id
 LIMIT 20;
 ```
 
-这样每次都是「索引定位 + 顺序取 20 行」，代价与页码无关。
+In this way, every time it is "index seek + sequentially fetch 20 rows," and the cost is independent of the page number.
 
-## 7. 选择性，以及索引不是免费的
+## 7. Selectivity, and Indexes Are Not Free
 
-选择性 = 不同值的个数 / 总行数。选择性接近 1 的列（主键、`user_id`），索引能把结果砍到极少数几行；选择性接近 0 的列（只有三种取值的 `status`），一次等值查询可能命中三分之一的行。
+Selectivity = number of distinct values / total number of rows. A column with selectivity close to 1 (primary key, `user_id`) allows the index to cut the result down to very few rows; a column with selectivity close to 0 (`status` with only three possible values) may have an equality query hit one third of the rows.
 
-这里要纠正一个流行的说法。我用 `status` 实测：
+Here I need to correct a popular claim. I tested it with `status`:
 
 ```text
 WHERE status = 'paid'     -- 只有 3 种取值，命中约 1/3 的行
   -> SEARCH orders USING INDEX idx_status2 (status=?)
 ```
 
-**优化器并没有放弃索引。** 所以「低区分度列的索引一定失效」是个过于绝对的结论。低区分度的真正问题不是「索引用不上」，而是**筛出来的大量行还要逐个回表**——随机访问次数太多，收益被回表成本吃掉。是否放弃索引取决于引擎的代价模型和统计信息，这也是统计信息过期会让计划突然变差的原因。
+**The optimizer did not abandon the index.** So "an index on a low-cardinality column is bound to be useless" is an overly absolute conclusion. The real problem with low cardinality is not "the index cannot be used," but that **the large number of rows filtered out still have to be looked up one by one in the table**—too many random accesses, and the benefit is eaten up by the table lookup cost. Whether to abandon the index depends on the engine's cost model and statistics, which is also why stale statistics can suddenly make a plan worse.
 
-### 写代价：索引是拿写入换读取
+### Write Cost: An Index Trades Writes for Reads
 
-每个二级索引都要在每次 INSERT / UPDATE / DELETE 时同步维护，更新到索引列时成本更高。实测插入 3 万行：
+Every secondary index must be maintained synchronously on every INSERT / UPDATE / DELETE, and the cost is even higher when indexed columns are updated. Measured inserting 30,000 rows:
 
-| 二级索引个数 | 耗时 |
+| Number of secondary indexes | Time |
 | --- | --- |
 | 0 | 25.4 ms |
 | 1 | 44.5 ms |
 | 3 | 107.0 ms |
 | 5 | 169.0 ms |
 
-五个索引让写入慢了约 **6.7 倍**。所以加索引不是免费的加速，而是一次**明确的取舍**：读多写少的表可以多加，写密集的表（日志、事件流）必须克制。索引还额外占用空间、拖慢备份与 DDL，这些成本都应该在建索引之前想清楚。
+Five indexes made writes about **6.7 times** slower. So adding an index is not a free speedup, but a **clear trade-off**: tables with many reads and few writes can have more, while write-intensive tables (logs, event streams) must be restrained. Indexes also take up extra space and slow down backups and DDL, and these costs should all be thought through before creating an index.
 
-## 8. 怎么诊断：一份可执行的流程
+## 8. How to Diagnose: An Actionable Process
 
-不要猜，让引擎自己说。
+Don't guess—let the engine speak for itself.
 
-**第一步：拿执行计划。**
+**Step 1: Get the execution plan.**
 
-| 引擎 | 命令 |
+| Engine | Command |
 | --- | --- |
 | SQLite | `EXPLAIN QUERY PLAN <sql>` |
 | PostgreSQL | `EXPLAIN (ANALYZE, BUFFERS) <sql>` |
-| MySQL | `EXPLAIN ANALYZE <sql>`（8.0.18+）或 `EXPLAIN FORMAT=JSON` |
+| MySQL | `EXPLAIN ANALYZE <sql>` (8.0.18+) or `EXPLAIN FORMAT=JSON` |
 
-PostgreSQL 的 `ANALYZE` 给出真实耗时与实际行数，`BUFFERS` 给出缓存命中情况——**「优化器估算行数」与「实际行数」差得远，通常是统计信息过期**，这本身就是一条重要线索。
+PostgreSQL's `ANALYZE` gives the real elapsed time and actual row counts, and `BUFFERS` gives cache hit information—**when "the optimizer's estimated row count" differs greatly from "the actual row count," it is usually stale statistics**, and this itself is an important clue.
 
-**第二步：看关键词。** `SCAN` / `Seq Scan` / `type: ALL` 是坏信号；`SEARCH ... USING INDEX` / `Index Scan` / `Index Only Scan` / `ref` / `range` 是好信号。务必区分 `SEARCH`（树查找）与 `SCAN ... USING INDEX`（整索引扫描）——差别是 O(log n) 与 O(n)。
+**Step 2: Look at the keywords.** `SCAN` / `Seq Scan` / `type: ALL` are bad signals; `SEARCH ... USING INDEX` / `Index Scan` / `Index Only Scan` / `ref` / `range` are good signals. Be sure to distinguish `SEARCH` (tree search) from `SCAN ... USING INDEX` (full index scan)—the difference is O(log n) versus O(n).
 
-**第三步：对照实验。** 把可疑条件逐个注释掉，再取一次计划。是把等值换成了范围、还是在列上套了函数，计划会立刻告诉你。
+**Step 3: Controlled experiments.** Comment out the suspicious conditions one by one, then get the plan again. Whether an equality condition was changed to a range, or a function was wrapped around a column, the plan will tell you immediately.
 
-**第四步：先小后大。** 在小数据量下先确认计划是对的（计划错了，数据量一大只会更糟），再用真实数据量测真实耗时。如果计划看着很好但耗时很差，问题多半在回表次数或数据分布，而不在索引本身。
+**Step 4: Small first, then large.** First confirm that the plan is correct at a small data volume (if the plan is wrong, it will only get worse as the data grows), then measure the real elapsed time with the real data volume. If the plan looks good but the elapsed time is poor, the problem is most likely in the number of table lookups or the data distribution, not in the index itself.
 
-**第五步：更新统计信息。** `ANALYZE`（SQLite / PostgreSQL）或 `ANALYZE TABLE`（MySQL）。计划突然变差时，第一件事就是它。
+**Step 5: Update statistics.** `ANALYZE` (SQLite / PostgreSQL) or `ANALYZE TABLE` (MySQL). When a plan suddenly gets worse, this is the first thing to do.
+## 9. Summary
 
-## 9. 小结
+- Indexes replace linear scans with tree lookups; the "shortness" of the B+ tree and its "ordered leaves" are the two core advantages;
+- The column order of a composite index determines whether it can be used: **equality first, range after, sort last**;
+- Covering indexes eliminate table lookups and are usually the single-point optimization with the biggest payoff;
+- Wrapping columns in functions, type mismatches, LIKE prefixes (depending on the engine and collation), and leading wildcards are the four most common silent failures;
+- Indexes have a clear write cost and space cost—it's a trade-off, not free acceleration.
 
-- 索引把线性扫描换成树查找；B+ 树的「矮」与「叶子有序」是两个核心优势；
-- 联合索引的列顺序决定它能否被用上：**等值在前、范围在后、排序垫底**；
-- 覆盖索引消除回表，通常是收益最大的单点优化；
-- 函数包列、类型不一致、LIKE 前缀（取决于引擎与排序规则）、前导通配符，是四种最常见的静默失效；
-- 索引有明确的写代价与空间代价，是一次取舍而不是免费的加速。
+One final piece of advice: every conclusion in this article comes with actual measured output, but they **all come from SQLite**. The principles can be transferred, but the specifics may differ for a given engine, a given version, or even a given state of statistics. **Run EXPLAIN once on the database you're actually optimizing**—that's more reliable than memorizing any conclusion.
 
-最后一句忠告：本文的每个结论都附了实测输出，但它们**全部来自 SQLite**。原理层面可以迁移，具体到某个引擎、某个版本、甚至某个统计信息状态，都可能不一样。**在你要优化的那个库上跑一次 EXPLAIN**——这比记住任何结论都可靠。
+## References
 
-## 参考资料
-
-- [SQLite：EXPLAIN QUERY PLAN 输出说明](https://www.sqlite.org/eqp.html)
-- [SQLite：查询优化器概述（含 LIKE 优化与最左前缀）](https://www.sqlite.org/optoverview.html)
-- [SQLite：The Query Planner](https://www.sqlite.org/queryplanner.html)
-- [PostgreSQL：Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)
-- [PostgreSQL：Index-Only Scans and Covering Indexes](https://www.postgresql.org/docs/current/indexes-index-only-scans.html)
-- [Use The Index, Luke!——面向开发者的 SQL 索引与调优教程](https://use-the-index-luke.com/)
+- [SQLite: EXPLAIN QUERY PLAN output description](https://www.sqlite.org/eqp.html)
+- [SQLite: Query Optimizer Overview (including LIKE optimization and leftmost prefix)](https://www.sqlite.org/optoverview.html)
+- [SQLite: The Query Planner](https://www.sqlite.org/queryplanner.html)
+- [PostgreSQL: Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)
+- [PostgreSQL: Index-Only Scans and Covering Indexes](https://www.postgresql.org/docs/current/indexes-index-only-scans.html)
+- [Use The Index, Luke!—A guide to SQL indexing and tuning for developers](https://use-the-index-luke.com/)

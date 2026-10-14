@@ -1,29 +1,27 @@
 ---
-title: 深入理解 React Server Components 渲染模型：Flight 协议、序列化与流式渲染
+title: 'Understanding the React Server Components Rendering Model: Flight Protocol, Serialization, and Streaming'
 published: 2026-09-21
-description: '打开 React Server Components 的黑盒：逐行拆解 Flight 线格式、搞清哪些值能过线、以及 Suspense 边界如何做到「先发壳、后补坑」的流式渲染，附可上手的抓包与调试方法。'
+description: 'Open up the black box of React Server Components: walk through the Flight wire format line by line, figure out which values can cross the wire, and see how Suspense boundaries enable streaming that sends the shell first and fills in the gaps later, with hands-on packet capture and debugging methods.'
 image: ''
-tags: [前端, React, Server Components, RSC, Flight, 流式渲染]
-category: '前端'
+tags: [Frontend, React, Server Components, RSC, Flight, Streaming]
+category: Frontend
 draft: false
-lang: ''
 ---
+After React 19 turned Server Components from an experimental feature into the default architecture, most people's approach is "add one line of `'use client'`, then pray." That's enough for everyday use, but you get stuck as soon as you hit these situations:
 
-React 19 让 Server Components 从实验特性变成默认架构之后，大多数人的使用方式是「加一行 `'use client'`，然后祈祷」。日常够用，但一旦遇到这些情况就会卡住：
+- A server component's props pass a class instance, and at runtime you get an inscrutable serialization error;
+- You clearly only changed a single number, yet the Network panel shows an extra `?_rsc=1a2b3` request;
+- The page's first paint is fast, but some slow component just won't show up, and you don't know whether to blame the database or the rendering.
 
-- 服务端组件的 props 传了个 class 实例，运行时报了一个看不懂的序列化错误；
-- 明明只是改了一个数字，Network 面板里却多出一条 `?_rsc=1a2b3` 的请求；
-- 页面首屏很快，但某个慢组件迟迟不出现，你不知道该怪数据库还是怪渲染。
+The answers to these questions are all hidden in a protocol called **Flight**. This article doesn't repeat the basic concepts of "what is RSC" (that part was covered in [React 19 Stable Release: Server Components Become the Default Architecture](/posts/react-19-stable-release/)); instead, it takes Flight apart: what exactly it sends over the network, which values can cross the wire, and how "the Suspense boundary first takes a placeholder, then fills it in" is implemented at the byte level.
 
-这些问题的答案，都藏在一个叫 **Flight** 的协议里。本文不重复「RSC 是什么」的基础概念（那部分在[《React 19 稳定版发布》](/posts/react-19-stable-release)里讲过），而是把 Flight 拆开看：它到底在网络上发了些什么、哪些值能过线、以及「Suspense 边界先占坑、后填坑」在字节层面是怎么实现的。
+Every payload in this article was **actually run on React 19.3.0 + Node 22**, not copied from the docs—the last section gives a reproduction script.
 
-文中的每一段 payload 都是在 **React 19.3.0 + Node 22 上实跑出来的**，不是从文档抄的——最后一节会给出复现脚本。
+## 1. The problem with SSR: HTML is a snapshot with no structure
 
-## 1. SSR 的问题：HTML 是一张没有结构的快照
+To understand why a new protocol is needed, first look at what it replaced.
 
-要理解为什么需要新协议，先看它替换掉了什么。
-
-传统 SSR 的产物是 HTML 字符串。它对人友好，对机器不友好：
+The output of traditional SSR is an HTML string. It's friendly to humans, unfriendly to machines:
 
 ```tsx
 // 服务端：渲染成一段 HTML 字符串
@@ -31,35 +29,35 @@ const html = renderToString(<App post={post} />)
 // => "<div class=\"post\"><h1>标题</h1><p>正文...</p></div>"
 ```
 
-这段 HTML 里，**组件边界、props、数据类型全都丢失了**。客户端拿到的只是一堆 DOM 节点。于是想更新页面上的任何一小块，只有两条路：
+In this HTML, **component boundaries, props, and data types are all lost**. What the client gets is just a pile of DOM nodes. So to update any small part of the page, there are only two paths:
 
-1. **整页重渲染**——重新请求一次 HTML，用户看到的是整页刷新；
-2. **再写一套 JSON API**——手工把数据从数据库搬一遍，前后端各维护一份数据形状。
+1. **Re-render the whole page**—request the HTML again, and the user sees a full-page refresh;
+2. **Write another JSON API**—manually move the data from the database again, maintaining a copy of the data shape on both the frontend and backend.
 
-第一条路牺牲了体验，第二条路牺牲了研发效率：同一个页面要维护「渲染逻辑」和「数据接口」两套代码。
+The first path sacrifices experience; the second sacrifices development efficiency: the same page requires maintaining two sets of code, "rendering logic" and "data interface."
 
-RSC 的思路是换一种传输物：**不发 HTML，发 UI 描述**。这份描述要能携带组件类型、props、以及"这里稍后会有内容"的占位符。它必须是一个机器能懂、且能流式传输的格式——这就是 Flight。
+RSC's idea is to change what gets transmitted: **don't send HTML, send a UI description**. This description must be able to carry component types, props, and placeholders for "there will be content here later." It must be a format that machines can understand and that can be streamed—this is Flight.
 
 :::note
-Flight 是 React 的实现细节，不是一个给业务用的公开数据接口。它的格式会随 React 版本变化，**不要**让客户端代码去解析它。理解它是为了会调试，不是为了依赖它。
+Flight is an implementation detail of React, not a public data interface for business use. Its format changes with React versions, and you should **not** let client code parse it. Understanding it is for debugging, not for depending on it.
 :::
 
-## 2. Flight 的两半与线格式
+## 2. Flight's two halves and the wire format
 
-React 官方仓库里有两个成对的包，理解这一对是理解协议的前提：
+There are two paired packages in the official React repository; understanding this pair is the prerequisite for understanding the protocol:
 
-| 包 | 运行环境 | 职责 |
+| Package | Runtime environment | Responsibility |
 | --- | --- | --- |
-| `react-server-dom-*` 的 **server** 入口 | 服务端 | 渲染 Server Components，把结果**序列化**成 Flight payload |
-| `react-server-dom-*` 的 **client** 入口 | 客户端 | 接收 payload，**反序列化**成 React 元素树，交给 reconciler |
+| The **server** entry of `react-server-dom-*` | Server | Renders Server Components and **serializes** the result into a Flight payload |
+| The **client** entry of `react-server-dom-*` | Client | Receives the payload, **deserializes** it into a React element tree, and hands it to the reconciler |
 
-关键在于：**Flight 的序列化不是 `JSON.stringify`**。React 元素、客户端组件引用、服务端函数引用、Promise 这些都不是 JSON 能表达的东西。所以 React 自己定义了一套线格式。
+The key point is: **Flight's serialization is not `JSON.stringify`**. React elements, client component references, server function references, and Promises are not things JSON can express. So React defines its own wire format.
 
-### 一行一个 chunk
+### One chunk per line
 
-payload 是一串**行**，每行形如 `<十六进制 id>:<载荷>`，行之间用换行分隔。id 最短的那一行（`0`）是根模型，其余行各自承载一个「被外置的对象」。
+The payload is a series of **lines**, each shaped like `<十六进制 id>:<载荷>`, separated by newlines. The line with the shortest id (`0`) is the root model, and the remaining lines each carry an "externalized object."
 
-下面是一份真实输出，为了可读性做了换行和缩进（原文是每个 chunk 占一行）：
+Below is a real output, with line breaks and indentation added for readability (the original has each chunk on one line):
 
 ```
 1:"my-client-module"
@@ -71,31 +69,31 @@ payload 是一串**行**，每行形如 `<十六进制 id>:<载荷>`，行之间
    ]}]
 ```
 
-拆开看：
+Taking it apart:
 
-- `0:` 是根。**React 元素被编码成四元组** `["$", type, key, props]`——`"$"` 是元素哨兵，`type` 可以是字符串 `"h1"`，也可以是 `"$L3"` 这样指向另一行的引用，第三个是 key，第四个是 props。
-- `3:I[...]` 是一个 **Import 行**，`I` 表示这是个客户端模块的元信息：模块 id、chunk 文件、导出名。所以客户端组件的编码方式是「发一个**指路牌**」——服务端不执行它，只告诉客户端去哪儿加载。
-- `"$L3"` 里的 `$L` 是 lazy：客户端拿到后会包一层 `React.lazy` 来加载和注册这个模块。
+- `0:` is the root. **A React element is encoded as a four-tuple** `["$", type, key, props]`—`"$"` is the element sentinel, `type` can be the string `"h1"` or a reference to another line like `"$L3"`, the third is the key, and the fourth is the props.
+- `3:I[...]` is an **Import line**; `I` indicates that this is metadata for a client module: module id, chunk file, export name. So the way a client component is encoded is "send a **signpost**"—the server doesn't execute it, it just tells the client where to load it from.
+- The `$L` in `"$L3"` is lazy: after the client receives it, it wraps it in a `React.lazy` to load and register this module.
 
-### 值的编码前缀
+### Value encoding prefixes
 
-基础类型（字符串、数字、布尔、`null`）直接就是 JSON 字面量。JSON 表达不了的走 `$` 前缀，这也是为什么**以 `$` 开头的普通字符串要被转义**。
+Primitive types (strings, numbers, booleans, `null`) are directly JSON literals. Things JSON can't express use the `$` prefix, which is also why **ordinary strings starting with `$` must be escaped**.
 
-| 值 | 线上编码 | 说明 |
+| Value | Wire encoding | Notes |
 | --- | --- | --- |
 | `undefined` | `$undefined` | |
-| `Infinity` / `-0` / `NaN` | `$Infinity` / `$-0` / `$NaN` | JSON 表达不了的特殊数值 |
-| `Date` | `$D` + ISO 字符串 | 到客户端还原成真正的 `Date` 实例 |
-| `BigInt` | `$n` + 数字 | |
-| `Map` | `$Q<id>` | 内容外置成 `id:[["k","v"]]` |
-| `Set` | `$W<id>` | 内容外置成 `id:[v1,v2]` |
-| 全局 Symbol | `$S` + 名称 | 外置成 `id:"$S名称"` |
-| 另一个 chunk | `$<id>` | 纯引用 |
-| 已解析 chunk 中的某个路径 | `$<id>:<path>` | 用于重复引用与循环引用 |
-| Promise | `$@<id>` | 值随该 chunk 稍后送达 |
-| 字面量 `$` | `$$` | 转义，客户端会剥掉一层 |
+| `Infinity` / `-0` / `NaN` | `$Infinity` / `$-0` / `$NaN` | Special numeric values JSON can't express |
+| `Date` | `$D` + ISO string | Restored on the client into a real `Date` instance |
+| `BigInt` | `$n` + number | |
+| `Map` | `$Q<id>` | Content externalized as `id:[["k","v"]]` |
+| `Set` | `$W<id>` | Content externalized as `id:[v1,v2]` |
+| Global Symbol | `$S` + name | Externalized as `id:"$S名称"` |
+| Another chunk | `$<id>` | Pure reference |
+| Some path in an already-resolved chunk | `$<id>:<path>` | Used for repeated references and circular references |
+| Promise | `$@<id>` | The value arrives later with that chunk |
+| The literal `$` | `$$` | Escaped; the client strips one layer |
 
-几个真实片段：
+A few real fragments:
 
 ```jsonc
 // Date / BigInt / Map / Set / NaN
@@ -111,43 +109,42 @@ payload 是一串**行**，每行形如 `<十六进制 id>:<载荷>`，行之间
 {"sym":"$a"}   加上   a:"$Smy.symbol"
 ```
 
-### 二进制行
+### Binary lines
 
-不是所有行都是 JSON。二进制数据（`TypedArray`、`ArrayBuffer`、长文本）走另一种行格式：**行号 + 单字符 tag + 十六进制字节长度 + `,` + 原始字节**。
+Not all lines are JSON. Binary data (`TypedArray`, `ArrayBuffer`, long text) uses another line format: **line number + single-character tag + hexadecimal byte length + `,` + raw bytes**.
 
 ```js
 new Uint8Array([72, 101, 108, 108, 111])   // "Hello"
 ```
 
-在线上就是：
+On the wire it's:
 
 ```
 9:o5,Hello
 ```
 
-`o` 是 `Uint8Array` 的 tag，`5` 是**十六进制**的字节长度，后面直接跟原始字节。走这条路而不是 JSON 转义，是因为二进制数据一旦按 JSON 转义成数组，体积会膨胀好几倍。
+`o` is the tag for `Uint8Array`, `5` is the byte length in **hexadecimal**, followed directly by the raw bytes. This path is used instead of JSON escaping because once binary data is JSON-escaped into an array, its size balloons several times over.
+## 3. Boundaries of the Serialization Rules
 
-## 3. 序列化规则的边界
+Which values can cross the wire — many claims floating around online are outdated. The table below is the result of **testing each one individually** (passing a value as props to a client component and seeing whether it errors):
 
-哪些值能过线，网上流传的说法有不少是过时的。下面这张表是**逐个实测**的结果（把一个值作为 props 传给客户端组件，看是否报错）：
-
-| 值 | 能否过线 | 备注 |
+| Value | Can it cross? | Notes |
 | --- | --- | --- |
-| 普通对象 / 数组 / 原始类型 | ✅ | |
-| `Date` | ✅ | 客户端拿到的是 `Date` 实例，**不需要**先 `toISOString()` |
-| `Map` / `Set` | ✅ | **不需要**转成数组或 `Object.fromEntries()` |
+| Plain objects / arrays / primitives | ✅ | |
+| `Date` | ✅ | What the client receives is a `Date` instance, **no need** to `toISOString()` first |
+| `Map` / `Set` | ✅ | **No need** to convert to an array or `Object.fromEntries()` |
 | `BigInt` | ✅ | |
-| `TypedArray` / `ArrayBuffer` | ✅ | 走二进制行 |
-| 全局 Symbol（`Symbol.for`） | ✅ | |
-| Promise | ✅ | 配合客户端 `use()` 消费 |
-| JSX 元素 | ✅ | |
-| **循环引用 / 重复引用** | ✅ | 见下 |
-| 局部 Symbol（`Symbol('x')`） | ❌ | 只在当前进程内唯一，客户端无法还原 |
-| `WeakMap` / `WeakSet` | ❌ | 无法枚举 |
-| class 实例 | ❌ | **最常见的坑** |
-| 普通函数 | ❌ | 除非标了 `'use server'` |
+| `TypedArray` / `ArrayBuffer` | ✅ | Goes over the binary row |
+| Global Symbol (`Symbol.for`) | ✅ | |
+| Promise | ✅ | Consumed with client-side `use()` |
+| JSX elements | ✅ | |
+| **Circular references / duplicate references** | ✅ | See below |
+| Local Symbol (`Symbol('x')`) | ❌ | Only unique within the current process; the client can't reconstruct it |
+| `WeakMap` / `WeakSet` | ❌ | Cannot be enumerated |
+| class instances | ❌ | **The most common pitfall** |
+| Plain functions | ❌ | Unless marked with `'use server'` |
 
-真实报错长这样，认准它们基本能秒定位问题：
+Real errors look like this — recognizing them basically lets you pinpoint the problem instantly:
 
 ```
 Only plain objects, and a few built-ins, can be passed to Client Components
@@ -163,9 +160,9 @@ expose it by marking it with "use server".
 Only global symbols received from Symbol.for(...) can be passed to Client Components.
 ```
 
-### 循环引用其实能过线
+### Circular references can actually cross the wire
 
-很多文章（包括一些 AI 生成的最佳实践清单）会告诉你「RSC 不支持循环引用」。**实测这条是错的。**
+Many articles (including some AI-generated best-practice checklists) will tell you "RSC doesn't support circular references." **Testing shows this is wrong.**
 
 ```js
 const cir = { name: 'a' }
@@ -174,7 +171,7 @@ const shared = { tag: 'shared' }
 render(<Client user={cir} s1={shared} s2={shared} />)
 ```
 
-真实的 payload 是：
+The actual payload is:
 
 ```jsonc
 0:["$","div",null,{"children":["$","$L1",null,{
@@ -184,13 +181,13 @@ render(<Client user={cir} s1={shared} s2={shared} />)
    }]}]
 ```
 
-机制是**路径引用**：`$0:props:children:props:c` 的意思是「去根 chunk，按这条路径走，就是我」。第二个 `shared` 同理变成了对 `s1` 的路径引用——所以它不仅支持环，还顺带做了**身份去重**：同一个对象在两处出现，序列化后仍是同一个对象，`===` 成立。
+The mechanism is **path references**: `$0:props:children:props:c` means "go to the root chunk, follow this path, and that's me." The second `shared` similarly becomes a path reference to `s1` — so not only does it support cycles, it also incidentally does **identity deduplication**: the same object appearing in two places is still the same object after serialization, and `===` holds.
 
-这也解释了为什么它不会无限递归：第二次遇到同一个对象时，直接写路径，不再展开。
+This also explains why it doesn't recurse infinitely: the second time it encounters the same object, it just writes the path and doesn't expand again.
 
-### 真正的坑：class 实例
+### The real pitfall: class instances
 
-`Date`、`Map`、`Set` 都能过线，唯独 class 实例不行——哪怕它所有字段都是普通数据：
+`Date`, `Map`, `Set` can all cross the wire — only class instances can't, even if all their fields are plain data:
 
 ```js
 class User {
@@ -199,9 +196,9 @@ class User {
 }
 ```
 
-真实世界里这个坑通常来自 ORM：绝大多数 ORM 查询返回的都不是纯对象，而是带原型的实体类实例（Prisma、TypeORM、Sequelize 都是）。所以「查出来直接塞给客户端组件」很容易在运行时炸。
+In the real world this pitfall usually comes from ORMs: the vast majority of ORM queries don't return plain objects, but entity class instances with prototypes (Prisma, TypeORM, Sequelize all do this). So "query it out and stuff it straight into a client component" easily blows up at runtime.
 
-修法是显式挑字段，而不是把整个实体丢过去：
+The fix is to explicitly pick fields rather than throwing the whole entity over:
 
 ```tsx
 // ❌ 炸：user 是 ORM 实体实例
@@ -211,13 +208,13 @@ class User {
 <Profile user={{ id: user.id, name: user.name }} />
 ```
 
-TypeScript 拦不住这个错误——类型上 `User` 完全合法，问题只在运行时才暴露。
+TypeScript can't catch this error — at the type level `User` is perfectly legal; the problem only surfaces at runtime.
 
-## 4. 流式渲染：先发壳，后补坑
+## 4. Streaming Rendering: Send the Shell First, Fill the Holes Later
 
-前面看到的 payload 是一次性发完的。真正的流式发生在**有异步内容**的时候。
+The payloads we've seen so far were sent all at once. Real streaming happens when there's **asynchronous content**.
 
-看一个带 Suspense 的例子：一个慢组件（`await` 一个 1 秒后才 resolve 的 Promise）包在 `<Suspense>` 里。真实的输出顺序是这样的（中间省略无关行）：
+Look at an example with Suspense: a slow component (`await` a Promise that resolves after 1 second) wrapped in `<Suspense>`. The actual output order looks like this (irrelevant lines omitted):
 
 ```jsonc
 // ① 先发壳：chunk 0 立刻到达，慢组件的位置是一个 lazy 占位
@@ -231,11 +228,11 @@ TypeScript 拦不住这个错误——类型上 `User` 完全合法，问题只�
 6:["$","p",null,{"children":"服务端慢数据"}]
 ```
 
-关键在于 **`"children":"$L6"`**：壳里这个位置先写成一个「指向 chunk 6 的 lazy 引用」。客户端拿到壳就能立刻渲染标题和 fallback，根本不需要等慢组件。等 chunk 6 到达，React 把 fallback 换成真实内容。
+The key is **`"children":"$L6"`**: in the shell, this position is first written as a "lazy reference pointing to chunk 6." Once the client gets the shell, it can immediately render the title and fallback — no need to wait for the slow component at all. When chunk 6 arrives, React swaps the fallback for the real content.
 
-注意 chunk 6 **出现在 chunk 0 之后很远的位置**——这正是「乱序流式」的字面含义：内容按**就绪顺序**发出，而不是按树里的顺序。页面上从下往上的组件，完全可能比上面的先到。
+Note that chunk 6 **appears far after chunk 0** — this is exactly the literal meaning of "out-of-order streaming": content is emitted in **readiness order**, not in tree order. Components lower on the page can absolutely arrive before ones above them.
 
-Promise 走的是同一套机制，前缀是 `$@`：
+Promises go through the same mechanism, with the prefix `$@`:
 
 ```jsonc
 0:["$","div",null,{"children":[
@@ -244,31 +241,31 @@ Promise 走的是同一套机制，前缀是 `$@`：
 1:"异步值"
 ```
 
-Promise 被 **resolve 后的值**替换掉原来那一行的位置。如果 Promise 被 reject，出现的是错误行：
+The Promise is replaced in its original line by its **resolved value**. If the Promise is rejected, an error line appears:
 
 ```jsonc
 2:E{"digest":""}
 ```
 
-`E` 是错误 tag，`digest` 是服务端为生产环境准备的错误摘要——原始错误信息不会跨线传输（避免泄露服务端细节），客户端拿到的是 digest，需要靠服务端日志去对。
+`E` is the error tag, and `digest` is the error digest the server prepares for production — the raw error message doesn't cross the wire (to avoid leaking server-side details); the client gets the digest and needs to match it against server logs.
 
-### 这套机制解释了三件事
+### This mechanism explains three things
 
-**为什么慢组件不会拖住首屏。** 首屏时间取决于壳什么时候发完，而不是最慢的那个数据什么时候回来。多个 Suspense 边界各自独立补坑，最慢的那个只影响它自己那块。
+**Why slow components don't hold up the first paint.** First-paint time depends on when the shell finishes sending, not on when the slowest piece of data comes back. Multiple Suspense boundaries each fill their own holes independently; the slowest one only affects its own section.
 
-**为什么总耗时是「最慢的」而不是「累加的」。** 每个边界一就绪就立刻发，几个并发查询的总时间由最慢的那个决定，而不是求和。
+**Why total time is "the slowest" rather than "the sum."** Each boundary sends as soon as it's ready; the total time for several concurrent queries is determined by the slowest one, not the sum.
 
-**为什么改一个数字会触发 `?_rsc=` 请求。** 客户端导航时不需要整页 HTML，只要新的 Flight payload——服务端组件可能已经或需要重新渲染，所以 payload 要重新生成再传一遍。这也是为什么 RSC 应用的 Network 面板里会反复出现 `?_rsc=xxxx` 这种请求，以及响应头里为什么会有 `Content-Type: text/x-component`。
+**Why changing a single number triggers a `?_rsc=` request.** Client-side navigation doesn't need the full HTML page — just the new Flight payload. Server components may have already re-rendered or need to re-render, so the payload has to be regenerated and sent again. This is also why `?_rsc=xxxx` requests keep showing up in the Network panel of RSC apps, and why the response headers contain `Content-Type: text/x-component`.
 
-## 5. 自己抓一次
+## 5. Capture It Yourself
 
-上面所有 payload 都能自己复现，20 行代码就够。装两个包：
+All the payloads above can be reproduced on your own with 20 lines of code. Install two packages:
 
 ```bash
 npm i react@19 react-server-dom-webpack@19
 ```
 
-然后直接调底层的服务端渲染 API（注意 `--conditions=react-server`，否则 Node 会解析到客户端的 React 构建）：
+Then call the low-level server rendering API directly (note `--conditions=react-server`, otherwise Node will resolve to the client React build):
 
 ```js
 // probe.js
@@ -296,42 +293,41 @@ renderToPipeableStream(tree, {}).pipe(pass)
 NODE_ENV=production node --conditions=react-server probe.js
 ```
 
-输出就是真实的线格式。
+The output is the real wire format.
 
 :::note
-**调试时要注意 dev 和 prod 的 payload 不一样。** 开发构建会在元素四元组后面**多补两个槽位**（owner 和调用栈），还会额外发一批 `D` 开头的调试行和一条独立的调试通道。所以你在开发环境抓到的 payload 会比生产环境"胖"很多，别照着它去推生产行为。上面所有示例都是 `NODE_ENV=production` 下抓的。
+**When debugging, note that dev and prod payloads differ.** The development build **adds two extra slots** after the element quadruple (owner and call stack), and also emits an extra batch of debug lines starting with `D` plus a separate debug channel. So the payload you capture in development is much "fatter" than in production — don't use it to infer production behavior. All the examples above were captured under `NODE_ENV=production`.
 :::
 
-浏览器里抓的话，看 Network 面板里 `Content-Type` 为 `text/x-component` 的请求——它就是 Flight 的响应。
+To capture it in the browser, look in the Network panel for the request where `Content-Type` is `text/x-component` — that's the Flight response.
+## 6. Four Common Misconceptions
 
-## 6. 四个常见误解
+**Misconception 1: RSC is an upgraded version of SSR.** No, the two solve different problems. SSR solves "the first screen needs HTML"; RSC solves "server components don't go into the client bundle, and the UI description can be transmitted independently." The two can coexist (as they do in Next.js), or only one of them can be present.
 
-**误解一：RSC 是 SSR 的升级版。** 不是，两者解决的问题不同。SSR 解决的是"首屏要有 HTML"，RSC 解决的是"服务端组件不进客户端 bundle，且 UI 描述可以独立传输"。两者可以同时存在（Next.js 里就是），也可以只有其中一个。
+**Misconception 2: A Server Component is just "a React component that runs on the server."** The key is that **it does not get compiled into the client bundle**. The database drivers, secrets, and tens of KB of markdown parsers it depends on all stay on the server. What this brings is a size benefit, not a "where it runs" benefit.
 
-**误解二：Server Component 就是"在服务器上运行的 React 组件"。** 关键在于**它不会被编译进客户端 bundle**。它依赖的数据库驱动、密钥、几十 KB 的 markdown 解析器都留在服务端。这一点带来的是体积收益，不是"运行位置"的收益。
+**Misconception 3: The Flight payload is an API for external consumption.** Treating it as an API to be parsed is equivalent to welding yourself to React's internal implementation. If you need to expose data externally, just write an API honestly.
 
-**误解三：Flight payload 是给外部消费的 API。** 把它当成 API 去解析，等于把自己焊死在 React 的内部实现上。需要对外提供数据，还是老老实实写 API。
+**Misconception 4: All components "cross the wire" by default.** Quite the opposite: **by default they don't cross the wire**. Only modules marked with `'use client'` get replaced with references and sent to the client, and only functions marked with `'use server'` become callable references.
 
-**误解四：所有组件默认都会"过线"。** 恰恰相反：**默认不过线**。只有 `'use client'` 标记的模块才会被替换成引用发到客户端，只有 `'use server'` 标记的函数才会变成可调用的引用。
+## 7. Summary
 
-## 7. 总结
+What the Flight protocol does can be summed up in one sentence: **encode a tree of React elements into lines of text that can arrive out of order and be filled in later.**
 
-Flight 协议做的事，可以概括成一句话：**把一棵 React 元素树，编码成一条条可以乱序到达、可以延后填充的文本行。**
+Looking back from this perspective, many phenomena fall into place:
 
-从这个视角回看，很多现象就顺理成章了：
+- Why server component props can't pass functions—because what crosses the wire must be **data**, and functions can only become **references**;
+- Why a slow component doesn't hold up the first screen—because its position can first be held with `$L<id>`, and the content is filled in afterward as a new line;
+- Why changing a single number triggers an extra `?_rsc=` request—because the server component may have already re-rendered or needs to re-render, and the payload needs to be regenerated.
 
-- 为什么服务端组件的 props 不能传函数——因为过线的东西必须是**数据**，函数只能变成**引用**；
-- 为什么慢组件不会拖住首屏——因为它的位置可以先用 `$L<id>` 占住，内容随后以新的一行补上；
-- 为什么改一个数字会触发额外的 `?_rsc=` 请求——因为服务端组件可能已经或需要重新渲染，payload 需要重新生成。
+The value of RSC is not in the act of "running on the server" itself, but in **making what is transmitted between server and client no longer the final product, but a UI description that can be incrementally completed**. Once you understand this, where `'use client'` should be added, what shouldn't be stuffed into props, and which layer of Suspense a slow component should be wrapped in will all go from "gut feeling" to "well-grounded."
 
-RSC 的价值不在于"跑在服务端"这个动作本身，而在于**让服务端与客户端之间传输的不再是最终产物，而是可以增量补全的 UI 描述**。理解了这一点，`'use client'` 该加在哪、什么东西不该往 props 里塞、慢组件该裹哪一层 Suspense，都会从"凭感觉"变成"有依据"。
+## References
 
-## 参考资料
+- [React official docs: Server Components](https://react.dev/reference/rsc/server-components)
+- [React official docs: Server Functions](https://react.dev/reference/rsc/server-functions)
+- [React official docs: `use` API](https://react.dev/reference/react/use)
+- [React repository: `react-server-dom-webpack` source code (wire format and serialization implementation)](https://github.com/facebook/react/tree/main/packages/react-server-dom-webpack)
+- [React PR #28847: Flight encoding ReadableStream and AsyncIterable](https://github.com/facebook/react/pull/28847)
 
-- [React 官方文档：Server Components](https://react.dev/reference/rsc/server-components)
-- [React 官方文档：Server Functions](https://react.dev/reference/rsc/server-functions)
-- [React 官方文档：`use` API](https://react.dev/reference/react/use)
-- [React 仓库：`react-server-dom-webpack` 源码（线格式与序列化实现）](https://github.com/facebook/react/tree/main/packages/react-server-dom-webpack)
-- [React PR #28847：Flight 编码 ReadableStream 与 AsyncIterable](https://github.com/facebook/react/pull/28847)
-
-> 文中所有 payload 均在 React 19.3.0 / Node.js 22.22.1 下以 `NODE_ENV=production` 实跑取得。
+> All payloads in this article were obtained by actually running `NODE_ENV=production` under React 19.3.0 / Node.js 22.22.1.

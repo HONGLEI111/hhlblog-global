@@ -1,69 +1,67 @@
 ---
-title: 摸鱼的艺术：办公室生存指南
+title: 'The Art of Slacking Off: An Office Survival Guide'
 published: 2026-10-10
-description: '鼠标抖动器、老板键、「我在跑构建」——摸鱼段子人人会讲，但摸鱼其实分两种：一种靠伪造活动信号，一种靠把等待时间自动化掉。它们在你屏幕上的样子几乎一模一样，区别在你离开之后留下了什么。'
+description: 'Mouse jigglers, boss keys, "I''m running a build"—everyone knows the slacking-off jokes, but there are actually two kinds of slacking: one relies on faking activity signals, the other on automating away the waiting. They look nearly identical on your screen; the difference is what you leave behind after you walk away.'
 image: ''
-tags: [程序员笑话, 摸鱼, 自动化, 效率, 工程文化]
-category: '其他'
+tags: [programmer humor, slacking off, automation, productivity, engineering culture]
+category: Other
 draft: false
-lang: ''
 ---
+09:58, coffee in hand, back at your desk. On the screen: a spinning progress bar, and a weekly report that isn't finished yet.
 
-09:58，端着咖啡回到工位。桌面上是一个转圈的进度条，和一份还没写完的周报。
+10:00 standup. 10:07 it's over, and you say "I'll keep pushing this forward."
 
-10:00 站会。10:07 结束，你说「我继续推进一下」。
+10:08 the build starts. 10:19 the build still hasn't finished. You've already scrolled through three group chats, read a trending topic, and mentally noted "I'll make it up later."
 
-10:08 编译开始。10:19 编译还没结束。你已经刷完了三个群、看完一条热搜，并在心里给自己记了一笔「等下补回来」。
+The most frequently told lie of the day isn't "almost done" — it's **"I'm running a build."** Its greatest advantage: it's probably true.
 
-这一天里最高频的一句谎话不是「马上就好」，而是 **「我在跑构建」**——它最大的好处是：它大概率是真的。
+## 1. The Slacking Museum
 
-## 1. 摸鱼博物馆
+### Mouse Jiggler
 
-### 鼠标抖动器（Mouse Jiggler）
+The closest thing the slacking world has to a hardware startup: a little gadget for a few dozen yuan that, once plugged in, nudges the pointer one pixel every few dozen seconds, so the screen never locks and the computer never sleeps. Some models are advertised on e-commerce pages as "undetectable."
 
-摸鱼界最接近硬件创业的产品：几十块钱一个小玩意，插上之后每隔几十秒把指针挪一个像素，让屏幕永远不锁、电脑永远不休眠。有些型号在电商页面上直接标着「undetectable」。
+What it forges isn't work — it's the *signal* of "currently working." And in June 2024, Wells Fargo fired more than a dozen employees over this, with the wording reported to FINRA being "simulating keyboard activity to create the impression of active work." This is the dividing line I'll unpack later in this article — **the same jiggler is either a meme or an accusation, depending on how your company sees you.**
 
-它伪造的不是工作，而是「正在工作」这个信号。而 2024 年 6 月，富国银行（Wells Fargo）因为这件事解雇了十多名员工，向 FINRA 报备的措辞是「模拟键盘活动，制造正在进行工作的印象」。这是本文后面要展开的那条分界线——**同样一个抖动器，它是段子还是指控，取决于公司怎么看你**。
+### Boss Key
 
-### 老板键
+`Alt+Tab` is the oldest one-key costume change. Advanced versions include:
 
-`Alt+Tab` 是最古老的一键换装。进阶版本包括：
+- `Ctrl+W` one-key evidence destruction (the cost is irreversibility — don't press it on a production tab);
+- Virtual desktops: one for writing code, one for docs, and a spare;
+- Terminal split panes: when the boss walks over, the prettiest thing on screen is always the `tail -f` logs.
 
-- `Ctrl+W` 一键销毁证据（代价是不可逆，别对着生产环境的标签页按）；
-- 虚拟桌面：一个写代码，一个放文档，还有一个备用；
-- 终端分屏：老板走过来时，屏幕上最好看的永远是 `tail -f` 的日志。
+### "I'm running a build"
 
-### 「我在跑构建」
+Compiling, running tests, installing dependencies, waiting on CI — these are **legitimate rest permits**, because they genuinely take time, and they genuinely don't need *you*.
 
-编译、跑测试、装依赖、等 CI——这些是**合法的休息许可证**，因为它们真的需要时间，而且真的不需要你的人。
+This is the only category of slacking that's fully justified, and the only one worth seriously optimizing. The distinction matters: the output of the first two categories is a "looks busy" state; the output of this one is a piece of code.
 
-这是摸鱼里唯一理直气壮的一类，也是唯一值得认真优化的一类。区别很重要：前两类摸鱼的产出是一个「看起来很忙」的状态，这一类的产出是一段代码。
+### Reverse slacking: monitoring software
 
-### 反向摸鱼：监控软件
+The opposite side from jigglers is bossware (also called tattleware): periodic screenshots, keystroke counts, mouse trails, random webcam photos. The funniest part of this joke is that both sides are forging signals — employees forge "working," companies forge "we measure output." Neither side really trusts the other, and neither side really trusts the metric it's forging.
 
-与抖动器对立的一侧是 bossware（也叫 tattleware）：定时截屏、键盘计数、鼠标轨迹、摄像头随机拍照。这个段子最好笑的地方是双方都在伪造信号——员工伪造「在工作」，公司伪造「我们在衡量产出」。两边都不太相信对方，两边也都不太相信自己伪造的那个指标。
+## 2. Taking the Joke Apart: There Are Two Kinds of Slacking
 
-## 2. 把段子拆开：摸鱼有两种
+- **Deceptive slacking**: decoupling the "activity signal" from "work happening" — manufacturing the former, skipping the latter. The time it buys is **borrowed**; the creditor is your employer, and the repayment date is uncertain.
+- **Waiting slacking**: your time is stuck inside something that's genuinely happening — compiling, installing dependencies, waiting on CI, waiting on a deploy, waiting on a colleague's review. This time isn't stolen; it's **not yet engineered away**.
 
-- **欺骗型摸鱼**：把「活动信号」和「工作发生」解耦，制造前者，不做后者。它换来的时间是**借来的**，债权人是雇主，还款日期不确定。
-- **等待型摸鱼**：你的时间被卡在某个真实发生的过程中——编译、装依赖、等 CI、等部署、等同事 review。这段时间不是偷来的，它是**还没有被工程化掉**的。
+The two look almost identical on screen (nobody's typing). The difference is only what you have in hand when you come back:
 
-两者在屏幕上的表现几乎完全相同（人都不在敲键盘）。区别只在于你回来之后手上多了什么：
-
-| | 欺骗型 | 等待型 |
+| | Deceptive | Waiting |
 |---|---|---|
-| 时间从哪来 | 伪造活动信号 | 消掉真实的等待 |
-| 留下的东西 | 一个「看起来很忙」的状态 | 一段脚本、一条更短的流水线 |
-| 被发现时 | 是一项指控 | 是一次优化 |
-| 可持续性 | 到期要还 | 每跑一次再赚一次 |
+| Where the time comes from | Forging an activity signal | Eliminating real waiting |
+| What's left behind | A "looks busy" state | A script, a shorter pipeline |
+| When discovered | It's an accusation | It's an optimization |
+| Sustainability | Comes due eventually | Earns again every run |
 
-所以真正值得研究的是第二类。下面三招都不新，但它们的共同点是：**你不在的时候，事情真的在往前跑。**
+So the second kind is what's actually worth studying. The three moves below aren't new, but they share one thing: **while you're away, things genuinely move forward.**
 
-## 3. 把「等」消掉：三个层级
+## 3. Eliminating the "Wait": Three Levels
 
-### 第 0 层：先给等待计时
+### Level 0: Time the wait first
 
-不要凭感觉，凭感觉的话你会高估写代码的时间、低估等待的时间。给自己的命令加个秒表：
+Don't go by feel — by feel, you'll overestimate coding time and underestimate waiting time. Add a stopwatch to your commands:
 
 ```bash
 # ~/.bashrc —— 用法: tt pnpm build
@@ -77,11 +75,11 @@ tt() {
 sort -k1,1nr ~/.tt.log | head -20
 ```
 
-GNU `time` 才有 `-o`；macOS 上是 BSD `time`，得先 `brew install gnu-time` 再用 `gtime`。这个排行榜通常比任何效率方法学都更能说服人：排在前面的一定是装依赖、跑构建、等 CI 这类**你从头到尾没参与过**的动作。
+Only GNU `time` has `-o`; on macOS it's BSD `time`, so you need to `brew install gnu-time` first, then use `gtime`. This leaderboard is usually more convincing than any productivity methodology: the top entries are always dependency installs, builds, CI waits — the actions **you never participated in from start to finish**.
 
-### 第 1 层：把 N 条命令压成 1 条
+### Level 1: Compress N commands into 1
 
-每天开工前那五条命令，是把「我准备好了」翻译成了五次等待。写成一个脚本：
+Those five commands before you start work each day are "I'm ready" translated into five waits. Write them into a script:
 
 ```bash
 #!/usr/bin/env bash
@@ -103,11 +101,11 @@ pnpm db:migrate
 exec pnpm dev
 ```
 
-这段脚本真正省下的不是那十几秒，是**你要记住的顺序**。摸鱼守恒定律说：你今天手工敲的每一条命令，都会在明天以「我怎么又忘了」的形式回来。
+What this script really saves isn't those ten-odd seconds — it's **the order you have to remember**. The law of conservation of slacking says: every command you type by hand today comes back tomorrow as "how did I forget again."
 
-### 第 2 层：让机器等你，而不是你等机器
+### Level 2: Make the machine wait for you, not the other way around
 
-CI 是最典型的「人不在场也要它跑得快」的场景。GitHub Actions 里缓存依赖，官方推荐的写法是直接交给 `setup-*` 系列动作：
+CI is the most typical "it has to run fast even when nobody's there" scenario. For caching dependencies in GitHub Actions, the officially recommended approach is to hand it straight to the `setup-*` family of actions:
 
 ```yaml
 - uses: actions/setup-node@v4
@@ -124,9 +122,9 @@ CI 是最典型的「人不在场也要它跑得快」的场景。GitHub Actions
       ${{ runner.os }}-next-
 ```
 
-`key` 精确命中就是 cache hit；没命中时按 `restore-keys` 做前缀匹配，捞一份「旧但还能用」的缓存回来，任务跑完再自动存一份新的。这套机制的价值不在于省了几分钟 CPU，而在于它把「第一次很慢」变成了一次性成本。
+An exact `key` hit is a cache hit; on a miss, it does prefix matching by `restore-keys`, fishes out an "old but still usable" cache, and automatically saves a new one when the job finishes. The value of this mechanism isn't the few minutes of CPU it saves — it's that it turns "the first time is slow" into a one-time cost.
 
-然后是抖动器那个梗的**正当版本**——同样是「让机器知道你还活着」，但对象是机器而不是人：
+Then there's the **legitimate version** of the jiggler meme — also "letting the machine know you're alive," but the target is the machine, not a person:
 
 ```bash
 # Linux：跑长任务时阻止空闲休眠，任务结束自动解除
@@ -136,11 +134,11 @@ systemd-inhibit --what=idle --why="running tests" pnpm test
 caffeinate -i pnpm test
 ```
 
-鼠标抖动器是为了让别人以为你在工作；`systemd-inhibit` 是为了让机器知道你还在工作。**判据很简单：你骗的是机器，还是人。**
+A mouse jiggler is to make *other people* think you're working; `systemd-inhibit` is to let *the machine* know you're still working. **The test is simple: are you fooling the machine, or a person?**
 
-### 第 3 层：把手工步骤塞进 hook
+### Level 3: Push manual steps into hooks
 
-凡是「等会儿再格式化」的事，都会变成「下个季度统一格式化，一次改三千个文件」。把它挪到提交前：
+Anything that's "I'll format it later" becomes "next quarter we'll format everything at once, three thousand files in one go." Move it to before commit:
 
 ```bash
 # .git/hooks/pre-commit（记得 chmod +x）
@@ -149,46 +147,45 @@ pnpm biome check --staged --write || exit 1
 git add -u
 ```
 
-团队协作里更常见的是 `lint-staged` + `husky` 这套组合，作用一样：**把「我记得要跑一下」变成「不可能忘记」。** 顺带一提，这份 hook 未来会拦住的最大一笔债务，是你自己欠的。
+In team collaboration, the more common combo is `lint-staged` + `husky`, which does the same thing: **turn "I remember I should run it" into "it's impossible to forget."** Incidentally, the biggest debt this hook will block in the future is the one you owe yourself.
 
-## 4. 摸鱼的质量分级
+## 4. Grading the Quality of Slacking
 
-休息不是都等价的。Gloria Mark 团队在 CHI 2008 那篇《The Cost of Interrupted Work: More Speed and Stress》里的发现有点反直觉：被打断之后，人们确实**更快**把活干完了，但同时付出了更高的压力和努力成本——快是用紧绷换来的。她团队后续的实地观察研究里，那个被反复引用的数字是「被打断后平均需要 23 分 15 秒才回到原任务」，而人们平均每 3 分 5 秒就切换一次活动，其中大约一半的中断是**自己造成的**。
+Not all rest is equivalent. The finding in Gloria Mark's team's CHI 2008 paper "The Cost of Interrupted Work: More Speed and Stress" is a bit counterintuitive: after being interrupted, people do finish tasks **faster**, but at the cost of higher stress and effort — the speed is bought with tension. In her team's later field observation studies, the oft-cited number is "after an interruption, it takes an average of 23 minutes and 15 seconds to return to the original task," while people switch activities on average every 3 minutes and 5 seconds, and about half of those interruptions are **self-inflicted**.
 
-Sio 与 Ormerod 2009 年的元分析则把「离开一下」这件事讲得更细：孵化（incubation）确实能提升问题解决率，发散性任务比语言/视觉洞察任务受益更大；准备期越长，效果越明显。但有两个关键调节变量：
+Sio and Ormerod's 2009 meta-analysis spells out "stepping away" in more detail: incubation does improve problem-solving rates, with divergent tasks benefiting more than verbal/visual insight tasks; the longer the preparation period, the more pronounced the effect. But there are two key moderators:
 
-1. 孵化期里做**高认知负荷**的任务，会显著削弱孵化效应；
-2. 对语言类洞察问题，**低认知负荷的填充活动**效果甚至好于纯粹休息。
+1. Doing **high-cognitive-load** tasks during the incubation period significantly weakens the incubation effect;
+2. For verbal insight problems, **low-cognitive-load filler activities** work even better than pure rest.
 
-把这两条翻译成办公室语言，就得到一份很实用的摸鱼分级：
+Translate these two into office language and you get a very practical slacking grading:
 
-- **高质量摸鱼**：低认知负荷 + 离开屏幕。散步、倒水、洗杯子、看窗外、跟人聊点别的。问题在后台自己整理。
-- **低质量摸鱼**：高认知负荷 + 仍然盯着同一块屏幕。刷短视频、看热搜、切进一个更刺激的信息流。十分钟之后，你既没有休息，又多欠了一次中断。
+- **High-quality slacking**: low cognitive load + away from the screen. A walk, getting water, washing your cup, looking out the window, chatting about something else. Problems sort themselves out in the background.
+- **Low-quality slacking**: high cognitive load + still staring at the same screen. Short videos, trending topics, switching into a more stimulating feed. Ten minutes later, you haven't rested, and you owe one more interruption.
 
-同样是十分钟，一个在替你消化问题，一个在替你制造麻烦。
+Same ten minutes: one is digesting problems for you, the other is manufacturing trouble for you.
 
-至于「工作会自己膨胀到填满所有可用时间」（Parkinson's law），它是一句对**流程**的提醒，不是对**人**的鞭策：留白之所以安全，前提是交付边界清清楚楚。边界模糊的时候，留白会被填满，填满它的通常不是工作，而是焦虑。
+As for "work expands to fill all available time" (Parkinson's law), it's a reminder about **process**, not a whip for **people**: leaving whitespace is safe only when delivery boundaries are crystal clear. When boundaries are fuzzy, whitespace gets filled — and what fills it usually isn't work, it's anxiety.
 
-## 5. 摸鱼自检清单
+## 5. Slacking Self-Check List
 
-下班前问自己四句：
+Ask yourself four questions before leaving work:
 
-- [ ] 过去这一周，我花在「等」上的时间有多少？我量过吗？
-- [ ] 我今天摸鱼的时间是**挣来的**（自动化换的）还是**借来的**（伪装换的）？
-- [ ] 我休息的时候，屏幕是亮的还是暗的？
-- [ ] 如果同事照着我的脚本跑一遍，他会更省时间，还是更麻烦？
+- [ ] Over the past week, how much time did I spend "waiting"? Have I measured it?
+- [ ] Is the time I slacked today **earned** (via automation) or **borrowed** (via disguise)?
+- [ ] When I rest, is the screen on or off?
+- [ ] If a colleague ran my scripts, would they save time, or would it be more hassle?
 
-## 写在最后
+## Final Thoughts
 
-抖动器会继续卖，段子会继续讲。但心里要清楚：**摸鱼的最高境界不是让别人以为你在工作，而是你不在的时候，工作照样在推进。**
+Jigglers will keep selling, memes will keep circulating. But be clear in your mind: **the highest form of slacking isn't making others think you're working — it's that while you're away, the work keeps moving forward.**
 
-鼠标抖动器的问题不在于它花了十块钱，而在于它只伪造了「有人在推进」，没有任何东西真的被推进。而一套好的脚本恰好相反：你不在的那二十分钟里，依赖装完了、缓存命中了、迁移做完了、测试跑完了——**你的不在场，是被流水线背书的。**
+The problem with a mouse jiggler isn't that it costs ten yuan — it's that it only forges "someone is pushing forward," while nothing actually gets pushed forward. A good set of scripts is exactly the opposite: in those twenty minutes you're away, dependencies finish installing, the cache hits, the migration completes, the tests finish running — **your absence is backed by the pipeline.**
 
-所以下次有人问你「刚才干嘛去了」，最好的回答不是「我在跑构建」，而是：
+So next time someone asks "what were you just doing," the best answer isn't "I was running a build," but:
 
-> 我在跑构建。而且它从 47 秒降到了 4 秒。
-
-## 参考来源
+> I was running a build. And it went from 47 seconds down to 4.
+## References
 
 - [US bank Wells Fargo fires employees for 'simulating' being at their keyboards — The Guardian](https://www.theguardian.com/business/article/2024/jun/14/us-bank-wells-fargo-fires-employees-keyboards)
 - [Wells Fargo fires workers over fake keyboard activity — BBC News](https://www.bbc.com/news/articles/cjll01220yeo)
@@ -197,4 +194,4 @@ Sio 与 Ormerod 2009 年的元分析则把「离开一下」这件事讲得更�
 - [Dependency caching reference — GitHub Docs](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching)
 - [Parkinson's law — Wikipedia](https://en.wikipedia.org/wiki/Parkinson%27s_law)
 
-延伸阅读：本博客里还有几篇讲「时间和流程」的文章——[《命令行技巧：提升终端操作效率的 20 个命令》](/posts/command-line-productivity-tips)、[《程序员估算时间的经典笑话》](/posts/estimating-time-jokes)、以及[《周五上线魔咒：部署日的玄学与事故》](/posts/friday-deploy-curse)。
+Further reading: there are several other posts on this blog about "time and process" — [Command Line Tips: 20 Commands to Boost Terminal Efficiency](/posts/command-line-productivity-tips/), [The Classic Programmer Time Estimation Joke: Always Twice as Slow as Expected](/posts/estimating-time-jokes/), and [The Friday Deploy Curse: Superstition and Incidents on Release Day](/posts/friday-deploy-curse/).

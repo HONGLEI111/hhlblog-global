@@ -1,27 +1,25 @@
 ---
-title: 修复落地页加载白闪屏：CSS transition 引发的性能问题
+title: 'Fixing the White Flash on Landing Page Load: A CSS Transition Performance Issue'
 published: 2026-05-27
-description: '排查并修复博客落地页在暗色模式下的加载白闪屏问题，根因是 html 标签上的 Tailwind transition class 导致首帧背景色动画化'
+description: Diagnosing and fixing a white flash on the blog landing page during load in dark mode, caused by a Tailwind transition class on the html tag that animated the background color on the first frame.
 image: ''
-tags: [CSS, 前端, 性能优化, bug修复, 博客]
-category: '前端'
+tags: [CSS, Frontend, Performance Optimization, Bug Fix, Blog]
+category: Frontend
 draft: false
-lang: ''
 ---
+## Problem Description
 
-## 问题描述
+The blog landing page shows a brief white flash on load, especially noticeable in dark mode. The moment the page opens, it first displays a white background, then transitions to a dark background—this flicker lasts about 150ms and significantly impacts the user experience.
 
-博客落地页在加载时会出现短暂的白闪屏，尤其在暗色模式下非常明显。页面打开瞬间先显示白色背景，然后才过渡为深色背景——这个闪烁持续约 150ms，对用户体验影响很大。
+## Investigation Process
 
-## 排查过程
+### Step 1: Pinpointing when the flash occurs
 
-### 第一步：定位闪屏发生的时机
+Opening the DevTools Performance panel to record the loading process, I found that the flash occurs during the First Paint stage. At this point, the page background color suddenly switches from a light value to a dark value, with a smooth transition animation.
 
-打开 DevTools Performance 面板录制加载过程，发现闪屏发生在首帧绘制（First Paint）阶段。此时页面背景色从亮色值突然切换到暗色值，且带有平滑过渡动画。
+### Step 2: Checking the theme initialization logic
 
-### 第二步：检查主题初始化逻辑
-
-我的博客使用 Astro 构建，暗色模式通过给 `<html>` 添加 `.dark` class 实现。CSS 变量使用 Stylus 的 `define` mixin 分别定义亮色/暗色值：
+My blog is built with Astro, and dark mode is implemented by adding a `.dark` class to `<html>`. CSS variables use Stylus's `define` mixin to define light/dark values separately:
 
 ```stylus
 define({
@@ -31,24 +29,24 @@ define({
 })
 ```
 
-编译后生成：
+After compilation it generates:
 
 ```css
 :root { --page-bg: oklch(0.95 0.01 var(--hue)); }
 :root.dark { --page-bg: oklch(0.16 0.014 var(--hue)); }
 ```
 
-在 `<head>` 中已经有一份内联脚本负责在页面渲染前从 `localStorage` 读取主题偏好并设置 `dark` class。逻辑本身没问题，脚本也确实在 `<body>` 渲染前执行了。
+In `<head>` there is already an inline script responsible for reading the theme preference from `localStorage` and setting the `dark` class before the page renders. The logic itself is fine, and the script does indeed execute before `<body>` renders.
 
-### 第三步：发现真凶
+### Step 3: Finding the real culprit
 
-回头看 `<html>` 标签：
+Looking back at the `<html>` tag:
 
 ```html
 <html class="bg-[var(--page-bg)] transition ...">
 ```
 
-**`transition` 是 Tailwind 的 utility class**，展开后等价于：
+**`transition` is a Tailwind utility class**, which when expanded is equivalent to:
 
 ```css
 transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
@@ -56,17 +54,17 @@ transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 transition-duration: 150ms;
 ```
 
-整个闪烁链路就清楚了：
+The entire flicker chain becomes clear:
 
-1. 浏览器开始解析 HTML，CSS 变量初始为亮色值（`--page-bg: oklch(0.95 ...)`）
-2. 内联脚本执行，添加 `.dark` class
-3. CSS 变量切换为暗色值（`--page-bg: oklch(0.16 ...)`）
-4. **因为 `<html>` 有 `transition`，background-color 的变更被动画化**
-5. 亮色背景 → 暗色背景，150ms 过渡 = 用户看到白闪
+1. The browser starts parsing HTML, CSS variables are initially light values (`--page-bg: oklch(0.95 ...)`)
+2. The inline script executes, adding the `.dark` class
+3. CSS variables switch to dark values (`--page-bg: oklch(0.16 ...)`)
+4. **Because `<html>` has `transition`, the background-color change gets animated**
+5. Light background → dark background, 150ms transition = user sees a white flash
 
-## 修复方案
+## Fix
 
-在 `<head>` 最开头插入一个临时 `<style>` 标签，在首帧渲染前**禁用所有 transition**，首帧绘制完成后移除它，恢复正常的主题切换过渡：
+Insert a temporary `<style>` tag at the very beginning of `<head>` to **disable all transitions** before the first frame is painted, then remove it after the first frame is painted to restore normal theme-switching transitions:
 
 ```html
 <!-- Layout.astro <head> 最开头 -->
@@ -77,7 +75,7 @@ transition-duration: 150ms;
 </style>
 ```
 
-配合 JavaScript 在首帧后清理：
+Combined with JavaScript to clean up after the first frame:
 
 ```javascript
 requestAnimationFrame(() => {
@@ -88,12 +86,12 @@ requestAnimationFrame(() => {
 });
 ```
 
-**双 `requestAnimationFrame` 的作用**：第一个 rAF 在浏览器下一次重绘前执行，第二个 rAF 确保浏览器已经完成了首帧绘制，此时移除防闪屏 style，后续的主题切换依然有平滑过渡。
+**The purpose of the double `requestAnimationFrame`**: the first rAF executes before the browser's next repaint, and the second rAF ensures the browser has completed the first frame paint. At this point, removing the anti-flash style still leaves subsequent theme switches with smooth transitions.
 
-## 总结
+## Summary
 
-这个 bug 的根因很小——就是 `<html>` 上一个看似无害的 `transition` class，但它的影响范围覆盖了整个页面的所有颜色属性。
+The root cause of this bug is tiny—just a seemingly harmless `transition` class on `<html>`, but its impact covers all color properties across the entire page.
 
-查 bug 时容易陷入"逻辑正确就不该有问题"的思维盲区。这个 case 里主题切换的逻辑完全正确，问题出在视觉层面——CSS 过渡与首帧绘制产生了意外的交互。
+When debugging, it's easy to fall into the blind spot of "if the logic is correct, there shouldn't be a problem." In this case, the theme-switching logic was completely correct; the problem was at the visual level—CSS transitions interacted unexpectedly with the first frame paint.
 
-关键心得：**broad-scope CSS transitions（如给 `<html>` 或 `*` 加 transition）在首帧加载时一定会产生视觉副作用**。要么别用，要么用防闪屏模式兜底。
+Key takeaway: **broad-scope CSS transitions (such as adding transition to `<html>` or `*`) will definitely produce visual side effects during first-frame loading**. Either don't use them, or use an anti-flash pattern as a fallback.

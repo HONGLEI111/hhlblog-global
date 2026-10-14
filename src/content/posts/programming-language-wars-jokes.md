@@ -1,25 +1,23 @@
 ---
-title: 编程语言互黑经典笑话集锦
+title: A Collection of Classic Programming Language Roast Jokes
 published: 2026-08-23
-description: '盘点编程圈那些经久不衰的「语言互黑」段子，从 JavaScript 统治宇宙到 Java 的冗长，笑着笑着就理解了每种语言的性格。'
+description: A roundup of enduring 'language wars' jokes from the programming world, from JavaScript ruling the universe to Java's verbosity—laugh along and you'll start to understand the personality of each language.
 image: ''
-tags: [编程语言, 程序员笑话, 编程趣闻]
-category: '其他'
+tags: [Programming Languages, Programmer Jokes, Programming Humor]
+category: Other
 draft: false
-lang: ''
 ---
+No other community loves "mutual roasting" more than programmers. The programming language wars (Language Wars) can be called the longest-running variety show in the tech world: every camp firmly believes that what they use is the truth, and what others use is a disaster. These roast jokes have circulated for decades, and as you laugh, you also come to understand the "personality" of each language.
 
-没有哪个圈子比程序员更爱「互相伤害」。编程语言之争（Language Wars）堪称技术圈最长寿的综艺：每个阵营都坚信自己用的是真理，别人用的是灾难。这些互黑段子流传了几十年，笑着笑着，你也就理解了每种语言的「性格」。
+## 1. JavaScript: Everything Eventually Converges to JS
 
-## JavaScript：万物终将归于 JS
+Atwood's Law says: "Any application that can be written in JavaScript will eventually be rewritten in JavaScript." This was originally a quip by Jeff Atwood in 2007, but now it has become a prophecy—Electron on desktop, React Native on mobile, Node.js on the backend, and even microcontrollers can run JS.
 
-Atwood 定律说：「任何能用 JavaScript 写的应用，最终都会被 JavaScript 重写。」这句话本是 2007 年 Jeff Atwood 的一句调侃，如今却成了预言——桌面端有 Electron，移动端有 React Native，后端有 Node.js，连单片机都能跑 JS。
+Hence the classic joke: Why are there more and more frontend engineers now? Because backend, client-side, and operations all eventually became frontend.
 
-于是就有了那个经典笑话：为什么现在前端工程师越来越多？因为后端、客户端、运维，最后都变成了前端。
+## 2. Java: Verbosity Is a Corporate Culture
 
-## Java：冗长，是一种企业文化
-
-Java 被黑得最狠的就是啰嗦。一个打印 Hello 的程序，在别人那里一行搞定，在 Java 里要先造一个类：
+The thing Java gets roasted for the hardest is being verbose. A program that prints Hello takes one line elsewhere, but in Java you first have to create a class:
 
 ```java
 public class HelloWorld {
@@ -29,34 +27,34 @@ public class HelloWorld {
 }
 ```
 
-再配上 `AbstractSingletonProxyFactoryBean` 这种「企业级」命名，段子手们总结道：Java 程序员不是在写代码，是在写法律文书。
+Pair that with "enterprise-grade" naming like `AbstractSingletonProxyFactoryBean`, and joke writers conclude: Java programmers are not writing code, they are writing legal documents.
 
-## C++：在狗身上钉腿的章鱼
+## 3. C++: An Octopus with Legs Nailed onto a Dog
 
-C++ 有个著名的自嘲：它是「一条在狗身上钉了太多腿的章鱼」——兼容 C、面向对象、模板、STL、RAII……什么都想要，结果什么都很复杂。开发者们开玩笑说，C++ 的设计目标就是「让所有简单的东西都变难，让所有难的东西都变得可能」。
+C++ has a famous self-deprecating description: it is "an octopus with too many legs nailed onto a dog"—C compatibility, object orientation, templates, STL, RAII... it wants everything, and as a result everything is complex. Developers joke that C++'s design goal is "to make everything simple difficult, and to make everything difficult possible."
 
-## Python：缩进即正义
+## 4. Python: Indentation Is Justice
 
-Python 党嘲笑别人要写一堆大括号，Python 靠缩进就够了；别人反过来说，Python 是「拿空白当语法」，复制粘贴个代码缩进全乱。两边谁也说服不了谁，只能继续写各自的 `print("hello")`。
+Python fans mock others for having to write a bunch of curly braces, while Python only needs indentation; others retort that Python "uses whitespace as syntax," and if you copy and paste code, the indentation gets completely messed up. Neither side can convince the other, so they can only keep writing their respective `print("hello")`.
 
-## 一个能跑的笑话
+## 5. A Joke That Actually Runs
 
-程序员圈还有个「分不清万圣节和圣诞节」的梗，它妙就妙在真的能跑：
+There is also a meme in programmer circles about "not being able to tell Halloween and Christmas apart," and its brilliance lies in the fact that it actually runs:
 
 ```python
 # 万圣节是 10 月 31 日，圣诞节是 12 月 25 日
 print(0o31 == 25)  # True！八进制的 31 恰好等于十进制的 25
 ```
 
-八进制 `0o31` 就是十进制 25，所以「Oct 31 == Dec 25」——万圣节（October 31）和圣诞节（December 25）在程序员眼里是同一个数。这个梗被做成了各种语言的版本，成了语言互黑史上的常青树。
+Octal `0o31` is decimal 25, so "Oct 31 == Dec 25"—Halloween (October 31) and Christmas (December 25) are the same number in programmers' eyes. This meme has been made into versions in various languages and has become an evergreen in the history of language roasting.
 
-## 笑完以后
+## 6. After the Laughter
 
-这些段子之所以好笑，是因为它们精准踩中了每种语言的真实痛点。但换个角度，每种语言都是为解决特定问题而生的：JS 的灵活让它统治了浏览器，Java 的严谨让它撑起了银行系统，C++ 的性能至今无可替代。
+The reason these jokes are funny is that they precisely hit the real pain points of each language. But from another angle, every language was born to solve a specific problem: JS's flexibility let it dominate browsers, Java's rigor let it support banking systems, and C++'s performance is still irreplaceable today.
 
-语言只是工具，互黑是乐趣，但真正的工程师会按场景选工具——毕竟代码写得烂，锅不在语言。
+Languages are just tools, roasting each other is fun, but real engineers choose tools according to the scenario—after all, if the code is badly written, the language is not to blame.
 
-## 参考来源
+## References
 
-- [The Principle of Least Power（Atwood 定律出处）](https://blog.codinghorror.com/the-principle-of-least-power/)
+- [The Principle of Least Power (source of Atwood's Law)](https://blog.codinghorror.com/the-principle-of-least-power/)
 - [xkcd 297: Real Programmers](https://xkcd.com/297/)

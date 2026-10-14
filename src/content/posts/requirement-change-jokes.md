@@ -1,145 +1,143 @@
 ---
-title: 需求变更的经典笑话：客户说「就改一个小地方」
+title: 'The Classic Joke About Scope Creep: The Client Says "It''s Just a Small Change"'
 published: 2026-09-26
-description: '「就改一个小地方」「你先做，做完我就知道要什么了」——这些名言之所以好笑，是因为它们每次真的只是一个小地方，却每次都能让工期翻倍。把段子拆开，看看一个「小改动」到底动了什么。'
+description: '"It''s just a small change" and "Just start building it, and I''ll know what I want once it''s done" — these famous lines are funny because each time it really is just a small change, yet each time it doubles the timeline. Let''s break down the joke and see what a "small change" actually touches.'
 image: ''
-tags: [程序员笑话, 需求变更, 项目管理, 软件工程]
-category: '其他'
+tags: [programmer humor, scope creep, project management, software engineering]
+category: Other
 draft: false
-lang: ''
 ---
+Here's a conversation almost everyone has lived through:
 
-先放一段几乎人人都经历过的对话：
+> **Client**: This page is pretty good, just one small change—add a column to the user list showing the last login time.
+> **Me**: Sure, about half a day.
+> **Three days later**: Still working on it.
 
-> **客户**：这个页面挺好的，就改一个小地方——用户列表加一列，显示最后登录时间。
-> **我**：行，大概半天。
-> **三天后**：还在改。
+This conversation is funny because everyone listening knows how it ends, and the person who said "sure" genuinely believed the half-day estimate the first time too.
 
-这段对话好笑，是因为听的人都知道结局，而说「行」的那个人第一次也真的相信了半天。
+The phrase "small change" has a kind of magic to it: it describes **the word count of the requirement description**, not **the amount of work involved**. In software, the correlation between these two things is low enough to be ignored.
 
-「小地方」这个词有一种魔法：它描述的是**需求描述的字数**，不是**改动的工作量**。在软件里，这两件事的相关性低到可以忽略。
+## 1. The Museum of Requirement Change Jokes
 
-## 1. 需求变更笑话博物馆
+### "Just one small change"
 
-### 「就改一个小地方」
+The mother of all requirement jokes; every other bit is a variation on it.
 
-所有需求笑话的母题，其他段子都是它的变体。
+Its lethality comes from an asymmetry: **the person making the request can only see the interface, not what's behind it**. What they see is a table gaining a column; what they don't see is how many APIs read that table, how many jobs join it, whether there's caching, whether there's an export, whether someone is building reports on it.
 
-它的杀伤力来自一个不对称：**提需求的人只能看到界面，看不到界面后面**。他看到的是一张表格多了一列；他没看到的是这张表被几个接口读、被几个任务 join、有没有缓存、有没有导出、有没有人在做报表。
+So the judgment "small change" is **completely correct** within the information they have. What's wrong isn't their judgment—it's their visibility.
 
-所以「小地方」这个判断，在他掌握的信息范围内是**完全正确**的。错的不是判断力，是可见性。
+### "Just build one like Taobao"
 
-### 「你照着淘宝做一个就行」
+The full version of this sentence is usually: "It doesn't need that many features, just build one like Taobao, start with something simple."
 
-这句话的完整版通常是：「功能不用那么多，照着淘宝做一个就行，先做个简单的。」
+The problem isn't how much work "build one like Taobao" is—it's that "doesn't need that many features" is a statement that **cannot be used for acceptance**. The acceptance criteria live in the requester's head and only materialize when they're standing in front of the finished product. So the project marches precisely to that classic moment: the thing is done, and the requester says "this isn't what I wanted."
 
-它的问题不在于「照着淘宝做」工作量有多大——而在于「不用那么多」是一句**无法验收**的话。验收标准在需求方脑子里，只有在成品面前才会显形。于是项目会精确地走到那个经典时刻：东西做完了，需求方说「我要的不是这个」。
+Translated into engineering language, this sentence actually means: "I don't have a requirements document, but I know you did it wrong."
 
-把这句话翻译成工程语言，它其实是：「我没有需求文档，但我知道你做错了。」
+### "You start building, and once it's done I'll know what I want"
 
-### 「你先做，做完我就知道要什么了」
+This sounds like a cop-out, but it **describes the true shape of requirements**.
 
-这句话听起来像耍赖，但它**描述了需求的真实形态**。
+Requirements aren't a list sitting somewhere waiting to be collected; they're more like a physical quantity that can only be measured by observation—users don't know what they don't want until they see something. The entire theoretical basis of prototyping is this one sentence.
 
-需求不是一份躺在某处等着被收集的清单，它更像一个只能通过观察来测量的物理量——用户看到东西之后，才知道自己不要什么。原型法的整个理论基础就这一句。
+The real problem isn't this sentence—it's that after saying it, **there's no next step**: no walkthrough, no feedback checkpoint, no written agreement that "this version is not the final acceptance." That turns it into a gamble with no guardrails.
 
-真正的问题不是这句话，而是说完之后**没有下一步**：没有走查、没有反馈节点、没有「这一版不作为最终验收」的书面约定。那就变成了一次没有护栏的赌博。
+### "A rainbow of black"
 
-### 「五彩斑斓的黑」
+A legendary moment in the design world, usually accompanied by "make the logo bigger and smaller at the same time" or "make this font look more premium."
 
-设计圈的名场面，通常还会配上「logo 放大的同时缩小一点」「这个字要显得高端一点」。
+Its relationship to programmers is this: **it's just another form of "add a field."** The requester is describing a feeling, while the implementer needs a set of parameters. Feelings can't be compiled directly, and when nobody claims the translation work in between, it becomes a back-and-forth tug of war.
 
-它跟程序员的关系是：**这就是另一种形态的「加个字段」**。需求方描述的是一种感受，而实现方需要的是一组参数。感受无法直接编译，中间的翻译工作没人认领，就变成了来回拉锯。
+### "This is simple, right? Just add a button"
 
-### 「这个很简单吧，不就加个按钮」
+Adding the button itself is indeed simple. What's not simple is everything that happens after the button is pressed—especially when **nothing should happen** after it's pressed (insufficient permissions, conditions not met). That part usually isn't written into the requirements, but someone has to write it.
 
-加按钮本身确实简单。不简单的是这个按钮按下去之后要发生的一切——尤其是当它按下去之后**什么都不该发生**的时候（权限不足、条件不满足），这部分通常没写进需求，但必须有人写出来。
+### "The requirements haven't changed, I just added a clarification"
 
-### 「需求没变，只是补充说明了一下」
+This is the most dangerous line in the entire collection.
 
-这句是所有段子里最危险的一句。
+The previous five just make the timeline longer; this one makes **the timeline impossible to commit to**. Because "clarification" means the boundary of the requirement is open: any verbal addition can be retroactively claimed as "that's what I meant all along."
 
-前五句只是让工期变长，这一句让**工期无法承诺**。因为「补充说明」意味着需求的边界是开放的：任何一次口头补充都可以事后追认为「本来就是这个意思」。
+It has an even more insidious form: the change doesn't disappear, it just moves from the meeting to a private chat. Three months later, looking back at `git log`, there's no record explaining why this feature ended up the way it did.
 
-它还有一种更隐蔽的形态：变更没有消失，只是从会上转移到了私聊里。三个月后回头看 `git log`，没有任何一条记录说这个功能为什么要长成现在这样。
+## 2. Taking "Small Change" Apart
 
-## 2. 把「小地方」拆开看
+Back to the opening example of "add a column for last login time." How many things does this column actually touch:
 
-回到开头那个「加一列最后登录时间」。这一列到底要动多少东西：
+1. **Where does the data come from**—this field doesn't exist yet, the `users` table needs a new column.
+2. **Who writes it**—updated on successful login. Looks harmless, but login is a **high-frequency write path**.
+3. **Where to write it**—if every login does a `UPDATE users`, the primary database gains write traffic equal to the login QPS. To avoid that, you'd need async writes or a separate table.
+4. **Null semantics**—historically imported users have never logged in. Show "never logged in" or leave it blank? These are **different business meanings** and can't be papered over with a single `NULL`.
+5. **Time zones**—the database stores UTC, the UI shows local time. So which time zone defines the boundary for "logged in within the last 7 days"? The user is in Japan, the server is on the US East Coast, the database is in UTC—all three answers are correct, you can only pick one.
+6. **Sorting**—"while you're at it, put the most recently logged-in users first" is the inevitable sequel to this sentence. So you need an index.
+7. **Permissions**—login behavior is sensitive data. Can operations see it? Can users see their colleagues'? Should the external API return this field?
+8. **Caching**—the user list API almost certainly has a cache. Is the cache key dimension sufficient? How stale is this data allowed to be?
+9. **Export**—should the CSV export in the admin panel include it? If so, does that mean modifying the export job that runs at dawn?
+10. **Downstream**—the BI team is syncing the `users` table. Will adding a column skew their wide table, will it cause some `SELECT *` to gain unexpected fields?
+11. **Regression surface**—`users` is the most-joined table in the entire database.
 
-1. **数据从哪来**——现在没有这个字段，`users` 表要加列。
-2. **谁写它**——登录成功时更新。看着无害，但登录是**高频写路径**。
-3. **写在哪**——每次登录都 `UPDATE users`，主库上就多了一份和登录 QPS 等量的写流量。想避免，就得改成异步写或者另开一张表。
-4. **空值语义**——历史导入的用户从没登录过。显示「从未登录」还是空白？这两种是**不同的业务含义**，不能用一个 `NULL` 糊过去。
-5. **时区**——库里存 UTC，界面上显示本地时间。那么「最近 7 天登录」的边界按哪个时区切？用户在日本、服务器在美东、数据库在 UTC，三个答案都对，只能选一个。
-6. **排序**——「顺便把最近登录的排前面」是这句话的必然续集。于是要索引。
-7. **权限**——登录行为是敏感数据。运营能看，用户能看到同事的吗？对外的 API 要不要返回这个字段？
-8. **缓存**——用户列表接口大概率有缓存。缓存 key 的维度够不够？这份数据允许多旧？
-9. **导出**——后台那个 CSV 导出要不要带上？带了，是不是要一起改那个跑在凌晨的导出任务？
-10. **下游**——BI 团队正在同步 `users` 表。加列会不会把他们的宽表打歪，会不会让某个 `SELECT *` 多出意外的字段？
-11. **回归面**——`users` 是全库被 join 最多的表。
+Writing the code is maybe 10% of this. The other 90% is **confirming the ten points above**.
 
-写代码大概占这里面的 10%。剩下 90% 是**确认前面十条**。
+So the true cost of a change is never equal to the number of lines of code—it's roughly equal to its **blast radius**. The same "add a column":
 
-所以变更的真实成本，从来不等于代码的行数，而约等于**它的影响半径**（blast radius）。同一个「加一列」：
-
-| 场景 | 影响半径 | 真实成本 |
+| Scenario | Blast radius | True cost |
 |---|---|---|
-| 一张只被一个接口读的从表 | 1 个调用点 | 半小时 |
-| 核心业务表，有缓存、有导出、有下游宽表 | 十几个消费方 | 数天 |
-| 已经对外发布的 API 契约 | 未知数量的外部调用方 | 需要版本化 + 迁移期，以季度计 |
+| A secondary table read by only one API | 1 call site | Half an hour |
+| A core business table with caching, exports, and downstream wide tables | A dozen consumers | Several days |
+| An already-published API contract | An unknown number of external callers | Requires versioning + migration period, measured in quarters |
 
-这也解释了那个反复出现的困惑：**为什么同一个需求，在这个项目里要一天，在上个项目里要两周**。不是有人偷懒，是两张表的影响半径差了一个数量级。
+This also explains that recurring confusion: **why the same requirement takes one day in this project and two weeks in the last one**. It's not that someone is slacking—it's that the blast radii of the two tables differ by an order of magnitude.
 
-## 3. 变更成本曲线，和它的反例
+## 3. The Change Cost Curve, and Its Counterexample
 
-教科书上那张著名的图叫「变更成本曲线」：越晚发现要改，代价越高。
+The famous diagram from textbooks is called the "change cost curve": the later a change is discovered, the higher the cost.
 
-Barry Boehm 在《Software Engineering Economics》里给出的经验数字，经常被复述为「需求阶段 1、设计阶段 3~6、编码阶段 10、上线后 100」这样的量级。具体倍数在不同研究里出入很大，但**方向是一致的：修正成本随阶段呈量级增长**，原因也很朴素——越往后，越多东西建立在那个错误的假设之上。
+The empirical numbers Barry Boehm gave in *Software Engineering Economics* are often paraphrased as magnitudes like "requirements phase 1, design phase 3–6, coding phase 10, post-launch 100." The exact multipliers vary widely across studies, but **the direction is consistent: correction cost grows by orders of magnitude across phases**, and the reason is plain—the further along you are, the more things are built on that wrong assumption.
 
-不过这个故事有个重要的反例，值得一起放进来。
+But this story has an important counterexample worth including.
 
-极限编程（XP）的实践者提出过一个相反的假设：**变更成本曲线可以被压平**。他们的论据不是「变更不重要」，而是如果测试、重构、持续集成做得好，代码就不会随着时间变成一团不敢碰的泥。泥是曲线陡峭的原因，不是时间本身。
+Practitioners of Extreme Programming (XP) proposed an opposing hypothesis: **the change cost curve can be flattened**. Their argument isn't that "changes don't matter"—it's that if testing, refactoring, and continuous integration are done well, code won't turn into a pile of mud nobody dares touch over time. The mud is what makes the curve steep, not time itself.
 
-两边其实不矛盾，合起来的结论更有用：
+The two sides aren't actually contradictory, and the combined conclusion is more useful:
 
-> **变更成本 = 修改本身的成本 × 影响半径。**
-> 好的工程实践压的是后半部分，压不动前半部分。
+> **Change cost = cost of the modification itself × blast radius.**
+> Good engineering practices compress the second part, not the first.
 
-一个字段改了要重新过一遍十几个消费方，这件事和你代码写得多漂亮无关。所以「让变更变便宜」和「让变更变少」是两件必须同时做的事。
+A field change that requires re-checking a dozen consumers has nothing to do with how beautifully you wrote your code. So "making changes cheaper" and "making fewer changes" are two things that must be done simultaneously.
 
-## 4. 需求为什么会变
+## 4. Why Requirements Change
 
-先说一句被引用了无数次的福特名言：「如果我问人们想要什么，他们会说想要更快的马。」
+First, a Ford quote that's been cited countless times: "If I had asked people what they wanted, they would have said faster horses."
 
-这句话在沟通学教材里出场率极高，但**没有任何证据表明福特真的说过它**——福特的著作和访谈里都找不到出处，它更像一句事后附会的鸡汤。有意思的是，它恰好和本文主题呼应：一个关于「需求表达不可靠」的段子，本身也是一次不可靠的转述。
+This line appears at an extremely high rate in communication textbooks, but **there's no evidence Ford ever actually said it**—it can't be found in his writings or interviews, and it reads more like a retroactively attached piece of chicken soup. Interestingly, it happens to echo this article's theme: a joke about "unreliable requirement expression" is itself an unreliable retelling.
 
-把这句话剥掉修辞，剩下的是一个真问题：**用户描述的是方案，不是问题。** 他要的是更快的马，真实需求是更快的位移。照做，你就去优化马蹄铁；追问，你才有可能去造车。
+Strip away the rhetoric and what remains is a real problem: **users describe solutions, not problems.** They want a faster horse; the real need is faster displacement. Follow their words literally, and you'll go optimize horseshoes; ask questions, and you might build a car.
 
-所以需求变更不是意外，它是常态。真正要分清的只有两类：
+So requirement changes aren't an accident—they're the norm. What really needs distinguishing is just two categories:
 
-- **有价值的变更**——它来自对真实问题的更深理解，越早发生越省钱；
-- **无记录的变更**——它来自口头、来自私聊、来自「我以为你懂」，它唯一的产物是三个月后没人记得为什么。
+- **Valuable changes**—they come from a deeper understanding of the real problem, and the earlier they happen, the more money they save;
+- **Unrecorded changes**—they come from verbal conversations, private chats, "I thought you understood"—their only product is that three months later nobody remembers why.
 
-后者才是所有笑话的主角。
+The latter is the protagonist of all the jokes.
 
-## 5. 把段子变成流程
+## 5. Turning Jokes into Process
 
-段子不会消失，但可以让它不致命。下面这几条都是能落地的。
+The jokes won't disappear, but you can make them non-fatal. Here are some practical measures.
 
-### 1. 影响面三问
+### 1. The three blast-radius questions
 
-不要直接回答「要多久」。先问三个问题，这时候的「不知道」是专业的：
+Don't answer "how long" directly. Ask three questions first—at this point, "I don't know" is the professional answer:
 
-- **改哪一个数据？** 找到那张表、那个字段，然后看它被谁读。
-- **谁的行为会变？** 只有内部后台，还是外部用户能看到？
-- **怎么验证它生效了？** 没有验收方式的变更，等于没有终点。
+- **Which piece of data is changing?** Find that table, that field, then see who reads it.
+- **Whose behavior changes?** Just the internal admin panel, or can external users see it?
+- **How do we verify it works?** A change with no acceptance method is a change with no finish line.
 
-顺手做个习惯：**每次口头变更之后，回到工单里补一行**。一句话就够，比如「2026-09-26 追加：列表需按最后登录时间倒序」。这不是流程仪式，这是三个月后唯一的考古证据。
+Make it a habit: **after every verbal change, go back and add a line to the ticket**. One sentence is enough, like "2026-09-26 addendum: list must be sorted by last login time descending." This isn't process ritual—it's the only archaeological evidence three months from now.
 
-### 2. 让变更变便宜：expand-contract
+### 2. Making changes cheaper: expand-contract
 
-「重命名一个字段」在传统做法里是道送命题，因为它必须一次性完成——改代码、改数据库、同时上线。而 expand-contract（也叫 parallel change）把它拆成三步，每一步都可以单独上线、单独回滚：
+"Renaming a field" is a death sentence in the traditional approach because it must be done all at once—change the code, change the database, deploy simultaneously. Expand-contract (also called parallel change) breaks it into three steps, each of which can be deployed and rolled back independently:
 
 ```sql
 -- 第 1 步 expand：只加，不改，不删。旧代码依然能跑
@@ -163,15 +161,15 @@ LIMIT 1000;
 ALTER TABLE users DROP COLUMN name;
 ```
 
-三步的价值不在于技术含量，而在于**它把一次「大爆炸」变成三次可回滚的小操作**。任何一步出事，退回去就好，不需要「全组通宵 + 祈祷」。
+The value of the three steps isn't technical sophistication—it's that **it turns one "big bang" into three rollback-able small operations**. If anything goes wrong at any step, just revert; no need for "the whole team pulls an all-nighter + prays."
 
-同样的思路适用于 API：先加新字段（expand），让所有调用方迁移（migrate），确认旧字段无人使用后再移除（contract）。这也是为什么「加字段容易、删字段难」——**加字段在 expand 阶段，删字段在 contract 阶段，中间隔着一整个迁移期。**
+The same approach applies to APIs: add the new field first (expand), let all callers migrate (migrate), confirm the old field has no users, then remove it (contract). This is also why "adding fields is easy, removing fields is hard"—**adding happens in the expand phase, removing happens in the contract phase, with an entire migration period in between.**
 
-### 3. 用开关解耦「上线」和「发布」
+### 3. Using flags to decouple "deploy" and "release"
 
-一个功能写到一半，需求方说「先上一半看看」。用分支硬扛，最后会得到一个活了三个月的 `feature/new-list-v2` 分支，和一个每次合并都像拆弹的下午。
+A feature is half-written, and the requester says "let's ship half and see." Fight it with branches, and you'll end up with a `feature/new-list-v2` branch that's been alive for three months and an afternoon where every merge feels like defusing a bomb.
 
-用开关就简单得多：
+With a flag it's much simpler:
 
 ```js
 if (flags.enabled('show-last-login', { userId })) {
@@ -179,39 +177,38 @@ if (flags.enabled('show-last-login', { userId })) {
 }
 ```
 
-代码可以先合进主干（部署了但不生效），再按白名单放量（灰度），最后全量——或者随时关掉。**「上线」和「发布」变成两个独立动作**，这是让变更便宜的最廉价手段之一。
+The code can be merged into main first (deployed but not active), then rolled out by whitelist (canary), then fully—or turned off at any time. **"Deploy" and "release" become two independent actions**, which is one of the cheapest ways to make changes cheaper.
 
-代价是开关本身会积累。所以每条开关都该有一个删除日期，否则三年后你会拥有一套没人敢动的、由两百个 `if` 组成的考古现场。
+The cost is that flags accumulate. So every flag should have a deletion date, otherwise three years later you'll have an archaeological site of two hundred `if` that nobody dares touch.
 
-### 4. 冻结窗口，和「大改小」
+### 4. Freeze windows, and "break big changes into small ones"
 
-发布前一天不接受新需求，这不是官僚主义，是风险管理——大改动的代价不是平均值，是尾部。一个改动如果非要赶在发布前上，那就把它拆成几次小改动，分开发布。
+Not accepting new requirements the day before a release isn't bureaucracy—it's risk management. The cost of big changes isn't the average, it's the tail. If a change absolutely must go in before release, break it into several small changes and ship them separately.
 
-反过来说也成立：**如果一个变更没法拆分，那它多半不是一个「小地方」。** 这句话本身就是一句很好的需求评审用语。
+The reverse also holds: **if a change can't be broken down, it's probably not a "small change."** That sentence itself is a great phrase for requirement reviews.
 
-### 5. 用能跑的东西代替文档
+### 5. Replace documents with something that runs
 
-需求歧义的解法不是写更长的文档（没人读），而是尽早给一个能点的东西。一个跑起来的丑原型，能在十分钟里暴露文档里三个月的歧义。
+The solution to requirement ambiguity isn't writing longer documents (nobody reads them)—it's giving something clickable as early as possible. An ugly prototype that runs can expose in ten minutes ambiguities that would take three months to surface in a document.
 
-这其实也是在压那条变更成本曲线：**把「发现要改」的时刻，从编码阶段提前到原型阶段。**
+This is also compressing that change cost curve: **moving the moment of "discovering something needs to change" from the coding phase to the prototyping phase.**
+## Final Thoughts
 
-## 写在最后
+The reason change-request jokes circulate so widely is that they all point to the same thing:
 
-需求变更的笑话之所以流传得这么广，是因为它们全都指向同一件事：
+> **The cost of software was never in "writing it" — it's in "changing it correctly."**
 
-> **软件的成本从来不在「写出来」，而在「改对」。**
+So the next time you hear "it's just a small change," don't rush to give a quote. Ask one question first: "Who else is reading this field?"
 
-所以下次再听到「就改一个小地方」，别急着报价。先问一句：「这个字段，还有谁在读它？」
+The other person will probably pause for a moment — and then you'll start talking about the real issue. That pause is the only genuinely useful thing this joke collection has to offer.
 
-对方大概率会愣一下——然后你们就开始聊正事了。那一愣，就是这篇笑话集锦唯一真正的用处。
-
-## 参考来源
+## References
 
 - [Software Engineering Economics — Barry Boehm](https://en.wikipedia.org/wiki/Software_Engineering_Economics)
-- [Extreme Programming：关于变更成本曲线的争论](https://en.wikipedia.org/wiki/Extreme_programming)
-- [ParallelChange（expand-contract 模式）— Martin Fowler](https://martinfowler.com/bliki/ParallelChange.html)
+- [Extreme Programming: The debate over the cost-of-change curve](https://en.wikipedia.org/wiki/Extreme_programming)
+- [ParallelChange (expand-contract pattern) — Martin Fowler](https://martinfowler.com/bliki/ParallelChange.html)
 - [Feature Toggles (aka Feature Flags) — Pete Hodgson](https://martinfowler.com/articles/feature-toggles.html)
 - [Online DDL Operations — MySQL 8.0 Reference Manual](https://dev.mysql.com/doc/refman/8.0/en/innodb-online-ddl-operations.html)
 - [Scope creep — Wikipedia](https://en.wikipedia.org/wiki/Scope_creep)
 
-延伸阅读：本博客里也有两篇讲「说不清楚的话如何变成技术问题」的文章——[《技术黑话词典》](/posts/tech-jargon-dictionary)和[《程序员估算时间的经典笑话》](/posts/estimating-time-jokes)。
+Further reading: this blog also has two articles about "how vague talk turns into technical problems" — [The Tech Jargon Dictionary](/posts/tech-jargon-dictionary) and [Classic Jokes About Programmers Estimating Time](/posts/estimating-time-jokes).

@@ -48,33 +48,53 @@ function proseCjk(body) {
 
 const quiet = process.argv.includes("--quiet");
 
+/**
+ * Files whose subject matter IS CJK locale data. Their Chinese characters are
+ * the example material the article is about, not untranslated prose, so they are
+ * reported as warnings instead of failing the check. Keep this list tiny, and
+ * keep the justification with the entry.
+ */
+const CJK_IS_CONTENT = new Map([
+	[
+		"posts/frontend-i18n-practical-guide.md",
+		"an article about i18n: its examples are the Chinese/Japanese locale data it discusses (¥ vs ￥, 万, 和, 昨天)",
+	],
+]);
+
 const files = await collectMarkdownFiles(CONTENT_ROOT);
 const errors = [];
 const warnings = [];
 
 for (const full of files) {
 	const rel = relative(process.cwd(), full);
+	const key = rel.replace(/\\/g, "/").replace(/^src\/content\//, "");
+	const allowlisted = CJK_IS_CONTENT.get(key);
 	const raw = await readFile(full, "utf8");
 	const { frontmatter, body } = splitFrontmatter(raw);
 
+	const fileErrors = [];
 	const meta = readMetadata(frontmatter);
 	if (meta) {
-		for (const [key, value] of Object.entries(meta)) {
+		for (const [k, value] of Object.entries(meta)) {
 			const values = Array.isArray(value) ? value : value ? [value] : [];
 			const bad = values.filter((v) => CJK.test(v));
-			if (bad.length > 0) {
-				errors.push({ rel, detail: `frontmatter "${key}": ${bad.join(" / ")}` });
-			}
+			if (bad.length > 0) fileErrors.push(`frontmatter "${k}": ${bad.join(" / ")}`);
 		}
 	}
 
 	const prose = proseCjk(body);
 	if (prose.length > 0) {
-		errors.push({ rel, detail: `body prose: ${prose.slice(0, 3).join(" | ")}` });
+		fileErrors.push(`body prose: ${prose.slice(0, 3).join(" | ")}`);
+	}
+
+	if (allowlisted && fileErrors.length > 0) {
+		warnings.push({ rel, blocks: 0, note: allowlisted });
+	} else {
+		for (const detail of fileErrors) errors.push({ rel, detail });
 	}
 
 	const inCode = codeBlockCjk(body);
-	if (inCode.length > 0) {
+	if (inCode.length > 0 && !allowlisted) {
 		warnings.push({ rel, blocks: inCode.length });
 	}
 }

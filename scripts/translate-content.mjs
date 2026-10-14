@@ -544,15 +544,26 @@ async function processFile(full, cache, opts) {
 	}
 	englishBody = normalizeHeadingNumerals(englishBody);
 
-	// Guard: every HARD protected block (code, math, HTML, URL) must survive.
-	const hardOnly = (text) => {
+	// Every HARD protected block from the source must survive into the output.
+	// This is a presence check rather than an equality check: a model that wraps
+	// an extra path in backticks has not lost anything, but a dropped code fence
+	// or URL has. Extras are therefore tolerated, omissions are not.
+	const hardCounts = (text) => {
 		const { blocks, soft } = maskProtected(text);
-		return blocks.filter((_, i) => !soft.has(i)).sort();
+		const counts = new Map();
+		for (const [i, block] of blocks.entries()) {
+			if (soft.has(i)) continue;
+			counts.set(block, (counts.get(block) ?? 0) + 1);
+		}
+		return counts;
 	};
-	const before = hardOnly(body);
-	const after = hardOnly(englishBody);
-	if (before.length !== after.length || before.some((b, i) => b !== after[i])) {
-		throw new Error(`protected blocks changed (${before.length} -> ${after.length})`);
+	const before = hardCounts(body);
+	const after = hardCounts(englishBody);
+	const missing = [...before].filter(([block, n]) => (after.get(block) ?? 0) < n);
+	if (missing.length > 0) {
+		throw new Error(
+			`${missing.length} protected block(s) missing from output, e.g. ${JSON.stringify(missing[0][0].slice(0, 60))}`,
+		);
 	}
 
 	let result;

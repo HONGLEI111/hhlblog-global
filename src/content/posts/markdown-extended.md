@@ -5,7 +5,7 @@ updated: 2024-11-29
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [Demo]
-category: '示例'
+category: Examples
 draft: false 
 ---
 

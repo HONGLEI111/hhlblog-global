@@ -1,56 +1,54 @@
 ---
-title: '苦难中的温情——读余华《许三观卖血记》'
+title: 'Tenderness Amid Suffering: Reading Yu Hua''s Chronicle of a Blood Merchant'
 published: 2026-06-05
-description: '事情都是被逼出来的，人只有被逼上绝路了，才会有办法。没上绝路之前，不是没想到办法，就是想到了也不知道该不该去做。'
+description: People are forced into things; only when pushed to a dead end do they find a way. Before reaching that point, they either never think of a solution or, having thought of one, cannot decide whether to act.
 image: ''
-tags: ['中国文学', '余华', '苦难叙事', '小人物']
-category: '中国文学'
-author: '余华'
-bookTitle: '许三观卖血记'
+tags: [Chinese literature, Yu Hua, narrative of suffering, ordinary people]
+category: Chinese Literature
+author: Yu Hua
+bookTitle: Chronicle of a Blood Merchant
 rating: 5
 cover: ''
 draft: false
-lang: 'zh_CN'
 ---
+> Things are forced out of people; only when a person is pushed to a dead end will solutions emerge. Before reaching the dead end, either they hadn't thought of a solution, or they had thought of one but didn't know whether they should act on it.
 
-> 事情都是被逼出来的，人只有被逼上绝路了，才会有办法。没上绝路之前，不是没想到办法，就是想到了也不知道该不该去做。
+If *To Live* is Yu Hua's elegy to suffering, then *Chronicle of a Blood Merchant* is the same theme retold with humor and warmth. It is likewise the life of a small figure at the bottom of society, likewise a fate crushed by the times, but Xu Sanguan has one thing more than Fugui—he has a mouth, he can talk, and he dissolves the weight of suffering in his own way.
 
-如果说《活着》是余华写给苦难的一首挽歌，那么《许三观卖血记》就是他用幽默和温情重新讲述的同一个主题。同样是底层小人物的一生，同样是被时代碾压的命运，但许三观比福贵多了一样东西——他有一张嘴，他会说话，他用自己的方式消解了苦难的沉重。
+## 1. Selling Blood: A Metaphor for Survival at the Bottom
 
-## 卖血：底层生存的隐喻
+Xu Sanguan sold blood eleven times in his life. Each time he sold blood marked a turning point in his fate—
 
-许三观一生卖了十一次血。每一次卖血都是一个命运的节点——
+The first time he sold blood was the beginning of his "keeping up with the times"; he used the money from selling blood to marry Xu Yulan. Later, to compensate for the trouble Yile caused, he sold blood. During the great famine, he used the money from selling blood to take the whole family to Victory Restaurant for a bowl of noodles. To help Erle get transferred back to the city, he sold blood to give gifts and entertain. Finally, to get Yile's hepatitis treated, he sold blood all along the way to Shanghai and nearly died on the road.
 
-第一次卖血是他"跟上时代"的开始，他用卖血的钱娶了许玉兰；后来为了赔偿一乐闯的祸，他卖了血；大饥荒时期，他用卖血的钱带全家去胜利饭店吃一碗面条；为了让二乐能调回城里，他卖了血去请客送礼；最后，为了让一乐的肝炎得到治疗，他沿路卖血去上海，差点死在路上。
+In Xu Sanguan's world, selling blood is not a metaphor but a tangible means of survival. Yet Yu Hua's narrative turns it into a metaphor—the only "capital" of the people at the bottom is their own bodies, and when they have nowhere to turn, they can only extract the most precious thing from their bodies in exchange for a chance to survive.
 
-卖血在许三观的世界里不是一个隐喻，而是一种切实的生存手段。但余华的叙事让它成为了一个隐喻——底层人民唯一的"资本"就是自己的身体，当他们走投无路时，只能从自己的身体里抽取出最宝贵的东西来换取生存的可能。
+## 2. Yile: The Trial of Bloodline and Kinship
 
-## 一乐：血缘与亲情的拷问
+Yile is not Xu Sanguan's biological son, and this fact triggers the most intense conflict in the novel. Xu Sanguan's anger and pain upon learning the truth are real—he sends Yile to call back He Xiaoyong's soul, and he refuses to acknowledge Yile as his son. But at the critical moments, when Yile truly needs a father, Xu Sanguan always chooses to be his father.
 
-一乐不是许三观亲生的儿子，这件事在小说中引发了最激烈的冲突。许三观在得知真相后的愤怒和痛苦是真实的——他让一乐去吃何小勇的魂，他拒绝认一乐为儿子。但在关键时刻，当一乐真的需要父亲时，许三观总是选择成为他的父亲。
+The most moving passage occurs when Yile falls ill. Xu Sanguan sells blood all the way to Shanghai; in the cold winter, he sells blood in different towns, and after each sale he buys a bowl of stir-fried pork liver and two liang of yellow wine to "replenish his blood." This man at the bottom uses the most primitive method—drawing out his own blood—to save a child who shares no bloodline with him. This fatherly love beyond blood is the warmest moment in Yu Hua's writing.
 
-最动人的段落发生在一乐患病时。许三观一路卖血去上海，寒冷的冬天，他在不同的城镇卖血，每卖一次就买一碗炒猪肝和二两黄酒来"补血"。这个底层男人用最原始的方式——抽出自己的血——来挽救一个和自己没有血缘关系的孩子。这种超越血缘的父爱，是余华笔下最温暖的时刻。
+## 3. Dialogue: The Art of Dissolving Weight
 
-## 对话：消解重量的艺术
+The most distinctive artistic achievement of *Chronicle of a Blood Merchant* is its dialogue. The novel makes extensive use of concise short sentences and repetitive dialogue structures, creating a rhythm close to folk storytelling and singing. Xu Sanguan's mouth is never idle; he uses chatter, complaints, and bragging to resist the oppression of fate.
 
-《许三观卖血记》最独特的艺术成就是它的对话。小说大量使用简洁的短句和重复的对话结构，创造出一种近乎民间说唱的节奏感。许三观的嘴从不闲着，他用絮叨、抱怨、吹牛来抵御命运的压迫。
+This narrative approach forms a sharp contrast with *To Live*. Fugui in *To Live* is silent; his suffering is a stone pressed against the reader's chest. In *Chronicle of a Blood Merchant*, the same suffering is diluted by dialogue and dissolved by humor. This is not escape, but a kind of survival wisdom unique to Chinese folk life—"When you're living your days, you laugh and chat and it passes."
 
-这种叙事方式与《活着》形成了鲜明对比。《活着》的福贵是沉默的，他的苦难是压在读者胸口的一块石头。《许三观卖血记》中，同样的苦难被对话稀释了，被幽默消解了。这不是逃避，而是一种中国民间特有的生存智慧——"过日子嘛，说说笑笑就过去了"。
+## 4. Small Figures in the Historical Background
 
-## 时代背景中的小人物
+The novel spans several important historical periods from the 1950s to the 1990s: the Great Leap Forward, the People's Commune, the Great Famine, the Cultural Revolution, and the early days of Reform and Opening Up. Yu Hua does not directly depict these grand narratives; instead, through the life of Xu Sanguan's family, he lets us see how the times concretely affect the life of an ordinary person.
 
-小说跨越了上世纪50年代到90年代的几个重要历史时期：大跃进、人民公社、大饥荒、文化大革命、改革开放初期。余华没有正面描写这些宏大叙事，而是通过许三观一家的生活，让我们看到时代如何具体地影响着一个普通人的生活。
+During the famine, Xu Sanguan "cooks for everyone with his mouth" on his birthday—he describes in detail how to make braised pork, making the whole family's mouths water as they listen. This passage is absurd and heartbreaking; it records the hunger of that era more truthfully than any macroscopic historical account.
 
-饥荒时期，许三观在生日那天"用嘴给大家炒菜"——他详细描述红烧肉的做法，让全家人听着流口水。这个段落荒诞而心酸，它比任何宏观的历史叙述都更真实地记录了那个年代的饥饿。
+## 5. The Ending: No One Wants His Blood Anymore
 
-## 结尾：血没人要了
+The ending of the novel has a gentle cruelty. Xu Sanguan has grown old, and the last time he wants to sell blood, he is refused by the blood broker—"Only a paint maker would want your blood." Xu Sanguan wails loudly on the street, not because his body is failing, but because he feels his blood is no longer wanted, and in the future when difficulties arise there will be no way to solve them.
 
-小说的结尾有一种温和的残酷。许三观老了，最后一次想去卖血，却被血头拒绝了——"你的血只有油漆匠才会要"。许三观在大街上嚎啕大哭，不是因为身体不行了，而是因为他觉得自己血没人要了，以后再遇到困难就没法解决了。
+Xu Yulan scolds him, saying life is better now and there's no need to sell blood. But Xu Sanguan's crying contains a deeper sorrow—his whole life, his value of existence, his entire dignity as a man and a father, are bound up with "selling blood." When his blood no longer has value, he doesn't know who he is.
 
-许玉兰骂他，说现在日子好过了，不用卖血了。但许三观的哭声里包含着更深层的悲哀——他的一生、他的存在价值、他作为男人和父亲的全部尊严，都与"卖血"绑定在一起。当他的血不再有价值时，他不知道自己是谁。
+## 6. My Reading Experience
 
-## 我的阅读感受
+*Chronicle of a Blood Merchant* has a kind of "refined lightness." Yu Hua uses the plainest language and the simplest structure to write the heaviest subject with ease. It reminds me of an old Chinese saying—"Playing the pipa under the coptis tree." Xu Sanguan is like that, playing the pipa under the coptis tree his whole life.
 
-《许三观卖血记》有一种"高级的轻"。余华用最朴素的语言、最简单的结构，把最沉重的话题写得举重若轻。它让我想起一句中国老话——"黄连树下弹琵琶"。许三观就是这样，在黄连树下弹了一辈子琵琶。
-
-读完这本书，你会觉得许三观就是你认识的某个人。他可能不太聪明，有点好面子，有时候不讲理，但在最关键的时刻，他体内那些被抽走的血，全都变成了爱，流回到了他爱的人身上。
+After reading this book, you will feel that Xu Sanguan is someone you know. He may not be very clever, is a bit concerned with face, and sometimes unreasonable, but at the most critical moments, all the blood drawn from his body turned into love and flowed back into the people he loved.

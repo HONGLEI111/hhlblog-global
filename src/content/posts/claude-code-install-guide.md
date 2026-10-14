@@ -1,47 +1,45 @@
 ---
-title: Claude Code 安装与使用教程：从零开始的 AI 编程助手
+title: 'Claude Code Installation and Usage Tutorial: An AI Programming Assistant from Scratch'
 published: 2026-05-08
-description: '详细介绍 Claude Code 的安装方法、基础使用技巧与进阶工作流，帮助你快速将 AI 编程助手融入日常开发。'
+description: A detailed guide to installing Claude Code, along with basic usage tips and advanced workflows to help you quickly integrate an AI programming assistant into your daily development.
 image: ''
-tags: [Claude Code, AI 编程, 开发工具]
+tags: [Claude Code, AI programming, developer tools]
 category: 'AI'
 draft: false
-lang: ''
+---
+## 1. What Is Claude Code
+
+Claude Code is a **command-line AI programming assistant** launched by Anthropic. Unlike Copilot (an IDE plugin) or Cursor (an AI IDE), it runs directly in the terminal and can understand the entire project context, perform file operations, run commands, manage Git, and more.
+
+Its core differences are:
+- **Terminal-native**: No need to leave the command line, ideal for developers accustomed to the CLI
+- **Project-level understanding**: Can read the entire project's file structure and code logic
+- **Autonomous action**: Not only answers questions, but can directly edit files, run tests, and commit code
+
 ---
 
-## 1. 什么是 Claude Code
+## 2. Installation
 
-Claude Code 是 Anthropic 推出的**命令行 AI 编程助手**，与 Copilot（IDE 插件）或 Cursor（AI IDE）不同，它直接在终端中运行，能够理解整个项目上下文，执行文件操作、运行命令、管理 Git 等。
+### 2.1 Prerequisites
 
-它的核心差异在于：
-- **终端原生**：不需要离开命令行，适合习惯 CLI 的开发者
-- **项目级理解**：能读取整个项目的文件结构和代码逻辑
-- **自主行动**：不仅能回答问题，还能直接编辑文件、运行测试、提交代码
+- Node.js 18 or higher
+- An Anthropic API Key (obtained at [console.anthropic.com](https://console.anthropic.com))
 
----
-
-## 2. 安装
-
-### 2.1 前置条件
-
-- Node.js 18 或更高版本
-- 一个 Anthropic API Key（在 [console.anthropic.com](https://console.anthropic.com) 获取）
-
-### 2.2 全局安装
+### 2.2 Global Installation
 
 ```bash
 npm install -g @anthropic-ai/claude-code
 ```
 
-安装完成后验证：
+Verify after installation:
 
 ```bash
 claude --version
 ```
 
-### 2.3 配置 API Key
+### 2.3 Configuring the API Key
 
-将 API Key 设置为环境变量：
+Set the API Key as an environment variable:
 
 ```bash
 # macOS / Linux — 添加到 ~/.bashrc 或 ~/.zshrc
@@ -51,15 +49,15 @@ export ANTHROPIC_API_KEY="sk-ant-xxx"
 $env:ANTHROPIC_API_KEY="sk-ant-xxx"
 ```
 
-或者使用 Claude Code 自带的登录方式：
+Or use Claude Code's built-in login method:
 
 ```bash
 claude login
 ```
 
-这会打开浏览器引导你完成 OAuth 认证，无需手动处理 API Key。
+This will open a browser to guide you through OAuth authentication, with no need to manually handle the API Key.
 
-### 2.4 更新
+### 2.4 Updating
 
 ```bash
 npm update -g @anthropic-ai/claude-code
@@ -67,19 +65,19 @@ npm update -g @anthropic-ai/claude-code
 
 ---
 
-## 3. 基础使用
+## 3. Basic Usage
 
-### 3.1 启动
+### 3.1 Starting
 
-在项目目录下运行：
+Run in your project directory:
 
 ```bash
 claude
 ```
 
-你会看到一个交互式终端界面，可以直接用自然语言与 Claude 交流。
+You will see an interactive terminal interface where you can communicate with Claude directly in natural language.
 
-### 3.2 常用指令
+### 3.2 Common Commands
 
 ```bash
 # 初始化项目配置文件（生成 CLAUDE.md）
@@ -92,39 +90,39 @@ claude config
 claude update
 ```
 
-### 3.3 典型工作流
+### 3.3 Typical Workflows
 
-**代码审查**
+**Code Review**
 
 ```
 > 审查当前分支的改动，重点关注安全问题
 ```
 
-Claude 会读取 `git diff`，分析代码变更，指出潜在的安全隐患。
+Claude will read `git diff`, analyze the code changes, and point out potential security risks.
 
-**Bug 修复**
+**Bug Fixing**
 
 ```
 > 用户反馈登录后页面白屏，帮我排查原因
 ```
 
-Claude 会搜索相关文件、检查组件逻辑，定位问题并直接修复。
+Claude will search for relevant files, inspect component logic, locate the problem, and fix it directly.
 
-**功能开发**
+**Feature Development**
 
 ```
 > 在 API 中添加一个获取用户收藏列表的接口，包含分页
 ```
 
-Claude 会分析现有路由结构，生成路由定义、控制器逻辑和数据库查询。
+Claude will analyze the existing route structure and generate route definitions, controller logic, and database queries.
 
 ---
 
-## 4. 进阶技巧
+## 4. Advanced Techniques
 
-### 4.1 CLAUDE.md 文件
+### 4.1 The CLAUDE.md File
 
-在项目根目录创建 `CLAUDE.md`，告诉 Claude 关于项目的关键信息：
+Create `CLAUDE.md` in the project root directory to tell Claude key information about the project:
 
 ```markdown
 # 项目名称
@@ -144,21 +142,21 @@ Claude 会分析现有路由结构，生成路由定义、控制器逻辑和数�
 - 测试使用 Vitest，不要用 Jest
 ```
 
-有了这份文件，Claude 每次启动时都会自动加载，减少反复解释。
+With this file in place, Claude will automatically load it on every startup, reducing repeated explanations.
 
-### 4.2 权限控制
+### 4.2 Permission Control
 
-Claude Code 默认对敏感操作（如网络请求、文件写入）会请求确认。你可以通过 `/permissions` 管理权限级别。
+By default, Claude Code requests confirmation for sensitive operations (such as network requests and file writes). You can manage permission levels through `/permissions`.
 
-### 4.3 管道模式
+### 4.3 Pipe Mode
 
-Claude 也支持管道输入，适合脚本场景：
+Claude also supports piped input, suitable for scripting scenarios:
 
 ```bash
 cat error.log | claude "分析这些日志，找出关键错误"
 ```
 
-### 4.4 会话管理
+### 4.4 Session Management
 
 ```bash
 # 恢复上一次会话
@@ -170,40 +168,40 @@ claude --resume <session-id>
 
 ---
 
-## 5. Claude Code vs 其他 AI 编程工具
+## 5. Claude Code vs Other AI Programming Tools
 
-| 维度 | Claude Code | GitHub Copilot | Cursor |
+| Dimension | Claude Code | GitHub Copilot | Cursor |
 |------|------------|----------------|--------|
-| 运行环境 | 终端 | IDE 插件 | AI IDE |
-| 交互方式 | 对话式 | 代码补全 + 聊天 | 对话式 |
-| 文件操作 | 可写 | 只能写代码 | 可写 |
-| 命令执行 | 支持 | 不支持 | 支持 |
-| 上下文范围 | 全项目 | 当前文件 + 打开文件 | 全项目 |
-| 定价 | API 按量计费 | $10/月起 | $20/月起 |
+| Runtime environment | Terminal | IDE plugin | AI IDE |
+| Interaction mode | Conversational | Code completion + chat | Conversational |
+| File operations | Can write | Can only write code | Can write |
+| Command execution | Supported | Not supported | Supported |
+| Context scope | Entire project | Current file + open files | Entire project |
+| Pricing | API pay-as-you-go | $10/月起 | $20/month and up |
 
-Claude Code 特别适合以下场景：
-- 需要多文件重构的大型任务
-- 日常重度使用终端的开发者
-- 希望 AI 自主处理"跑测试 → 修复 → 再跑"循环
+Claude Code is especially suited for the following scenarios:
+- Large tasks requiring multi-file refactoring
+- Developers who heavily use the terminal daily
+- Those who want AI to autonomously handle the "run tests → fix → run again" loop
 
 ---
 
-## 6. 常见问题
+## 6. FAQ
 
-### 6.1 国内网络问题
+### 6.1 Network Issues in China
 
-如果在国内访问 Anthropic API 遇到网络问题，可以：
-- 使用 API 代理地址，设置环境变量 `ANTHROPIC_BASE_URL`
-- 配置 HTTPS 代理：`export HTTPS_PROXY=http://127.0.0.1:7890`
+If you encounter network issues accessing the Anthropic API from China, you can:
+- Use an API proxy address by setting the environment variable `ANTHROPIC_BASE_URL`
+- Configure an HTTPS proxy: `export HTTPS_PROXY=http://127.0.0.1:7890`
 
-### 6.2 成本控制
+### 6.2 Cost Control
 
-Claude Code 每次对话都会消耗 API token。控制成本的建议：
-- 在 `.claude/settings.json` 中设置最大 token 限制
-- 使用短会话，任务完成后及时 `exit`
-- 对于简单问题，直接在代码中加注释而不是启动完整会话
+Claude Code consumes API tokens with every conversation. Suggestions for controlling costs:
+- Set a maximum token limit in `.claude/settings.json`
+- Use short sessions and promptly `exit` after completing tasks
+- For simple questions, add comments directly in the code instead of starting a full session
 
-### 6.3 国内镜像加速
+### 6.3 Domestic Mirror Acceleration
 
 ```bash
 # npm 安装时使用国内镜像
@@ -212,8 +210,8 @@ npm install -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.c
 
 ---
 
-## 7. 总结
+## 7. Summary
 
-Claude Code 代表了 AI 编程工具从"IDE 内的辅助插件"到"终端中的自主助手"的转变。它更强的项目理解能力和自主行动权限，让开发者能够把更多精力放在架构设计而非重复编码上。
+Claude Code represents the shift of AI programming tools from "auxiliary plugins within an IDE" to "autonomous assistants in the terminal." Its stronger project understanding and autonomous action permissions allow developers to focus more energy on architecture design rather than repetitive coding.
 
-安装只需两条命令，值得每个习惯命令行的开发者尝试。
+Installation takes just two commands, and it's worth trying for every developer who is comfortable with the command line.

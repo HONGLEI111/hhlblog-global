@@ -1,69 +1,67 @@
 ---
-title: 程序员与咖啡因：续命水的一百种喝法
+title: 'Programmers and Caffeine: A Hundred Ways to Drink Your Lifeblood'
 published: 2026-10-03
-description: '「程序员是一台把咖啡转换成代码的机器」——这句玩笑背后有一串可查的数字：400 毫克、半衰期 5 到 6 小时、一茶匙粉末约等于 28 杯。把续命水的剂量和原理一起讲清楚。'
+description: '"A programmer is a machine that turns coffee into code" — behind this joke lies a string of verifiable numbers: 400 milligrams, a half-life of 5 to 6 hours, and a teaspoon of powder roughly equal to 28 cups. Here we explain both the dosage and the science of your lifeblood drink.'
 image: ''
-tags: [程序员笑话, 咖啡因, 职场, 健康]
-category: '其他'
+tags: [programmer humor, caffeine, workplace, health]
+category: Other
 draft: false
-lang: ''
 ---
+The most widely circulated self-deprecating joke in programmer circles is: **a programmer is a machine that converts coffee into code**. This interface description is clearer than any architecture document—one cup down, go to bed a little later, a few dozen more lines committed.
 
-程序员圈子里流传最广的一句自嘲是：**程序员是一台把咖啡转换成代码的机器**。这个接口说明比任何架构文档都清晰——一杯下去，晚一点睡，多几十行提交。
+Jokes aside, this sentence actually mixes together three questions that can all be verified: why coffee of all things, what caffeine actually does in the human body, and how long it can hold you up. And these three questions each happen to be pretty funny.
 
-玩笑归玩笑，这句话里其实混着三个都能查证的问题：为什么偏偏是咖啡、咖啡因到底在人身体里干了什么、以及它能撑多久。而这三个问题，恰好各自都挺好笑。
+## 1. The only language named after a beverage
 
-## 1. 唯一一门用饮料命名的语言
+First, a piece of trivia: Java almost had a different name.
 
-先说个冷知识：Java 差点叫别的。
+Its earliest name was Oak, because there was an oak tree outside James Gosling's office window. The name was very artistic, but legal was very headache-ridden—the Oak trademark was already taken by another company. So Sun locked a dozen or so people in a conference room for a brainstorming session. According to the roundtable interview from back then, the candidate list was long enough to fill a whiteboard: Silk, Lyric, DNA, Pepper, Neon, WebRunner... In the end, Java, DNA, and Silk passed legal review.
 
-它最早的名字是 Oak，因为 James Gosling 办公室窗外有一棵橡树。名字很文艺，法务很头疼——Oak 这个商标已经被别的公司占了。于是 Sun 把十几个人关进会议室搞头脑风暴。据当年的圆桌访谈，候选名单长得能写满一块白板：Silk、Lyric、DNA、Pepper、Neon、WebRunner……最后 Java、DNA、Silk 三个通过了法务审查。
+As for who said "Java" first, even the people involved can't remember. Frank Yellin's exact words were "no one remembers who came up with the name first"; Arthur van Hoff thinks it was Chris Warth who said it offhand while drinking Peet's Java coffee; Chris Warth himself says it might have been him, or might have been someone else; and Kim Polese publicly claimed "I named it."
 
-至于「Java」是谁先说的，当事人自己都记不清。Frank Yellin 的原话是「没人记得是谁第一个想出这个名字」；Arthur van Hoff 觉得是 Chris Warth 喝着 Peet's 的 Java 咖啡时顺口说的；Chris Warth 本人则说可能是他，也可能是别人；而 Kim Polese 公开宣称「是我命名的」。
+The most honest summary of the whole affair comes from Chris Warth: **"We ended up using the name because we ran out of options and we wanted to ship the product as soon as possible."**
 
-整件事里最诚实的一句总结来自 Chris Warth：**「我们最后用这个名字，是因为选项用完了，而我们想赶紧把产品发出去。」**
+So strictly speaking, Java's naming wasn't a flash of inspiration but a deadline-driven random sampling. This also explains why it wasn't called Lyric—that was Gosling's own favorite name, but unfortunately it didn't pass legal. This is probably where programmers first resonated with "the name doesn't matter that much, shipping matters."
 
-所以严格说，Java 的命名不是一次灵光乍现，而是一次 deadline 驱动的随机采样。这也解释了为什么它没叫 Lyric——那是 Gosling 自己最喜欢的名字，可惜没过法务那关。程序员第一次对「名字没那么重要，能发版才重要」产生共鸣，大概就是从这里开始的。
+Incidentally, the coffee cup logo, JavaBeans, NetBeans—a language used coffee elements all the way through, to the point that many people genuinely believe you can't write code without drinking it.
 
-顺带一提，咖啡杯 logo、JavaBeans、NetBeans——一门语言把咖啡元素用了个遍，以至于很多人真的相信不喝就写不出来。
+## 2. Caffeine doesn't produce wakefulness, it just borrows it
 
-## 2. 咖啡因不生产清醒，它只是挪用了清醒
+Coffee keeps you awake not because caffeine gives you energy, but because it occupies adenosine receptors.
 
-咖啡提神，不是因为咖啡因给了你能量，而是因为它占住了腺苷的受体。
+Adenosine is the "sleepiness deposit" that continuously accumulates in your brain during the day—the higher the concentration, the sleepier you feel. Caffeine's molecular shape is similar enough to it that it grabs the receptors first—you can't feel the sleepiness, but the sleepiness itself hasn't decreased at all, it's just queuing up. Once the caffeine is metabolized, the backlogged adenosine rushes in all at once, which is the familiar 3 PM crash.
 
-腺苷是白天在你脑子里持续累积的「困意存款」，浓度越高越困。咖啡因的分子形状和它足够像，于是抢先把受体坐满——你感觉不到困，但困意本身一分没少，只是排队等着。等咖啡因被代谢掉，积压的腺苷一次性涌上来，就是你熟悉的下午三点崩盘。
+In plain human terms: **caffeine doesn't energize you, it borrows energy from your body's future, and the interest is calculated by the hour.**
 
-翻译成人话：**咖啡因不是提神，是向你身体的未来借精力，而且利息按小时算。**
+## 3. Dosage table: how long is 400 milligrams really
 
-## 3. 剂量表：400 毫克到底有多长
+The FDA's reference line is: for most healthy adults, **400 milligrams per day** of caffeine is generally not associated with negative effects, roughly equivalent to 2 to 3 cups of 8-ounce (237 ml) coffee.
 
-FDA 给的参考线是：对大多数健康成年人，**每天 400 毫克**咖啡因通常不伴随负面效应，大约相当于 2 到 3 杯 8 盎司（237 毫升）的咖啡。
+The problem is that this number almost never appears in everyday contexts. What actually gets drunk is these (data from the common beverage table compiled by Mayo Clinic):
 
-问题在于，这个数字在日常语境里几乎不出现。真正被喝掉的是这些（数据来自 Mayo Clinic 整理的常见饮品表）：
-
-| 饮品 | 一份 | 咖啡因 |
+| Beverage | Serving | Caffeine |
 |---|---|---|
-| 滤泡咖啡 | 8 oz (237 ml) | 约 96 mg |
-| 意式浓缩 | 1 oz (30 ml) | 约 64 mg |
-| 红茶 | 8 oz | 约 47 mg |
-| 绿茶 | 8 oz | 约 28 mg |
-| 可乐 | 8 oz | 约 22 mg |
-| 能量饮料 | 8 oz | 约 72 mg |
-| 能量 shot | 2 oz (60 ml) | 约 215 mg |
+| Brewed coffee | 8 oz (237 ml) | about 96 mg |
+| Espresso | 1 oz (30 ml) | about 64 mg |
+| Black tea | 8 oz | about 47 mg |
+| Green tea | 8 oz | about 28 mg |
+| Cola | 8 oz | about 22 mg |
+| Energy drink | 8 oz | about 72 mg |
+| Energy shot | 2 oz (60 ml) | about 215 mg |
 
-于是「一天一杯」和「一天一杯」之间，可以差出一个数量级：有人的一杯是 30 毫升的浓缩，有人的一杯是 700 毫升的冰美式——后者一杯就接近整天的额度。
+So between "one cup a day" and "one cup a day," there can be an order of magnitude of difference: one person's cup is a 30-milliliter espresso, another person's cup is a 700-milliliter iced americano—the latter is close to a full day's quota in a single cup.
 
-最后一行尤其值得单独看：**2 盎司（约 60 毫升）的能量 shot，咖啡因接近两杯咖啡。**它的卖点是「一口见效」，翻译过来就是「一口到位」。
+The last row especially deserves a separate look: **a 2-ounce (about 60 ml) energy shot has nearly two cups of coffee's worth of caffeine.** Its selling point is "takes effect in one sip," which translated means "one sip and you're done."
 
-FDA 还专门警告过粉末与液体咖啡因：一茶匙纯咖啡因粉末约等于 28 杯咖啡，剂量高到可造成严重健康问题甚至死亡。把提神做成粉末，等于把「续命」做成「猝死」。
+The FDA has also specifically warned about powdered and liquid caffeine: one teaspoon of pure caffeine powder is roughly equivalent to 28 cups of coffee, a dose high enough to cause serious health problems or even death. Turning a pick-me-up into a powder is turning "life support" into "sudden death."
 
-## 4. 半衰期：下午三点那杯，午夜还在值班
+## 4. Half-life: that 3 PM cup is still on duty at midnight
 
-CDC/NIOSH 给的数据是：咖啡因约 30 分钟起效，**半衰期 5 到 6 小时**——每过 5 到 6 小时，体内剩下的咖啡因减半。
+The data from CDC/NIOSH is: caffeine takes effect in about 30 minutes, **half-life 5 to 6 hours**—every 5 to 6 hours, the remaining caffeine in your body is halved.
 
-半衰期的残酷之处在于它是指数衰减：你永远不会遇到「刚好喝完就睡」，只会遇到「还剩一点，刚好够你睡不着」。
+The cruel thing about half-life is that it's exponential decay: you'll never encounter "just finished drinking and can sleep," you'll only encounter "a little bit left, just enough to keep you awake."
 
-拿代码算一下：
+Let's calculate with code:
 
 ```js
 // CDC/NIOSH 给的半衰期是 5–6 小时，这里取中值
@@ -78,37 +76,37 @@ console.log(caffeineLeft(96, 8).toFixed(1)); // 35.0
 // 大概还是一罐 12oz 可乐的量（FDA 给的区间是 30–40mg）
 ```
 
-一杯下午三点的咖啡，八小时后身体里还留着接近一罐可乐的咖啡因。你以为你在睡觉，其实你在跑一个带咖啡因的多线程后台任务。
+A cup of coffee at 3 PM still leaves nearly a can of cola's worth of caffeine in your body eight hours later. You think you're sleeping, but you're actually running a multithreaded background task with caffeine.
 
-这也是为什么「睡前八小时不碰咖啡因」听起来像养生号标题，实际上有明确的药代动力学依据。
+This is also why "no caffeine eight hours before bed" sounds like a wellness-account headline but actually has a clear pharmacokinetic basis.
 
-## 5. 续命水的一百种喝法
+## 5. A hundred ways to drink the elixir of life
 
-真实世界的喝法清单比上面那张表精彩得多，基本可以按时间轴排班：
+The real-world drinking list is far more exciting than the table above, and can basically be scheduled along a timeline:
 
-- **早上第一杯**：开机自检。这杯没喝完，不算上班。
-- **午饭后那杯**：热补丁。不是需要提神，是需要一个离开工位的正当理由。
-- **下午三点那杯**：紧急回滚。前一晚熬夜欠下的账，当场到期。
-- **Deadline 前的浓缩**：force push。不解决问题，只是拒绝接收现状。
-- **提测前的能量饮料**：临时扩容。CPU 立刻跑满，风扇也立刻开始响。
-- **晚上那杯「就写一会儿」**：递归调用。它会自己调用下一个自己。
+- **First cup in the morning**: boot self-test. If this cup isn't finished, work hasn't started.
+- **The cup after lunch**: hot patch. Not that you need a pick-me-up, but that you need a legitimate reason to leave your desk.
+- **The 3 PM cup**: emergency rollback. The debt from staying up late the night before comes due on the spot.
+- **Espresso before deadline**: force push. Doesn't solve the problem, just refuses to accept the current state.
+- **Energy drink before QA submission**: temporary scaling. The CPU immediately maxes out, and the fan immediately starts roaring.
+- **The evening cup of "just writing for a bit"**: recursive call. It will call the next version of itself.
 
-喝到后来还会形成流派，争论激烈程度不亚于 tabs 还是 spaces：手冲派、冷萃派、防弹咖啡派，以及宣称「我只喝茶」但一天四杯奶茶的隐形咖啡因派——奶茶的咖啡因往往不比咖啡少，只是它长得不像。
+After drinking for a while, schools of thought form, with debates no less fierce than tabs versus spaces: the pour-over school, the cold brew school, the bulletproof coffee school, and the invisible caffeine school that claims "I only drink tea" but has four milk teas a day—milk tea often has no less caffeine than coffee, it just doesn't look like it.
 
-至于「咖啡因驱动开发」（Caffeine-Driven Development），它的特征是：迭代速度与心率正相关，代码质量与咖啡因余量呈倒 U 形，而技术债刚好在最清醒的那个瞬间被写下来。
+As for "Caffeine-Driven Development," its characteristics are: iteration speed is positively correlated with heart rate, code quality follows an inverted U-shape with remaining caffeine, and technical debt happens to be written down at the very moment you're most alert.
 
-## 结语
+## Conclusion
 
-把段子拆开看，结论其实很朴素：咖啡因调节的是你的感受，不是你的睡眠。它能让你感觉不到困，但不能替你还上睡眠这笔债。
+If you take the joke apart, the conclusion is actually quite plain: caffeine regulates how you feel, not your sleep. It can make you unable to feel sleepy, but it can't pay back the sleep debt for you.
 
-所以「下午三点后不喝咖啡」和「周五不部署」是同一类规矩——**真正危险的不是咖啡因，也不是星期几，而是在状态最好的错觉里，做了不可回滚的操作。**
+So "no coffee after 3 PM" and "no deploys on Friday" are the same kind of rule—**what's truly dangerous isn't caffeine, nor the day of the week, but performing an irreversible operation in the illusion of being at your best.**
 
-400 毫克是上限，不是配额；半衰期是 5 到 6 小时，不是 5 到 6 分钟。至于那一百种喝法，最好的那一种，大概是明天早上再喝。
+400 milligrams is the upper limit, not a quota; the half-life is 5 to 6 hours, not 5 to 6 minutes. As for those hundred ways of drinking it, the best one is probably to drink it tomorrow morning.
 
-## 参考来源
+## References
 
 - [Spilling the Beans: How Much Caffeine is Too Much? — U.S. FDA](https://www.fda.gov/consumers/consumer-updates/spilling-beans-how-much-caffeine-too-much)
 - [Caffeine & Long Work Hours — CDC/NIOSH](https://archive.cdc.gov/www_cdc_gov/niosh/emres/longhourstraining/caffeine.html)
-- [咖啡、茶、碳酸饮料等中的咖啡因含量 — Mayo Clinic](https://www.mayoclinic.org/zh-hans/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/caffeine/art-20049372)
-- [So why did they decide to call it Java? — InfoWorld（原 JavaWorld 1996 年圆桌访谈）](https://www.infoworld.com/article/2170044/so-why-did-they-decide-to-call-it-java-3.html)
+- [Caffeine content in coffee, tea, carbonated drinks, etc. — Mayo Clinic](https://www.mayoclinic.org/zh-hans/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/caffeine/art-20049372)
+- [So why did they decide to call it Java? — InfoWorld (originally the 1996 JavaWorld roundtable interview)](https://www.infoworld.com/article/2170044/so-why-did-they-decide-to-call-it-java-3.html)
 - [The Java Language Specification, Preface to the First Edition — Oracle](https://docs.oracle.com/javase/specs/jls/se7/html/jls-0-preface1.html)

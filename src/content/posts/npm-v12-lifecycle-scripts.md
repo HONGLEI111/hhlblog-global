@@ -1,89 +1,87 @@
 ---
-title: npm v12 默认禁止生命周期脚本执行：一次影响所有开发者的安全变革
+title: 'npm v12 Disables Lifecycle Scripts by Default: A Security Change Affecting All Developers'
 published: 2026-06-15
-description: 'npm v12 将于 2026 年 7 月发布，届时将默认禁止 install 生命周期脚本、Git 依赖和远程 URL 依赖的执行。本文详解三大破坏性变更的背景、影响范围及迁移方案，帮助团队在截止日期前完成适配。'
+description: npm v12, scheduled for release in July 2026, will disable install lifecycle scripts, Git dependencies, and remote URL dependencies by default. This article explains the background, scope, and migration paths for these three breaking changes to help teams adapt before the deadline.
 image: ''
-tags: [npm, Node.js, 安全, 前端]
-category: '前端'
+tags: [npm, Node.js, Security, Frontend]
+category: Frontend
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+In July 2026, npm will release **v12**, bringing the most aggressive security policy change in npm's history—**lifecycle script execution disabled by default**. This means that `preinstall`, `install`, and `postinstall` scripts of any dependency package will no longer run by default, and Git dependencies and remote URL dependencies will also be blocked by default.
+
+This follows pnpm v10 (January 2025), which was the first to introduce a similar mechanism, with npm now being the last mainstream JavaScript package manager to adopt this security practice. GitHub explicitly stated in its official Changelog: **approximately 455,000 malicious packages were published to the npm registry in 2025**, while only about 2% of npm packages actually need to execute install scripts—yet 100% of packages have the ability to run arbitrary code at install time.
+
 ---
 
-## 1. 引言
+## 2. Three Breaking Changes
 
-2026 年 7 月，npm 将发布 **v12 大版本**，带来 npm 历史上最激进的安全策略变更——**默认禁止生命周期脚本执行**。这意味着任何依赖包的 `preinstall`、`install`、`postinstall` 脚本将不再默认运行，Git 依赖和远程 URL 依赖也将被默认拦截。
+npm v12 introduces three default value changes, each of which directly cuts off a supply chain attack path.
 
-这是继 pnpm v10（2025 年 1 月）率先引入类似机制后，npm 作为最后一个主流 JavaScript 包管理器跟进这一安全实践。GitHub 在官方 Changelog 中明确指出：**2025 年 npm 注册表上发布了约 455,000 个恶意包**，而实际只有约 2% 的 npm 包真正需要执行安装脚本——但 100% 的包都有能力在安装时运行任意代码。
+### 2.1 `allowScripts` Disabled by Default
 
----
+This is the most far-reaching change. Starting from npm v12, the following lifecycle scripts **no longer execute by default**:
 
-## 2. 三大破坏性变更
-
-npm v12 引入了三项默认值变更，每一项都直接切断一条供应链攻击路径。
-
-### 2.1 `allowScripts` 默认关闭
-
-这是影响最广的一项变更。从 npm v12 开始，以下生命周期脚本**默认不再执行**：
-
-| 脚本 | 触发时机 | 受影响范围 |
+| Script | Trigger Timing | Affected Scope |
 |------|----------|------------|
-| `preinstall` | 包安装前 | 所有依赖 |
-| `install` | 包安装时 | 所有依赖 |
-| `postinstall` | 包安装后 | 所有依赖 |
-| `prepare` | git/file/link 依赖安装时 | git/file/link 依赖 |
+| `preinstall` | Before package install | All dependencies |
+| `install` | During package install | All dependencies |
+| `postinstall` | After package install | All dependencies |
+| `prepare` | During git/file/link dependency install | git/file/link dependencies |
 
-值得注意的是，**隐式的 `node-gyp` 重建也会被阻止**——即使某个包没有显式声明 install 脚本，但只要包含 `binding.gyp` 文件，安装时同样会触发原生模块编译，这在 v12 下也需要显式授权。
+It's worth noting that **implicit `node-gyp` rebuilds are also blocked**—even if a package doesn't explicitly declare an install script, as long as it contains a `binding.gyp` file, native module compilation will still be triggered at install time, which also requires explicit authorization under v12.
 
-### 2.2 `--allow-git` 默认值为 `none`
+### 2.2 `--allow-git` Defaults to `none`
 
-Git 依赖（`"foo": "git+https://github.com/user/repo.git"`）默认不再解析。这项变更关闭了一个关键的代码执行路径：**Git 依赖的 `.npmrc` 文件可以覆盖 Git 可执行文件路径**，攻击者可以借此绕过 `--ignore-scripts` 的限制。
+Git dependencies (`"foo": "git+https://github.com/user/repo.git"`) are no longer resolved by default. This change closes a critical code execution path: **a Git dependency's `.npmrc` file can override the Git executable path**, allowing attackers to bypass `--ignore-scripts` restrictions.
 
-### 2.3 `--allow-remote` 默认值为 `none`
+### 2.3 `--allow-remote` Defaults to `none`
 
-远程 URL 依赖（HTTPS tarball 等）同样默认不再解析，进一步缩小了未经审查的代码进入依赖树的窗口。
+Remote URL dependencies (HTTPS tarballs, etc.) are likewise no longer resolved by default, further narrowing the window for unreviewed code to enter the dependency tree.
 
 ---
 
-## 3. 为什么必须这样做
+## 3. Why This Is Necessary
 
-### 3.1 触目惊心的攻击数据
+### 3.1 Alarming Attack Data
 
-npm 生态在过去一年经历了前所未有的供应链攻击浪潮：
+The npm ecosystem has experienced an unprecedented wave of supply chain attacks over the past year:
 
-| 事件 | 时间 | 影响 |
+| Incident | Time | Impact |
 |------|------|------|
-| **Miasma 蠕虫** | 2026 年 6 月 | 利用 install 脚本自我传播的恶意软件 |
-| **Axios 投毒事件** | 2026 年 3 月 | 流行 HTTP 库被植入恶意代码 |
-| **18 个包遭劫持** | 2025 年 9 月 | 包括 `debug`、`chalk` 在内的核心工具包被接管 |
-| **全年恶意包** | 2025 全年 | 约 **455,000** 个恶意包发布到 npm 注册表 |
+| **Miasma Worm** | June 2026 | Malware that self-propagates using install scripts |
+| **Axios Poisoning Incident** | March 2026 | Popular HTTP library injected with malicious code |
+| **18 Packages Hijacked** | September 2025 | Core toolkits including `debug` and `chalk` taken over |
+| **Full-Year Malicious Packages** | All of 2025 | Approximately **455,000** malicious packages published to the npm registry |
 
-### 3.2 不对称的信任模型
+### 3.2 Asymmetric Trust Model
 
-传统的 npm 安装模型存在根本性的信任不对称：
+The traditional npm install model has a fundamental trust asymmetry:
 
-- **只有 2% 的包**真正需要运行安装脚本（如原生模块编译、平台二进制下载）
-- **但 100% 的包**都有能力在安装时执行任意代码
-- 一个深度嵌套的传递依赖的 install 脚本，足以攻破整个系统
+- **Only 2% of packages** actually need to run install scripts (such as native module compilation or platform binary downloads)
+- **But 100% of packages** have the ability to execute arbitrary code at install time
+- A deeply nested transitive dependency's install script is enough to compromise an entire system
 
-这种"默认信任一切"的模型在当前的威胁环境下已经不可持续。
+This "trust everything by default" model is no longer sustainable in the current threat environment.
 
-### 3.3 pnpm 已经验证了这条路
+### 3.3 pnpm Has Already Validated This Path
 
-pnpm v10 在 2025 年 1 月率先实现了**默认阻止生命周期脚本 + 显式许可名单**的安全模型。一年多的实践证明：
+pnpm v10 was the first to implement a security model of **blocking lifecycle scripts by default + explicit allowlist** in January 2025. Over a year of practice has proven:
 
-- 绝大多数项目只需批准极少数的包（如 `esbuild`、`sharp`、`node-gyp` 等需要原生编译的包）
-- CI/CD 流程可以通过 `package.json` 中的许可名单实现自动化
-- 开发者体验的影响远小于预期，安全收益巨大
+- The vast majority of projects only need to approve a very small number of packages (such as `esbuild`, `sharp`, `node-gyp` and other packages requiring native compilation)
+- CI/CD pipelines can be automated through the allowlist in `package.json`
+- The impact on developer experience is far less than expected, while the security benefits are enormous
 
-npm v12 的变更本质上是在 npm 生态中全面推广这一已验证的安全模型。
+The changes in npm v12 essentially roll out this proven security model across the entire npm ecosystem.
 
 ---
 
-## 4. 迁移方案
+## 4. Migration Plan
 
-### 4.1 立即行动：升级到 npm 11.16.0+
+### 4.1 Immediate Action: Upgrade to npm 11.16.0+
 
-npm 11.16.0（2026 年 6 月发布）已经包含了 v12 所有变更的**预警机制**。升级后运行 `npm install`，你会看到 v12 将阻止哪些脚本的警告信息，而不是直接在 7 月被硬阻断。
+npm 11.16.0 (released in June 2026) already includes **early warning mechanisms** for all v12 changes. After upgrading, run `npm install` and you'll see warnings about which scripts v12 will block, rather than being hard-blocked in July.
 
 ```bash
 # 升级到最新 npm 11
@@ -93,9 +91,9 @@ npm install -g npm@11
 npm install
 ```
 
-### 4.2 审查并建立许可名单
+### 4.2 Review and Build an Allowlist
 
-npm 11 提供了全新的审批工作流：
+npm 11 provides a brand-new approval workflow:
 
 ```bash
 # 查看所有有待审批安装脚本的包
@@ -110,9 +108,9 @@ npm approve-scripts node-gyp
 npm deny-scripts some-suspicious-package
 ```
 
-### 4.3 提交许可名单
+### 4.3 Commit the Allowlist
 
-审批结果会写入 `package.json`，**这是一个需要版本控制的团队决策**：
+Approval results are written to `package.json`, **which is a team decision that needs version control**:
 
 ```json
 {
@@ -128,14 +126,14 @@ npm deny-scripts some-suspicious-package
 }
 ```
 
-许可名单的优势在于：
-- **可审查**：每次 PR 都能看到哪些包被授予了安装脚本权限
-- **可追溯**：Git 历史记录了每个信任决策的时间点和决策人
-- **可自动化**：CI/CD 直接读取 `package.json`，无需额外配置
+The advantages of the allowlist are:
+- **Reviewable**: Every PR shows which packages have been granted install script permissions
+- **Traceable**: Git history records the time and person behind each trust decision
+- **Automatable**: CI/CD reads `package.json` directly, with no additional configuration needed
 
-### 4.4 处理 Git 依赖和远程依赖
+### 4.4 Handle Git Dependencies and Remote Dependencies
 
-如果你的项目依赖了 Git 仓库或远程 URL：
+If your project depends on Git repositories or remote URLs:
 
 ```bash
 # 在 .npmrc 或命令行中显式授权
@@ -144,15 +142,15 @@ npm install --allow-git=foo/bar      # 只允许特定仓库
 npm install --allow-remote=all       # 允许所有远程 URL 依赖
 ```
 
-建议尽将 Git/远程依赖迁移到 npm 注册表的正式发布包，从根本上消除风险。
+It's recommended to migrate Git/remote dependencies to officially published packages on the npm registry as soon as possible, fundamentally eliminating the risk.
 
 ---
 
-## 5. 对 CI/CD 的影响
+## 5. Impact on CI/CD
 
-### 5.1 Docker 镜像
+### 5.1 Docker Images
 
-如果你的 Dockerfile 中有 `npm install -g` 全局安装，需要确认这些包是否包含安装脚本：
+If your Dockerfile has `npm install -g` global installs, you need to confirm whether these packages contain install scripts:
 
 ```dockerfile
 # npm v12 的 Docker 镜像（node:24+ 将内置 npm v12）
@@ -163,7 +161,7 @@ RUN npm approve-scripts -g esbuild
 RUN npm install -g esbuild
 ```
 
-### 5.2 GitHub Actions / 其他 CI 环境
+### 5.2 GitHub Actions / Other CI Environments
 
 ```yaml
 # .github/workflows/ci.yml
@@ -175,56 +173,58 @@ RUN npm install -g esbuild
     # npm install --allow-scripts=all
 ```
 
-推荐的做法是**将 `allowScripts` 写入 `package.json` 并提交**，这样 CI 环境无需任何额外配置。
+The recommended approach is to **write `allowScripts` into `package.json` and commit it**, so that CI environments need no additional configuration.
 
-### 5.3 应急回退（不推荐）
+### 5.3 Emergency Fallback (Not Recommended)
 
-如果项目暂时无法完成迁移，可以通过以下配置恢复到旧行为：
+If a project temporarily cannot complete the migration, the old behavior can be restored through the following configuration:
 
 ```bash
 # 全局恢复旧行为（高风险，不推荐）
 npm install --allow-scripts=all --allow-git=all --allow-remote=all
 ```
 
-但强烈建议这只是应急手段——**攻击者正是依赖开发者长期使用这类"全开"配置。**
+However, it's strongly recommended that this be used only as an emergency measure—**attackers rely precisely on developers using such "wide-open" configurations long-term.**
 
 ---
 
-## 6. 变更不覆盖的场景
+## 6. Scenarios Not Covered by the Change
 
-这项安全机制并非银弹，以下风险依然存在：
+This security mechanism is not a silver bullet; the following risks still exist:
 
-- **运行时恶意代码**：安装脚本只是攻击入口之一，包在运行时执行的函数不受影响
-- **维护者账号泄露**：攻击者获取维护者权限后直接修改包源码，不需要 install 脚本
-- **拼写欺骗（Typosquatting）**：恶意包伪装成流行包名称，诱导手动安装
-- **社会工程风险**：`npm approve-scripts --all` 一键批准所有脚本，让安全机制形同虚设
+- **Runtime malicious code**: Install scripts are only one attack entry point; functions executed by packages at runtime are unaffected
+- **Maintainer account compromise**: Attackers who gain maintainer privileges can directly modify package source code without needing install scripts
+- **Typosquatting**: Malicious packages disguised as popular package names to trick users into manual installation
+- **Social engineering risk**: `npm approve-scripts --all` one-click approval of all scripts renders the security mechanism useless
 
 ---
 
-## 7. 时间线与行动建议
+## 7. Timeline and Action Recommendations
 
-| 时间 | 事件 | 行动 |
+| Time | Event | Action |
 |------|------|------|
-| **现在** | npm 11.16.0 已发布 | 升级到 npm@11，开始审查项目 |
-| **现在 ~ 7 月** | 缓冲期 | 建立许可名单，提交到 `package.json` |
-| **2026 年 7 月** | npm v12 正式发布 | 确保所有 CI/CD 已适配 |
-| **v12 之后** | 长期 | 新项目默认安全，旧项目持续维护许可名单 |
+| **Now** | npm 11.16.0 has been released | Upgrade to npm@11 and start reviewing projects |
+| **Now ~ July** | Buffer period | Build an allowlist and commit it to `package.json` |
+| **July 2026** | npm v12 officially released | Ensure all CI/CD has been adapted |
+| **After v12** | Long-term | New projects are secure by default; old projects continuously maintain allowlists |
 
-### 立即行动清单
+### Immediate Action Checklist
 
-1. **升级 npm**：`npm install -g npm@11`
-2. **运行一次完整安装**：观察 v12 兼容性警告
-3. **审查安装脚本**：`npm approve-scripts --allow-scripts-pending`
-4. **建立许可名单**：对每个需要脚本的包做出明确决策
-5. **提交到仓库**：将 `package.json` 中的 `allowScripts` 纳入版本控制
-6. **清理 Git/远程依赖**：尽可能迁移到 npm 注册表正式包
+1. **Upgrade npm**: `npm install -g npm@11`
+2. **Run a full install once**: Observe v12 compatibility warnings
+3. **Review install scripts**: `npm approve-scripts --allow-scripts-pending`
+4. **Build an allowlist**: Make an explicit decision for each package that needs scripts
+5. **Commit to the repository**: Bring `package.json` in `allowScripts` under version control
+6. **Clean up Git/remote dependencies**: Migrate to official npm registry packages wherever possible
 
 ---
 
-## 8. 总结
+## 8. Summary
 
-npm v12 的这次变更，本质上是 JavaScript 生态对 **"默认不安全"**时代的终结。从"默认信任所有包，出事再修"转向"默认不信任，显式授权可信包"，这是一个迟到但必须发生的范式转移。
+This change in npm v12 is essentially the JavaScript ecosystem's end to the era of **"insecure by default."** Moving from "trust all packages by default, fix things when they break" to "don't trust by default, explicitly authorize trusted packages" is a paradigm shift that is overdue but must happen.
 
-对于绝大多数项目而言，实际影响并不大——只需审批 3-5 个真正需要原生编译的依赖包。真正需要投入的是**团队的意识转变**：把安装脚本审批视为代码审查的一部分，把 `allowScripts` 视为和 `dependencies` 同等重要的安全配置。
+For the vast majority of projects, the actual impact is not significant—you only need to approve 3-5 dependency packages that genuinely require native compilation. What truly requires investment is **a shift in team mindset**: treating install script approval as part of code review, and treating `allowScripts` as a security configuration just as important as `dependencies`.
 
-2026 年 7 月的截止日期并不遥远。现在花一小时完成迁移，远好于在截止日面对 CI 全线崩溃。
+The July 2026 deadline is not far away. Spending an hour now to complete the migration is far better than facing a full CI collapse on the deadline.
+
+--- END CONTENT ---

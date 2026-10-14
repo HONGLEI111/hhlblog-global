@@ -1,60 +1,58 @@
 ---
-title: Apifox 供应链投毒事件深度解析
+title: In-Depth Analysis of the Apifox Supply Chain Poisoning Incident
 published: 2026-04-20
-description: '2026年3月，国内知名API协作平台Apifox遭遇严重的供应链投毒攻击。本文深入分析此次事件的技术细节、攻击链条、影响范围，并提供完整的排查与防护指南。'
+description: In March 2026, Apifox, a well-known domestic API collaboration platform, suffered a severe supply chain poisoning attack. This article provides an in-depth analysis of the technical details, attack chain, and scope of impact of the incident, along with a complete troubleshooting and protection guide.
 image: ''
-tags: [供应链安全, 前端安全]
-category: '安全'
+tags: [Supply Chain Security, Frontend Security]
+category: Security
 draft: false 
-lang: ''
 ---
+## 1. Incident Overview
 
-## 1. 事件概述
+In March 2026, Apifox, a popular domestic API collaboration platform, suffered a serious **supply chain poisoning attack**. The attacker tampered with JavaScript files hosted on the official CDN, implanting malicious code into the desktop client with the intent of stealing developers' core credentials and establishing remote control.
 
-2026年3月，国内流行的API协作平台 Apifox 遭遇了一起严重的**供应链投毒攻击**。攻击者通过篡改官方 CDN 托管的 JavaScript 文件，在桌面客户端中植入恶意代码，意图窃取开发者的核心凭证并实施远程控制。
+The attack began on **March 4, 2026**, remained active for **18 days**, and only stopped when the malicious domain ceased resolving on March 22. Because Apifox is widely used by R&D teams, the impact of this incident was extremely broad, affecting users on Windows, macOS, and Linux platforms.
 
-此次攻击从 **2026年3月4日** 开始，持续活跃了 **18天**，直到3月22日恶意域名才停止解析。由于 Apifox 被广泛应用于研发团队，此次事件的影响范围极广，Windows、macOS 和 Linux 平台用户均受影响。
+### 1.1 Incident Timeline
 
-### 1.1 事件时间线
-
-| 日期 | 事件 |
+| Date | Event |
 |------|------|
-| 2026年3月4日 | 攻击者篡改 Apifox 官方 CDN 上的 JS 文件，投毒攻击开始 |
-| 2026年3月4日-22日 | 恶意代码持续分发，攻击者迭代攻击载荷 |
-| 2026年3月22日 | 恶意域名 `apifox.it.com` 下线，停止解析 |
-| 2026年3月23日 | Apifox 发布 v2.8.19 修复版本 |
-| 2026年3月25日 | 安全研究人员披露事件，Apifox 官方发布安全公告 |
+| March 4, 2026 | Attacker tampers with JS files on Apifox's official CDN, poisoning attack begins |
+| March 4–22, 2026 | Malicious code continues to be distributed, attacker iterates on the payload |
+| March 22, 2026 | Malicious domain `apifox.it.com` goes offline, stops resolving |
+| March 23, 2026 | Apifox releases v2.8.19 fix |
+| March 25, 2026 | Security researchers disclose the incident, Apifox officially publishes a security advisory |
 
-### 1.2 为什么这个事件很重要？
+### 1.2 Why Does This Incident Matter?
 
-与传统的病毒传播不同，此次攻击属于典型的**供应链攻击**。攻击者并未直接攻击用户，而是选择入侵 Apifox 的官方软件分发渠道，在用户毫不知情的情况下，将恶意代码"合法"地分发到受害者的电脑中。
+Unlike traditional virus propagation, this attack is a classic **supply chain attack**. The attacker did not directly target users, but instead chose to compromise Apifox's official software distribution channel, "legitimately" distributing malicious code to victims' computers without their knowledge.
 
-开发者的电脑中存储着通往企业核心资产的"钥匙"：
-- SSH 私钥 → 直接登录生产服务器
-- Git Token → 访问和修改代码仓库
-- 云服务 Access Key → 控制云基础设施
-- 数据库密码 → 访问敏感数据
+Developers' computers store the "keys" to their organizations' core assets:
+- SSH private keys → direct login to production servers
+- Git Tokens → access and modification of code repositories
+- Cloud service Access Keys → control of cloud infrastructure
+- Database passwords → access to sensitive data
 
-一把泄露的密钥，可能导致整个企业内网被渗透。
+A single leaked key can lead to the compromise of an entire corporate intranet.
 
 ---
 
-## 2. 技术深度分析
+## 2. Technical Deep Dive
 
-### 2.1 攻击环境：Electron 框架的安全缺陷
+### 2.1 Attack Environment: Security Flaws in the Electron Framework
 
-Apifox 桌面客户端基于 **Electron 框架**开发，存在以下安全问题：
+The Apifox desktop client is built on the **Electron framework** and has the following security issues:
 
-| 问题 | 说明 | 后果 |
+| Issue | Description | Consequence |
 |------|------|------|
-| 未启用 sandbox | 渲染进程可访问 Node.js API | 前端 JS 可执行系统命令 |
-| Node.js API 暴露 | 可直接调用 `fs`、`child_process`、`os` 等模块 | 文件读写、命令执行、信息收集 |
+| Sandbox not enabled | Renderer process can access Node.js APIs | Frontend JS can execute system commands |
+| Node.js APIs exposed | Can directly call modules such as `fs`, `child_process`, `os` | File read/write, command execution, information gathering |
 
-**核心漏洞点**：由于未严格启用沙盒（Sandbox），通过网络加载的恶意 JS 代码获得了本地 Node.js 环境的完整权限，可以直接读写本地文件系统和执行系统命令。
+**Core vulnerability point**: Because the sandbox was not strictly enabled, malicious JS code loaded over the network gained full privileges in the local Node.js environment, allowing it to directly read and write the local filesystem and execute system commands.
 
-### 2.2 投毒机制
+### 2.2 Poisoning Mechanism
 
-#### 被篡改的文件
+#### Tampered File
 
 ```
 URL: https://cdn.apifox.com/www/assets/js/apifox-app-event-tracking.min.js
@@ -62,33 +60,33 @@ URL: https://cdn.apifox.com/www/assets/js/apifox-app-event-tracking.min.js
 恶意大小: 约 77KB
 ```
 
-攻击者在原本用于事件追踪的 SDK 代码末尾，追加了约 **42KB** 的高度混淆恶意代码。
+The attacker appended approximately **42KB** of highly obfuscated malicious code to the end of the SDK code originally used for event tracking.
 
-#### CDN 信息
+#### CDN Information
 
 ```
 cdn.apifox.com → CNAME → qiniudns.com（七牛云 CDN）
 ```
 
-关于投毒发生位置，目前存在两种可能：
-1. **CDN 节点被篡改**：部分 CDN 节点上的文件被替换
-2. **链路劫持**：HTTPS 通信过程中被中间人篡改（但需绕过证书校验）
+Regarding where the poisoning occurred, there are currently two possibilities:
+1. **CDN node tampered with**: Files on some CDN nodes were replaced
+2. **Link hijacking**: Tampered with by a man-in-the-middle during HTTPS communication (but certificate validation would need to be bypassed)
 
-### 2.3 恶意域名
+### 2.3 Malicious Domain
 
-攻击者注册了极具迷惑性的域名：
+The attacker registered a highly deceptive domain:
 
 ```
 apifox.it.com
 ```
 
-这个域名模仿了官方域名格式，旨在绕过用户和部分安全软件的警惕。
+This domain mimics the format of the official domain, aiming to bypass the vigilance of users and some security software.
 
 ---
 
-## 3. 攻击链完整流程
+## 3. Complete Attack Chain Flow
 
-### 3.1 攻击流程图
+### 3.1 Attack Flow Diagram
 
 ```mermaid
 graph TD
@@ -108,74 +106,74 @@ graph TD
     N --> O[30分钟-3小时后重复]
 ```
 
-### 3.2 攻击阶段详解
+### 3.2 Attack Phase Details
 
-#### 第一阶段：投毒文件下发
+#### Phase One: Poisoned File Delivery
 
-Apifox 桌面客户端在启动时，会动态加载事件追踪脚本。攻击者在该文件末尾追加了高度混淆的恶意代码。当用户启动被投毒的客户端时，这段恶意代码便随之激活。
+When the Apifox desktop client starts, it dynamically loads an event tracking script. The attacker appended highly obfuscated malicious code to the end of this file. When the user launches the poisoned client, this malicious code is activated along with it.
 
-#### 第二阶段：建立连接与载荷加载
+#### Phase Two: Establishing Connection and Loading Payload
 
-恶意代码激活后：
+After the malicious code is activated:
 
-1. **收集主机信息**：
-   - 主机名
-   - 用户名
-   - MAC 地址
-   - CPU 型号
-   - 操作系统版本
+1. **Collect host information**:
+   - Hostname
+   - Username
+   - MAC address
+   - CPU model
+   - OS version
 
-2. **生成唯一标识**：
+2. **Generate unique identifier**:
    ```
    SHA-256(mac + cpu + hostname + user + os)
    ```
 
-3. **连接 C2 服务器**：
-   向 `apifox.it.com` 发送请求，获取第二阶段恶意载荷。
+3. **Connect to C2 server**:
+   Send a request to `apifox.it.com` to retrieve the second-stage malicious payload.
 
-4. **解密执行**：
-   使用内嵌的 RSA-2048 私钥解密载荷，通过 `eval()` 函数执行。
+4. **Decrypt and execute**:
+   Use the embedded RSA-2048 private key to decrypt the payload, then execute it via the `eval()` function.
 
-#### 第三阶段：核心数据窃取
+#### Phase Three: Core Data Theft
 
-第二阶段脚本会系统性地扫描并窃取以下敏感文件：
+The second-stage script systematically scans for and steals the following sensitive files:
 
-| 类型 | 路径 | 风险 |
+| Type | Path | Risk |
 |------|------|------|
-| SSH 私钥 | `~/.ssh/id_rsa` 等 | 直接登录服务器 |
-| Git 凭证 | `~/.git-credentials` | 访问代码仓库 |
-| 命令行历史 | `~/.bash_history`、`~/.zsh_history` | 可能包含明文密码 |
-| K8s 配置 | `~/.kube/*` | 控制 Kubernetes 集群 |
-| npm 凭证 | `~/.npmrc` | 访问私有包仓库 |
-| 云 Access Key | 各种云服务商配置 | 控制云基础设施 |
+| SSH private keys | `~/.ssh/id_rsa` etc. | Direct server login |
+| Git credentials | `~/.git-credentials` | Access to code repositories |
+| Command line history | `~/.bash_history`, `~/.zsh_history` | May contain plaintext passwords |
+| K8s config | `~/.kube/*` | Control of Kubernetes clusters |
+| npm credentials | `~/.npmrc` | Access to private package repositories |
+| Cloud Access Keys | Various cloud provider configs | Control of cloud infrastructure |
 
-所有窃取的数据会被打包、使用 **AES-256-GCM** 加密，然后回传到攻击者的服务器。
+All stolen data is packaged, encrypted using **AES-256-GCM**, and then exfiltrated to the attacker's server.
 
-### 3.3 通信特征
+### 3.3 Communication Characteristics
 
-- **低频 Beacon**：30分钟到3小时之间随机间隔
-- **加密通信**：使用 RSA-2048 加密载荷
-- **隐蔽传输**：自定义请求头，伪装正常流量
+- **Low-frequency beacon**: Random intervals between 30 minutes and 3 hours
+- **Encrypted communication**: Uses RSA-2048 to encrypt payloads
+- **Covert transmission**: Custom request headers, disguised as normal traffic
 
 ---
 
-## 4. 影响范围
+## 4. Scope of Impact
 
-### 4.1 受影响的版本
+### 4.1 Affected Versions
 
-- **受影响版本**：Apifox SaaS 版桌面客户端 **2.8.19 以下版本**
-- **受影响平台**：Windows、macOS、Linux 全平台
-- **受影响时间**：2026年3月4日至3月22日
+- **Affected versions**: Apifox SaaS desktop client **versions below 2.8.19**
+- **Affected platforms**: Windows, macOS, Linux — all platforms
+- **Affected period**: March 4 to March 22, 2026
 
-### 4.2 不受影响的版本
+### 4.2 Unaffected Versions
 
-- Web 版（浏览器访问）
-- 私有化部署版
-- v2.8.19 及以上版本
+- Web version (browser access)
+- Private deployment version
+- v2.8.19 and above
 
-### 4.3 为什么开发者是高危目标？
+### 4.3 Why Are Developers High-Risk Targets?
 
-攻击者的目标并非个人电脑中的照片或文档，而是开发者手中通往企业核心资产的"钥匙"：
+The attacker's goal is not photos or documents on personal computers, but the "keys" in developers' hands that lead to their organizations' core assets:
 
 ```
 开发者电脑 → SSH密钥 → 生产服务器
@@ -184,72 +182,72 @@ Apifox 桌面客户端在启动时，会动态加载事件追踪脚本。攻击�
            → 数据库密码 → 敏感数据
 ```
 
-开发者的电脑因此成为了攻击者**横向移动**、**渗透企业内网**的绝佳跳板。
+Developers' computers thus become excellent springboards for attackers to **move laterally** and **penetrate corporate intranets**.
 
 ---
 
-## 5. 自查指南
+## 5. Self-Check Guide
 
-### 5.1 Windows 用户
+### 5.1 Windows Users
 
-打开 PowerShell（管理员），执行：
+Open PowerShell (as Administrator) and run:
 
 ```powershell
 Select-String -Path "$env:APPDATA\apifox\Local Storage\leveldb\*" -Pattern "rl_mc","rl_headers" -List | Select-Object Path
 ```
 
-### 5.2 macOS 用户
+### 5.2 macOS Users
 
-打开终端，执行：
+Open Terminal and run:
 
 ```bash
 grep -arlE "rl_mc|rl_headers" ~/Library/Application\ Support/apifox/Local\ Storage/leveldb
 ```
 
-### 5.3 Linux 用户
+### 5.3 Linux Users
 
-打开终端，执行：
+Open Terminal and run:
 
 ```bash
 grep -arlE "rl_mc|rl_headers" ~/.config/apifox/Local\ Storage/leveldb
 ```
 
-### 5.4 结果判断
+### 5.4 Interpreting Results
 
-- **有输出具体文件** → 已中招，需要立即采取补救措施
-- **无输出** → 可能未被感染，但仍建议执行防护措施
+- **Specific files output** → Compromised, immediate remediation measures required
+- **No output** → Possibly not infected, but protective measures are still recommended
 
-> **注意**：由于被检查的文件为缓存文件，存在假阴性可能。如果在攻击窗口期（3月4日-22日）曾使用过 Apifox 桌面客户端，有极大概率已遭到攻击。
+> **Note**: Because the files being checked are cache files, false negatives are possible. If you used the Apifox desktop client during the attack window (March 4–22), there is a very high probability that you were attacked.
 
 ---
 
-## 6. 防护与处置措施
+## 6. Protection and Remediation Measures
 
-### 6.1 立即升级客户端
+### 6.1 Immediately Upgrade the Client
 
-这是阻断攻击最直接有效的方法。
+This is the most direct and effective way to stop the attack.
 
 ```
 修复版本：v2.8.19 及以上
 修复方式：废除在线动态加载 JS，改为本地内置打包
 ```
 
-### 6.2 全面轮换敏感凭证
+### 6.2 Comprehensively Rotate Sensitive Credentials
 
-这是处置措施中**最关键**的一步。你必须假设所有在受影响设备上存储过的凭证均已泄露。
+This is the **most critical** step in remediation. You must assume that all credentials ever stored on affected devices have been leaked.
 
-#### 必须重置的凭证
+#### Credentials That Must Be Reset
 
-| 凭证类型 | 操作 |
+| Credential Type | Action |
 |---------|------|
-| SSH 密钥 | 生成新密钥对，部署到所有服务器和代码托管平台 |
-| Git Token | 吊销并重新生成所有 Personal Access Token |
-| 云服务密钥 | 轮换 AWS、阿里云、腾讯云等的 Access Key |
-| 数据库密码 | 修改所有本地或远程数据库的访问密码 |
-| API Key | 检查并更换所有第三方服务 API Key |
-| K8s Token | 重新生成 Kubernetes 集群访问凭证 |
+| SSH keys | Generate new key pairs, deploy to all servers and code hosting platforms |
+| Git Tokens | Revoke and regenerate all Personal Access Tokens |
+| Cloud service keys | Rotate Access Keys for AWS, Alibaba Cloud, Tencent Cloud, etc. |
+| Database passwords | Change access passwords for all local or remote databases |
+| API Keys | Check and replace all third-party service API Keys |
+| K8s Tokens | Regenerate Kubernetes cluster access credentials |
 
-#### SSH 密钥重置示例
+#### SSH Key Reset Example
 
 ```bash
 # 备份旧密钥
@@ -263,9 +261,9 @@ ssh-keygen -t ed25519 -C "your_email@example.com"
 ssh-copy-id user@server
 ```
 
-### 6.3 网络层面封禁
+### 6.3 Network-Level Blocking
 
-在网络层面封禁以下可疑域名：
+Block the following suspicious domains at the network level:
 
 ```
 apifox.it.com
@@ -275,9 +273,9 @@ system.toshinkyo.or.jp
 ns.feishu.it.com
 ```
 
-### 6.4 检查服务器日志
+### 6.4 Check Server Logs
 
-审查服务器登录日志，检查是否有异常 SSH 登录：
+Review server login logs to check for abnormal SSH logins:
 
 ```bash
 # 查看最近的 SSH 登录记录
@@ -288,50 +286,49 @@ grep "Accepted" /var/log/auth.log | tail -20
 ```
 
 ---
+## 7. Security Implications
 
-## 7. 安全启示
+### 7.1 Characteristics of Supply Chain Attacks
 
-### 7.1 供应链攻击的特点
+1. **Highly covert**: Malicious code is obfuscated and encrypted, making it hard to detect
+2. **Automatic execution**: Triggered upon client startup, requiring no user interaction
+3. **Probabilistic triggering**: Not every request returns the malicious version
+4. **Precisely targeted**: Clearly aimed at developers' high-value assets
+5. **Runs with high privileges**: Exploits framework vulnerabilities to gain system-level privileges
 
-1. **隐蔽性强**：恶意代码混淆加密，难以察觉
-2. **自动执行**：客户端启动即触发，无需用户交互
-3. **概率性触发**：并非每次请求都返回恶意版本
-4. **精准定向**：明确针对开发人员的高价值资产
-5. **高权限运行**：利用框架漏洞获取系统级权限
+### 7.2 Developer Security Best Practices
 
-### 7.2 开发者安全最佳实践
+#### Client Security
 
-#### 客户端安全
+- ✅ Keep software updated to the latest version
+- ✅ Enable the software's security sandbox feature
+- ✅ Regularly verify software integrity (check hashes)
+- ✅ Download software from official channels
 
-- ✅ 及时更新软件到最新版本
-- ✅ 启用软件的安全沙盒功能
-- ✅ 定期检查软件的完整性（校验 Hash）
-- ✅ 使用官方渠道下载软件
+#### Credential Management
 
-#### 凭证管理
+- ✅ Use SSH keys instead of password authentication
+- ✅ Use different keys for different services
+- ✅ Rotate sensitive credentials regularly
+- ✅ Use key management tools (such as 1Password, Bitwarden)
 
-- ✅ 使用 SSH 密钥而非密码认证
-- ✅ 为不同服务使用不同的密钥
-- ✅ 定期轮换敏感凭证
-- ✅ 使用密钥管理工具（如 1Password、Bitwarden）
+#### Network Security
 
-#### 网络安全
+- ✅ Configure firewall rules
+- ✅ Monitor abnormal network traffic
+- ✅ Block suspicious domains
+- ✅ Use DNS filtering services
 
-- ✅ 配置防火墙规则
-- ✅ 监控异常网络流量
-- ✅ 封禁可疑域名
-- ✅ 使用 DNS 过滤服务
+#### Code Security
 
-#### 代码安全
+- ✅ Enable two-factor authentication (2FA)
+- ✅ Use Personal Access Tokens instead of passwords
+- ✅ Regularly review code repository access permissions
+- ✅ Enable commit signature verification
 
-- ✅ 启用双因素认证（2FA）
-- ✅ 使用 Personal Access Token 而非密码
-- ✅ 定期审查代码仓库的访问权限
-- ✅ 启用代码提交签名验证
+### 7.3 Recommendations for Electron App Development
 
-### 7.3 Electron 应用开发建议
-
-如果你是 Electron 应用开发者，请注意：
+If you are an Electron app developer, please note:
 
 ```javascript
 // ✅ 启用沙盒
@@ -353,30 +350,30 @@ const win = new BrowserWindow({
 });
 ```
 
-- 启用 `sandbox` 和 `contextIsolation`
-- 禁用 `nodeIntegration`
-- 使用 `preload` 脚本安全地暴露必要 API
-- 避免从网络动态加载可执行代码
-- 实施内容安全策略（CSP）
+- Enable `sandbox` and `contextIsolation`
+- Disable `nodeIntegration`
+- Use `preload` scripts to safely expose necessary APIs
+- Avoid dynamically loading executable code from the network
+- Implement Content Security Policy (CSP)
 
 ---
 
-## 8. 总结
+## 8. Summary
 
-Apifox 供应链投毒事件是一次针对开发者的精准攻击，利用了 Electron 框架的安全缺陷和 CDN 分发机制的漏洞。此次事件提醒我们：
+The Apifox supply chain poisoning incident was a precision attack targeting developers, exploiting security flaws in the Electron framework and vulnerabilities in the CDN distribution mechanism. This incident reminds us:
 
-1. **供应链安全至关重要**：任何依赖的第三方组件都可能成为攻击入口
-2. **开发者是高危目标**：手中掌握着企业核心资产的访问权限
-3. **及时更新是关键**：保持软件最新状态能有效防范已知漏洞
-4. **凭证管理不可忽视**：定期轮换密钥，最小化泄露影响
+1. **Supply chain security is critical**: Any third-party component you depend on can become an attack entry point
+2. **Developers are high-risk targets**: They hold access permissions to core enterprise assets
+3. **Timely updates are key**: Keeping software up to date effectively defends against known vulnerabilities
+4. **Credential management cannot be ignored**: Rotate keys regularly to minimize the impact of leaks
 
-如果你曾在风险时间段（2026年3月4日至3月22日）使用过 Apifox 桌面客户端，请**立即**执行本文提到的排查和处置措施。
+If you have used the Apifox desktop client during the risk period (March 4 to March 22, 2026), please **immediately** carry out the investigation and remediation measures mentioned in this article.
 
 ---
 
-## 参考资料
+## References
 
-- [Apifox 官方安全公告](https://docs.apifox.com/8392582m0)
-- [微步情报局分析报告](https://developer.aliyun.com/article/1726660)
-- [华中科技大学网络安全提示](https://ncc.hust.edu.cn/info/1443/6691.htm)
-- [CSDN 深度分析报告](https://blog.csdn.net/m0_71099018/article/details/159691630)
+- [Apifox Official Security Advisory](https://docs.apifox.com/8392582m0)
+- [ThreatBook Intelligence Bureau Analysis Report](https://developer.aliyun.com/article/1726660)
+- [Huazhong University of Science and Technology Cybersecurity Notice](https://ncc.hust.edu.cn/info/1443/6691.htm)
+- [CSDN In-Depth Analysis Report](https://blog.csdn.net/m0_71099018/article/details/159691630)

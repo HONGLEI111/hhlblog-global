@@ -1,40 +1,38 @@
 ---
-title: 本站浏览器支持与多端适配报告
+title: Browser Support and Cross-Device Compatibility Report
 published: 2026-08-19
-description: '汇总本站的浏览器兼容范围、PC/平板/移动端适配策略、性能特征与可访问性支持，以及对应的自动化验证方式。'
+description: A summary of this site's browser compatibility range, PC/tablet/mobile adaptation strategy, performance characteristics, accessibility support, and the corresponding automated verification methods.
 image: ''
-tags: [浏览器兼容, 响应式设计, 性能优化, Astro, 本站]
-category: '网站'
+tags: [browser compatibility, responsive design, performance optimization, Astro, this site]
+category: Website
 draft: false
-lang: ''
 ---
+## Introduction
 
-## 引言
+"What browsers does this site support?" "How does it feel on mobile?" — these are two questions every frontend project has to answer sooner or later. This article compiles the current support status of this site (a static blog built on Astro 5 + Tailwind CSS + Svelte 5) into a public report — both as an explanation for visitors and as the basis for my own compatibility decisions.
 
-「这个网站支持哪些浏览器？」「手机上体验怎么样？」——这是每个前端项目迟早要回答的两个问题。本文把本站（一个基于 Astro 5 + Tailwind CSS + Svelte 5 的静态博客）目前的支持情况整理成一份公开报告，既是对访客的说明，也是我自己做兼容决策时的依据。
+## 1. Browser Support Matrix
 
-## 1. 浏览器支持矩阵
+This site's definition of "full support" is: **layout, colors, interactions, and animations all work correctly**. The support matrix based on this standard is as follows:
 
-本站对「完整支持」的定义是：**布局、配色、交互、动画全部正常工作**。以此为标准的支持矩阵如下：
-
-| 平台 | 最低版本 | 说明 |
+| Platform | Minimum Version | Notes |
 | --- | --- | --- |
-| Chrome / Edge（桌面 + Android） | 111+ | 完整支持 |
-| Firefox | 113+ | 完整支持 |
-| Safari（macOS + iOS） | 15.4+ | 完整支持 |
-| 其他 Chromium 内核（Opera、Arc、微信/QQ 内置浏览器等） | 内核 ≥111 | 完整支持 |
-| 更旧的浏览器（2019–2021） | — | 页面结构完整可用，主题色回退为静态配色 |
-| IE 11 及更早 | — | 不支持 |
+| Chrome / Edge (desktop + Android) | 111+ | Full support |
+| Firefox | 113+ | Full support |
+| Safari (macOS + iOS) | 15.4+ | Full support |
+| Other Chromium-based browsers (Opera, Arc, WeChat/QQ built-in browsers, etc.) | Engine ≥111 | Full support |
+| Older browsers (2019–2021) | — | Page structure fully usable, theme colors fall back to static palette |
+| IE 11 and earlier | — | Not supported |
 
-也就是说，**2022 年之后发布的 evergreen 浏览器都在完整支持范围内**，覆盖了绝大多数真实用户。
+In other words, **evergreen browsers released after 2022 are all within the full support range**, covering the vast majority of real users.
 
-## 2. 支持下限是怎么确定的
+## 2. How the Support Floor Was Determined
 
-这个下限不是拍脑袋定的，而是由构建配置和 CSS 特性共同决定的：
+This floor wasn't decided arbitrarily — it's determined jointly by the build configuration and CSS features:
 
-**JS 层**：构建时显式声明了 `build.target = ["chrome111", "edge111", "firefox113", "safari15.4", "ios15.4"]`，输出的语法（ES2020 级）在更老的浏览器上也能解析，真正卡住下限的是 CSS。
+**JS layer**: The build explicitly declares `build.target = ["chrome111", "edge111", "firefox113", "safari15.4", "ios15.4"]`, and the output syntax (ES2020 level) can be parsed by older browsers too. What actually sets the floor is CSS.
 
-**CSS 层**：本站主题色全部使用 `oklch()` 色彩空间（配合一个可调节的色相变量 `--hue` 实现主题换色），而 `oklch()` 从 Chrome 111 / Firefox 113 / Safari 15.4 才开始支持。为此我们做了一层防御：
+**CSS layer**: All theme colors on this site use the `oklch()` color space (combined with an adjustable hue variable `--hue` to enable theme color switching), and `oklch()` only gained support starting from Chrome 111 / Firefox 113 / Safari 15.4. To handle this, we added a layer of defense:
 
 ```css
 @supports not (color: oklch(0.56 0.14 250)) {
@@ -42,51 +40,51 @@ lang: ''
 }
 ```
 
-不支持 `oklch()` 的浏览器会整体落到这套静态回退配色上，页面依然完整可读，只是失去了动态换色的能力——这正是渐进增强的思路。
+Browsers that don't support `oklch()` will fall back entirely to this static fallback palette. The page remains fully readable — it just loses the ability to dynamically switch colors. This is exactly the progressive enhancement approach.
 
-其余新特性也都遵循「必须可用、装饰性可降级」的原则：
+The remaining new features also follow the principle of "must be usable, decorative elements can degrade":
 
-| 特性 | 用途 | 降级策略 |
+| Feature | Purpose | Degradation Strategy |
 | --- | --- | --- |
-| `:has()` | 隐藏代码块末尾空行号 | 纯装饰，失效无影响 |
-| `field-sizing: content` | 聊天输入框自动增高 | 有 JS 手动计算高度的降级 |
-| `mask-image` | 目录渐隐遮罩 | 同时提供 `-webkit-` 前缀版本 |
-| `dvh` 单位 | 移动端地址栏伸缩适配 | 先写 `100vh` 再写 `100dvh`，旧浏览器用前者 |
+| `:has()` | Hide trailing empty line numbers in code blocks | Purely decorative, no impact if it fails |
+| `field-sizing: content` | Chat input auto-height | Falls back to JS manual height calculation |
+| `mask-image` | Table of contents fade-out mask | Also provides `-webkit-`-prefixed version |
+| `dvh` units | Mobile address bar resize adaptation | Write `100vh` first, then `100dvh`; older browsers use the former |
 
-## 3. 多端适配策略
+## 3. Multi-Device Adaptation Strategy
 
-站点使用 Tailwind 的四档断点（`sm: 640 / md: 768 / lg: 1024 / 2xl: 1536`），针对不同设备做了差异化布局：
+The site uses Tailwind's four breakpoints (`sm: 640 / md: 768 / lg: 1024 / 2xl: 1536`), with differentiated layouts for different devices:
 
-| 设备 | 适配要点 |
+| Device | Adaptation Highlights |
 | --- | --- |
-| **PC（≥1024px）** | 三栏布局：左侧个人资料/分类/标签，中间正文，右侧文章目录（≥1536px 时侧栏常驻；1280–1535 之间改为可折叠抽屉，不再「消失」） |
-| **平板（768–1023px）** | 侧栏堆叠为单列、卡片改为两列网格、封面图自适应；顶部导航在 lg 以下收进汉堡菜单 |
-| **移动端（<768px）** | 汉堡菜单 + 滑出面板；文章顶部提供**折叠式目录抽屉**；回到顶部按钮全端可用；底部悬浮按钮避开 iPhone 底部安全区（`env(safe-area-inset-*)`） |
+| **PC (≥1024px)** | Three-column layout: left side for profile/categories/tags, center for content, right side for article table of contents (sidebar is persistent at ≥1536px; between 1280–1535 it becomes a collapsible drawer instead of "disappearing") |
+| **Tablet (768–1023px)** | Sidebar stacks into a single column, cards switch to a two-column grid, cover images adapt; top navigation collapses into a hamburger menu below lg |
+| **Mobile (<768px)** | Hamburger menu + slide-out panel; **collapsible table of contents drawer** at the top of articles; back-to-top button available on all devices; bottom floating buttons avoid the iPhone bottom safe area (`env(safe-area-inset-*)`) |
 
-移动端还有几个容易被忽略的细节：欢迎通知的宽度使用 `min(400px, calc(100vw - 2rem))` 防止小屏溢出；viewport 显式声明 `initial-scale=1, viewport-fit=cover`；触屏交互均保留 `active` 态反馈。
+There are a few easily overlooked details on mobile: the welcome notification uses `min(400px, calc(100vw - 2rem))` for its width to prevent overflow on small screens; the viewport explicitly declares `initial-scale=1, viewport-fit=cover`; all touch interactions retain `active` state feedback.
 
-## 4. 性能特征
+## 4. Performance Characteristics
 
-- **纯静态输出（SSG）**：111 个页面构建期生成，无服务端运行时
-- **首屏 JS 约 110KB（gzip 约 45KB）**：PhotoSwipe 灯箱和全文搜索索引**按需加载**——只有用户真的点击图片或开始搜索时才下载。图表（Mermaid）自 2026 年起改为**构建期渲染成内联 SVG**，浏览器端不再需要图表运行时，因此不占任何首屏 JS（见 [图表系统说明](https://github.com/HONGLEI111/HHLBlog/blob/main/docs/diagrams.md)）
-- **图片**：本地图片在构建期生成 AVIF + WebP 双格式 srcset，由 `<picture>` 按浏览器能力选择（AVIF 需 Safari 16.4+，WebP 兜底覆盖本站声明的 Safari 15.4 底线）。横幅提供 360–2560 共十一档，2K 屏不再放大 1920px 源图；首页卡片封面按 2:1 卡片实际显示尺寸生成 400/560/800/1120 四档。首屏横幅在 1920px 档为 122KB AVIF（WebP 152KB），1440px 视口命中 1536 档为 94KB
-- **字体**：自托管且只打包 latin 子集，配合 `unicode-range` 浏览器按需下载；中文字体交给系统字体栈（Windows 微软雅黑 / macOS 苹方）
-- **离线能力（PWA）**：Service Worker 对静态资源做缓存优先、HTML 做网络优先，弱网和离线状态下已读内容仍可浏览
+- **Pure static output (SSG)**: 111 pages generated at build time, no server-side runtime
+- **First-screen JS is about 110KB (about 45KB gzipped)**: PhotoSwipe lightbox and full-text search index are **loaded on demand** — only downloaded when the user actually clicks an image or starts searching. Diagrams (Mermaid) have been rendered as **inline SVG at build time** since 2026, so the browser no longer needs a diagram runtime, meaning it takes up zero first-screen JS (see [Diagram System Documentation](https://github.com/HONGLEI111/HHLBlog/blob/main/docs/diagrams.md))
+- **Images**: Local images generate AVIF + WebP dual-format srcset at build time, with `<picture>` selecting based on browser capability (AVIF requires Safari 16.4+; WebP fallback covers this site's declared Safari 15.4 floor). Banners offer eleven tiers from 360–2560, so 2K screens no longer upscale a 1920px source image; homepage card covers generate four tiers (400/560/800/1120) based on the actual 2:1 card display size. The first-screen banner at the 1920px tier is 122KB AVIF (152KB WebP); at a 1440px viewport hitting the 1536 tier it's 94KB
+- **Fonts**: Self-hosted and only bundling the latin subset, with `unicode-range` enabling on-demand download by the browser; Chinese fonts are delegated to the system font stack (Windows Microsoft YaHei / macOS PingFang)
+- **Offline capability (PWA)**: The Service Worker uses cache-first for static assets and network-first for HTML, so already-read content remains browsable on weak or offline connections
 
-## 5. 可访问性与体验细节
+## 5. Accessibility and Experience Details
 
-- **动效克制**：所有入场动画、波浪、跑马灯都在 `prefers-reduced-motion: reduce` 下自动停用
-- **暗色模式**：跟随系统（`prefers-color-scheme`）或手动切换，首帧前注入避免闪烁
-- **语义化与焦点**：导航、按钮均有 aria-label；键盘可完整操作；焦点态可见
-- **页面过渡**：Swup 提供淡入淡出过渡并同步焦点管理，且对 JS 禁用环境有完整静态回退
+- **Restrained motion**: All entrance animations, waves, and marquees are automatically disabled under `prefers-reduced-motion: reduce`
+- **Dark mode**: Follows the system (`prefers-color-scheme`) or manual toggle, with injection before the first frame to avoid flicker
+- **Semantics and focus**: Navigation and buttons all have aria-labels; fully keyboard-operable; focus states are visible
+- **Page transitions**: Swup provides fade transitions with synchronized focus management, and has a complete static fallback for environments with JS disabled
 
-## 6. 自动化验证
+## 6. Automated Verification
 
-支持情况不是靠「我试了试」维持的，而是固化成脚本和 CI：
+Support status isn't maintained by "I tried it once" — it's codified into scripts and CI:
 
-- `astro check`：全量 TypeScript 类型检查，0 错误才合入
-- **45 项响应式断言**：Playwright 在 320 / 360 / 390 / 768 / 1024 / 1280 / 1440 / 1536 / 1920 九个宽度下遍历首页、文章页、技术页、工具页，断言无横向溢出、无运行时错误
-- **28 项运行时验证**：懒加载是否生效、搜索全链路、字体子集、PWA 注册、SEO meta 等，逐项断言
-- CI 在 PR 时自动构建（含搜索索引）并跑响应式冒烟测试
+- `astro check`: Full TypeScript type checking; only merged with 0 errors
+- **45 responsive assertions**: Playwright traverses the homepage, article pages, tech pages, and tools pages at nine widths — 320 / 360 / 390 / 768 / 1024 / 1280 / 1440 / 1536 / 1920 — asserting no horizontal overflow and no runtime errors
+- **28 runtime verifications**: Whether lazy loading works, the full search pipeline, font subsets, PWA registration, SEO meta, etc., asserted item by item
+- CI automatically builds (including the search index) and runs responsive smoke tests on PRs
 
-如果你在某个设备或浏览器上发现了异常，欢迎随时告诉我——这份矩阵会随着反馈持续修正。
+If you find any issues on a particular device or browser, feel free to let me know — this matrix will continue to be revised based on feedback.

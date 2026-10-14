@@ -1,55 +1,53 @@
 ---
-title: HTTP 缓存策略完全指南：从浏览器到 CDN
+title: 'The Complete Guide to HTTP Caching Strategies: From Browser to CDN'
 published: 2026-08-04
-description: '全面解析 HTTP 缓存机制：强缓存、协商缓存、Cache-Control 指令、CDN 缓存策略，附带实战配置示例与调试技巧。'
+description: 'A comprehensive breakdown of HTTP caching mechanisms: strong caching, negotiated caching, Cache-Control directives, and CDN caching strategies, with practical configuration examples and debugging tips.'
 image: ''
-tags: [HTTP, 缓存, CDN, Web性能, 浏览器, Cache-Control, ETag]
-category: '网站'
+tags: [HTTP, Caching, CDN, Web Performance, Browser, Cache-Control, ETag]
+category: Web
 draft: false
-lang: ''
 ---
+## 1. Why Caching Matters So Much
 
-## 1. 为什么缓存如此重要
+One of the core principles of web performance optimization: **the fastest request is no request at all**.
 
-Web 性能优化的核心原则之一：**最快的请求是不发请求**。
+HTTP caching is the cornerstone of web performance. A well-designed caching strategy can reduce page load time by more than 50%, while significantly lowering server load and bandwidth costs. According to HTTP Archive data, an average page has 70% of its requests being cacheable static resources—images, CSS, JS, and font files. If these resources were re-downloaded every time, it would be a huge waste of bandwidth and backend resources.
 
-HTTP 缓存是 Web 性能的基石。一个合理的缓存策略可以让页面加载时间减少 50% 以上，同时显著降低服务器负载和带宽成本。根据 HTTP Archive 的数据，一个页面平均有 70% 的请求是可缓存的静态资源——图片、CSS、JS、字体文件。如果这些资源每次都被重新下载，是对带宽和后端资源的巨大浪费。
+But caching is also a double-edged sword. Improper configuration can cause users to see stale content, or after updating a JS file, users still use the old version, triggering all sorts of bizarre bugs. This article will systematically explain the complete knowledge system of HTTP caching from both frontend and operations perspectives.
 
-但缓存也是一把双刃剑。配置不当会导致用户看到过期内容，或者更新了一个 JS 文件后用户却仍然使用旧版本，引发各种诡异 bug。本文将从前端和运维两个视角，系统讲解 HTTP 缓存的完整知识体系。
+## 2. The Two Major Types of HTTP Caching
 
-## 2. HTTP 缓存的两大类型
+HTTP caching is divided into two major categories: **strong caching** and **negotiated caching**. The core difference lies in whether a request needs to be sent to the server to verify whether the cache is still valid.
 
-HTTP 缓存分为**强缓存**和**协商缓存**两大类。它们的核心区别在于：是否需要向服务器发起请求来验证缓存是否有效。
+### 2.1 Strong Caching
 
-### 2.1 强缓存
+Strong caching means: during the cache period, the browser **doesn't send a request at all** and directly uses the local cache.
 
-强缓存的意思是：浏览器在缓存期内**根本不发请求**，直接使用本地缓存。
-
-实现强缓存的 HTTP 响应头是 `Cache-Control`（HTTP/1.1）和 `Expires`（HTTP/1.0）。
+The HTTP response headers that implement strong caching are `Cache-Control` (HTTP/1.1) and `Expires` (HTTP/1.0).
 
 ```
 HTTP/1.1 200 OK
 Cache-Control: max-age=31536000, immutable
 ```
 
-- `max-age=<seconds>`：缓存的最大有效时间（秒），从请求时间开始计算
-- `immutable`：告诉浏览器这个资源永远不会变，即使用户按 F5 刷新也不要重新验证
+- `max-age=<seconds>`: The maximum valid time of the cache (in seconds), calculated from the request time
+- `immutable`: Tells the browser that this resource will never change, and even if the user presses F5 to refresh, it should not re-validate
 
 **Expires vs Cache-Control**
 
-`Expires` 使用绝对时间，存在时钟不同步的问题：
+`Expires` uses absolute time, which has the problem of clock desynchronization:
 
 ```
 Expires: Wed, 21 Oct 2026 07:28:00 GMT
 ```
 
-如果 `Cache-Control` 和 `Expires` 同时存在，`Cache-Control` 优先级更高。在现代 Web 开发中，我们应统一使用 `Cache-Control`。
+If `Cache-Control` and `Expires` both exist, `Cache-Control` takes higher priority. In modern web development, we should uniformly use `Cache-Control`.
 
-### 2.2 协商缓存
+### 2.2 Negotiated Caching
 
-当强缓存过期后，浏览器会向服务器发起**带验证器的请求**，由服务器判断资源是否发生了变化。如果没变，返回 `304 Not Modified`，浏览器继续使用本地缓存；如果变了，返回 `200 OK` 和新内容。
+After strong caching expires, the browser sends a **request with a validator** to the server, and the server determines whether the resource has changed. If it hasn't changed, it returns `304 Not Modified`, and the browser continues to use the local cache; if it has changed, it returns `200 OK` and the new content.
 
-协商缓存依赖两对 HTTP 头：
+Negotiated caching relies on two pairs of HTTP headers:
 
 **Last-Modified / If-Modified-Since**
 
@@ -61,7 +59,7 @@ Last-Modified: Tue, 01 Jul 2026 10:30:00 GMT
 If-Modified-Since: Tue, 01 Jul 2026 10:30:00 GMT
 ```
 
-服务器比较文件的最后修改时间。缺点是精度只有秒级，且文件内容不变但 mtime 变了（比如重新部署）也会导致缓存失效。
+The server compares the file's last modification time. The drawback is that the precision is only at the second level, and if the file content doesn't change but the mtime does (such as after a redeployment), it will also cause cache invalidation.
 
 **ETag / If-None-Match**
 
@@ -73,59 +71,59 @@ ETag: "abc123"
 If-None-Match: "abc123"
 ```
 
-`ETag` 是一个资源内容的哈希值，比 `Last-Modified` 更精确。内容不变、ETag 就不变。ETag 的优先级高于 `Last-Modified`。
+`ETag` is a hash value of the resource content, which is more precise than `Last-Modified`. If the content doesn't change, the ETag doesn't change. ETag has higher priority than `Last-Modified`.
 
-## 3. Cache-Control 指令详解
+## 3. Detailed Explanation of Cache-Control Directives
 
-`Cache-Control` 是缓存策略的核心。我们来逐一拆解每个指令的含义：
+`Cache-Control` is the core of caching strategy. Let's break down the meaning of each directive one by one:
 
-| 指令 | 作用 | 典型场景 |
+| Directive | Purpose | Typical Scenario |
 |------|------|----------|
-| `public` | 任何节点都可缓存（浏览器、CDN、代理） | 公共静态资源 |
-| `private` | 仅浏览器可缓存 | 用户个人数据 |
-| `no-cache` | 可以缓存，但每次使用前必须验证 | 需要及时更新的页面 |
-| `no-store` | 完全不缓存 | 敏感数据（银行页面） |
-| `max-age=N` | 缓存有效期 N 秒 | 所有资源 |
-| `s-maxage=N` | 仅 CDN/代理的缓存时间 | CDN 缓存策略 |
-| `must-revalidate` | 过期后必须向服务器验证 | 重要资源 |
-| `stale-while-revalidate` | 过期后可先用旧缓存，后台异步更新 | 提升响应速度 |
-| `stale-if-error` | 服务器出错时可使用过期缓存 | 容灾降级 |
-| `immutable` | 资源永不变化，不发起验证请求 | 带指纹的静态资源 |
+| `public` | Any node can cache (browser, CDN, proxy) | Public static resources |
+| `private` | Only the browser can cache | User personal data |
+| `no-cache` | Can be cached, but must be validated before each use | Pages that need timely updates |
+| `no-store` | No caching at all | Sensitive data (banking pages) |
+| `max-age=N` | Cache valid for N seconds | All resources |
+| `s-maxage=N` | Cache time for CDN/proxy only | CDN caching strategy |
+| `must-revalidate` | Must validate with server after expiration | Important resources |
+| `stale-while-revalidate` | Can use stale cache after expiration, update asynchronously in background | Improve response speed |
+| `stale-if-error` | Can use stale cache when server errors occur | Disaster recovery and degradation |
+| `immutable` | Resource never changes, no validation request initiated | Static resources with fingerprints |
 
-## 4. 实战：针对不同资源的缓存策略
+## 4. In Practice: Caching Strategies for Different Resources
 
-### 4.1 带哈希的静态资源（JS/CSS/图片）
+### 4.1 Static Resources with Hashes (JS/CSS/Images)
 
-这是最适合激进缓存的一类资源。文件名里的内容哈希（如 `main.a1b2c3d.js`）保证了文件内容变化时 URL 也会变：
+This is the type of resource most suited for aggressive caching. The content hash in the filename (such as `main.a1b2c3d.js`) ensures that the URL changes when the file content changes:
 
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-- `max-age=31536000`：缓存一年
-- `immutable`：即使 F5 刷新也不重新验证，因为 URL 变 = 内容变
+- `max-age=31536000`: Cache for one year
+- `immutable`: Even F5 refresh won't re-validate, because URL change = content change
 
-Vite、Webpack、Next.js 等现代打包工具默认都输出带哈希的文件名。
+Modern bundlers like Vite, Webpack, and Next.js all output hashed filenames by default.
 
-### 4.2 HTML 页面
+### 4.2 HTML Pages
 
-HTML 不能激进缓存，因为它是应用的入口点。一旦被缓存，用户就看不到更新：
+HTML cannot be aggressively cached because it is the entry point of the application. Once cached, users won't see updates:
 
 ```
 Cache-Control: no-cache
 ```
 
-或者用一个较短的 max-age：
+Or use a shorter max-age:
 
 ```
 Cache-Control: public, max-age=0, must-revalidate
 ```
 
-`no-cache` 和 `max-age=0, must-revalidate` 效果类似——每次都验证，但允许返回 304。
+`no-cache` and `max-age=0, must-revalidate` have similar effects—validate every time, but allow returning 304.
 
-### 4.3 API 接口
+### 4.3 API Endpoints
 
-对于 REST API 响应，缓存策略取决于数据的实时性要求：
+For REST API responses, the caching strategy depends on the real-time requirements of the data:
 
 ```javascript
 // 用户个人信息：不缓存
@@ -138,100 +136,100 @@ res.setHeader('Cache-Control', 'public, max-age=60');
 res.setHeader('Cache-Control', 'public, max-age=86400');
 ```
 
-### 4.4 字体文件
+### 4.4 Font Files
 
-字体文件体积大且很少变化，适合长期缓存：
+Font files are large in size and rarely change, making them suitable for long-term caching:
 
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-但需要注意跨域问题：浏览器对字体文件强制 CORS 检查，确保 CDN 配置了 `Access-Control-Allow-Origin`。
+But cross-origin issues need attention: browsers enforce CORS checks on font files, so make sure the CDN is configured with `Access-Control-Allow-Origin`.
 
-### 4.5 Service Worker 脚本
+### 4.5 Service Worker Scripts
 
-Service Worker 的缓存有特殊规则：浏览器会忽略 Cache-Control，最多缓存 24 小时。这是浏览器的安全机制，确保恶意 SW 不会永久驻留。
+Service Worker caching has special rules: browsers ignore Cache-Control and cache for at most 24 hours. This is a browser security mechanism to ensure that malicious SWs don't persist permanently.
 
-## 5. CDN 缓存策略
+## 5. CDN Caching Strategies
 
-现代 Web 应用几乎都使用 CDN，CDN 层有自己的缓存逻辑。
+Modern web applications almost all use CDNs, and the CDN layer has its own caching logic.
 
-### 5.1 CDN 缓存键
+### 5.1 CDN Cache Keys
 
-CDN 根据**缓存键** 来区分不同资源。默认缓存键是 `域名 + URI`。但对于多语言站点或 A/B 测试，可能需要自定义缓存键：
+CDNs distinguish different resources based on **cache keys**. The default cache key is `域名 + URI`. But for multilingual sites or A/B testing, custom cache keys may be needed:
 
 ```
 # 把 Accept-Language 加入缓存键，实现按语言缓存
 Cache-Key: ${host}${uri}${http_accept_language}
 ```
 
-### 5.2 CDN 刷新（Purge）
+### 5.2 CDN Purge
 
-当需要紧急更新资源时，有两个选项：
+When resources need to be urgently updated, there are two options:
 
-- **Purge（清除）**：立即删除 CDN 缓存，下一次请求回源
-- **Prefetch（预热）**：提前把资源推送到 CDN 边缘节点
+- **Purge**: Immediately delete the CDN cache, and the next request goes back to origin
+- **Prefetch**: Push resources to CDN edge nodes in advance
 
-Purge 操作有冷却时间（各 CDN 厂商不同），不能频繁调用。
+Purge operations have a cooldown period (varies by CDN provider) and cannot be called frequently.
 
-### 5.3 源站与 CDN 缓存时间的协调
+### 5.3 Coordinating Origin and CDN Cache Times
 
-一个常见的问题是：源站的 `Cache-Control: max-age=3600` 和 CDN 控制台设置的缓存时间冲突怎么办？
+A common question is: what happens when the origin's `Cache-Control: max-age=3600` conflicts with the cache time set in the CDN console?
 
-结论：**大多数 CDN 以源站的 Cache-Control 为准**。但你可以用 `s-maxage` 单独控制 CDN 层的缓存时间：
+Conclusion: **Most CDNs prioritize the origin's Cache-Control**. But you can use `s-maxage` to separately control the CDN layer's cache time:
 
 ```
 Cache-Control: public, max-age=3600, s-maxage=86400
 ```
 
-这表示浏览器缓存 1 小时，CDN 缓存 24 小时。
+This means the browser caches for 1 hour, and the CDN caches for 24 hours.
 
-## 6. 缓存失效策略
+## 6. Cache Invalidation Strategies
 
-缓存更新是最难的问题之一。业界主要有以下几种策略：
+Cache updates are one of the hardest problems. The industry mainly has the following strategies:
 
-### 6.1 文件名指纹（File Fingerprinting）
+### 6.1 File Fingerprinting
 
-最佳实践。每个构建产物的文件名包含其内容的哈希值：
+The best practice. Each build artifact's filename contains a hash of its content:
 
 ```
 main.abc123.js  →  main.def456.js
 ```
 
-旧文件可以继续被缓存，新文件因为 URL 不同而被当作新资源。这就是为什么 Webpack/Vite 默认都输出 `[name].[contenthash].js`。
+Old files can continue to be cached, and new files are treated as new resources because of their different URLs. This is why Webpack/Vite output `[name].[contenthash].js` by default.
 
-### 6.2 Cache Busting：查询参数
+### 6.2 Cache Busting: Query Parameters
 
-在 URL 后面加 `?v=1.0.1`：
+Append `?v=1.0.1` to the URL:
 
 ```html
 <link rel="stylesheet" href="/style.css?v=2.0.0">
 ```
 
-这种方式简单但问题很多：
-- 很多 CDN 默认忽略查询参数，导致 bust 失效
-- 中间代理可能不缓存带查询参数的资源
-- 无法与 `immutable` 配合使用
+This approach is simple but has many problems:
+- Many CDNs ignore query parameters by default, causing busting to fail
+- Intermediate proxies may not cache resources with query parameters
+- Cannot be used in conjunction with `immutable`
 
-**不推荐**，应优先使用文件名指纹。
+**Not recommended**; filename fingerprinting should be preferred.
 
 ### 6.3 Purge API
 
-通过 CDN 提供的 API 主动清除缓存。适合紧急修复场景（如线上 bug），但不适合作为常规更新手段。
+Proactively clear the cache through the API provided by the CDN. Suitable for emergency fix scenarios (such as production bugs), but not suitable as a regular update method.
 
-## 7. 调试与验证
+## 7. Debugging and Verification
 
 ### 7.1 Chrome DevTools
 
-在 Network 面板中，检查资源的 Size 列：
+In the Network panel, check the Size column of resources:
 
-- `(disk cache)` / `(memory cache)`：强缓存命中
-- `304 Not Modified`：协商缓存命中
-- `200 OK（具体大小）`：从服务器重新下载
+- `(disk cache)` / `(memory cache)`: Strong cache hit
+- `304 Not Modified`: Negotiated cache hit
+- `200 OK（具体大小）`: Re-downloaded from the server
 
-注意：**禁用缓存**的勾选只在 DevTools 打开时生效，不要忘记取消勾选来验证实际缓存行为。
+Note: The **Disable cache** checkbox only takes effect while DevTools is open. Don't forget to uncheck it to verify actual caching behavior.
 
-### 7.2 cURL 命令行调试
+### 7.2 cURL Command-Line Debugging
 
 ```bash
 # 查看完整响应头
@@ -244,27 +242,26 @@ curl -I -H 'If-None-Match: "abc123"' https://example.com/style.css
 curl -H 'Cache-Control: max-age=0' https://example.com/style.css
 ```
 
-### 7.3 常见问题排查
+### 7.3 Troubleshooting Common Issues
 
-| 现象 | 可能原因 | 排查方向 |
+| Symptom | Possible Cause | Investigation Direction |
 |------|----------|----------|
-| 资源更新后用户看到旧版本 | HTML 被缓存了 | 检查 HTML 的 Cache-Control |
-| 每次刷新都重新下载 | 缺少强缓存头 | 给静态资源加 `max-age` 和 `immutable` |
-| CDN 缓存不生效 | CDN 忽略了响应头 | 检查 CDN 控制台配置 |
-| F5 刷新时所有资源重新验证 | 没加 `immutable` | 给带哈希的资源加 `immutable` |
+| Users see old version after resource update | HTML is cached | Check the HTML's Cache-Control |
+| Re-downloaded on every refresh | Missing strong cache headers | Add `max-age` and `immutable` to static resources |
+| CDN caching not working | CDN ignored response headers | Check CDN console configuration |
+| All resources re-validated on F5 refresh | `immutable` not added | Add `immutable` to hashed resources |
+## 8. Best Practices Summary
 
-## 8. 最佳实践总结
+1. **Use filename fingerprinting + long-term caching for static assets**: `Cache-Control: public, max-age=31536000, immutable`
+2. **Use `no-cache` or a short `max-age` for HTML entry points**: Ensure users get the latest page structure
+3. **Cache APIs in tiers based on data real-time requirements**: Don't cache user data; public data can be briefly cached
+4. **Use `s-maxage` to differentiate CDN cache control**: CDNs can cache longer than browsers
+5. **Don't purge all caches on deployment**: Under a filename fingerprinting strategy, old assets and old HTML are compatible
+6. **Leverage `stale-while-revalidate` and `stale-if-error`** to improve user experience and availability
 
-1. **静态资源使用文件名指纹 + 长期缓存**：`Cache-Control: public, max-age=31536000, immutable`
-2. **HTML 入口用 `no-cache` 或短 `max-age`**：确保用户能拿到最新页面结构
-3. **API 根据数据实时性分级缓存**：用户数据不缓存，公共数据可短缓存
-4. **用 `s-maxage` 差异化控制 CDN 缓存**：CDN 可以比浏览器缓存更久
-5. **部署时不要 Purge 所有缓存**：文件名指纹策略下，旧资源和旧 HTML 是兼容的
-6. **利用 `stale-while-revalidate` 和 `stale-if-error`** 提升用户体验和可用性
+There is no silver bullet for caching strategies. The key is to choose the right strategy based on an asset's **change frequency** and **users' real-time requirements**. Once you understand the underlying mechanisms of HTTP caching, you can confidently make these trade-offs.
 
-缓存策略没有银弹。关键是根据资源的**变更频率**和**用户对实时性的要求**来选择正确的策略。理解 HTTP 缓存的底层机制，你就能自信地做出这些权衡。
-
-## 参考来源
+## References
 
 - [MDN: Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
 - [web.dev: HTTP Caching](https://web.dev/articles/http-cache)

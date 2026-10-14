@@ -1,43 +1,41 @@
 ---
-title: rm -rf 的悲惨故事：当一条命令删掉整个公司
+title: 'The Tragic Tale of rm -rf: When One Command Deletes an Entire Company'
 published: 2026-09-06
-description: '从 Toy Story 2 到 GitLab 事故，聊聊 rm -rf 这条「核弹级」命令如何一次次制造人间惨剧，以及我们该怎么防。'
+description: From Toy Story 2 to the GitLab incident, a look at how the "nuclear-grade" rm -rf command has repeatedly caused real-world disasters, and how we can prevent them.
 image: ''
-tags: [Linux, 命令行, 程序员笑话, 运维]
-category: '其他'
+tags: [Linux, Command Line, Programmer Humor, DevOps]
+category: Other
 draft: false
-lang: ''
 ---
+In the Linux world, there's a saying that every beginner gets solemnly warned about by their seniors: **"Before you do anything, make sure you know what directory you're in."** And the star behind this saying is that command that people both love and fear—`rm -rf`.
 
-在 Linux 世界里，有一句话每个新手都会被前辈郑重叮嘱一遍：**「动手之前，先看清楚你在哪个目录。」** 而这句话背后的主角，就是那条让人又爱又怕的命令——`rm -rf`。
+`rm` is delete, `-r` is recursive, `-f` is "don't ask me, just delete it." Put those three letters together, and you get a grenade with no safety pin.
 
-`rm` 是删除，`-r` 是递归，`-f` 是「别问我，直接删」。三个字母组合起来，等于一颗没有保险栓的手雷。
+## Those Real-Life Disasters
 
-## 那些真实的翻车现场
+The most famous victim is probably Pixar in 1998. At the time, *Toy Story 2* was still in production, and an engineer accidentally triggered a delete command while cleaning up files. Animation files started disappearing one after another at a visible rate, including the model for the protagonist Woody—the very heart of the film. Just as the team was on the verge of collapse, technical director Galyn Susman remembered she **had a backup on her home office computer**, which saved the movie. It's said that backup came from a synced copy she'd made "so she could get some work done while wrangling the kids at home."
 
-最有名的受害者，大概是 1998 年的皮克斯。当时《玩具总动员 2》还在制作中，一名工程师在清理文件时，误触了删除命令。动画文件以肉眼可见的速度一个接一个消失，包括主角伍迪的建模——那可是全片的核心。就在团队几乎崩溃时，技术总监 Galyn Susman 想起自己**在家办公的电脑上有一份备份**，才挽救了这部电影。据说那份备份来自她「为了方便在家哄娃时顺便工作」而同步的副本。
+Even worse than the animation case was GitLab in 2017. An operations engineer, while fixing a database primary-replica synchronization issue, accidentally ran the delete command on the **primary database** instead of the problematic replica. As a result, about 6 hours' worth of data was deleted from 300GB of production data, and they barely recovered it using a backup that happened to be "exactly one week old"—that incident later became a classic textbook case in DevOps circles for "you can never have too many backups."
 
-比动画更惨的是 2017 年的 GitLab。一位运维工程师在修复数据库主从同步问题时，误把删除命令打在了**主库**上，而不是出问题的从库。结果 300GB 的生产数据被删掉了约 6 小时的数据，最终只靠一份「恰好一周前」的备份勉强救回——那次事故后来成了 DevOps 圈子里「备份永远不嫌多」的经典教材。
-
-还有一个著名的「自杀式」事故来自游戏平台 Steam。2015 年，一段安装脚本里的清理命令写成了：
+Another famous "suicide-style" incident came from the gaming platform Steam. In 2015, a cleanup command in an installation script was written as:
 
 ```bash
 rm -rf "$STEAMROOT/"*
 ```
 
-看起来没问题，对吧？问题在于：**如果 `$STEAMROOT` 这个变量恰好是空的**，这条命令就会展开成：
+Looks fine, right? The problem is: **if the `$STEAMROOT` variable happens to be empty**, this command expands to:
 
 ```bash
 rm -rf /*
 ```
 
-翻译成人话就是「删掉根目录下的所有东西」。好在这个 Bug 只在极少数 Linux 发行版上被触发，且当时脚本需要 root 权限，才没有酿成大祸——但它足以让所有写脚本的人后背发凉。
+In plain English, that means "delete everything under the root directory." Fortunately, this bug was only triggered on a very small number of Linux distributions, and the script required root privileges at the time, so it didn't cause a major disaster—but it was enough to send chills down the spine of anyone who writes scripts.
 
-## 为什么「小失误」总是代价惨重
+## Why "Small Mistakes" Always Come with Heavy Costs
 
-这些事故有一个共同点：**命令本身没写错，错的是执行它的环境**——多敲了一个空格、变量为空、打错了主机名。而 `rm -rf` 之所以可怕，是因为它删得又快又彻底，几乎不给反悔的机会。
+These incidents share one thing in common: **the command itself wasn't written wrong—what was wrong was the environment in which it was executed**—an extra space, an empty variable, a mistyped hostname. And `rm -rf` is terrifying because it deletes fast and thoroughly, leaving almost no chance to undo.
 
-所以老手们的「保命习惯」往往很朴素：
+So veterans' "life-saving habits" tend to be quite simple:
 
 ```bash
 # 删除前先 pwd 确认自己在哪
@@ -50,16 +48,16 @@ ls -l /data/production
 echo rm -rf /data/production/old
 ```
 
-最稳的一招，是把 `rm` 换成「移到回收站」，或者干脆用版本控制 + 定期备份兜底。毕竟连皮克斯和 GitLab 都栽过跟头，谁也不敢说自己永远手稳。
+The safest move is to replace `rm` with "move to trash," or simply rely on version control + regular backups as a fallback. After all, even Pixar and GitLab have stumbled, so no one dares claim their hands will always be steady.
 
-## 结语
+## Conclusion
 
-`rm -rf` 本身没有错，它只是一件被设计得极其高效的工具。真正该敬畏的，是「自动化 + 高权限」叠加起来时的破坏力。下次你准备敲下回车之前，不妨多看一眼光标前那个目录——这一眼，可能值 300GB。
+`rm -rf` itself isn't wrong—it's just a tool designed to be extremely efficient. What truly deserves respect is the destructive power that comes from combining "automation + high privileges." Next time you're about to hit Enter, take an extra moment to look at the directory before your cursor—that one glance could be worth 300GB.
 
 ---
 
-**参考来源**
+**References**
 
-- [GitLab.com 数据库事故事后复盘（2017-02-01）](https://about.gitlab.com/blog/2017/02/10/postmortem-of-database-outage-of-january-31/) — 官方 Postmortem，记录了误删主库的完整过程
-- [Toy Story 2 被误删又被救回的故事](https://en.wikipedia.org/wiki/Toy_Story_2) — 皮克斯动画文件险些丢失的著名往事
-- [Steam 的 rm -rf / 漏洞公告（2015）](https://github.com/valvesoftware/steam-for-linux/issues/3671) — 变量为空导致删除根目录的 Bug 讨论
+- [GitLab.com Database Incident Postmortem (2017-02-01)](https://about.gitlab.com/blog/2017/02/10/postmortem-of-database-outage-of-january-31/) — The official postmortem, documenting the full process of accidentally deleting the primary database
+- [The Story of Toy Story 2 Being Accidentally Deleted and Rescued](https://en.wikipedia.org/wiki/Toy_Story_2) — The famous tale of Pixar's animation files nearly being lost
+- [Steam's rm -rf / Vulnerability Announcement (2015)](https://github.com/valvesoftware/steam-for-linux/issues/3671) — Discussion of the bug where an empty variable led to deleting the root directory

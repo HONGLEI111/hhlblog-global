@@ -1,27 +1,25 @@
 ---
-title: 程序员面试中的搞笑瞬间：白板前的众生相
+title: 'Funny Moments in Programmer Interviews: The Many Faces Before the Whiteboard'
 published: 2026-09-19
-description: '从 Homebrew 作者被 Google 拒之门外，到 FizzBuzz 筛掉一半应聘者——面试间里那些荒诞又真实的瞬间。'
+description: From the Homebrew author being turned away by Google to FizzBuzz filtering out half the applicants—the absurd yet real moments that happen in interview rooms.
 image: ''
-tags: [程序员笑话, 面试, 职业发展, 软件工程]
-category: '其他'
+tags: [programmer humor, interviews, career development, software engineering]
+category: Other
 draft: false
-lang: ''
 ---
+Interviews are probably the occasion where programmers put on the densest performance: people who normally rely on IDE autocomplete after typing three characters now have to write out a red-black tree from memory on a whiteboard; people who normally look up documentation at lightning speed now have to pretend they've memorized every API.
 
-面试大概是程序员表演密度最高的场合：平时敲三个字符就靠 IDE 补全的人，此刻要在白板上默写红黑树；平时文档查得飞起的人，此刻要假装自己背下了所有 API。
+## The Most Famous "Flop"
 
-## 最著名的一次「翻车」
-
-2015 年，Homebrew 的作者 Max Howell 去 Google 面试被拒，随后发了一条流传至今的推文：
+In 2015, Max Howell, the author of Homebrew, was rejected in a Google interview, and then posted a tweet that has been passed down to this day:
 
 > Google: 90% of our engineers use the software you wrote (Homebrew), but you can't invert a binary tree on a whiteboard so fuck off.
 
-「我们九成的工程师每天在用你写的软件，但你没法在白板上翻转二叉树，所以再见。」这句话之所以经典，是因为它精准戳中了技术面试的荒诞——我们考的东西和真正做的工作，往往隔着一整个银河系。
+"Ninety percent of our engineers use the software you wrote every day, but you can't invert a binary tree on a whiteboard, so goodbye." The reason this line is a classic is that it precisely hits the absurdity of technical interviews—what we test and the work we actually do are often separated by an entire galaxy.
 
-## FizzBuzz 的残酷实验
+## The Brutal Experiment of FizzBuzz
 
-2007 年，招聘者 Imran Ghory 提出了一个极简的面试题：打印 1 到 100，3 的倍数输出 `Fizz`，5 的倍数输出 `Buzz`，同时是两者倍数则输出 `FizzBuzz`。
+In 2007, recruiter Imran Ghory proposed an extremely simple interview question: print 1 to 100, output `Fizz` for multiples of 3, output `Buzz` for multiples of 5, and output `FizzBuzz` for multiples of both.
 
 ```javascript
 for (let i = 1; i <= 100; i++) {
@@ -32,25 +30,25 @@ for (let i = 1; i <= 100; i++) {
 }
 ```
 
-就这么七行代码，他说能筛掉相当比例的应聘者，其中不乏简历上写着「精通 Java、C++」的人——有人写不出循环，有人把 `%` 当成了百分比运算符。
+Just seven lines of code, and he said it could filter out a considerable proportion of applicants, including people whose resumes said "proficient in Java, C++"—some couldn't write a loop, and some treated `%` as a percentage operator.
 
-## 面试间里的经典名场面
+## Classic Scenes in the Interview Room
 
-- 「你为什么想加入我们？」——「因为你们在招人。」
-- 「你的缺点是什么？」——「太追求完美。」（面试官今年第 800 次听到这个答案）
-- 「井盖为什么是圆的？」——微软的招牌题，标准答案是「圆盖子不会掉进井里」，但它真正考察的是你被问懵后还能不能保持微笑。
-- 面试官说「我们来看一道简单的算法题」——此时你知道，接下来四十五分钟，你将和一道 LeetCode Hard 面面相觑。
+- "Why do you want to join us?"—"Because you're hiring."
+- "What's your weakness?"—"I'm too much of a perfectionist." (The interviewer hears this answer for the 800th time this year.)
+- "Why are manhole covers round?"—Microsoft's signature question. The standard answer is "a round cover won't fall into the manhole," but what it really tests is whether you can still keep smiling after being stumped.
+- The interviewer says, "Let's look at a simple algorithm problem"—at this point you know that for the next forty-five minutes, you'll be staring blankly at a LeetCode Hard problem.
 
-## 结语
+## Conclusion
 
-面试的荒诞在于，它试图用一小时的即兴表演，去预测一个人未来几年的日常工作。翻转二叉树和写 CRUD 确实没多大关系——但正因如此，这些故事才让人记得住。
+The absurdity of interviews lies in trying to use one hour of improvisational performance to predict a person's daily work over the next few years. Inverting a binary tree really doesn't have much to do with writing CRUD—but precisely because of that, these stories are memorable.
 
-下次在白板前卡住时，不妨想想 Max Howell：写代码和造软件是两件事，面试挂掉证明不了什么。毕竟，连 Homebrew 的作者都被拒了。
+Next time you get stuck in front of a whiteboard, think of Max Howell: writing code and building software are two different things, and failing an interview proves nothing. After all, even the author of Homebrew was rejected.
 
 ---
 
-**参考来源**
+**References**
 
-- [Max Howell 关于 Google 面试的推文](https://twitter.com/mxcl/status/608682016205344768) — Homebrew 作者的著名吐槽
-- [Using FizzBuzz to Find Developers who Grok Coding - Imran Ghory](https://imranontech.com/2007/01/24/using-fizzbuzz-to-find-developers-who-grok-coding/) — FizzBuzz 面试题的原始出处
-- [Manhole cover - Wikipedia](https://en.wikipedia.org/wiki/Manhole_cover) — 微软经典面试题的来龙去脉
+- [Max Howell's tweet about the Google interview](https://twitter.com/mxcl/status/608682016205344768) — the Homebrew author's famous rant
+- [Using FizzBuzz to Find Developers who Grok Coding - Imran Ghory](https://imranontech.com/2007/01/24/using-fizzbuzz-to-find-developers-who-grok-coding/) — the original source of the FizzBuzz interview question
+- [Manhole cover - Wikipedia](https://en.wikipedia.org/wiki/Manhole_cover) — the background of Microsoft's classic interview question

@@ -1,66 +1,65 @@
 ---
-title: 技术债的识别与管理：别再用「代码烂」当借口
+title: 'Identifying and Managing Technical Debt: Stop Using "Bad Code" as an Excuse'
 published: 2026-10-02
-description: '技术债的原意是「借款 + 利息」，不是「代码烂」。本文用 Cunningham 的原话和 Fowler 的四象限理清概念，给出一份可直接运行的 git 热点分析脚本，用它在本站真实仓库里找出「改动最频繁 × 最绕」的文件，再谈怎么给债务定价、以及什么时候该还、什么时候该认。'
+description: Technical debt originally meant "principal plus interest," not "bad code." This post clarifies the concept using Cunningham's original words and Fowler's four quadrants, provides a ready-to-run Git hotspot analysis script to find the most frequently changed and most convoluted files in a real repository, and discusses how to price debt and when to pay it down versus accept it.
 image: ''
-tags: [技术债, 重构, 代码质量, Git, 工程实践]
-category: '后端'
+tags: [Technical Debt, Refactoring, Code Quality, Git, Engineering Practices]
+category: Backend
 draft: false
-lang: ''
 ---
+## The Point of Debt Is Not "Bad Code"
 
-## 债务的本意不是「代码烂」
-
-1992 年，Ward Cunningham 在 OOPSLA 的经验报告里第一次写下技术债这个比喻。原话是这样：
+In 1992, Ward Cunningham first wrote down the metaphor of technical debt in an experience report at OOPSLA. Here is the original quote:
 
 > Shipping first time code is like going into debt. A little debt speeds development so long as it is paid back promptly with a rewrite. … The danger occurs when the debt is not repaid. Every minute spent on not-quite-right code counts as interest on that debt.
 
-请留意两个关键词：**借款**——一时的权宜之计换来的速度；**利息**——每一分钟花在「不太对」的代码上的额外开销。
+Pay attention to two key words: **borrowing**—the speed gained from a temporary expedient; and **interest**—the extra cost of every minute spent on code that is "not quite right."
 
-三十多年后，这个词被用成了「代码写得烂」的同义词。但这两件事完全不同：烂代码是**已经产生的利息**，而债务是**当初那笔借款**。混为一谈的后果很实际——看到烂代码，人的本能反应是重构；而债务管理的第一问应该是：
+More than thirty years later, the term has been used as a synonym for "badly written code." But these two things are completely different: bad code is **interest already incurred**, while debt is **the original loan**. The consequences of conflating them are very practical—when people see bad code, their instinct is to refactor; but the first question of debt management should be:
 
-**这笔债的利息有多高？**
+**How high is the interest on this debt?**
 
-利息低到可以忽略的债，最好的处理方式就是**不处理**。一个一万行的老模块，五年没人碰过、也永远不会再碰，它再丑也不产生利息。反过来，一个两百行、每周都被改三次的文件，哪怕看起来很体面，也可能正在按复利收你的钱。
+For debt whose interest is low enough to be negligible, the best way to handle it is **not to handle it**. A ten-thousand-line legacy module that no one has touched in five years and will never touch again does not generate interest no matter how ugly it is. Conversely, a two-hundred-line file that gets changed three times a week, even if it looks respectable, may be charging you compound interest.
 
-这篇文章讲两件事：怎么找到真正在付息的那部分代码，以及找到之后怎么还。
+This article covers two things: how to find the part of the codebase that is actually paying interest, and once you find it, how to pay it back.
 
-## 1. 先分类：同样叫债务，性质完全不同
+## 1. Classify First: The Same Name, but Completely Different in Nature
 
-Martin Fowler 在 2009 年提出的[技术债四象限](https://martinfowler.com/bliki/TechnicalDebtQuadrant.html)至今仍是我见过最好用的分类法。它只问两个问题：这笔债是**有意**借的吗？借的时候**草率**吗？
+The [technical debt quadrant](https://martinfowler.com/bliki/TechnicalDebtQuadrant.html) proposed by Martin Fowler in 2009 is still the most useful classification I have ever seen. It asks only two questions: Was this debt borrowed **deliberately**? Was it borrowed **recklessly**?
 
-|  | 草率 Reckless | 审慎 Prudent |
+|  | Reckless | Prudent |
 | --- | --- | --- |
-| **有意 Deliberate** | 「先上线，设计以后再说」——知道自己在违反什么，也知道后果，但没想清楚代价 | 「必须现在发版，后果我们自己扛」——清楚代价、有还款计划，也通知了相关的人 |
-| **无意 Inadvertent** | 「分层是什么？」——压根不知道什么是对的，于是攒出一团乱麻 | 「现在才明白当初该怎么写」——即便优秀的团队也躲不掉，这是学习的必然副产品 |
+| **Deliberate** | "Ship first, think about design later"—you know what you are violating and you know the consequences, but you have not thought through the cost | "We have to release now, and we will bear the consequences ourselves"—you understand the cost, have a repayment plan, and have notified the relevant people |
+| **Inadvertent** | "What is layering?"—you have no idea what the right approach is, so you accumulate a mess | "Only now do I understand how it should have been written"—even excellent teams cannot avoid this; it is an inevitable byproduct of learning |
 
-这张表最有用的一点，是它把「**知情**」和「**草率**」分开了。很多团队一说起技术债就充满道德愧疚，仿佛借债等于犯错。但右下角那格——审慎且无意——是任何一个正常演进的系统都必然产生的：你在写代码的过程中才逐渐理解问题域，一年后才想明白最佳设计是正常的。Fowler 的原话是，这种债「应该被预期到，而不是被指责」。
+The most useful thing about this table is that it separates "**knowing**" from "**recklessness**." Many teams feel full of moral guilt whenever technical debt comes up, as if borrowing were equivalent to making a mistake. But the bottom-right cell—prudent and inadvertent—is something any normally evolving system will inevitably produce: you gradually understand the problem domain while writing code, and it is normal to realize only a year later what the best design is. Fowler's original point is that this kind of debt "should be expected, not blamed."
 
-真正需要警惕的是左下角：不知道什么是对的做法，于是每天都在借新债，而且没人记账。这一格不靠重构解决，靠的是补齐工程常识。
+What truly deserves vigilance is the bottom-left cell: not knowing what the right approach is, so you borrow new debt every day, and no one keeps the books. This cell is not solved by refactoring; it is solved by filling in basic engineering common sense.
 
-**分类的实际用途是分配不同的处理方式**：
+**The practical use of classification is to assign different ways of handling debt**:
 
-- 有意 + 审慎 → 记账，排进计划，到期偿还；
-- 有意 + 草率 → 追问「当时真的没时间吗」，多数情况下答案是「其实有」；
-- 无意 + 审慎 → 正常现象，跟着重构节奏走；
-- 无意 + 草率 → 培训和评审机制的问题，不是债务问题。
+- Deliberate + prudent → record it, schedule it, repay it when due;
+- Deliberate + reckless → ask "was there really no time back then?" In most cases the answer is "there actually was";
+- Inadvertent + prudent → normal phenomenon, follow the rhythm of refactoring;
+- Inadvertent + reckless → a problem with training and review mechanisms, not a debt problem.
 
-## 2. 再定位：不是所有的债都值得还
+## 2. Locate Next: Not All Debt Is Worth Repaying
 
-假设你现在有一千个文件。理论上「把所有坏味道都修掉」是一种方案，但它有两个致命缺陷：**成本没有上限，收益没有下限**。
+Suppose you now have a thousand files. In theory, "fix all the bad smells" is one option, but it has two fatal flaws: **the cost has no upper bound, and the benefit has no lower bound**.
 
-更实际的做法来自 Adam Tornhill 在《Your Code as a Crime Scene》里推广的**热点分析（hotspot analysis）**：把两个维度相乘——
+A more practical approach comes from the **hotspot analysis** popularized by Adam Tornhill in *Your Code as a Crime Scene*: multiply two dimensions—
 
-- **复杂度**：这个文件本身有多绕；
-- **变更频率（churn）**：这个文件被改得有多频繁。
+- **Complexity**: how convoluted the file itself is;
+- **Churn**: how frequently the file is changed.
 
-单独看任何一个都没有意义。复杂度高但没人动的文件，是博物馆展品，留着不碍事；频繁改动但结构简单的文件，改起来也不痛。**只有两者的乘积才指向真正的痛点**——既绕、又天天要动的地方，每一次改动都在向利息付费。Tornhill 的核心论点是：热点文件只占代码库的一小部分，却承载了大部分开发活动和缺陷。
+Looking at either one alone is meaningless. A highly complex file that no one touches is a museum exhibit; keeping it around does no harm. A frequently changed file with a simple structure is not painful to modify. **Only the product of the two points to the real pain point**—a place that is both convoluted and constantly being changed, where every modification pays interest. Tornhill's core argument is that hotspot files make up only a small part of the codebase, yet carry most development activity and defects.
 
-好消息是，churn 这个维度不需要任何商业工具，`git log` 里全都有。
+The good news is that the churn dimension does not require any commercial tool; `git log` has it all.
 
-## 3. 动手：用 60 行代码找出热点
+--- END CONTENT ---
+## 3. Hands-On: Finding Hotspots with 60 Lines of Code
 
-下面这个脚本只依赖 Node.js 和 git，把仓库过去一年的历史汇总成一张热点排行榜。
+The script below depends only on Node.js and git, and it aggregates a repository's past year of history into a hotspot leaderboard.
 
 ```js
 // hotspots.mjs —— 找出「改得最频繁 × 最绕」的文件：偿还技术债的最优先候选
@@ -153,7 +152,7 @@ console.log('\n提示：分数高 ≠ 必须重构。先读它最近几个月的
 console.log('      判断这些改动是「持续加功能」还是「反复修同一类 bug」——后者才是高息债务。');
 ```
 
-第一步先故意**不加过滤**跑一次，你会立刻明白为什么需要黑名单：
+The first step is to deliberately run it once **without filters**, and you'll immediately understand why a blacklist is needed:
 
 ```
   分数  提交  复杂度  文件
@@ -161,9 +160,9 @@ console.log('      判断这些改动是「持续加功能」还是「反复修�
    2460    10     246  pnpm-lock.yaml ███████████████████████
 ```
 
-`pnpm-lock.yaml` 冲到了第二名，复杂度还比 Layout 高一倍多。它对「圈复杂度」毫无意义——那 246 个分支关键字来自成千上万个包名和版本号。锁文件确实改得很勤，但它是一份**生成物**，没有设计、没有所有权、也没有重构空间。这类文件必须排除，否则排行榜会被它们挤满。
+`pnpm-lock.yaml` shot up to second place, with a complexity proxy more than double that of Layout. It's meaningless for "cyclomatic complexity"—those 246 branch keywords come from tens of thousands of package names and version numbers. Lock files do change frequently, but they are a **generated artifact** with no design, no ownership, and no room for refactoring. Files like these must be excluded, otherwise the leaderboard will be crowded out by them.
 
-加上过滤规则后，结果变得可用了：
+After adding filter rules, the results become usable:
 
 ```
 热点文件 Top 10（1 year ago 起，分数 = 提交次数 × 分支密度）
@@ -181,13 +180,12 @@ console.log('      判断这些改动是「持续加功能」还是「反复修�
     168     6      28  src/components/misc/ImageWrapper.astro ██
 ```
 
-（这是在本站这个 Astro 博客仓库上跑出来的真实结果。）
+(This is a real result from running it on this site's Astro blog repository.)
 
-`Layout.astro` 以绝对优势排在第一位：一年 26 次提交，复杂度代理值 99，比第二名高出五倍以上。这就是典型的高息债务——几乎每个页面功能都要经过它，改它的风险也最高。
+`Layout.astro` ranks first by an overwhelming margin: 26 commits in a year, a complexity proxy of 99, more than five times that of second place. This is a classic high-interest debt—almost every page feature has to pass through it, and the risk of changing it is also the highest.
+## 4. Quantifying Interest: From "Changed Frequently" to "Paying Interest"
 
-## 4. 量化利息：从「改得频繁」到「在还利息」
-
-热点分只告诉你「哪里要动」，不告诉你「动了之后是在赚钱还是在还钱」。这一步可以用提交消息补上：
+Hotspot scores only tell you "where to make changes," not whether making those changes is earning money or paying it back. This step can be supplemented with commit messages:
 
 ```bash
 # 过去六个月，这个文件被改了多少次？
@@ -199,9 +197,9 @@ git log --since="6 months ago" --oneline -i --grep='^fix' -- src/layouts/Layout.
 # 10
 ```
 
-25 次改动里有 **10 次**以 `fix` 开头。这个比例就是利息的直接证据：每次新需求进来，都有相当概率先撞上一个旧问题。
+Of the 25 changes, **10** start with `fix`. This ratio is direct evidence of interest: every time a new requirement comes in, there's a significant chance of first running into an old problem.
 
-再往下挖一层，为什么反复修？答案往往就写在那行注释里：
+Dig one layer deeper—why does it keep getting fixed? The answer is often written right there in that comment:
 
 ```bash
 $ grep -n 'TODO' src/layouts/Layout.astro
@@ -211,62 +209,62 @@ $ git log -1 --format=%ad --date=short -S 'TODO: temp solution to change the hei
 2026-03-23
 ```
 
-一个标注为 **temp solution** 的权宜之计，从 2026 年 3 月 23 日躺到今天，已经半年多。它是一个**有意的、草率的**借款（四象限左上角），当初大概确实换来了上线速度——现在它在按次收利息，每次有人动 banner 相关逻辑，都要先绕过它。
+A workaround labeled **temp solution** has been sitting there since March 23, 2026—over half a year now. It's a **deliberate, sloppy** loan (top-left quadrant), and it probably did buy shipping speed at the time—now it's collecting interest per use. Every time someone touches banner-related logic, they have to work around it first.
 
-顺便一提，这个 `git log -S` 的用法值得记住：它找的是「这段文字是哪个提交引入的」，也就是**这笔债是什么时候、因为什么借下的**。知道借款原因，才知道现在能不能还——如果当初是为了赶一个已经不存在了的 deadline，那这笔债现在就该结清。
+By the way, this `git log -S` usage is worth remembering: it finds "which commit introduced this text"—that is, **when and why this debt was borrowed**. Knowing the reason for borrowing tells you whether it can be repaid now—if it was to meet a deadline that no longer exists, then this debt should be settled now.
 
-## 5. 给债务定价：指标能测什么，不能测什么
+## 5. Pricing the Debt: What Metrics Can and Cannot Measure
 
-SonarQube 这类工具给了技术债一个可比较的数字，核心是 **Technical Debt Ratio（技术债比率）**：
+Tools like SonarQube give technical debt a comparable number, centered on the **Technical Debt Ratio**:
 
 ```
 技术债比率 = 修复所有问题的成本 / 从零重写整个项目的成本 × 100%
 ```
 
-SonarSource 的[指标定义文档](https://docs.sonarsource.com/sonarqube-community-build/user-guide/code-metrics/metrics-definition)里说明了相关的度量口径，Maintainability Rating（`sqale_rating`）就是按这个比率分级的，默认区间大致是：A ≤ 5%、B ≤ 10%、C ≤ 20%、D ≤ 50%、E > 50%（阈值可在全局配置里调整；它源自 SQALE 方法，比现在这些工具要早）。
+SonarSource's [metric definition documentation](https://docs.sonarsource.com/sonarqube-community-build/user-guide/code-metrics/metrics-definition) explains the relevant measurement criteria. The Maintainability Rating (`sqale_rating`) is graded by this ratio, with default ranges roughly: A ≤ 5%, B ≤ 10%, C ≤ 20%, D ≤ 50%, E > 50% (thresholds are configurable globally; it originates from the SQALE method, which predates these tools).
 
-这个指标的价值在于**可比较**：它把「这个模块很乱」变成了「还清它需要 40 人天，占重写成本的 23%」，于是能进到排期会议上讨论。但它有个必须警惕的局限：
+The value of this metric lies in its **comparability**: it turns "this module is a mess" into "paying it off requires 40 person-days, 23% of rewrite cost," which can then enter scheduling meetings for discussion. But it has a limitation you must be wary of:
 
-**它测的是本金，不是利息。**
+**It measures principal, not interest.**
 
-Technical Debt Ratio 算的是「修好要花多少时间」，等价于债务的本金。而决定这笔债该不该现在还的，是**利息**——也就是不修它，未来每次改动要额外付出多少。一个满是问题但没人碰的模块，比率可能很难看，利息却接近零；一个只有两三个问题、但每周被改五次的核心文件，比率可能很漂亮，利息却很高。
+Technical Debt Ratio calculates "how much time to fix it"—equivalent to the principal of the debt. What determines whether this debt should be repaid now is the **interest**—that is, how much extra you'll pay on every future change if you don't fix it. A module full of problems that nobody touches may have an ugly ratio but near-zero interest; a core file with only two or three problems but changed five times a week may have a beautiful ratio but high interest.
 
-所以正确的组合是：**用 SonarQube 之类的工具看本金规模，用热点分析看利息费率，先还那些「本金可控、利息很高」的债。**
+So the correct combination is: **use tools like SonarQube to see the scale of principal, use hotspot analysis to see the interest rate, and pay off first those debts where "principal is manageable but interest is high."**
 
-## 6. 还债策略：偿还、重写、还是接受
+## 6. Debt Repayment Strategies: Repay, Rewrite, or Accept
 
-确定了一笔债值得处理之后，只有四种动作：
+Once you've determined a debt is worth addressing, there are only four actions:
 
-1. **偿还**：小步重构，就地改好。适合热点明确、边界清晰的文件（比如上面那个 banner 高度问题）。
-2. **重写**：只有当它是热点**且**本金已经超过重写成本时才考虑。Technical Debt Ratio 存在的意义之一，就是给这个决策提供一条参考线。
-3. **隔离**：给旧代码加一层适配层，新代码只依赖适配层接口，老代码冻结。这是成本最低的止损，特别适合「不敢动但必须继续用」的模块。
-4. **接受**：明确记录「我们知道这笔债存在，且决定不还」，并写清理由。
+1. **Repay**: Small-step refactoring, fix it in place. Suitable for files with clear hotspots and well-defined boundaries (like the banner height issue above).
+2. **Rewrite**: Only consider when it's a hotspot **and** the principal already exceeds rewrite cost. One of the purposes of Technical Debt Ratio is to provide a reference line for this decision.
+3. **Isolate**: Add an adapter layer over the old code, have new code depend only on the adapter interface, and freeze the old code. This is the lowest-cost stop-loss, especially suitable for modules "too scary to touch but must keep using."
+4. **Accept**: Explicitly record "we know this debt exists and decide not to repay it," with clear reasoning.
 
-第四种最容易被忽略，但它其实最重要。技术债管理的真正目标不是「没有债」——那不可能——而是**让每一笔债都是知情的**。一张写清楚「借了什么、为什么借、利息多高、谁负责」的账本，比任何一次轰轰烈烈的重构运动都有用。
+The fourth is most easily overlooked, but it's actually the most important. The real goal of technical debt management isn't "no debt"—that's impossible—but **making every debt informed**. A ledger that clearly states "what was borrowed, why, how high the interest, who's responsible" is more useful than any dramatic refactoring campaign.
 
-关于第 2 和第 3 点，Google 在[《Software Engineering at Google》的 Deprecation 一章](https://abseil.io/resources/swe-book/html/ch15.html)里分享了他们在大规模代码库上学到的几条经验，非常值得直接抄：
+Regarding points 2 and 3, Google shared several lessons learned on large-scale codebases in the [Deprecation chapter of *Software Engineering at Google*](https://abseil.io/resources/swe-book/html/ch15.html), which are well worth copying directly:
 
-- **必须有明确的负责人（owner）**。没有 owner 的废弃计划几乎从不会自然完成——最后要么永远不删，要么把迁移成本全甩给使用者。
-- **警告必须可执行且相关**。只写一句 `@deprecated` 没用，要明确给出「换成什么、怎么换」；并且只在用户真正改到相关代码时才提示，否则就是全员告警疲劳。
-- **别把「删除」当成唯一的里程碑**。删除旧代码往往是整件事里最不起眼的一步，如果只考核它，团队会为了达成指标而草率收尾。Google 的做法是把基础设施的迁移责任放在**提供方**（所谓 Churn Rule：你提供的基础设施，你自己负责把用户迁过来），而不是指望几十个团队各自排期。
+- **There must be a clear owner**. Deprecation plans without an owner almost never complete naturally—they either never get deleted, or the entire migration cost gets dumped on users.
+- **Warnings must be actionable and relevant**. Just writing `@deprecated` is useless; you must clearly state "replace with what, how to replace"; and only warn when users actually touch relevant code, otherwise it's alert fatigue for everyone.
+- **Don't treat "deletion" as the only milestone**. Deleting old code is often the least notable step in the whole effort. If you only measure that, teams will rush the ending to hit the metric. Google's approach is to place infrastructure migration responsibility on the **provider** (the so-called Churn Rule: the infrastructure you provide, you're responsible for migrating users over), rather than expecting dozens of teams to each schedule their own migration.
 
-## 结语
+## Conclusion
 
-把上面这些收拢成一套可以立刻执行的动作：
+Consolidating the above into a set of immediately executable actions:
 
-1. **跑一遍热点脚本**，拿到你自己仓库的 top 10。不要扫全库，只看这十个。
-2. **对每个热点看 fix 比例**：`--grep='^fix'` 占该文件总改动的比例越高，利息越贵。
-3. **用 `git log -S` 挖出最老的那个 TODO**，看看它当初是为谁借的，现在还该不该还。
-4. **给债分类**：是有意还是无意，审慎还是草率。分类不同，动作不同。
-5. **记账**：哪怕只是 issue 里的一行「已知债务：xxx，利息评估：高/中/低，决定：还/隔离/接受」，也比没有强。
+1. **Run the hotspot script** to get your own repository's top 10. Don't scan the whole codebase—just look at these ten.
+2. **For each hotspot, check the fix ratio**: the higher the proportion of `--grep='^fix'` in that file's total changes, the more expensive the interest.
+3. **Use `git log -S` to dig out the oldest TODO**, see who it was borrowed for originally, and whether it should still be repaid now.
+4. **Classify the debt**: deliberate or inadvertent, prudent or reckless. Different classifications call for different actions.
+5. **Keep a ledger**: even just a line in an issue like "Known debt: xxx, interest assessment: high/medium/low, decision: repay/isolate/accept" is better than nothing.
 
-最后回到 Cunningham 那句话。技术债这个比喻真正的价值不在于道德评判，而在于它提醒你：**借债本身是一种正常且高效的手段，问题永远出在没人记账的时候。**
+Finally, back to Cunningham's statement. The real value of the technical debt metaphor isn't moral judgment—it's reminding you: **borrowing itself is a normal and efficient means; the problem always arises when nobody keeps the books.**
 
-## 参考来源
+## References
 
-- [Ward Cunningham, *The WyCash Portfolio Management System*（OOPSLA '92 经验报告，作者本人存档）](http://c2.com/doc/oopsla92.html)：技术债比喻的原始出处，「借款 + 利息」的完整表述见原文
-- [Martin Fowler, *Technical Debt Quadrant*](https://martinfowler.com/bliki/TechnicalDebtQuadrant.html)：本文第一节四象限分类的来源，含「审慎且无意的债务是必然会出现的」这一论述
-- [Adam Tornhill, *Your Code as a Crime Scene*（第 2 版，Pragmatic Bookshelf 官方样章 PDF）](https://media.pragprog.com/titles/atcrime2/intro.pdf)：热点分析（复杂度 × 变更频率）方法的系统论述；另见 [InfoQ 对其技术债排序思路的报道](https://www.infoq.com/news/2017/04/tornhill-prioritise-tech-debt/)
-- [SonarQube 文档：Understanding measures and metrics](https://docs.sonarsource.com/sonarqube-community-build/user-guide/code-metrics/metrics-definition)：Maintainability Rating 与相关度量口径的定义（本文第四节所述比率与分级即出自该体系，阈值可配置）
-- [*Software Engineering at Google*, 第 15 章「Deprecation」（abseil.io 免费 HTML 版）](https://abseil.io/resources/swe-book/html/ch15.html)：大规模代码库里废弃与迁移的工程经验，本文「还债策略」一节所引 owner、可执行警告与 Churn Rule 均出自此章
-- [Git 官方文档：`git log -S<string>`](https://git-scm.com/docs/git-log)：本文用到的「内容变化」检索参数
+- [Ward Cunningham, *The WyCash Portfolio Management System* (OOPSLA '92 experience report, archived by the author)](http://c2.com/doc/oopsla92.html): The original source of the technical debt metaphor; the full "borrowing + interest" formulation is in the original text
+- [Martin Fowler, *Technical Debt Quadrant*](https://martinfowler.com/bliki/TechnicalDebtQuadrant.html): The source of the four-quadrant classification in Section 1, including the argument that "prudent and inadvertent debt is inevitable"
+- [Adam Tornhill, *Your Code as a Crime Scene* (2nd edition, Pragmatic Bookshelf official sample chapter PDF)](https://media.pragprog.com/titles/atcrime2/intro.pdf): Systematic exposition of hotspot analysis (complexity × change frequency); see also [InfoQ's coverage of his technical debt ranking approach](https://www.infoq.com/news/2017/04/tornhill-prioritise-tech-debt/)
+- [SonarQube documentation: Understanding measures and metrics](https://docs.sonarsource.com/sonarqube-community-build/user-guide/code-metrics/metrics-definition): Definitions of Maintainability Rating and related measurement criteria (the ratio and grading described in Section 4 come from this system; thresholds are configurable)
+- [*Software Engineering at Google*, Chapter 15 "Deprecation" (free HTML version on abseil.io)](https://abseil.io/resources/swe-book/html/ch15.html): Engineering experience with deprecation and migration in large-scale codebases; the owner, actionable warnings, and Churn Rule cited in the "Debt Repayment Strategies" section all come from this chapter
+- [Git official documentation: `git log -S<string>`](https://git-scm.com/docs/git-log): The "content change" search parameter used in this article

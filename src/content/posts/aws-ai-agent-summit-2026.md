@@ -1,136 +1,134 @@
 ---
-title: AWS AI Agent 峰会见闻：国内企业 Agent 落地现状、挑战与实践
+title: 'Notes from the AWS AI Agent Summit: Current State, Challenges, and Practices of Agent Adoption in Chinese Enterprises'
 published: 2026-06-25
-description: '参加 AWS AI Agent 峰会的见闻与思考：从主题演讲到滴滴、SAP、安克创新等企业的实战分享，涵盖 Agent 安全、WorkFlow 设计、合规出海等话题，以及国内企业 AI 全链路覆盖的现状与挑战。'
+description: 'Observations and reflections from the AWS AI Agent Summit: from keynote speeches to practical sharing by companies like Didi, SAP, and Anker Innovations, covering topics such as agent security, workflow design, and compliance for going global, as well as the current state and challenges of full-chain AI coverage in Chinese enterprises.'
 image: ''
-tags: [AI Agent, AWS, AgentCore, Bedrock, 安全, DevOps, 出海]
+tags: [AI Agent, AWS, AgentCore, Bedrock, Security, DevOps, Going Global]
 category: 'AI'
 draft: false
-lang: ''
+---
+## 1. Introduction
+
+The original intention of attending this summit was to gain a deeper understanding of the current state of AI Agent implementation in domestic enterprises. The two-day agenda was dense and fulfilling, and the most intuitive impression was: **a large number of domestic internet companies and young companies have basically achieved full-chain AI coverage**—from sales, pre-sales, and after-sales, to development and data analysis, every department is using AI Agents to improve efficiency.
+
+However, a common problem also emerged: different BUs use different Agents and different underlying LLMs, leading to information silos and rising communication costs. How to connect these links and reduce the loss from "passing messages" is a common issue facing enterprises that are currently pursuing full-chain AI transformation.
+
+This article organizes and expands on what was seen and heard over the two days in the order of the agenda.
+
 ---
 
-## 1. 引言
+## 2. Keynote: A Panorama of the AWS Agent Service System
 
-参加本次峰会的初衷，是想深入了解 AI Agent 在国内企业中的落地现状。两天的议程密集而充实，一个最直观的感受是：**国内大量互联网企业及年轻公司已经基本实现 AI 全链路覆盖**——从销售、售前、售后，到开发、数据分析，每个部门都在利用 AI Agent 提升效率。
+The keynote revolved around AWS's toolchain for building Agents, with core products including:
 
-然而一个普遍存在的问题也随之浮现：各个 BU 使用的 Agent 不同、底层 LLM 不同，导致信息孤岛和沟通成本的上升。如何打通这些环节、减少"传话"损耗，是当前全链路 AI 化企业面临的共同课题。
-
-本文按议程顺序，对两天所见所闻做一整理与扩写。
-
----
-
-## 2. 主题演讲：AWS Agent 服务体系全景
-
-主题演讲围绕 AWS 构建 Agent 的工具链展开，核心产品包括：
-
-| 服务 | 定位 | 类比 |
+| Service | Positioning | Analogy |
 |------|------|------|
-| **Amazon Quick** | AI 助手 | 类 Claude / Codex |
-| **Amazon Continuum** | 编程助手 | 类 Trae / Cursor |
-| **Kiro** | 更接地气的 AI 助手 | 介于豆包和 Trae 之间 |
-| **Amazon Transform** | 大规模迁移/改造工具 | 效果待验证 |
-| **Amazon Bedrock AgentCore** | Agent 开发平台 | 类 Hermes Agent |
-| **AgentCore Harness** | 轻量 Agent 创建工具 | 一句话生成 Agent |
+| **Amazon Quick** | AI assistant | Similar to Claude / Codex |
+| **Amazon Continuum** | Coding assistant | Similar to Trae / Cursor |
+| **Kiro** | A more down-to-earth AI assistant | Between Doubao and Trae |
+| **Amazon Transform** | Large-scale migration/transformation tool | Effectiveness yet to be verified |
+| **Amazon Bedrock AgentCore** | Agent development platform | Similar to Hermes Agent |
+| **AgentCore Harness** | Lightweight Agent creation tool | Generate an Agent in one sentence |
 
-此外还分享了多家企业的 Agent 架构设计，为后续各专题分享做了铺垫。
-
----
-
-## 3. DevOps Agent 实践指南
-
-该环节对各 AWS Agent 服务进行了逐一深入介绍。重点在如何将 Agent 嵌入 DevOps 工作流——从代码提交到部署监控，Agent 可以在每个节点承担自动化角色，减少人工介入。
+It also shared the Agent architecture designs of several enterprises, laying the groundwork for the subsequent topic-specific sessions.
 
 ---
 
-## 4. 企业 WorkFlow 设计：让 Agent 管理流程，而非人传递信息
+## 3. DevOps Agent Practice Guide
 
-这是一个很接地气的分享。讲者所在团队在实际使用 Agent 时发现，**不同环节间的信息传递消耗了大量不必要的人力时间**——A 环节产出的结果，需要人为传达给 B 环节的 Agent，期间容易出现信息衰减、理解偏差。
-
-他们的解决方案是设计一个**中央编排 Agent**，统一管理整个 WorkFlow 中各个子 Agent 的输入输出。信息流转由 Agent 直接对接 Agent，人类只需关注最终决策点。这种"去人工传话"的设计思路，对多 Agent 协作场景具有很好的参考价值。
+This session introduced each AWS Agent service in depth one by one. The focus was on how to embed Agents into DevOps workflows—from code submission to deployment monitoring, Agents can take on automated roles at every node and reduce manual intervention.
 
 ---
 
-## 5. 安克创新：全业务线智能化转型
+## 4. Enterprise WorkFlow Design: Let Agents Manage the Process, Not People Passing Information
 
-安克创新（Anker）分享了其自研 Agent **Anka**，核心设计理念：
+This was a very practical sharing. When the speaker's team actually used Agents, they found that **information transfer between different stages consumed a large amount of unnecessary human time**—the results produced in stage A needed to be manually conveyed to the Agent in stage B, and during this process information decay and misunderstandings easily occurred.
 
-- **多入口触达**：用户可从企业微信、飞书、内部 OA 等多个入口与 Anka 交互，体验一致
-- **统一理解**：打通各业务系统的数据孤岛，Anka 充当统一的语义理解层
-- **模型持续进化**：基于业务反馈持续微调，模型能力随业务共同成长
-- **反哺业务增长**：从"提效工具"升级为"业务增长引擎"，Agent 产出的洞察直接指导业务决策
-
-安克的案例说明，当 Agent 深入业务全链路后，它的价值就不仅是"省人力"，而是能够主动发现增长机会。
+Their solution was to design a **central orchestration Agent** to uniformly manage the inputs and outputs of each sub-Agent throughout the entire WorkFlow. Information flows directly from Agent to Agent, and humans only need to focus on the final decision points. This design idea of "eliminating manual message passing" has excellent reference value for multi-Agent collaboration scenarios.
 
 ---
 
-## 6. SAP for Me：企业级 Agent 的边界哲学
+## 5. Anker Innovations: Intelligent Transformation Across All Business Lines
 
-SAP 分享了其平台内置的智能助手 **SAP for Me**，背景是 SAP Support 场景分散在多个系统和门户中，用户需要在多个知识库中检索、对比，在多个系统中创建和分配工单——大量重复性机械劳动占用了支持人员的时间。
+Anker Innovations shared its self-developed Agent **Anka**, with core design principles:
 
-SAP for Me 的能力包括：
-- 跨系统知识检索
-- 在多个系统中执行真实的读写操作
-- 完成端到端工作流
+- **Multi-entry access**: Users can interact with Anka from multiple entry points such as WeCom, Feishu, and internal OA, with a consistent experience
+- **Unified understanding**: Break down data silos across business systems, with Anka serving as a unified semantic understanding layer
+- **Continuous model evolution**: Continuous fine-tuning based on business feedback, with model capabilities growing alongside the business
+- **Feeding back into business growth**: Upgrading from an "efficiency tool" to a "business growth engine," with insights produced by the Agent directly guiding business decisions
 
-更值得关注的是 SAP 对**个人 Agent** 与**企业 Agent** 的区分：
+Anker's case shows that once an Agent goes deep into the entire business chain, its value is not just "saving manpower," but being able to proactively discover growth opportunities.
 
-| 维度 | 个人 Agent | 企业 Agent |
+---
+
+## 6. SAP for Me: The Boundary Philosophy of Enterprise-Grade Agents
+
+SAP shared its platform's built-in intelligent assistant **SAP for Me**. The background is that SAP Support scenarios are scattered across multiple systems and portals, requiring users to search and compare across multiple knowledge bases and create and assign tickets in multiple systems—a large amount of repetitive mechanical labor takes up support staff's time.
+
+SAP for Me's capabilities include:
+- Cross-system knowledge retrieval
+- Performing real read and write operations across multiple systems
+- Completing end-to-end workflows
+
+More noteworthy is SAP's distinction between **personal Agents** and **enterprise Agents**:
+
+| Dimension | Personal Agent | Enterprise Agent |
 |------|-----------|-----------|
-| 设计哲学 | 自由可扩展 | 稳定可预期 |
-| 安全模型 | 自我把控 | 开发者控制 |
-| 预算 | 低预算 | 按需投入 |
-| 操作流程 | 灵活多变 | 固定、不可出错、可溯源 |
-| 边界 | 开放 | 明确、权限受控 |
+| Design philosophy | Free and extensible | Stable and predictable |
+| Security model | Self-controlled | Developer-controlled |
+| Budget | Low budget | Invest as needed |
+| Operational process | Flexible and variable | Fixed, error-proof, traceable |
+| Boundary | Open | Clear, permission-controlled |
 
-这个对比切中了企业引入 Agent 时的核心矛盾：**开发者喜欢个人 Agent 的自由度，企业却需要完全的审计追溯与权限控制**。找到二者的平衡点，是企业 Agent 架构设计的关键。
-
----
-
-## 7. 构建企业级 AI Agent 安全方案
-
-安全是本次峰会的高频词。分享者指出，2026 年 Agent 安全领域的十大高危问题：
-
-1. **Agent 目标劫持**——攻击者通过注入恶意指令篡改 Agent 的执行目标
-2. **工具滥用**——Agent 调用工具的权限超出必要范围
-3. **身份和权限滥用**——Agent 持有的凭证被恶意利用
-4. **供应链漏洞**——Agent 依赖的第三方模型或插件被投毒
-5. **非预期的代码执行**——Agent 生成的代码绕过沙箱限制
-6. **记忆和上下文投毒**——恶意输入污染 Agent 的长期记忆
-7. **不安全的 Agent 间通信**——多 Agent 协作时通信信道被劫持
-8. **连锁失败**——一个 Agent 的错误决策在 Multi-Agent 系统中级联放大
-9. **利用人机信任**——Agent 以"可信"口吻诱导用户执行危险操作
-10. **异常 Agent**——Agent 出现非预期的自主行为
-
-安全防护需要从三个层面着手：**生成式 AI 安全**（提示词安全、内容过滤）、**Agentic AI 安全**（工具调用审计、权限边界）、**通用应用安全**（身份认证、传输加密）。分享还演示了如何使用 Amazon Bedrock Guardrails 实现上述安全策略。
+This comparison hits the core contradiction when enterprises introduce Agents: **developers like the freedom of personal Agents, but enterprises need complete audit traceability and permission control**. Finding the balance between the two is the key to enterprise Agent architecture design.
 
 ---
 
-## 8. Kubernetes 上微调与部署小语言模型
+## 7. Building Enterprise-Grade AI Agent Security Solutions
 
-本环节聚焦于如何利用 Agent 优化 K8s 运维，具体场景包括：
-- **安全告警处理**：Agent 自动分类告警严重等级，低优先级告警自动归档，高优先级告警生成初步分析报告
-- **容器管理**：Agent 协助诊断容器异常、推荐资源配额调整方案
-- **日志管理**：Agent 聚合跨 Pod 日志，自动识别异常模式并关联到最近的变更记录
+Security was a high-frequency word at this summit. The speaker pointed out the top ten high-risk issues in the Agent security field in 2026:
 
-小语言模型（SLM）在 K8s 运维场景中的优势在于低延迟和低资源消耗，适合作为 Agent 的"本地大脑"。
+1. **Agent goal hijacking**—attackers tamper with an Agent's execution goals by injecting malicious instructions
+2. **Tool abuse**—an Agent's permission to call tools exceeds the necessary scope
+3. **Identity and permission abuse**—credentials held by an Agent are maliciously exploited
+4. **Supply chain vulnerabilities**—third-party models or plugins that an Agent depends on are poisoned
+5. **Unexpected code execution**—code generated by an Agent bypasses sandbox restrictions
+6. **Memory and context poisoning**—malicious input contaminates an Agent's long-term memory
+7. **Insecure inter-Agent communication**—communication channels are hijacked during multi-Agent collaboration
+8. **Cascading failures**—an erroneous decision by one Agent is amplified in a cascading manner in a Multi-Agent system
+9. **Exploiting human-machine trust**—an Agent uses a "trustworthy" tone to induce users to perform dangerous operations
+10. **Anomalous Agents**—an Agent exhibits unexpected autonomous behavior
 
----
-
-## 9. 开发工具体验
-
-### Agentic AI 代码秀
-
-现场演示了使用 AWS 工具构建 Agent 的完整流程，从零开始创建一个可用的 Agent 仅需数分钟。演示侧重于展示 Bedrock AgentCore 的开发效率。
-
-### AgentCore 可视化编排
-
-演示了在可视化画布上通过拖拽编排 Agent，类似于低代码平台的操作体验。这种可视化方式显著降低了构建 Agent 的门槛，让非开发人员也能参与到 Agent 的设计中。
+Security protection needs to start from three levels: **generative AI security** (prompt security, content filtering), **Agentic AI security** (tool invocation auditing, permission boundaries), and **general application security** (identity authentication, transmission encryption). The sharing also demonstrated how to use Amazon Bedrock Guardrails to implement the above security policies.
 
 ---
 
-## 10. AI Agent 的认识升级与业务提效
+## 8. Fine-Tuning and Deploying Small Language Models on Kubernetes
 
-本环节梳理了 Agent 的运行时工作流（注意这不是线性结构，而是**树形结构**）：
+This session focused on how to use Agents to optimize K8s operations, with specific scenarios including:
+- **Security alert handling**: Agents automatically classify alert severity levels, automatically archive low-priority alerts, and generate preliminary analysis reports for high-priority alerts
+- **Container management**: Agents assist in diagnosing container anomalies and recommending resource quota adjustment plans
+- **Log management**: Agents aggregate cross-Pod logs, automatically identify anomalous patterns, and correlate them with recent change records
+
+The advantage of small language models (SLMs) in K8s operations scenarios lies in low latency and low resource consumption, making them suitable as an Agent's "local brain."
+
+---
+
+## 9. Developer Tool Experience
+
+### Agentic AI Code Show
+
+A complete workflow for building an Agent using AWS tools was demonstrated on site. Creating a usable Agent from scratch takes only a few minutes. The demonstration focused on showing the development efficiency of Bedrock AgentCore.
+
+### AgentCore Visual Orchestration
+
+It demonstrated orchestrating Agents by dragging and dropping on a visual canvas, similar to the operating experience of a low-code platform. This visual approach significantly lowers the barrier to building Agents, allowing non-developers to participate in Agent design as well.
+
+---
+
+## 10. Upgrading the Understanding of AI Agents and Improving Business Efficiency
+
+This session sorted out the runtime workflow of an Agent (note that this is not a linear structure, but a **tree structure**):
 
 ```
 用户输入 (Chatbox)
@@ -149,63 +147,62 @@ Customer Support Agent（主程序）
     └── AgentCore Policy —— 访问控制
 ```
 
-树形结构意味着各个模块不是串行调用，而是根据场景并行或条件触发——更接近人类处理问题的实际方式。
+A tree structure means that the modules are not called serially, but triggered in parallel or conditionally according to the scenario—closer to the actual way humans handle problems.
 
 ---
 
-## 11. 滴滴出海 14 国：客服 Agent 实战
+## 11. DiDi Going Global in 14 Countries: Customer Service Agent in Practice
 
-滴滴分享的客服 AI Agent 覆盖 14 个国家，按两个维度展开：
+The customer service AI Agent shared by DiDi covers 14 countries and is presented along two dimensions:
 
-### 使用体验维度
-- **响应速度**：客服场景下延迟不可接受，Agent 必须在毫秒级完成意图识别和回复生成
-- **内容准确性**：回复必须基于真实的知识库内容，不可出现幻觉
+### Usage Experience Dimension
+- **Response speed**: In customer service scenarios, latency is unacceptable; the Agent must complete intent recognition and reply generation at the millisecond level
+- **Content accuracy**: Replies must be based on real knowledge base content, and hallucinations must not occur
 
-### 服务质量维度
-- **多维度打分**：从态度、用语、是否提供了合适的服务等多个角度对 Agent 回复进行自动评分
-- **推理链**：Agent 需要展示完整的推理过程——为什么会给出这个建议，中间经过了哪些判断步骤
-- **可溯源**：每一个评分结果、每一条提示内容都要求能够追溯到源头依据
+### Service Quality Dimension
+- **Multi-dimensional scoring**: Automatically score Agent replies from multiple perspectives such as attitude, wording, and whether appropriate service was provided
+- **Reasoning chain**: The Agent needs to show the complete reasoning process—why this suggestion was given and what judgment steps were involved in between
+- **Traceability**: Every scoring result and every piece of prompt content is required to be traceable to its source basis
 
-滴滴的方案还支持按业务线和国家分配不同的 Agent 实例，满足不同地区法规和业务习惯的差异。这种"一国一策"的架构对出海企业具有借鉴意义。
-
----
-
-## 12. Amazon DevOps Agent & Security Agent：出海安全合规加速器
-
-安全合规是出海企业的必修课，而传统方式面临多重挑战：
-
-- **配置漂移**：合规状态随时间推移持续衰减，需要持续监控与修复
-- **告警风暴**：海量安全告警掩盖了真正的威胁信号
-- **手动流程**：截图、填表等人工环节耗费大量时间
-- **测试难以规模化**：安全测试难以做到持续化、全覆盖
-- **法规差异**：各国法律法规不同且持续更新，需要持续学习最新法规
-- **审计周期长**：从准备到出报告的审计流程耗时久
-
-该分享展示了如何利用 DevOps Agent 自动检测配置漂移并修复，利用 Security Agent 自动分类告警、生成合规报告，将安全合规从"项目制"转变为"持续运营"。
+DiDi's solution also supports assigning different Agent instances by business line and country to meet differences in regulations and business practices across regions. This "one policy per country" architecture has reference significance for companies going global.
 
 ---
 
-## 13. Agentic GEO：让品牌被 AI 看见
+## 12. Amazon DevOps Agent & Security Agent: An Accelerator for Overseas Security Compliance
 
-这是一个新颖的话题——**当用户越来越多地通过 AI Agent 获取信息时，品牌如何确保自己被 Agent 推荐**？
+Security compliance is a required course for companies going global, and traditional methods face multiple challenges:
 
-关键策略包括：
-- **权威认证**：让品牌的官方信息获得可被 Agent 验证的权威背书
-- **内容结构化**：品牌信息需要以 Agent 易于理解和提取的结构呈现
-- **多渠道覆盖**：在多个平台和触点保持一致的品牌信息
-- **多结果占位**：确保品牌信息覆盖不同维度的查询需求
+- **Configuration drift**: Compliance status continuously decays over time and requires continuous monitoring and remediation
+- **Alert storms**: A massive number of security alerts obscure the real threat signals
+- **Manual processes**: Manual steps such as taking screenshots and filling out forms consume a large amount of time
+- **Testing difficult to scale**: Security testing is difficult to make continuous and fully covering
+- **Regulatory differences**: Laws and regulations differ across countries and are continuously updated, requiring continuous learning of the latest regulations
+- **Long audit cycles**: The audit process from preparation to report issuance takes a long time
 
-本质上是 SEO 的 Agent 时代版本——从"让搜索引擎找到你"演进为"让 AI Agent 推荐你"。
+This sharing demonstrated how to use DevOps Agent to automatically detect and remediate configuration drift, and use Security Agent to automatically classify alerts and generate compliance reports, transforming security compliance from a "project-based" effort into "continuous operations."
 
 ---
 
-## 14. 结语与感受
+## 13. Agentic GEO: Making Brands Visible to AI
 
-两天峰会信息量极大，几点核心感受：
+This is a novel topic—**as users increasingly obtain information through AI Agents, how can brands ensure they are recommended by Agents**?
 
-**人多。** 会场座无虚席，侧面印证了 AI Agent 在当前技术圈的热度——这已经不是一个"要不要做"的话题，而是"怎么做好"的话题。
+Key strategies include:
+- **Authoritative certification**: Enable a brand's official information to obtain authoritative endorsement that can be verified by Agents
+- **Structured content**: Brand information needs to be presented in a structure that Agents can easily understand and extract
+- **Multi-channel coverage**: Maintain consistent brand information across multiple platforms and touchpoints
+- **Multi-result placement**: Ensure that brand information covers query needs across different dimensions
 
-**累。** 议程从早到晚几乎没有空隙，分享内容技术密度高，需要大量消化。
+In essence, this is the Agent-era version of SEO—evolving from "letting search engines find you" to "letting AI Agents recommend you."
 
-**收获。** 国内企业 AI Agent 落地已从概念验证进入大规模工程化阶段。共同挑战不再是"Agent 能不能用"，而是多 Agent 协作中的信息打通、安全合规的系统性保障、以及从"提效工具"到"业务增长引擎"的价值升级。这些问题本身，也正是下一阶段 Agent 工程化的核心命题。
+---
 
+## 14. Conclusion and Reflections
+
+The two-day summit had an enormous amount of information. A few core impressions:
+
+**Crowded.** The venue was packed, which indirectly confirms the popularity of AI Agents in the current tech circle—this is no longer a topic of "whether to do it," but of "how to do it well."
+
+**Tiring.** The agenda had almost no gaps from morning to night, and the shared content was highly technical and required a lot of digestion.
+
+**Rewarding.** The implementation of AI Agents in domestic enterprises has moved from proof of concept into a large-scale engineering phase. The common challenge is no longer "whether Agents can be used," but information connectivity in multi-Agent collaboration, systematic guarantees for security and compliance, and the value upgrade from "efficiency tools" to "business growth engines." These issues themselves are also the core propositions of the next stage of Agent engineering.

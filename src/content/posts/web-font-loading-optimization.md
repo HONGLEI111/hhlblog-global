@@ -1,28 +1,26 @@
 ---
-title: Web Font 加载优化：从 FOUT 到完美渲染
+title: 'Web Font Loading Optimization: From FOUT to Perfect Rendering'
 published: 2026-09-08
-description: '系统讲解 Web 字体加载的性能问题：FOUT 与 FOIT 的区别、font-display 如何选择、preload、自托管与子集化、可变字体，附可落地的代码示例。'
+description: 'A systematic look at the performance issues of web font loading: the difference between FOUT and FOIT, how to choose font-display, preload, self-hosting and subsetting, and variable fonts, with actionable code examples.'
 image: ''
-tags: [字体, Web性能, 网站开发, CSS, font-display, 优化]
-category: '网站'
+tags: [Fonts, Web Performance, Web Development, CSS, font-display, Optimization]
+category: Web
 draft: false
-lang: ''
 ---
+## 1. Why Fonts Are a Performance Killer
 
-## 1. 字体为什么是性能杀手
+Open any modern website, and every character you see may be backed by one or more font files. A complete Chinese font easily weighs 5–10 MB, and even for Latin fonts, a single weight's WOFF2 file typically runs between 50–200 KB. If a page references 3 weights plus italics, fonts alone can easily consume over 500 KB of downloads—more than the entire page's HTML, CSS, and JS combined.
 
-打开一个现代网站，你看到的每一个字，背后都可能是一个或多个字体文件。一个完整的中文字体动辄 5–10 MB，即使是西文字体，单个字重（weight）的 WOFF2 文件也通常在 50–200 KB 之间。如果页面引用了 3 个字重 + 斜体，字体这一项就能轻松吃掉 500 KB 以上的下载量——比整个页面的 HTML、CSS、JS 加起来还大。
+What's worse, fonts are "blocking resources": the browser only downloads them after determining which fonts are needed, and text rendering depends on those fonts. This leads to two classic phenomena on web pages:
 
-更麻烦的是，字体是「阻塞性资源」：浏览器只有在确定需要哪些字体后，才会去下载它们，而文本渲染又依赖字体。于是你会在页面上看到两种经典现象：
+- **FOUT** (Flash of Unstyled Text): Text is first rendered with a system font, then "jumps" to the target font once the download completes;
+- **FOIT** (Flash of Invisible Text): Text is completely invisible (blank) until the font is ready.
 
-- **FOUT**（Flash of Unstyled Text）：先用系统字体渲染文字，字体下载完成后「跳」成目标字体；
-- **FOIT**（Flash of Invisible Text）：文字先完全不可见（空白），字体就绪后才显示。
+These two are essentially two sides of the same problem: **font downloads have latency, and rendering can't wait indefinitely**. The goal of this article is to make that "wait" as small and as graceful as possible.
 
-这两者本质上是同一个问题的两面：**字体下载有延迟，而渲染不能无限等待**。本文的目标，就是把这个「等待」控制得尽可能小、尽可能优雅。
+## 2. font-display: The Core Switch for Controlling Wait Behavior
 
-## 2. font-display：控制等待行为的核心开关
-
-CSS 的 `font-display` 是控制字体加载期间渲染行为最直接的工具。它定义在 `@font-face` 里，共有五个取值，语义围绕「阻塞期（block period）」和「交换期（swap period）」展开：
+CSS's `font-display` is the most direct tool for controlling rendering behavior during font loading. It's defined in `@font-face` and has five values, with semantics built around the "block period" and "swap period":
 
 ```css
 @font-face {
@@ -32,51 +30,51 @@ CSS 的 `font-display` 是控制字体加载期间渲染行为最直接的工具
 }
 ```
 
-| 取值 | 阻塞期 | 交换期 | 典型结果 |
+| Value | Block Period | Swap Period | Typical Result |
 |------|--------|--------|---------|
-| `block` | 最长 3s | 无限 | 3 秒内文字不可见（FOIT），之后才显示 |
-| `swap` | 极短（约 0ms） | 无限 | 立即显示系统字体，加载完成后替换（FOUT） |
-| `fallback` | 约 100ms | 约 3s | 极短 FOIT，若 3 秒内没加载完就一直用系统字体 |
-| `optional` | 约 100ms | 无 | 极短 FOIT，加载没赶上就不再切换字体 |
-| `auto` | 浏览器决定 | 浏览器决定 | 相当于 `block` 的行为 |
+| `block` | Up to 3s | Infinite | Text invisible for up to 3 seconds (FOIT), then displayed |
+| `swap` | Extremely short (~0ms) | Infinite | System font shown immediately, replaced after loading (FOUT) |
+| `fallback` | ~100ms | ~3s | Very brief FOIT; if not loaded within 3 seconds, system font is used permanently |
+| `optional` | ~100ms | None | Very brief FOIT; if loading doesn't make it in time, no font switch occurs |
+| `auto` | Browser decides | Browser decides | Equivalent to `block`'s behavior |
 
-**怎么选？** 一个被广泛接受的实践是：
+**How to choose?** A widely accepted practice is:
 
-- **正文文本**用 `swap`：用户能立刻读到内容，字体的「跳变」在可接受范围内；
-- **品牌标志、图标字体**用 `optional` 或 `block`：这类元素宁可不显示也不希望出现「先用别的字体再跳」的违和感；
-- **几乎永远**不要用默认的 `block` 来渲染长正文——3 秒的不可见文本会直接劝退用户。
+- **Body text** uses `swap`: Users can read content immediately, and the font "jump" is within acceptable bounds;
+- **Brand logos and icon fonts** use `optional` or `block`: For these elements, it's better to show nothing than to have the jarring effect of "using another font first, then switching";
+- **Almost never** use the default `block` for long body text—3 seconds of invisible text will drive users away immediately.
 
-## 3. preload：让字体下载抢跑
+## 3. preload: Giving Font Downloads a Head Start
 
-`font-display` 解决的是「加载期间显示什么」，但更理想的策略是**让字体早点开始下载**。默认情况下，浏览器要解析完 CSS、构建好渲染树、发现某段文本真正用到了这个字体，才会发起字体请求——这个「发现」动作往往发生在页面渲染的中后段。
+`font-display` solves "what to display during loading," but the ideal strategy is **to start font downloads earlier**. By default, the browser must parse the CSS, build the render tree, and discover that some text actually uses the font before initiating a font request—this "discovery" often happens in the mid-to-late stages of page rendering.
 
-用 `<link rel="preload">` 可以在 HTML 头部就告诉浏览器「这个字体很重要，赶紧去下」：
+Using `<link rel="preload">`, you can tell the browser right in the HTML head: "This font is important, go download it now":
 
 ```html
 <link rel="preload" href="/fonts/myfont.woff2" as="font" type="font/woff2" crossorigin>
 ```
 
-两个关键点：
+Two key points:
 
-1. `as="font"` 是必须的，它让浏览器知道这是字体资源，赋予正确的优先级；
-2. **必须加 `crossorigin`**——即使字体和你同域。这是一个经典坑：字体请求默认是「跨域」语义（CORS），漏掉 `crossorigin` 会导致字体被下载两次：一次是 preload 请求，一次是真正使用时的请求。
+1. `as="font"` is required—it lets the browser know this is a font resource and assigns the correct priority;
+2. **You must add `crossorigin`**—even if the font is on the same domain as you. This is a classic pitfall: font requests have "cross-origin" semantics (CORS) by default, and omitting `crossorigin` causes the font to be downloaded twice: once for the preload request and once for the actual usage request.
 
-如果你的字体来自第三方 CDN（如 Google Fonts），还可以配合 `preconnect` 提前建立连接，省掉 DNS 解析和 TCP/TLS 握手的时间：
+If your font comes from a third-party CDN (like Google Fonts), you can also pair it with `preconnect` to establish the connection early, saving DNS resolution and TCP/TLS handshake time:
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ```
 
-## 4. 自托管 vs 第三方 CDN
+## 4. Self-Hosting vs Third-Party CDN
 
-Google Fonts 让「用上漂亮字体」的成本降到一行 `<link>`，但自托管（把字体文件放到自己的服务器/CDN 上）正在重新成为主流选择，理由有三：
+Google Fonts reduces the cost of "using beautiful fonts" to a single line of `<link>`, but self-hosting (placing font files on your own server/CDN) is re-emerging as the mainstream choice, for three reasons:
 
-1. **性能**：省去跨域连接、第三方重定向（Google Fonts 的 CSS 会 302 到 gstatic）和额外的 TLS 握手；
-2. **隐私合规**：欧盟多个数据保护机构认定 Google Fonts 会把用户 IP 传给 Google，直接内嵌违反 GDPR（德国法院曾据此判罚）；
-3. **可控性**：版本、缓存策略、加载策略完全自己掌控。
+1. **Performance**: Eliminates cross-origin connections, third-party redirects (Google Fonts' CSS 302-redirects to gstatic), and extra TLS handshakes;
+2. **Privacy compliance**: Multiple EU data protection authorities have determined that Google Fonts transmits user IPs to Google, and direct embedding violates GDPR (a German court has ruled on this);
+3. **Control**: Version, caching strategy, and loading strategy are entirely in your hands.
 
-自托管并不复杂——从 [Google Fonts 下载页面](https://fonts.google.com/) 拿到 WOFF2 文件后，写一个标准的 `@font-face` 即可。现代浏览器普遍支持 WOFF2，它比 WOFF 和 TTF 平均小 30%，可以直接只保留 WOFF2：
+Self-hosting isn't complicated—after getting the WOFF2 files from the [Google Fonts download page](https://fonts.google.com/), just write a standard `@font-face`. Modern browsers universally support WOFF2, which is on average 30% smaller than WOFF and TTF, so you can keep only WOFF2:
 
 ```css
 @font-face {
@@ -88,9 +86,9 @@ Google Fonts 让「用上漂亮字体」的成本降到一行 `<link>`，但自�
 }
 ```
 
-## 5. 子集化与 unicode-range：只加载用到的字
+## 5. Subsetting and unicode-range: Load Only the Characters You Use
 
-对中文站点来说，这一步的收益最大。完整中文字体几 MB 起步，但一个页面实际用到的汉字可能只有几百个。**子集化（subsetting）** 就是按字符集把字体切小，再通过 `unicode-range` 让浏览器按需下载：
+For Chinese-language sites, this step delivers the biggest gains. A complete Chinese font starts at several MB, but a page may actually use only a few hundred Chinese characters. **Subsetting** means slicing the font down by character set, then using `unicode-range` to let the browser download on demand:
 
 ```css
 @font-face {
@@ -108,11 +106,11 @@ Google Fonts 让「用上漂亮字体」的成本降到一行 `<link>`，但自�
 }
 ```
 
-`unicode-range` 让浏览器只下载「页面实际命中了对应字符区间」的那份子集。如果某段文本只包含英文字母，中文子集根本不会被请求。配合工具（如 `subset-font`、`fonttools` 的 `pyftsubset`）可以自动完成切分。
+`unicode-range` tells the browser to download only the subset whose character range is actually matched by the page. If a piece of text contains only English letters, the Chinese subset won't be requested at all. Tools (such as `subset-font`, `fonttools`'s `pyftsubset`) can automate the splitting.
 
-## 6. 可变字体：一个文件顶一套字体
+## 6. Variable Fonts: One File Replaces an Entire Font Family
 
-**可变字体（Variable Fonts）** 用一个文件承载连续的轴（axis）——字重、字宽、倾斜、光学尺寸等。原来「Regular + Medium + Bold + Italic」需要 4 个文件，现在 1 个文件搞定，请求数从 4 降到 1：
+**Variable Fonts** carry continuous axes in a single file—weight, width, slant, optical size, etc. What previously required 4 files ("Regular + Medium + Bold + Italic") is now handled by 1 file, reducing requests from 4 to 1:
 
 ```css
 @font-face {
@@ -128,11 +126,11 @@ Google Fonts 让「用上漂亮字体」的成本降到一行 `<link>`，但自�
 }
 ```
 
-`font-weight: 100 900` 是可变字体专属写法，声明了这条轴的可变范围。此后任何介于 100–900 之间的字重都从同一个文件渲染，不会再触发额外下载。
+`font-weight: 100 900` is the variable-font-specific syntax, declaring the variable range for this axis. After that, any weight between 100–900 renders from the same file without triggering additional downloads.
 
-## 7. 进阶：用 Font Loading API 精细化控制
+## 7. Advanced: Fine-Grained Control with the Font Loading API
 
-如果上面的 CSS 手段还不够，JavaScript 的 **CSS Font Loading API**（`document.fonts`）给了你程序化的控制能力。一个常见场景是：只加载「当前视口真正用到」的字体，用户滚动到某个区域再加载：
+If the CSS techniques above aren't enough, JavaScript's **CSS Font Loading API** (`document.fonts`) gives you programmatic control. A common scenario: load only the fonts "actually used in the current viewport," and load more when the user scrolls to a certain area:
 
 ```js
 const fonts = document.fonts;
@@ -155,20 +153,19 @@ async function ensureFont(family, source) {
 ensureFont('MyFont', 'url(/fonts/myfont.woff2) format("woff2")');
 ```
 
-`document.fonts.ready` 是一个 Promise，会在所有 `@font-face` 声明的字体加载完成后 resolve，可以用来在字体就绪前后做视觉过渡。
+`document.fonts.ready` is a Promise that resolves after all fonts declared by `@font-face` have finished loading, and can be used for visual transitions before and after fonts are ready.
 
-## 8. 小结
+## 8. Summary
 
-把上面的手段串成一条完整的优化链路，优先级从高到低是：
+Stringing the above techniques into a complete optimization pipeline, ordered by priority from high to low:
 
-1. **减少字体体积**：子集化 + 只保留 WOFF2 + 用可变字体合并字重；
-2. **让字体早点加载**：`preload`（同域）+ `preconnect`（跨域）；
-3. **优雅地面对等待**：正文用 `font-display: swap`，图标和品牌用 `optional`；
-4. **按需加载**：`unicode-range` + Font Loading API。
+1. **Reduce font size**: Subsetting + keeping only WOFF2 + merging weights with variable fonts;
+2. **Load fonts earlier**: `preload` (same-origin) + `preconnect` (cross-origin);
+3. **Face the wait gracefully**: Use `font-display: swap` for body text, `optional` for icons and branding;
+4. **Load on demand**: `unicode-range` + Font Loading API.
 
-字体优化没有「银弹」，但每一点都立竿见影：一个 5 MB 的中文字体，做完子集化、WOFF2 压缩和按需加载后，实际传输量常常能降到原来的 5% 以下。这对移动网络下的用户，是从「白屏 5 秒」到「秒开」的差别。
-
-## 参考来源
+There's no "silver bullet" for font optimization, but every bit makes an immediate difference: a 5 MB Chinese font, after subsetting, WOFF2 compression, and on-demand loading, often sees its actual transfer size drop to under 5% of the original. For users on mobile networks, that's the difference between "5 seconds of white screen" and "instant load."
+## References
 
 - web.dev — [Optimize WebFont loading](https://web.dev/articles/optimize-webfont-loading)
 - MDN — [font-display](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face/font-display)

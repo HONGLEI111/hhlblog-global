@@ -1,61 +1,59 @@
 ---
-title: 周五上线魔咒：部署日的玄学与事故
+title: 'The Friday Deploy Curse: Superstition and Incidents on Release Day'
 published: 2026-09-27
-description: '「周五不部署」大概是运维界流传最广的一条规矩，也是最常被违反的那条。把这条规矩拆开：真正危险的不是星期几，而是出事以后没人、没开关、回不了滚。'
+description: '"Never deploy on Friday" is probably the most widely repeated rule in ops — and the most frequently broken. Take it apart and you''ll find the real danger isn''t the day of the week, but having no one around, no kill switch, and no way to roll back when things go wrong.'
 image: ''
-tags: [程序员笑话, 部署, SRE, 运维]
-category: '其他'
+tags: [programmer humor, deployment, SRE, operations]
+category: Other
 draft: false
-lang: ''
 ---
+Friday 17:20, someone asks in the group chat: Can this small change go out?
 
-周五 17:20，群里有人问：这个小改动能上吗？
+Five minutes, no reply.
 
-五分钟，没人回复。
+17:25, he answers himself: It's just one line, I'm shipping it.
 
-17:25，他自己答：就一行，我上了。
+17:31, he leaves the group chat—not by choice.
 
-17:31，他退出了群聊——不是主动的那种。
+## 1. The Museum of Deployment Superstitions
 
-## 1. 部署玄学博物馆
+"No deploys on Friday" isn't a rule, it's a whole body of folklore. Versions scattered across companies include:
 
-「周五不部署」不是一条规定，它是一整套民俗。散落在各个公司的版本包括：
+- **Read-Only Friday**: Fridays are read-only, no writes; release windows are scheduled Tuesday through Thursday;
+- **Pre-holiday freeze**: before Christmas, Chinese New Year, or major sales events, changes are frozen—whoever requests one takes the blame;
+- **Case-by-case caution**: no deploys before the boss goes on a business trip, no upgrades the night before a demo, only copy changes allowed on customer visit days;
+- **Physical superstitions**: apples in the server room, "Stable for xx days" stickers on servers, take a deep breath before `sudo`.
 
-- **只读星期五（Read-Only Friday）**：周五只读不写，上线窗口排在周二到周四；
-- **节前冻结**：圣诞节、春节、大促之前，变更冻结，谁提需求谁背锅；
-- **看人下菜**：老板出差前不部署、对外演示前一晚不升级、客户参观日只敢改文案；
-- **物理玄学**：机房放苹果、服务器上贴「已稳定运行 xx 天」、`sudo` 之前先深呼吸。
+These rules are funny, but they're not superstition. Each one is risk control hardcoded from organizational memory—**behind every rule lies an incident**. What's really worth asking is: what are they actually guarding against—"Friday," or something else?
 
-这些规矩好笑，但它们并不迷信。每一条都是用组织记忆硬编码出来的风险控制——**每条规矩背后都躺着一次事故**。真正值得追问的是：它们防的到底是「星期五」，还是别的东西？
+## 2. Taking the Joke Apart: Where Friday Is Actually Dangerous
 
-## 2. 把段子拆开：周五到底危险在哪
+The key is this: Friday doesn't make code more likely to break, it makes breakage **harder to clean up**.
 
-关键在这句：周五不会让代码更容易出错，它让错误**更难被收拾**。
+1. **MTTR gets longer**. Something breaks Wednesday afternoon, the on-call person is on it in five minutes; something breaks Friday night, you have to wait for them to put down their chopsticks first.
+2. **The decision chain gets longer**. Whether to roll back requires finding the approver; the approver is at the dinner table right now, and the rollback window is priced by the minute.
+3. **Change size gets bigger**. What ships on Friday is often a week's worth of merged work—a week of changes crammed into one window, and when something breaks, the suspect range is the entire week.
+4. **Attention is at its lowest**. Friday afternoon reviews have the lowest `LGTM` value of the year.
 
-1. **MTTR 变长**。周三下午出事，值班的人五分钟就能进场；周五晚上出事，你得先等他放下筷子。
-2. **决策链变长**。要不要回滚，得找审批的人；审批的人此刻在饭桌上，而回滚窗口是按分钟计价的。
-3. **变更规模变大**。周五上的往往是攒了一周的合并——一周的改动挤进同一个窗口，一出问题，怀疑范围是整周。
-4. **注意力最低**。周五下午的 review，`LGTM` 的含金量全年最低。
+There's also a counterintuitive data point: DORA / *Accelerate*'s long-term tracking concludes that **teams with the highest deployment frequency actually have lower change failure rates**. Because each change is smaller, easier to localize, faster to roll back—"fewer releases is safer" is an illusion; "small, frequent releases" is the answer.
 
-还有一个反直觉的数据：DORA / 《Accelerate》长期追踪的结论是，**部署频率最高的团队，变更失败率反而更低**。因为每次改动更小、更容易定位、回滚更快——「少发版更安全」是个错觉，「小步快发」才是解法。
+So "no deploys on Friday" treats the symptom. It pushes a painful change to Monday, and makes Monday painful too.
 
-所以「周五不部署」治的是症状。它把一个会痛的变更推到了周一，顺便让周一也变痛。
+## 3. Two Cases Where the Day of the Week Wasn't the Star
 
-## 3. 两个案例，日子都不是主角
+**CrowdStrike, July 19, 2024, a Friday.** At 04:09 UTC, a Falcon content update (Channel File 291) was pushed out; the content interpreter in the kernel read out of bounds, and roughly 8.5 million Windows devices worldwide went into blue-screen reboot loops—airline, hospital, and bank counters went dark row by row. The update was pulled within 78 minutes, but machines already blue-screened could only be manually fixed one at a time by booting into safe mode and deleting files. One key line from the postmortem: this type of content update **had no canary rollout**.
 
-**CrowdStrike，2024 年 7 月 19 日，星期五。** 04:09 UTC，一次 Falcon 内容更新（Channel File 291）下发，内核里的内容解释器越界读内存，全球约 850 万台 Windows 设备蓝屏循环重启——航空公司、医院、银行的柜台一排排黑掉。更新在 78 分钟内被撤回，但已经蓝屏的机器只能一台台进安全模式手动删文件。事后复盘里有一句关键的话：这类内容更新**没有灰度**。
+**Knight Capital, August 1, 2012, a Wednesday.** To connect to NYSE's new Retail Liquidity Program, the company deployed a batch of new code—code that reactivated a function in the router that had been moved in 2005 and long since deprecated. In the 45 minutes after market open, the router sent over 40 million orders to the market, filling only 212 customer orders, losing more than $460 million. The most painful part: the SEC later found that before market open that day, internal systems had automatically sent **97** error emails. Nobody read them. Wednesday, 9:30 AM, everything looked normal.
 
-**Knight Capital，2012 年 8 月 1 日，星期三。** 为了对接纽交所新的零售流动性计划，公司部署了一批新代码——这批代码重新激活了路由里一段 2005 年就被挪了位置、早已废弃的函数。开盘后的 45 分钟里，路由器往市场发了 4000 多万笔订单，只为成交 212 笔客户委托，亏掉超过 4.6 亿美元。最扎心的是 SEC 事后查明：当天开盘前，内部系统已经自动发出了 **97 封** 报错邮件，没人看。星期三，上午九点半，一切看起来都很正常。
+Put the two together: one lost on "no canary," one lost on "no one reviewed the deployment process"—**neither lost on the day of the week**.
 
-把两件事放在一起看：一个输在「没有灰度」，一个输在「部署流程没人复核」——**没有一个输在星期几**。
+## 4. The Real Exorcism: Separate "Deploy" from "Release"
 
-## 4. 真正的解咒：把「部署」和「发布」拆开
+Deploy is "putting code on machines"—it should be boring, frequent, dozens of times a day. Release is "letting users see new features"—it should be toggleable, groupable, and killable at any time. The former, when it breaks, at worst gets rolled back; the latter, when it breaks, just needs a switch flipped off.
 
-部署（deploy）是「把代码放上机器」，应该无聊、频繁、每天几十次；发布（release）是「让用户看到新功能」，应该可开关、可分组、可随时关掉。前者出问题最多回滚，后者出问题只需要关掉一个开关。
+When these two things are glued together, all the superstitions above come right back.
 
-两件事粘在一起的时候，上面那些玄学就全回来了。
-
-一个最小的开关实现，代码量比写一条上线公告还少：
+A minimal feature-flag implementation takes less code than writing a release announcement:
 
 ```ts
 type Flag = {
@@ -78,37 +76,37 @@ function isOn(flag: Flag, userId: string): boolean {
 }
 ```
 
-有了它，17:30 上线就不再是赌博：先开 1%，盯五分钟指标，再开 10%、50%、100%。真出事，点一下开关，比 `git revert` + 重新构建 + 重新部署快一个数量级。
+With it, shipping at 17:30 is no longer a gamble: turn on 1%, watch metrics for five minutes, then 10%, 50%, 100%. If something really breaks, flip the switch—an order of magnitude faster than `git revert` + rebuild + redeploy.
 
-至于灰度、蓝绿、自动回滚、值班表，都是同一个思想的延伸：**让每一次变更的影响范围小到可以承受，让每一次故障的处理动作小到可以随时执行**。做到这两条，你就不需要「只读星期五」了——因为周三和周五没有区别。
+As for canary, blue-green, automatic rollback, on-call schedules—they're all extensions of the same idea: **make the blast radius of every change small enough to bear, and make the remediation action for every failure small enough to execute at any time**. Do these two things, and you don't need "Read-Only Friday"—because Wednesday and Friday are no different.
 
-## 5. 周五上线自检清单
+## 5. Friday Deploy Self-Check Checklist
 
-发版前问自己四句：
+Before shipping, ask yourself four questions:
 
-- [ ] 这次改动能一键回滚吗？回滚需要重新发版吗？
-- [ ] 出事了谁会醒？他知道回滚命令在哪吗？
-- [ ] 有没有开关能让它只对 1% 的用户生效？
-- [ ] 如果 17:30 上线、18:00 炸了，18:01 谁在场？
+- [ ] Can this change be rolled back with one click? Does rollback require a re-release?
+- [ ] If it breaks, who gets woken up? Do they know where the rollback command is?
+- [ ] Is there a flag that can make it affect only 1% of users?
+- [ ] If it ships at 17:30 and blows up at 18:00, who's around at 18:01?
 
-最后一条答不上来的时候，你怕的其实不是星期五，是自己那套流程。
+When you can't answer the last one, what you're really afraid of isn't Friday—it's your own process.
 
-## 写在最后
+## Final Thoughts
 
-段子继续讲，玄学继续拜——毕竟 `sudo` 前深呼吸不花钱。但心里要清楚：**星期五只是一个变量名，事故的真正主题永远是「变更的影响范围」和「恢复所需的时间」。**
+The jokes keep going, the superstitions keep getting worshipped—after all, taking a deep breath before `sudo` costs nothing. But be clear in your mind: **Friday is just a variable name; the real subject of every incident is always "the blast radius of a change" and "the time required to recover."**
 
-所以下次有人在周五 17:20 问「这个能上吗」，最好的回答不是「不行」，而是：
+So next time someone asks at 17:20 on a Friday "can this go out," the best answer isn't "no," it's:
 
-> 能上。把开关关着推上去，周一再打开。
+> Yes. Push it up with the flag off, turn it on Monday.
 
-——这样星期五就赢了，而且是靠工程赢的。
+—That way Friday wins, and it wins through engineering.
 
-## 参考来源
+## References
 
-- [Release Engineering — Google SRE Book](https://sre.google/sre-book/release-engineering/)：把发布做成「不需要工程师介入」的常规动作
-- [Accelerate: The Science of Lean Software and DevOps — Forsgren, Humble, Kim](https://itrevolution.com/product/accelerate/)：部署频率与变更失败率的长期相关性
-- [CrowdStrike Channel File 291 事故说明 — ABC News](https://www.abc.net.au/news/2024-07-20/what-happened-crowdstrike-global-outage-explainer/104122582)
-- [CrowdStrike 故障导致 850 万台 Windows 设备崩溃 — The Verge](https://www.theverge.com/2024/7/20/24202527/crowdstrike-microsoft-windows-bsod-outage)
-- [SEC Charges Knight Capital With Violations of Market Access Rule（Release No. 34-70694）](https://www.sec.gov/news/press-release/2013-222)
+- [Release Engineering — Google SRE Book](https://sre.google/sre-book/release-engineering/): making releases a routine action that "requires no engineer intervention"
+- [Accelerate: The Science of Lean Software and DevOps — Forsgren, Humble, Kim](https://itrevolution.com/product/accelerate/): the long-term correlation between deployment frequency and change failure rate
+- [CrowdStrike Channel File 291 Incident Explanation — ABC News](https://www.abc.net.au/news/2024-07-20/what-happened-crowdstrike-global-outage-explainer/104122582)
+- [CrowdStrike Outage Crashes 8.5 Million Windows Devices — The Verge](https://www.theverge.com/2024/7/20/24202527/crowdstrike-microsoft-windows-bsod-outage)
+- [SEC Charges Knight Capital With Violations of Market Access Rule (Release No. 34-70694)](https://www.sec.gov/news/press-release/2013-222)
 
-延伸阅读：本博客里也有几篇讲「事故与人的距离」的文章——[《历史上的著名 Bug》](/posts/historical-famous-bugs)、[《rm -rf 的悲惨故事》](/posts/rm-rf-tragic-stories)、以及昨天那篇[《需求变更的经典笑话》](/posts/requirement-change-jokes)（它有一节正好也在讲开关解耦）。
+Further reading: this blog also has a few posts about "the distance between incidents and people"—[Famous Bugs in History](/posts/historical-famous-bugs), [The Tragic Story of rm -rf](/posts/rm-rf-tragic-stories), and yesterday's [Classic Jokes About Requirement Changes](/posts/requirement-change-jokes) (one of its sections happens to be about decoupling with flags too).

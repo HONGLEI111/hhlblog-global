@@ -1,28 +1,26 @@
 ---
-title: RAG（检索增强生成）原理与实现：从零构建一个知识问答系统
+title: 'RAG (Retrieval-Augmented Generation) Principles and Implementation: Building a Knowledge Q&A System from Scratch'
 published: 2026-08-07
-description: '深入理解检索增强生成（RAG）的核心原理，并通过完整的代码示例从零构建一个基于向量检索的知识问答系统。'
+description: Gain a deep understanding of the core principles behind Retrieval-Augmented Generation (RAG) and build a vector retrieval-based knowledge Q&A system from scratch with complete code examples.
 image: ''
-tags: [RAG, LLM, 向量数据库, Embedding, AI]
+tags: [RAG, LLM, Vector Database, Embedding, AI]
 category: 'AI'
 draft: false
-lang: ''
 ---
+## What Is RAG?
 
-## 什么是 RAG？
+Retrieval-Augmented Generation (RAG) is one of the most central technical patterns in current large language model (LLM) applications. Its basic idea is simple: **before the LLM generates an answer, first retrieve relevant information from an external knowledge base, inject the retrieval results into the prompt as context, and let the model answer based on "reference materials."**
 
-检索增强生成（Retrieval-Augmented Generation，RAG）是当前大语言模型（LLM）应用中最核心的技术模式之一。它的基本思想很简单：**在 LLM 生成回答之前，先从外部知识库中检索相关信息，将检索结果作为上下文注入提示词，让模型基于"参考资料"作答。**
+Why is RAG needed? LLMs have two well-known limitations:
 
-为什么需要 RAG？LLM 有两个众所周知的局限：
+1. **Knowledge cutoff**: Model training data has a cutoff time, so it cannot answer questions about events that occurred after training.
+2. **Hallucination problem**: Models sometimes "fabricate" facts that do not exist, especially in domains they are unfamiliar with.
 
-1. **知识截止日期**：模型训练数据有截止时间，无法回答训练后发生的事件。
-2. **幻觉问题**：模型有时会"编造"不存在的事实，尤其是在它不熟悉的领域。
+RAG elegantly solves both problems—it frees the LLM from having to memorize all knowledge, and instead teaches it to "look up materials" before answering. This is like the difference between an open-book exam and a closed-book exam.
 
-RAG 优雅地解决了这两个问题——它让 LLM 不必记住所有知识，而是学会"查阅资料"后再回答。这就像开卷考试 vs 闭卷考试的区别。
+## Core Architecture
 
-## 核心架构
-
-RAG 的工作流程可以分为四个步骤：
+The RAG workflow can be divided into four steps:
 
 ```
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
@@ -31,33 +29,33 @@ RAG 的工作流程可以分为四个步骤：
 └──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
 ```
 
-每一步都有其技术细节和设计权衡，下面逐一展开。
+Each step has its own technical details and design trade-offs, which are expanded on one by one below.
 
-### 1. 文档处理与分块（Chunking）
+### 1. Document Processing and Chunking
 
-文档需要被拆分成适当大小的"块"（chunk）。分块策略直接影响检索质量：
+Documents need to be split into "chunks" of appropriate size. The chunking strategy directly affects retrieval quality:
 
-- **太小**（如 100 tokens）：丢失上下文，语义不完整
-- **太大**（如 4000 tokens）：检索精度下降，噪声信息太多
-- **推荐**：通常 500-1500 tokens 是一个较好的平衡点
+- **Too small** (e.g., 100 tokens): loses context, semantics are incomplete
+- **Too large** (e.g., 4000 tokens): retrieval precision drops, too much noisy information
+- **Recommended**: usually 500-1500 tokens is a good balance point
 
-更高级的做法包括**语义分块**（按段落/章节边界切割）和**递归分块**（先按大分隔符切，再按小分隔符切）。
+More advanced approaches include **semantic chunking** (splitting along paragraph/section boundaries) and **recursive chunking** (first split by large delimiters, then by small delimiters).
 
-### 2. 向量化与 Embedding
+### 2. Vectorization and Embedding
 
-每个文本块需要通过 Embedding 模型转换为向量（一组浮点数）。语义相近的文本在向量空间中距离更近——这是向量检索的数学基础。
+Each text chunk needs to be converted into a vector (a set of floating-point numbers) through an Embedding model. Semantically similar texts are closer together in vector space—this is the mathematical foundation of vector retrieval.
 
-常用的 Embedding 模型：
-- OpenAI：`text-embedding-3-small` / `text-embedding-3-large`
-- 开源方案：`BGE`（BAAI）、`all-MiniLM-L6-v2`（Sentence-Transformers）
+Commonly used Embedding models:
+- OpenAI: `text-embedding-3-small` / `text-embedding-3-large`
+- Open-source options: `BGE` (BAAI), `all-MiniLM-L6-v2` (Sentence-Transformers)
 
-### 3. 向量检索
+### 3. Vector Retrieval
 
-用户提问同样被 Embedding 为向量，然后在向量数据库中搜索最相似的文本块。相似度通常用**余弦相似度**或**欧氏距离**度量。
+The user's question is likewise embedded as a vector, and then the most similar text chunks are searched for in the vector database. Similarity is usually measured using **cosine similarity** or **Euclidean distance**.
 
-### 4. 增强生成
+### 4. Augmented Generation
 
-将检索到的相关文本块拼接在用户的原始提问之前，一起发送给 LLM。典型的 Prompt 模板：
+The retrieved relevant text chunks are concatenated before the user's original question and sent to the LLM together. A typical Prompt template:
 
 ```
 你是一个知识助手。请根据以下参考资料回答用户问题。
@@ -68,20 +66,19 @@ RAG 的工作流程可以分为四个步骤：
 
 用户问题：{user_query}
 ```
+## Building a Minimal RAG System from Scratch
 
-## 从零实现一个 Minimal RAG 系统
+Below we use Python to implement a minimal RAG system. We use:
+- **ChromaDB** as the vector database (lightweight, runs locally)
+- **OpenAI API** to provide Embedding and Chat capabilities
 
-下面我们用 Python 实现一个最简 RAG 系统。我们使用：
-- **ChromaDB** 作为向量数据库（轻量、本地运行）
-- **OpenAI API** 提供 Embedding 和 Chat 能力
-
-### 环境准备
+### Environment Setup
 
 ```bash
 pip install chromadb openai
 ```
 
-### 完整代码
+### Complete Code
 
 ```python
 import os
@@ -296,51 +293,50 @@ RAG 的优势在于：知识可实时更新（无需重新训练模型）、回�
         print(f"A: {answer}")
 ```
 
-### 运行结果解读
+### Interpreting the Results
 
-运行上述代码后，你会看到：
+After running the above code, you will see:
 
-- 对于"Python 是什么时候创建的"——系统从 `python_history` 文档中检索到相关内容，LLM 基于参考资料给出了准确答案。
-- 对于"RAG 技术能解决什么问题"——系统检索到 `rag_overview` 文档，回答引用了知识库中的内容。
-- 对于"今天天气怎么样"——知识库中没有相关信息，LLM 按照 System Prompt 的指示，诚实地表示无法回答。
+- For "When was Python created" — the system retrieves relevant content from the `python_history` document, and the LLM gives an accurate answer based on the reference material.
+- For "What problems can RAG technology solve" — the system retrieves the `rag_overview` document, and the answer cites content from the knowledge base.
+- For "How's the weather today" — there is no relevant information in the knowledge base, so the LLM, following the System Prompt's instructions, honestly states that it cannot answer.
 
-这就是 RAG 的核心价值：**模型不会"编造"信息，而是基于实际存在的参考资料作答。**
+This is the core value of RAG: **the model does not "fabricate" information, but answers based on reference material that actually exists.**
+## Advanced Topics
 
-## 进阶话题
+The example above is a minimal version. In real production environments, RAG systems also need to consider the following optimizations:
 
-上面的示例是一个最简版本。在实际生产环境中，RAG 系统还需要考虑以下优化：
+### Chunking Strategy Optimization
 
-### 分块策略优化
+Fixed-size chunking is simple, but it may cut sentences in half. Better approaches:
 
-固定大小分块虽然简单，但可能切断句子。更好的做法：
+- **Recursive character splitting**: first split by `\n\n`, then by `\n`, and finally by periods (this is what LangChain's `RecursiveCharacterTextSplitter` does)
+- **Semantic chunking**: use an Embedding model to detect semantic boundaries and split at semantic transitions
+- **Document structure awareness**: for structured documents like Markdown and HTML, preserve heading hierarchy information
 
-- **递归字符分割**：先按 `\n\n` 切，再按 `\n` 切，最后按句号切（LangChain 的 `RecursiveCharacterTextSplitter` 就是这样做的）
-- **语义分块**：使用 Embedding 模型检测语义边界，在语义转折处切割
-- **文档结构感知**：对 Markdown、HTML 等结构化文档，保留标题层级信息
+### Retrieval Quality Optimization
 
-### 检索质量优化
+Basic keyword matching + vector retrieval is often not enough:
 
-基本的关键词匹配 + 向量检索往往不够：
+- **HyDE (Hypothetical Document Embeddings)**: first use an LLM to generate a "hypothetical answer," then use this hypothetical answer to retrieve—this can bridge the semantic gap between questions and answers
+- **Multi-Query**: use an LLM to rewrite the user's question into multiple queries from different angles, retrieve separately, then merge and deduplicate
+- **Re-ranking**: after coarse retrieval (such as top-20), use a stronger model to re-rank and keep only the top-3 to send to the LLM. Cohere's Rerank API is a common choice
 
-- **HyDE（Hypothetical Document Embeddings）**：先用 LLM 生成一个"假设答案"，再用这个假设答案去检索——这能弥合问题和答案之间的语义鸿沟
-- **Multi-Query**：用 LLM 将用户问题改写为多个不同角度的查询，分别检索后合并去重
-- **Re-ranking**：粗检索（如 top-20）后用更强的模型重新排序，只保留 top-3 送入 LLM。Cohere 的 Rerank API 是常用选择
+### Hybrid Search
 
-### 混合搜索
+Pure vector search sometimes misses scenarios that require exact keyword matching. **Hybrid search** combines vector search (semantic matching) with BM25 (keyword matching), weighting the two to produce the final ranking.
 
-纯粹的向量搜索有时会遗漏关键词精确匹配的场景。**混合搜索**将向量搜索（语义匹配）与 BM25（关键词匹配）结合，两者加权后得到最终排序。
+## Conclusion
 
-## 结语
+RAG is currently one of the most cost-effective technical patterns in AI application development. It does not require fine-tuning models or massive amounts of labeled data, yet it can significantly improve the quality of LLM responses in specific domains. From enterprise internal knowledge bases to customer service systems, from legal retrieval to medical-assisted diagnosis, the application scenarios for RAG are everywhere.
 
-RAG 是当前 AI 应用开发中性价比最高的技术模式之一。它不需要微调模型，不需要海量标注数据，却能显著提升 LLM 在特定领域的回答质量。从企业内部知识库到客服系统，从法律检索到医疗辅助诊断，RAG 的应用场景无处不在。
-
-本文的完整代码可以在不到 100 行内实现一个可用的 RAG 问答系统，但生产环境中的 RAG 是一个系统工程——文档处理管线、分块策略、检索调优、评估体系，每一项都值得深入。
+The complete code in this article can implement a usable RAG question-answering system in less than 100 lines, but RAG in production is a systems engineering effort—document processing pipelines, chunking strategies, retrieval tuning, and evaluation systems are all worth exploring in depth.
 
 ---
 
-**参考来源：**
+**References:**
 
 1. Lewis, P., et al. "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks." *NeurIPS 2020*. https://arxiv.org/abs/2005.11401
-2. ChromaDB 官方文档. https://docs.trychroma.com/
-3. LangChain RAG 教程. https://python.langchain.com/docs/tutorials/rag/
+2. ChromaDB Official Documentation. https://docs.trychroma.com/
+3. LangChain RAG Tutorial. https://python.langchain.com/docs/tutorials/rag/
 4. Gao, Y., et al. "Retrieval-Augmented Generation for Large Language Models: A Survey." *arXiv 2023*. https://arxiv.org/abs/2312.10997

@@ -1,152 +1,150 @@
 ---
-title: Claude Code 创始人 Boris Cherny：我已半年没手写一行代码
+title: 'Claude Code Creator Boris Cherny: I Haven''t Hand-Written a Line of Code in Six Months'
 published: 2026-05-08
-description: 'Claude Code 之父 Boris Cherny 自 2024 年 11 月起 100% 由 AI 生成代码，日发 150 个 PR，用 iPhone 调度数百个 Agent。本文整理了他的工作流、设计哲学与对编程行业未来的判断。'
+description: Boris Cherny, the father of Claude Code, has generated 100% of his code with AI since November 2024, shipping 150 PRs a day and orchestrating hundreds of agents from his iPhone. This article covers his workflow, design philosophy, and predictions for the future of programming.
 image: ''
-tags: [Claude Code, AI 编程]
+tags: [Claude Code, AI programming]
 category: 'AI'
 draft: false
-lang: ''
 ---
+## 1. Who He Is
 
-## 1. 他是谁
+**Boris Cherny**, 34 years old, is the founder and head of Claude Code at Anthropic, and the product's first engineer.
 
-**Boris Cherny**，34 岁，Anthropic 公司 Claude Code 的创始人与负责人，也是该产品的第一位工程师。
+His background isn't exactly "orthodox":
+- Self-taught programmer, dropped out of UC San Diego where he studied economics
+- Author of the book *Programming TypeScript*
+- Worked at Meta for nearly 7 years, responsible for company-wide code quality
+- Joined Anthropic in September 2024 and started hacking on the Claude Code prototype
 
-他的背景并不算"正统"：
-- 自学编程，加州大学圣地亚哥分校经济学专业辍学
-- 著有《Programming TypeScript》一书
-- 在 Meta 工作近 7 年，负责全公司代码质量
-- 2024 年 9 月加入 Anthropic，开始 hack Claude Code 原型
-
-一个有趣的插曲：2025 年 7 月他曾短暂跳槽至竞争对手 Cursor（任首席架构师），不到两周即回归 Anthropic，理由是"100% 因为想念使命"。
-
----
-
-## 2. 编程已被"解决"了？
-
-Boris 在 2026 年红杉 AI Ascent 大会上抛出了一个大胆的断言：
-
-> 编程已被解决。至少在 TypeScript / React 技术栈层面。
-
-自 **2024 年 11 月以来，他没有手写过一行代码**，100% 由 AI 生成。他认为当前行业整体约有 **50% 的编程已被解决**，剩余部分受限于超大规模遗留系统、低资源语言生态等。
-
-但他强调这并不意味着程序员会被淘汰——而是**编程的门槛正在消失**，角色从"写代码的人"转变为"决定要解决什么问题的人"。
+An interesting anecdote: in July 2025 he briefly jumped ship to competitor Cursor (as chief architect), but returned to Anthropic in less than two weeks, citing the reason as "100% because I missed the mission."
 
 ---
 
-## 3. 他如何使用 Claude Code
+## 2. Has Programming Been "Solved"?
 
-### 3.1 极致并行：手机 + 数百个 Agent
+At the 2026 Sequoia AI Ascent conference, Boris threw out a bold assertion:
 
-Boris 的工作方式令人咋舌：
+> Programming has been solved. At least at the TypeScript / React stack level.
 
-- **主要工作设备是 iPhone**，通过 iOS 版 Claude 应用调度一切
-- 每日发起 **10–150 个 PR**，单日最高记录 150 个
-- 同时并行运行 **数百个 AI Agent**，每晚数千个执行深层任务
-- 本地终端同时开 **5 个 tab**，Web 端再加 **5–10 个会话**，轮流在各环境启动 Claude Code
+Since **November 2024, he hasn't handwritten a single line of code**—100% is AI-generated. He believes that roughly **50% of programming across the industry has already been solved**, with the remainder constrained by ultra-large-scale legacy systems, low-resource language ecosystems, and the like.
 
-他的 Ansible 和 Nginx 配置全是 Claude 生成的。"从去年开始，这些我全都看不懂了。"
+But he stresses that this doesn't mean programmers will be eliminated—rather, **the barrier to programming is disappearing**, and the role is shifting from "person who writes code" to "person who decides what problem to solve."
 
-### 3.2 Loop 模式：他最爱的功能
+---
 
-Loop 是基于 cron 的定时智能体调度机制，Boris 已部署数十个长期运行的 Loop 实例：
+## 3. How He Uses Claude Code
 
-- **PR 看护**：自动修复 CI 冲突、自动 rebase
-- **CI 健康维护**：自动修复 flaky tests
-- **社交监听**：每 30 分钟抓取 Twitter 反馈并自动聚类整理
+### 3.1 Extreme Parallelism: Phone + Hundreds of Agents
+
+Boris's way of working is staggering:
+
+- **His primary work device is an iPhone**, orchestrating everything through the iOS Claude app
+- Launches **10–150 PRs** per day, with a single-day record of 150
+- Runs **hundreds of AI Agents** in parallel simultaneously, with thousands executing deep tasks each night
+- Opens **5 tabs** in the local terminal at once, plus **5–10 sessions** on the web, taking turns launching Claude Code across environments
+
+His Ansible and Nginx configs are all Claude-generated. "Since last year, I can't understand any of this anymore."
+
+### 3.2 Loop Mode: His Favorite Feature
+
+Loop is a cron-based scheduled agent orchestration mechanism. Boris has deployed dozens of long-running Loop instances:
+
+- **PR babysitting**: automatically fixes CI conflicts, automatically rebases
+- **CI health maintenance**: automatically fixes flaky tests
+- **Social listening**: scrapes Twitter feedback every 30 minutes and automatically clusters and organizes it
 
 ```bash
 # 每 30 分钟检查一次 CI 状态并修复失败的测试
 /loop 30m 检查最近的 CI 运行结果，如果存在 flaky test，自动修复并提 PR
 ```
 
-### 3.3 先计划，再执行
+### 3.3 Plan First, Then Execute
 
-Boris 的 session 80% 从 **Plan Mode** 起步（快速按两次 Shift+Tab 进入）：
+80% of Boris's sessions start with **Plan Mode** (enter by quickly pressing Shift+Tab twice):
 
-1. 与 Claude 反复沟通需求，直到生成满意的计划
-2. 切换到自动执行模式，让 Claude 完成所有代码修改
-3. 审查结果，必要时再迭代
+1. Communicate requirements back and forth with Claude until a satisfactory plan is generated
+2. Switch to auto-execute mode and let Claude make all the code changes
+3. Review the results and iterate if necessary
 
-不过他也提到，随着模型能力提升，"一个月后他就不再需要 plan mode 了"——模型会在思考过程中自行规划。
+However, he also mentions that as model capabilities improve, "a month from now he won't need plan mode anymore"—the model will plan on its own during its thinking process.
 
-### 3.4 多 Agent 协作通信
+### 3.4 Multi-Agent Collaborative Communication
 
-最颠覆认知的一点：他的 Claude 会通过 **Slack 直接给同事发消息**。
+The most mind-bending point: his Claude will **message colleagues directly via Slack**.
 
-比如看到 `git blame` 里有人最近改过相关代码，Claude 会自动发 Slack 消息询问澄清问题。Agent 之间可以自主组队、认领任务、分工协作。Boris 认为这是下一代编程工具的核心能力——"让多个 AI 像一个团队一样工作"。
+For example, if it sees that someone in `git blame` recently modified related code, Claude will automatically send a Slack message asking clarifying questions. Agents can autonomously team up, claim tasks, and divide labor. Boris believes this is the core capability of the next generation of programming tools—"letting multiple AIs work like a team."
 
-### 3.5 共享记忆：CLAUDE.md
+### 3.5 Shared Memory: CLAUDE.md
 
-团队在 Git 仓库中维护共享的 `CLAUDE.md`，记录开发命令、代码风格偏好、项目架构约定等。
+The team maintains a shared `CLAUDE.md` in the Git repository, recording development commands, code style preferences, project architecture conventions, and so on.
 
-关键的机制是：**每当发现 Claude 犯错，就在 PR 评论中 @Claude，让它自动更新 CLAUDE.md**。这样错误只会犯一次，知识在团队中持续沉淀。
+The key mechanism is: **whenever Claude is found to have made a mistake, @Claude in the PR comment and have it automatically update CLAUDE.md**. This way, a mistake is only made once, and knowledge continuously accumulates within the team.
 
-### 3.6 Routines：离线也能跑
+### 3.6 Routines: They Run Even Offline
 
-Routines 是服务端常驻例程，可在设备离线状态下持续运行。意味着即使 Boris 睡觉或坐飞机，他的 Agent 仍在工作——早上醒来时 PR 已经等着审查了。
+Routines are server-side persistent routines that can keep running even when the device is offline. This means that even when Boris is asleep or on a plane, his Agents are still working—when he wakes up in the morning, the PRs are already waiting for review.
 
 ---
 
-## 4. Claude Code 的发展时间线
+## 4. Claude Code's Development Timeline
 
-| 时间 | 里程碑 |
+| Time | Milestone |
 |------|--------|
-| 2024 年 9 月 | Boris 加入 Anthropic，开始 hack 原型 |
-| 2025 年 2 月 | Claude Code 正式上线，可用率仅约 10% |
-| 2025 年 5 月 | **Opus 4** 发布，代码生成可用率跃升至 30%，产品进入指数增长 |
-| 2025 年 7 月 | Boris 短暂跳槽 Cursor，两周后回归 |
-| 2025 年 11 月 | **Opus 4.5** 发布，AI 在软件工程领域达到人类水平；Boris 从此停止手写代码 |
-| 2026 年 | Claude Code 年化收入达 **300 亿美元**，推动 Anthropic 营收反超 OpenAI |
+| September 2024 | Boris joins Anthropic and starts hacking on the prototype |
+| February 2025 | Claude Code officially launches, with a usability rate of only about 10% |
+| May 2025 | **Opus 4** is released, code generation usability jumps to 30%, and the product enters exponential growth |
+| July 2025 | Boris briefly jumps to Cursor, returns two weeks later |
+| November 2025 | **Opus 4.5** is released, AI reaches human level in software engineering; Boris stops handwriting code from then on |
+| 2026 | Claude Code reaches **$30 billion** in annualized revenue, driving Anthropic's revenue past OpenAI |
 
 ---
 
-## 5. 他的设计哲学
+## 5. His Design Philosophy
 
-### 5.1 为六个月后的模型做产品
+### 5.1 Build Products for the Model Six Months From Now
 
-> 我们不是为今天的模型做产品，而是为六个月后的模型做产品。
+> We don't build products for today's model, we build products for the model six months from now.
 
-这是 Boris 最核心的产品理念。他拒绝为当前模型缺陷打补丁——"补丁等新模型出来后直接变成负资产"。与其把时间花在修复当前模型的局限性上，不如专注于模型能力溢出后仍然有竞争力的产品框架。
+This is Boris's most core product philosophy. He refuses to patch current model deficiencies—"patches directly become negative assets once the new model comes out." Rather than spending time fixing the current model's limitations, it's better to focus on a product framework that remains competitive once model capabilities overflow.
 
-### 5.2 模型 vs 编排层
+### 5.2 Model vs Orchestration Layer
 
-模型与产品设计的权重约 **50/50**，但长期看，模型自身能力提升将降低编排层的必要性。
+The weighting between the model and product design is about **50/50**, but in the long run, improvements in the model's own capabilities will reduce the necessity of the orchestration layer.
 
-他甚至预言 Claude Code 一年后可能**只剩 100 行代码**——因为模型会越来越自主地做正确的事，不需要复杂的外部逻辑来引导它。
-
----
-
-## 6. 对行业未来的判断
-
-### 两类被削弱的护城河
-
-1. **转换成本**：跨平台迁移将自动化，锁定效应减弱
-2. **流程优势**：AI 可复现并优化复杂业务流程，曾经的"独门运营"不再稀缺
-
-### 未来十年的颠覆
-
-- 未来十年颠覆性软件公司数量将是过去十年的 **10 倍**
-- 小团队借助 AI 可与大厂正面对抗
-- "软件工程师"头衔可能消失，取而代之的是 **Builder**：定义系统目标、审查输出、决定要解决什么问题
-
-### 编程范式的根本转变
-
-从"人写代码、AI 辅助"转向 **"AI 写代码、人做决策"**。开发者的核心能力不再是语法熟练度，而是问题定义能力、系统设计品味、以及判断力。
+He even predicts that Claude Code may be **only 100 lines of code** a year from now—because the model will increasingly autonomously do the right thing, without needing complex external logic to guide it.
 
 ---
 
-## 7. 启示
+## 6. Judgment on the Industry's Future
 
-Boris Cherny 的工作方式不是科幻——它是正在发生的现实。他用自己的产品证明了：当一个工程师真正信任 AI、并建立起高效的人机协作体系后，生产力的天花板远比想象的高。
+### Two Types of Weakened Moats
 
-几条可以立刻借鉴的实践：
+1. **Switching costs**: cross-platform migration will be automated, and lock-in effects will weaken
+2. **Process advantages**: AI can reproduce and optimize complex business processes, and once-"proprietary operations" are no longer scarce
 
-1. **创建项目的 CLAUDE.md**，让 AI 每次都带着正确的上下文工作
-2. **每次发现 AI 犯错，写入 CLAUDE.md**——错误只犯一次
-3. **尝试 Loop 模式**自动化重复性任务
-4. **从 Plan Mode 开始复杂任务**，减少返工
-5. **接受角色转变**：从"写代码的人"变成"定义问题和审查输出的人"
+### Disruption in the Next Decade
 
-> 编程的门槛正在消失，但定义问题的能力比以往任何时候都更重要。
+- The number of disruptive software companies in the next decade will be **10 times** that of the past decade
+- Small teams, with the help of AI, can go head-to-head with big companies
+- The title "software engineer" may disappear, replaced by **Builder**: defining system goals, reviewing output, and deciding what problem to solve
+
+### A Fundamental Shift in the Programming Paradigm
+
+From "humans write code, AI assists" to **"AI writes code, humans make decisions."** A developer's core ability is no longer syntax proficiency, but problem-definition ability, system design taste, and judgment.
+
+---
+
+## 7. Takeaways
+
+Boris Cherny's way of working isn't science fiction—it's a reality that is happening right now. He has proven with his own product that when an engineer truly trusts AI and builds an efficient human-machine collaboration system, the ceiling of productivity is far higher than imagined.
+
+A few practices you can borrow immediately:
+
+1. **Create a CLAUDE.md for your project**, so AI works with the correct context every time
+2. **Every time you find AI making a mistake, write it into CLAUDE.md**—a mistake is only made once
+3. **Try Loop mode** to automate repetitive tasks
+4. **Start complex tasks from Plan Mode** to reduce rework
+5. **Accept the role shift**: from "person who writes code" to "person who defines problems and reviews output"
+
+> The barrier to programming is disappearing, but the ability to define problems is more important than ever.

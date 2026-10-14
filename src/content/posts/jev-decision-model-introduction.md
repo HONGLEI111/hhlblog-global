@@ -1,50 +1,48 @@
 ---
-title: JEV 模型是什么：一个「不说话」、只输出带概率决策的 AI
+title: 'What Is the JEV Model: A ''Silent'' AI That Only Outputs Decisions With Probabilities'
 published: 2026-10-09
-description: 'JEV 是由 RLHF 共同发明人 Diogo Almeida 创立的 TypeSafe AI 推出的「决策模型」，它不生成文本，只把非结构化输入映射为带概率的类型化判断。本文拆解它的三种输出原语、RLCD 训练方法、性能价格，以及它和大模型到底是什么关系。'
+description: JEV is a 'decision model' from TypeSafe AI, founded by RLHF co-inventor Diogo Almeida. It doesn't generate text; it maps unstructured input into typed judgments with probabilities. This article breaks down its three output primitives, its RLCD training method, its performance and price, and how it relates to large language models.
 image: ''
-tags: [JEV, TypeSafe AI, 决策模型, LLM, AI Agent]
+tags: [JEV, TypeSafe AI, decision model, LLM, AI agent]
 category: 'AI'
 draft: false
-lang: ''
 ---
+## Introduction: Why did a model that "can't talk" become popular?
 
-## 引言：一个「不会说话」的模型，为什么火了
+On September 15, 2026, San Francisco startup **TypeSafe AI** released its first model, **JEV** (officially written mostly as "Jev").
 
-2026 年 9 月 15 日，旧金山初创公司 **TypeSafe AI** 发布了旗下第一个模型 **JEV**（官方写法多为「Jev」）。
+Its most counterintuitive aspect is this: **it doesn't generate any text**. You can't use it to write articles, write code, chat, or even ask it "why" — it won't answer. You give it a piece of material, then list a set of questions (along with candidate answers), and the only thing it does is — **make judgments**: which one to pick, what score to give, how confident it is.
 
-它最反直觉的地方在于：**它不生成任何文本**。你不能用它写文章、写代码、聊天，甚至问它「为什么」它也不回答。你给它一段材料，再列出一组问题（以及候选答案），它唯一做的事就是——**做判断**：选哪个、打多少分、把握有多大。
+It's this "untalkative" model that, the day after its release, was integrated into Vercel's AI Gateway, covering nearly 13% of its paid teams' call volume within 24 hours; subsequently, Netlify, LangChain, Cloudflare Workers AI, and Langfuse also followed with integrations. Silicon Valley briefly discussed it as a "new AI track."
 
-就是这么个「不爱说话」的模型，发布第二天就被 Vercel 接入了 AI Gateway，24 小时内覆盖了其付费团队近 13% 的调用量；随后 Netlify、LangChain、Cloudflare Workers AI、Langfuse 也陆续跟进集成。硅谷一度把它当作「AI 新赛道」来讨论。
+But what really made it go viral was its author: **Diogo Almeida** — formerly of Google Brain, who deeply participated in the R&D of **InstructGPT, ChatGPT, and GPT-4** at OpenAI, and is also **one of the co-inventors of RLHF (Reinforcement Learning from Human Feedback)**. A person who personally turned "making models talk well" into a paradigm has now, in turn, launched a model that "refuses to talk" — this fact alone is worth reading about.
 
-而真正让它出圈的，是它的作者：**Diogo Almeida**——Google Brain 出身、在 OpenAI 深度参与了 **InstructGPT、ChatGPT 和 GPT-4** 的研发，也是 **RLHF（基于人类反馈的强化学习）的共同发明人之一**。一个亲手把「让模型好好说话」这件事做成范式的人，如今反过来推出一个「拒绝说话」的模型，这件事本身就值得一读。
+## Two puns in the name
 
-## 名字里的两个梗
+To understand JEV's positioning, first look at its two names:
 
-理解 JEV 的定位，先看它的两个命名：
+- **Jev** is taken from the **Jevons Paradox**: an improvement in the efficiency of a technology actually causes its total demand to increase. Applied here, the implication is that "judging is so expensive and slow that people dare not ask too many questions; once it becomes cheaper and faster, judgment will be used far more than it is now."
+- **System One Model** is taken from the **"System 1"** in Kahneman's *Thinking, Fast and Slow* — intuitive, fast, almost unconscious judgment. TypeSafe's official positioning for JEV is exactly this: **a model built for "fast thinking."**
 
-- **Jev** 取自**杰文斯悖论（Jevons Paradox）**：某项技术效率的提升，反而会让它的总需求量变大。放在这里，暗示的是「判断这件事太贵、太慢，以至于大家不敢多问；一旦变便宜变快，判断会被用得比现在多得多」。
-- **System One Model** 取自卡尼曼《思考，快与慢》里的**「系统 1」**——直觉式的、快速的、几乎无意识的判断。TypeSafe 官方给 JEV 的定位就是：**一个面向「快思考」的模型**。
+The official definition of it is just one sentence, but very precise:
 
-官方对它的定义只有一句话，却很准：
+> **A frontier-intelligence function call: unstructured state in, typed probabilistic decisions out.**
 
-> **前沿智能的函数调用（a frontier-intelligence function call）：非结构化状态进，类型化的概率决策出。**
+In other words, it packages "intelligence" as a **function** with a clear signature, rather than a dialog box.
 
-也就是说，它把「智能」包装成一个有明确签名的**函数**，而不是一个对话框。
+## Three output primitives: Choice, Score, Noul
 
-## 三种输出原语：Choice、Score、Noul
+JEV's API is extremely minimal — in an entire request, you can only ask three types of questions, which the official documentation calls **output primitives**:
 
-JEV 的 API 极简——一整个请求里，你只能提三类问题，官方称之为**输出原语（primitives）**：
-
-| 原语 | 你在问什么 | 它返回什么 |
+| Primitive | What you're asking | What it returns |
 |------|-----------|-----------|
-| **Choice** | 从一组选项里挑一个（最多 255 个） | 每个选项的概率分布 + 最终选择 |
-| **Score** | 在某个有序等级或数值区间上打分 | 一个连续数值 + 置信度 |
-| **Noul** | 一个预设的是非问题 | 一个 0～1 之间的概率 |
+| **Choice** | Pick one from a set of options (up to 255) | A probability distribution over each option + the final choice |
+| **Score** | Score on some ordered scale or numeric range | A continuous value + confidence |
+| **Noul** | A preset yes/no question | A probability between 0 and 1 |
 
-「Noul」这个词本身就是一个小细节：它是 **N**umber + boo**l**ean 的拼合，强调「不是硬 0/1，而是一个校准过的概率」。
+The word "Noul" itself is a small detail: it's a blend of **N**umber + boo**l**ean, emphasizing "not a hard 0/1, but a calibrated probability."
 
-举个客服场景的例子——把一段用户投诉丢进去，一次性问三类问题：
+Take a customer service scenario as an example — throw in a piece of user complaint and ask all three types of questions at once:
 
 ```python
 from jev import Jev
@@ -61,7 +59,7 @@ decision = client.decide(
 )
 ```
 
-返回的结果大致是这样：
+The returned result looks roughly like this:
 
 ```json
 {
@@ -73,83 +71,82 @@ decision = client.decide(
 }
 ```
 
-注意几点：
+A few things to note:
 
-1. **输出是「类型化」的**。`category` 只可能是你给的 4 个选项之一，`urgency` 一定落在 0～4。这也是官方宣称「不会产生幻觉」的技术含义——见后文对这句话的辨析。
-2. **每个判断都带概率/置信度**，调用方代码可以据此设阈值：比如 `need_human > 0.5` 就转人工。
-3. **一个问题请求里的所有问题是一次性并行算出来的**（下一节展开），所以多问几个问题几乎不增加延迟。
+1. **The output is "typed."** `category` can only be one of the 4 options you provided, and `urgency` must fall between 0 and 4. This is also the technical meaning behind the official claim of "no hallucinations" — see the later analysis of this statement.
+2. **Every judgment comes with a probability/confidence**, and the caller's code can set thresholds accordingly: for example, `need_human > 0.5` routes to a human agent.
+3. **All questions in a single request are computed in parallel at once** (elaborated in the next section), so asking a few more questions barely adds latency.
 
-## 技术原理：为什么不逐字生成，反而更快
+## Technical principles: Why is it faster by not generating token by token
 
-传统大模型是**自回归**的：一个 token 一个 token 往外吐，输出越长越慢。JEV 走的是完全不同的路子：
+Traditional large models are **autoregressive**: they spit out one token at a time, and the longer the output, the slower it gets. JEV takes a completely different path:
 
-- **输出空间是预先定义的**。你的问题里已经给了所有可能答案（选项集、评分区间、是/否），模型不需要「逐字造句」，而可以在**一次前向传播里并行采样出所有问题的全部答案**。这就是它「多加问题也不怎么变慢」的原因。
-- **训练方法叫 RLCD**——**Reinforcement Learning for Calibrated Decisions（面向校准决策的强化学习）**，被明确拿来对标 RLHF 与 RLVR。
-  - **RLHF 奖励的是「人类觉得这个回答好」**；
-  - **RLCD 奖励的是「你说的概率和实际命中率对得上」**。
+- **The output space is predefined.** Your question already provides all possible answers (option set, scoring range, yes/no), so the model doesn't need to "construct sentences token by token," but can **sample all answers to all questions in parallel within a single forward pass**. This is why "adding more questions barely slows it down."
+- **The training method is called RLCD** — **Reinforcement Learning for Calibrated Decisions**, explicitly positioned against RLHF and RLVR.
+  - **RLHF rewards "humans think this answer is good"**;
+  - **RLCD rewards "the probabilities you state match the actual hit rates."**
 
-第二点是 JEV 最核心、也最容易被忽略的主张：它优化的是**校准（calibration）**，而不是讨人喜欢。用官方的话说——**如果它说 70% 或 95%，那这件事就应该恰好以 70% 或 95% 的频率发生**。对需要拿去写进 `if` 语句的决策来说，一个诚实校准过的概率，比一句漂亮的自然语言解释有用得多。
+The second point is JEV's most core and most easily overlooked claim: it optimizes for **calibration**, not likability. In the official words — **if it says 70% or 95%, then the event should occur at exactly a 70% or 95% frequency**. For decisions that need to be written into `if` statements, an honestly calibrated probability is far more useful than a beautifully worded natural language explanation.
 
-## 性能与价格：官方数字与「真实收益」
+## Performance and pricing: Official numbers vs. "real gains"
 
-| 指标 | 官方数据 |
+| Metric | Official data |
 |------|---------|
-| 端到端延迟 | **70 ～ 500 ms** |
-| 输入价格 | **$0.042 / 百万 token** |
-| 输出价格 | **免费** |
-| 上下文窗口 | 32,000 token |
-| 对比前沿大模型 | 声称**快 193.6 倍、便宜 444.6 倍** |
+| End-to-end latency | **70 – 500 ms** |
+| Input price | **$0.042 / million tokens** |
+| Output price | **Free** |
+| Context window | 32,000 tokens |
+| Compared to frontier large models | Claims to be **193.6× faster and 444.6× cheaper** |
 
-这里必须补一句 TypeSafe 自己都承认的注脚：**193.6× / 444.6× 是「理论上限」，基准也是内部自评**。第三方实测给出的更保守结论大致是：**快约 2～3.6 倍、便宜约 4.7～7.5 倍**。
+Here we must add a footnote that even TypeSafe itself acknowledges: **193.6× / 444.6× is a "theoretical upper bound," and the benchmark is also an internal self-evaluation**. More conservative conclusions from third-party testing are roughly: **about 2–3.6× faster and about 4.7–7.5× cheaper**.
 
-即便如此，「输出免费」这件事本身很有信息量——它等于把定价模型从「按生成量计费」改成「按判断请求计费」，因为**判断的 token 成本本来就不该随输出长度走**。
+Even so, the fact that "output is free" is itself very informative — it amounts to changing the pricing model from "billing by generation volume" to "billing by judgment requests," because **the token cost of judgment inherently shouldn't scale with output length**.
 
-准确性上，TypeSafe 自己的评测里 JEV 约为 **67.8%**——和 GPT-5.6 Terra 打平，但落后于 GPT-5.6 Sol 和 Claude Opus 5。它赢的不是准确率，而是**每单位成本与延迟下的准确率**。
+In terms of accuracy, in TypeSafe's own evaluation JEV scores about **67.8%** — on par with GPT-5.6 Terra, but behind GPT-5.6 Sol and Claude Opus 5. What it wins on is not accuracy, but **accuracy per unit of cost and latency**.
 
-## JEV 和大模型，是替代还是互补？
+## Is JEV a replacement for or a complement to large models?
 
-结论很清楚：**互补，不是替代**。它们对应的是两种不同的活儿：
+The conclusion is clear: **complementary, not a replacement**. They correspond to two different kinds of work:
 
-| 维度 | 生成式大模型 | JEV |
+| Dimension | Generative large models | JEV |
 |------|------------|-----|
-| 输出 | 自然语言 / 代码，长度不定 | 类型化判断（选择 / 分数 / 概率） |
-| 典型任务 | 写作、规划、推理、生成代码 | 分类、路由、打分、审批、动作判定 |
-| 延迟 | 秒级 | 毫秒级 |
-| 可解释性 | 能给出推理过程 | **只给数字，不给理由** |
-| 成本敏感度 | 高 | 极低 |
+| Output | Natural language / code, variable length | Typed judgments (choice / score / probability) |
+| Typical tasks | Writing, planning, reasoning, generating code | Classification, routing, scoring, approval, action determination |
+| Latency | Seconds | Milliseconds |
+| Interpretability | Can provide reasoning process | **Only gives numbers, no reasons** |
+| Cost sensitivity | High | Extremely low |
 
-合理的分工是：**大模型负责「想清楚要问什么」，JEV 负责「高频、廉价地把大量判断做完」**。典型场景包括：
+A reasonable division of labor is: **large models are responsible for "figuring out what to ask," and JEV is responsible for "completing a large number of judgments at high frequency and low cost."** Typical scenarios include:
 
-- 内容审核 / 垃圾识别（Choice：多分类）
-- 工单路由与优先级（Score + Choice）
-- 智能体的动作判定（Agent 里「这一步该调哪个工具」——本质就是 Choice）
-- 用户流失风险、情绪强度打分（Score）
-- 风控里一连串的是非门（Noul）
+- Content moderation / spam detection (Choice: multi-class classification)
+- Ticket routing and prioritization (Score + Choice)
+- Action determination in agents (in an Agent, "which tool should be called at this step" — essentially Choice)
+- User churn risk, sentiment intensity scoring (Score)
+- A series of yes/no gates in risk control (Noul)
 
-## 争议与需要留意的地方
+## Controversies and things to watch out for
 
-热度之外，几个批评值得认真对待：
+Beyond the hype, several criticisms deserve serious consideration:
 
-1. **「零幻觉」是一种文字游戏**。它真正的含义只是「JEV 不可能吐出选项之外的**类型**」，但它**完全可能自信地选中一个错误的合法选项**。类型安全 ≠ 判断正确。
-2. **没有可解释性**。它只给数字，不给理由。对需要审计、需要向人解释的决策链来说，这是个硬伤——你无法像读 CoT 那样复盘它为什么这么选。
-3. **校准必须按工作流单独验证**。RLCD 保证了「训练分布上」的校准，但你的业务数据分布未必在训练分布里。上线前应自己在真实样本上回归一遍它的置信度。
-4. **它有自己的「锯齿」**。TypeSafe 文档里明确承认模型在**计数、算术、日期比较**上不可靠，并建议：**数学运算留在代码里，别交给模型**。
-5. **要锁定版本**。官方建议把版本号写死（如 `jev-1.13.0`），因为概率输出会随版本漂移，而概率一旦漂移，你的阈值逻辑就跟着漂。
+1. **"Zero hallucinations" is a word game**. Its real meaning is only that "JEV cannot spit out a **type** outside the options," but it **can absolutely confidently select a wrong but legal option**. Type safety ≠ correct judgment.
+2. **No interpretability**. It only gives numbers, not reasons. For decision chains that need auditing and need to be explained to people, this is a hard flaw — you can't review why it chose this way the way you'd read a CoT.
+3. **Calibration must be validated separately per workflow**. RLCD guarantees calibration "on the training distribution," but your business data distribution may not be in the training distribution. Before launch, you should regress its confidence on real samples yourself.
+4. **It has its own "jagged edges."** TypeSafe's documentation explicitly acknowledges that the model is unreliable at **counting, arithmetic, and date comparison**, and recommends: **keep math operations in code, don't hand them to the model**.
+5. **Lock the version**. The official recommendation is to hardcode the version number (e.g., `jev-1.13.0`), because probability outputs drift with versions, and once probabilities drift, your threshold logic drifts along with them.
+## Conclusion
 
-## 结语
+What's truly interesting about JEV isn't that it's "stronger" than large models—by accuracy, it doesn't win. What's interesting is that **it redefines "intelligence" once again**: not the ability to talk, but the ability to **compress an uncertain world into a calibrated probability that can be written into code**.
 
-JEV 真正有意思的地方，不在于它比大模型「强」——按准确率它并没有赢。它有意思在于**把「智能」重新定义了一次**：不是会说话，而是**会把不确定的世界，压缩成一个可以写进代码的、校准过的概率**。
+Over the past two years, we've gotten used to treating LLMs as an all-powerful chat box, then going to great lengths to wrap guardrails around them, do parsing, and write retries. JEV flips the question around: **in so many real-world scenarios, what we actually want was never a piece of text, but simply a judgment of "choose A or choose B, and how confident are we."** Extracting this kind of judgment on its own and turning it into a fast, cheap function call that comes with probabilities—this idea is more worth remembering than its current report card.
 
-过去两年，我们习惯把 LLM 当成一个无所不能的对话框，然后费尽力气在它外面套护栏、做解析、写重试。JEV 反过来问了一句：**那么多真实场景里，我们要的其实从来不是一段文字，而就是一个「选 A 还是选 B、把握有多大」的判断**。把这类判断单独抽出来，做成一个又快又便宜、还带概率的函数调用——这个想法，比它当下的成绩单更值得记住。
-
-至于它最终是「新范式」还是「高级分类器」，答案可能两者都不是：它更像我说的那种**基础设施**——你不会天天谈论它，但一旦用上，就会开始把它塞进每一个原本用大模型硬扛的分类任务里。
+As for whether it's ultimately a "new paradigm" or an "advanced classifier," the answer may be neither: it's more like the kind of **infrastructure** I mentioned—you won't talk about it every day, but once you start using it, you'll begin stuffing it into every classification task that previously relied on brute-forcing with large models.
 
 ---
 
-**参考来源：**
+**References:**
 
 1. InfoQ. "TypeSafe AI Releases Jev: a Decision-Only Model That Returns Typed Probabilities Instead of Text." 2026-10. https://www.infoq.com/news/2026/10/typesafe-ai-jev-released/
-2. 机器之心 / 腾讯新闻. "ChatGPT 早期研究者做了一个『不会说话』的 AI，Jev 真是新范式吗？" 2026-09-18. https://news.qq.com/rain/a/20260918A058BW00
-3. 阿里云开发者社区. "JEV 模型最新研讨：只下判断不说话，低延时才是被低估的变量." https://developer.aliyun.com/article/1765496
-4. 七牛云新闻. "爆火的 Jev 是什么：前 OpenAI 研究员做的『不说话』模型，只输出带概率的结构化决策." https://news.qiniu.com/archives/1789895633449
+2. Machine Heart / Tencent News. "An early ChatGPT researcher built an AI that 'can't talk.' Is Jev really a new paradigm?" 2026-09-18. https://news.qq.com/rain/a/20260918A058BW00
+3. Alibaba Cloud Developer Community. "Latest discussion on the JEV model: only making judgments, not talking; low latency is the undervalued variable." https://developer.aliyun.com/article/1765496
+4. Qiniu Cloud News. "What is the viral Jev: a 'non-talking' model made by a former OpenAI researcher that only outputs structured decisions with probabilities." https://news.qiniu.com/archives/1789895633449
 5. OntiCards Blog. "Why Jev Refuses to Chat: Inside System One Models." https://www.step2.com.cn/en/blog/jev-system-one-decision-models

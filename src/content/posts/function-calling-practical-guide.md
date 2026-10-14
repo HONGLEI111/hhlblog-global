@@ -1,30 +1,28 @@
 ---
-title: Function Calling 实战：让 LLM 调用你的 API
+title: 'Function Calling in Practice: Getting LLMs to Call Your API'
 published: 2026-09-03
-description: '从工具 Schema 定义到多轮 tool_use 循环，动手实现一个会调用真实 API 的智能助手'
+description: From defining tool schemas to running multi-turn tool_use loops, build a hands-on assistant that calls real APIs.
 image: ''
-tags: [Function Calling, LLM, 工具调用]
+tags: [Function Calling, LLM, Tool Use]
 category: 'AI'
 draft: false
-lang: ''
 ---
+The most commonly criticized aspect of large language models (LLMs) is this: they can only "talk," not "do things." When you ask it "What's the temperature in Beijing right now," it either makes a wild guess based on outdated memories in its training data, or frankly admits "I don't know." Function Calling (also called Tool Use) was created to solve this problem—it lets the model, when needed, hand back "which function to call and what parameters to pass" in the form of structured JSON to you, and your code executes the real logic, then feeds the result back to the model, which ultimately generates an accurate answer.
 
-大语言模型（LLM）最常被诟病的一点是：它只能「说话」，不能「做事」。你问它「北京现在几度」，它要么凭训练数据里过期的记忆瞎猜，要么坦白「我不知道」。Function Calling（函数调用，也叫 Tool Use / 工具调用）就是为解决这个问题而生的——它让模型在需要时，把「要调用哪个函数、传什么参数」以结构化 JSON 的形式交还给你，由你的代码去执行真实逻辑，再把结果喂回给模型，最终生成准确回答。
+## The Complete Lifecycle of One Round Trip
 
-## 一个来回的完整生命周期
+The essence of Function Calling is "the model sets the question, the code answers it." A complete round of calling roughly consists of four steps:
 
-Function Calling 的本质是「模型出题，代码答题」。一轮完整的调用大致分四步：
+1. You send the tool (function) definition—name, purpose, parameter schema—to the model along with the request.
+2. The model determines: does this question require calling a tool? If so, it returns a `tool_use` block containing the function name and parameters.
+3. Your code parses the parameters, executes the real function (querying a database, calling a third-party API, modifying files...).
+4. Return the execution result as `tool_result` to the model, and the model generates the final user-facing answer based on it.
 
-1. 你把工具（函数）的定义——名字、用途、参数 schema——随请求一起发给模型。
-2. 模型判断：这个问题需不需要调工具？需要的话，返回一个 `tool_use` 块，里面包含函数名和参数。
-3. 你的代码解析参数、执行真实函数（查数据库、调第三方 API、改文件……）。
-4. 把执行结果作为 `tool_result` 返回给模型，模型据此生成面向用户的最终回答。
+Note: the model itself does **not** execute your functions—it is only responsible for "generating the call intent." The execution power is always in your hands, which is also the fundamental reason why Function Calling is relatively safe.
 
-注意：模型本身**不会**执行你的函数，它只负责「生成调用意图」。执行权永远在你手里，这也是 Function Calling 相对安全的根本原因。
+## Hands-On: Building a Weather Query Assistant
 
-## 实战：构建一个天气查询助手
-
-下面用 TypeScript + Anthropic SDK 写一个最小可用示例。先定义工具 Schema：
+Below is a minimal working example written in TypeScript + Anthropic SDK. First, define the tool schema:
 
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
@@ -47,9 +45,9 @@ const tools = [
 ];
 ```
 
-`input_schema` 是一份 JSON Schema，它既告诉模型「这个函数吃什么参数」，也约束了参数的类型和取值范围。写清楚 `description` 非常关键——模型的判断质量直接取决于你描述得多明白。
+`input_schema` is a JSON Schema that both tells the model "what parameters this function takes" and constrains the types and value ranges of the parameters. Writing `description` clearly is crucial—the quality of the model's judgment depends directly on how clearly you describe it.
 
-接下来是核心的循环逻辑：
+Next is the core loop logic:
 
 ```typescript
 async function chat(userMessage: string): Promise<string> {
@@ -92,7 +90,7 @@ async function chat(userMessage: string): Promise<string> {
 }
 ```
 
-`executeTool` 是你自己的业务逻辑：
+`executeTool` is your own business logic:
 
 ```typescript
 async function executeTool(name: string, input: any) {
@@ -105,29 +103,29 @@ async function executeTool(name: string, input: any) {
 }
 ```
 
-运行 `chat("北京今天多少度？")`，模型会返回一个 `tool_use` 块，参数是 `{"city": "北京"}`；你的代码查到真实温度后把结果喂回去，模型最后回复「北京今天 28°C，晴」。整个过程用户完全无感。
+Run `chat("北京今天多少度？")`, and the model will return a `tool_use` block with the parameter `{"city": "北京"}`; after your code looks up the real temperature and feeds the result back, the model finally replies "Beijing is 28°C and sunny today." The user is completely unaware of the entire process.
 
-## 几个必须避开的坑
+## Several Pitfalls You Must Avoid
 
-**1. 参数是对象还是字符串？各家不一样。** Anthropic SDK 里 `block.input` 已经是解析好的对象，直接用即可；但 OpenAI 的 function calling 返回的 `arguments` 是一段 JSON 字符串，必须 `JSON.parse()`。写多 provider 适配层时，这里是最容易踩雷的地方。
+**1. Are the parameters an object or a string? It varies by provider.** In the Anthropic SDK, `block.input` is already a parsed object, so you can use it directly; but the `arguments` returned by OpenAI's function calling is a JSON string that must be `JSON.parse()`. When writing a multi-provider adapter layer, this is the most error-prone spot.
 
-**2. 并行调用要一次性回传。** 一次响应里可能同时出现多个 `tool_use` 块（比如「查北京和上海的天气」）。可以并发执行，但**所有** `tool_result` 必须放进**同一个** user 消息里返回。拆成多条消息分开传，会让模型学坏——以为不该并行调工具。
+**2. Parallel calls must be returned all at once.** A single response may contain multiple `tool_use` blocks simultaneously (for example, "check the weather in Beijing and Shanghai"). You can execute them concurrently, but **all** `tool_result` must be returned in **the same** user message. Splitting them into multiple messages and sending them separately will teach the model bad habits—making it think it shouldn't call tools in parallel.
 
-**3. 工具执行失败要说清楚。** 如果函数抛错，别默默吞掉。返回一个带 `is_error: true` 的 `tool_result`，让模型知道失败原因，它通常会换个参数重试或向用户解释。
+**3. If tool execution fails, say so clearly.** If a function throws an error, don't silently swallow it. Return a `tool_result` with `is_error: true`, letting the model know the reason for the failure; it will usually retry with different parameters or explain to the user.
 
-**4. 永远不要盲信模型传的参数。** 模型输出本质上是不可信输入。如果工具是「执行 SQL 查询」，模型给的 `city` 可能拼进 SQL 里造成注入。务必做参数校验、白名单过滤，把 Function Calling 当外部 API 一样设防。
+**4. Never blindly trust the parameters passed by the model.** Model output is essentially untrusted input. If the tool is "execute an SQL query," the `city` given by the model might be concatenated into SQL and cause injection. Be sure to do parameter validation and whitelist filtering, treating Function Calling like an external API and defending against it accordingly.
 
-**5. 想要更稳的参数，开 strict。** 在工具定义上加 `strict: true`（schema 需包含 `additionalProperties: false` 与 `required`），API 会在模型侧强制参数符合 schema，杜绝「漏传必填字段」这类低级错误。
+**5. For more stable parameters, enable strict.** Add `strict: true` to the tool definition (the schema needs to include `additionalProperties: false` and `required`), and the API will enforce on the model side that parameters conform to the schema, eliminating low-level errors like "missing a required field."
 
-## 与结构化输出的区别
+## The Difference from Structured Outputs
 
-很多人分不清 Function Calling 和结构化输出（Structured Outputs）。一句话：Function Calling 让模型**触发动作**，结构化输出让模型**返回固定格式的数据**。如果你的需求只是「把一段话抽成 JSON」，用结构化输出更合适、更省 token；当模型需要**调用你的函数**时，才轮到 Function Calling。
+Many people can't distinguish Function Calling from Structured Outputs. In one sentence: Function Calling lets the model **trigger actions**, while Structured Outputs lets the model **return data in a fixed format**. If your need is only "extract a passage into JSON," Structured Outputs is more suitable and saves more tokens; only when the model needs to **call your functions** does Function Calling come into play.
 
-## 结语
+## Conclusion
 
-Function Calling 是把 LLM 从「聊天机器人」升级为「能干活的智能体」的关键一跃。理解了「模型出题、代码答题、结果回填」这三步，你就掌握了 Agent 开发的地基——几乎所有 Agent 框架（ReAct、Plan-and-Execute）都是在这套循环上叠加了更多控制流而已。下次想让 LLM 帮你查数据、发请求、改文件时，别再让它「说」，让它「调」吧。
+Function Calling is the key leap that upgrades LLMs from "chatbots" to "agents that can get work done." Once you understand the three steps of "the model sets the question, the code answers it, and the result is fed back," you have mastered the foundation of Agent development—almost all Agent frameworks (ReAct, Plan-and-Execute) are just layering more control flow on top of this loop. Next time you want an LLM to help you query data, send requests, or modify files, don't let it "say" it—let it "call" it.
 
-## 参考来源
+## References
 
-- Anthropic 官方文档 · Tool use（工具调用）：https://docs.anthropic.com/en/docs/build-with-claude/tool-use
-- OpenAI 官方文档 · Function calling：https://platform.openai.com/docs/guides/function-calling
+- Anthropic Official Documentation · Tool use: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+- OpenAI Official Documentation · Function calling: https://platform.openai.com/docs/guides/function-calling

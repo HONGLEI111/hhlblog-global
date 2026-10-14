@@ -1,49 +1,47 @@
 ---
-title: 技术写作心得：如何写出清晰的技术文档
+title: 'Technical Writing Notes: How to Write Clear Technical Documentation'
 published: 2026-09-18
-description: '文档写不好，成本由所有读者分摊。用 Diátaxis 框架区分文档类型，配上五条能立刻上手的写作原则和一段可运行的代码块校验脚本，把「写得能看懂」变成可执行的标准。'
+description: Poor documentation costs every reader. Use the Diátaxis framework to distinguish document types, pair it with five immediately actionable writing principles and a runnable code block validation script, and turn "writing something understandable" into an executable standard.
 image: ''
-tags: [技术写作, 文档, Diátaxis, 开源, 协作]
-category: '后端'
+tags: [Technical Writing, Documentation, Diátaxis, Open Source, Collaboration]
+category: Backend
 draft: false
-lang: ''
 ---
+## Documentation Debt Is Paid by Your Readers
 
-## 文档欠的债，读者替你还
+An internal SDK with a decent API design, but the README contains only a single line of `npm install` and the sentence "refer to the source code for usage." What's the result? Every integrator spends half a day reading the source code, then asks the same questions in the group chat. If this SDK has 20 integrators, the 500 words you didn't write cost society 40 person-hours.
 
-一个内部 SDK，接口设计得不错，但 README 里只有一行 `npm install` 和一句「用法参考源码」。结果是什么？每个接入方都要花半天读源码，然后在群里问同样的问题。如果这个 SDK 有 20 个接入方，你少写的那 500 字，全社会付出了 40 人时的代价。
+The awkward thing about technical documentation is this: **the people who write it well don't directly benefit, and the people who write it poorly don't directly suffer**. That's why it always gets queued behind "let's ship the feature first," and then never gets remembered again.
 
-技术文档的尴尬在于：**写好它的人不直接受益，写差它的人不直接受损**。这就是为什么它总是被排在「等功能上线再说」的队列里，然后再也没被想起来。
+But this is exactly what makes writing documentation a skill with an extremely high return on investment. What follows is a set of things I've distilled from writing documentation and reading other people's documentation over the past few years.
 
-但这恰恰意味着，写文档是一项投入产出比极高的技能。下面是我这几年写文档、也读别人文档总结出的一套东西。
+## Step One: First, Figure Out What Kind of Documentation You're Writing
 
-## 第一步：先分清你写的是哪种文档
+The biggest problem most people have when writing documentation isn't their prose—it's **mixing four things with completely different goals into one document**. The Diátaxis framework (proposed by Daniele Procida) lays out these four types very clearly:
 
-大多数人写文档时最大的问题不是文笔，而是**把四种目标完全不同的东西混在一起写**。Diátaxis 框架（由 Daniele Procida 提出）把这四种类型讲得很清楚：
-
-| 类型 | 回答的问题 | 读者状态 | 例子 |
+| Type | Question It Answers | Reader's State | Example |
 | --- | --- | --- | --- |
-| Tutorial（教程） | 「带我走一遍」 | 完全新手，想获得成功体验 | 30 分钟搭一个 CRUD |
-| How-to（操作指南） | 「怎么做到 X」 | 有目标，知道要什么 | 如何配置自定义域名 |
-| Reference（参考） | 「这个参数是什么意思」 | 查字典，不需要通读 | API 参数表 |
-| Explanation（解释） | 「为什么是这样设计的」 | 想理解，不一定动手 | 为什么用 CRDT 而不是 OT |
+| Tutorial | "Walk me through it" | Complete beginner, wants a successful experience | Build a CRUD in 30 minutes |
+| How-to | "How do I do X" | Has a goal, knows what they want | How to configure a custom domain |
+| Reference | "What does this parameter mean" | Looking it up like a dictionary, doesn't need to read through | API parameter table |
+| Explanation | "Why was it designed this way" | Wants to understand, not necessarily to act | Why use CRDT instead of OT |
 
-关键在于这四者的**写作规则互相冲突**：
+The key point is that the **writing rules for these four conflict with each other**:
 
-- 教程要**绝对可靠**，不允许任何一步可能失败，所以它必须啰嗦、必须重复、必须一次只做一件事；
-- 操作指南要**直奔主题**，跳过解释，让懂行的人快速拿到答案；
-- 参考手册要**结构化、可检索**，不能有叙事；
-- 解释性文档要**允许发散**，甚至可以说「这其实是个历史遗留问题」。
+- Tutorials must be **absolutely reliable**, no step is allowed to possibly fail, so they must be verbose, must repeat themselves, and must do only one thing at a time;
+- How-to guides must **get straight to the point**, skip explanations, and let knowledgeable people quickly get their answer;
+- Reference manuals must be **structured and searchable**, with no narrative;
+- Explanatory documentation should **allow digressions**, and can even say "this is actually a historical legacy issue."
 
-把它们混在一个 README 里，就会出现「教程章节里突然插入一段 API 参数表」这种四不像。读者在第 3 步迷路了，往后翻想查参数，又被大段背景介绍淹没。
+Mix them into a single README, and you get a Frankenstein like "a section of tutorial with an API parameter table suddenly inserted into it." The reader gets lost at step 3, flips forward to look up a parameter, and gets buried by a wall of background introduction.
 
-**实操建议**：目录里就按这四类分文件夹，而不是按模块分。`tutorials/`、`how-to/`、`reference/`、`explanation/`。光是做这个拆分，文档的可用性就能上一个台阶。
+**Practical advice**: In your table of contents, split into folders by these four categories, not by module. `tutorials/`, `how-to/`, `reference/`, `explanation/`. Just making this split alone can take your documentation's usability up a notch.
 
-## 五条能立刻用上的原则
+## Five Principles You Can Put to Use Immediately
 
-### 1. 从读者的问题出发，而不是从系统结构出发
+### 1. Start from the Reader's Questions, Not from the System's Structure
 
-大部分技术文档的目录长这样，因为它照着代码模块树抄了一遍：
+Most technical documentation's table of contents looks like this, because it was copied from the code module tree:
 
 ```
 第一章 概述
@@ -53,7 +51,7 @@ lang: ''
   2.3 Plugin 接口
 ```
 
-读者的问题是「我要上传一个文件」，不是「Client 类是什么」。目录应该照着**任务**组织：
+The reader's question is "I want to upload a file," not "what is the Client class." The table of contents should be organized around **tasks**:
 
 ```
 - 安装与初始化
@@ -62,21 +60,21 @@ lang: ''
 - 上传大文件时如何分片
 ```
 
-一个简单的自检方法：把每个标题读一遍，如果它不能回答「我想做 X」，就该改。
+A simple self-check method: read each heading. If it can't answer "I want to do X," it needs to change.
 
-### 2. 用第二人称、主动语态、现在时
+### 2. Use Second Person, Active Voice, Present Tense
 
-这三个规则听起来像中学英语课，但它们在技术文档里效果立竿见影。对比一下：
+These three rules sound like middle school English class, but in technical documentation their effect is immediate. Compare:
 
-> ❌ 配置文件的解析由 ConfigParser 完成，在解析失败的情况下，一个异常会被抛出。
+> ❌ The parsing of the configuration file is performed by ConfigParser, and in the event of a parsing failure, an exception will be thrown.
 
-> ✅ 系统用 ConfigParser 读取配置文件。如果配置文件格式有误，它会抛出 `ConfigError`。
+> ✅ The system uses ConfigParser to read the configuration file. If the configuration file is malformed, it throws `ConfigError`.
 
-第二句短了、具体了、指定了异常类型。**「被」字句是技术文档的头号公敌**，它让责任主体消失，读者不知道是谁在做这件事。
+The second sentence is shorter, more specific, and names the exception type. **Passive voice is the number one public enemy of technical documentation**—it makes the responsible party disappear, and the reader doesn't know who is doing the thing.
 
-### 3. 代码示例必须能跑，而且必须你亲手跑过
+### 3. Code Examples Must Run, and You Must Have Run Them Yourself
 
-这是底线。我见过太多文档里的示例代码是这样：
+This is the bottom line. I've seen far too many documentation examples like this:
 
 ```js
 import { createClient } from 'my-sdk';
@@ -90,33 +88,33 @@ const client = createClient({
 await client.upload(file);
 ```
 
-`// ...其他配置` 和 `// 省略错误处理` 是文档里的两颗雷。读者复制过去跑不通，然后开始怀疑自己，最后发现文档里少了一个必填的 `endpoint`。
+`// ...其他配置` and `// 省略错误处理` are two landmines in documentation. The reader copies it over, it doesn't run, and then they start doubting themselves, only to finally discover that a required `endpoint` was missing from the documentation.
 
-**规则**：如果示例需要省略，就把它写成一个完整的、自洽的最小版本；如果实在放不下，就用注释明确标出「这三行必须替换成你自己的值」，而不是用一个含糊的省略号。
+**Rule**: If an example needs to omit something, write it as a complete, self-contained minimal version; if you really can't fit it, use a comment to explicitly mark "these three lines must be replaced with your own values," rather than using a vague ellipsis.
 
-写文档的时候把代码复制到终端里跑一遍，这个动作花你 30 秒，可能省下读者 30 分钟。
+When writing documentation, copy the code into a terminal and run it once. This action costs you 30 seconds and might save the reader 30 minutes.
 
-### 4. 先给「为什么」，再给「怎么做」
+### 4. Give the "Why" First, Then the "How"
 
-纯粹的操作步骤会让人在出问题时无从下手，因为他不知道每一步的目的。
+Pure operational steps leave people helpless when something goes wrong, because they don't know the purpose of each step.
 
-> ❌ 在 CI 中设置 `NODE_OPTIONS=--max-old-space-size=4096`。
+> ❌ Set `NODE_OPTIONS=--max-old-space-size=4096` in CI.
 
-> ✅ 构建时的类型检查会吃掉大量内存，Node 默认的堆上限（约 2GB）经常不够，表现为 `JavaScript heap out of memory`。把上限调到 4GB：
+> ✅ Type checking at build time consumes a lot of memory. Node's default heap limit (about 2GB) is often not enough, manifesting as `JavaScript heap out of memory`. Raise the limit to 4GB:
 
-后者多花了 20 个字，但读者在遇到别的内存问题时，会知道该往哪个方向查。
+The latter costs 20 more characters, but when the reader encounters other memory issues, they'll know which direction to investigate.
 
-### 5. 把「已知限制」写进文档，而不是留在 issue 里
+### 5. Write "Known Limitations" into the Documentation, Not Leave Them in Issues
 
-新用户踩坑最多的地方，往往不是功能没实现，而是**没人告诉他这个功能有边界**。比如「只支持 UTF-8 编码」「单次请求上限 5MB」「不支持嵌套事务」——这些信息通常只存在于三个月前的某个 issue 讨论里。
+The places where new users stumble most are often not features that aren't implemented, but rather **no one told them this feature has boundaries**. For example, "only UTF-8 encoding is supported," "single request limit of 5MB," "nested transactions are not supported"—this information usually only exists in some issue discussion from three months ago.
 
-在参考文档的每个条目下加一行「限制」，成本极低，收益极高。
+Add a "Limitations" line under each entry in the reference documentation. The cost is extremely low, and the payoff is extremely high.
 
-## 把文档质量交给 CI
+## Hand Documentation Quality Over to CI
 
-原则讲完了，但靠人自觉是撑不住的。真正让文档不退化的办法是**自动化检查**。最小可行的一步：把文档里的代码块抽出来，至少做语法检查。
+The principles are laid out, but relying on people's self-discipline won't hold up. The real way to keep documentation from degrading is **automated checks**. The minimum viable step: extract the code blocks from the documentation and at least do syntax checking.
 
-下面这个脚本从 Markdown 中提取带语言的代码块，交给对应的解析器做语法校验（这里用 Node 的 `vm` 检查 JS，用 `python -m py_compile` 检查 Python）：
+The script below extracts language-tagged code blocks from Markdown and hands them to the corresponding parser for syntax validation (here using Node's `vm` to check JS, and `python -m py_compile` to check Python):
 
 ```js
 // check-docs.js —— 提取 Markdown 代码块并做语法检查（需 Node 22+）
@@ -165,7 +163,7 @@ console.log(failed ? `\n${failed} 个代码块有语法错误` : '✓ 所有文�
 process.exit(failed ? 1 : 0);
 ```
 
-把它挂进 CI，PR 里改了文档就跑一遍：
+Hook it into CI, and run it whenever documentation is changed in a PR:
 
 ```yaml
 # .github/workflows/docs.yml
@@ -185,23 +183,22 @@ jobs:
       - run: node check-docs.js
 ```
 
-这个检查很浅，只验证语法，不验证运行结果。但它拦住了一类最常见的低级错误——手写示例时的拼写错误、括号不配对、复制粘贴时丢了一行。**再往上一层**是真正的可执行文档（把代码块当测试跑，比如 Rust 的 doctest、Python 的 `doctest`、或者 mdBook 的 `test` 功能），那需要示例本身设计成幂等且无副作用的，成本高得多，可以等项目成熟后再做。
+This check is shallow—it only validates syntax, not runtime results. But it catches the most common class of low-level errors—typos when hand-writing examples, unmatched brackets, a line lost during copy-paste. **The next level up** is truly executable documentation (running code blocks as tests, like Rust's doctest, Python's `doctest`, or mdBook's `test` feature). That requires the examples themselves to be designed to be idempotent and side-effect-free, which is much more costly, and can be done after the project matures.
 
-## 最后：把文档当成代码来对待
+## Finally: Treat Documentation Like Code
 
-回头看这几条，其实都在说同一件事：**文档值得和代码享受同等待遇**。
+Looking back at these points, they're all really saying the same thing: **documentation deserves the same treatment as code**.
 
-- 代码有类型检查，文档就有代码块校验；
-- 代码有 code review，文档改动也该被 review，而且 review 时应该问「一个新人能照着这个跑通吗」；
-- 代码有重构，文档的目录结构也该定期按读者的使用路径重排。
+- Code has type checking, so documentation has code block validation;
+- Code has code review, so documentation changes should also be reviewed, and during review you should ask "can a newcomer follow this and get it running?"
+- Code has refactoring, so documentation's table of contents should also be periodically rearranged according to readers' usage paths.
 
-衡量标准只有一个，而且很朴素：**找一个没接触过这个项目的人，让他照着文档做一遍，你在旁边看，不要说话**。他在哪里停下来，那里就是文档该改的地方。
+There's only one metric, and it's very plain: **find someone who has never touched this project, have them follow the documentation and do it once, and you watch from the side without speaking**. Wherever they stop, that's where the documentation needs to change.
 
-写文档不是给项目「补作业」，它本身就是产品的一部分。
+Writing documentation isn't "making up homework" for a project—it is itself part of the product.
+## References
 
-## 参考来源
-
-- [Diátaxis — A systematic framework for technical documentation authoring](https://diataxis.fr/)：四种文档类型的划分，本文第一节的核心框架
-- [Google Developer Documentation Style Guide](https://developers.google.com/style)：语气、术语、代码示例格式的行业参考，关于第二人称和主动语态的规则写得非常细
-- [Docs for Developers: An Engineer's Field Guide to Technical Writing](https://docsfordevelopers.com/)（Jared Bhatti 等）：从读者研究到文档上线的完整流程
-- [Microsoft Writing Style Guide](https://learn.microsoft.com/style-guide/welcome/)：另一套被广泛引用的写作规范，偏产品文档
+- [Diátaxis — A systematic framework for technical documentation authoring](https://diataxis.fr/): the division of the four documentation types, the core framework of the first section of this article
+- [Google Developer Documentation Style Guide](https://developers.google.com/style): an industry reference for tone, terminology, and code example formatting, with very detailed rules on second person and active voice
+- [Docs for Developers: An Engineer's Field Guide to Technical Writing](https://docsfordevelopers.com/) (Jared Bhatti et al.): the complete process from reader research to documentation launch
+- [Microsoft Writing Style Guide](https://learn.microsoft.com/style-guide/welcome/): another widely cited writing standard, leaning toward product documentation

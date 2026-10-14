@@ -1,30 +1,28 @@
 ---
-title: HTTP/3 与 QUIC 协议深度解析
+title: Deep Dive into HTTP/3 and the QUIC Protocol
 published: 2026-08-12
-description: '从 TCP 的队头阻塞到 QUIC 的多路复用革命，深入理解下一代 HTTP 协议的设计与原理'
+description: From TCP head-of-line blocking to QUIC's multiplexing revolution, a deep dive into the design and principles of the next-generation HTTP protocol.
 image: ''
-tags: [HTTP/3, QUIC, 网络协议, Web]
-category: '互联网'
+tags: [HTTP/3, QUIC, Network Protocols, Web]
+category: Internet
 draft: false
-lang: ''
 ---
+## Introduction: The Evolutionary Path of the HTTP Protocol
 
-## 引言：HTTP 协议的进化之路
+From Tim Berners-Lee's proposal of HTTP/0.9 in 1991 to today, the HTTP protocol has undergone four major iterations. Each upgrade has addressed the core pain points of its predecessor:
 
-从 1991 年 Tim Berners-Lee 提出 HTTP/0.9 至今，HTTP 协议经历了四次重大迭代。每一次升级都在解决前代的核心痛点：
+- **HTTP/1.0** (1996): Introduced request headers and response headers, supported content negotiation
+- **HTTP/1.1** (1997): Persistent connections, pipelining, chunked transfer
+- **HTTP/2** (2015): Binary framing, multiplexing, header compression, server push
+- **HTTP/3** (2022): Built on QUIC, completely eliminates transport-layer head-of-line blocking
 
-- **HTTP/1.0**（1996）：引入请求头和响应头，支持内容协商
-- **HTTP/1.1**（1997）：持久连接、管线化、分块传输
-- **HTTP/2**（2015）：二进制帧、多路复用、头部压缩、服务器推送
-- **HTTP/3**（2022）：基于 QUIC，彻底解决传输层队头阻塞
+This article focuses on HTTP/3 and its underlying transport protocol QUIC, providing an in-depth analysis of its design motivation, core principles, and practical applications.
 
-本文聚焦于 HTTP/3 及其底层传输协议 QUIC，深入分析其设计动机、核心原理和实践应用。
+## The Achilles' Heel of HTTP/2
 
-## HTTP/2 的阿克琉斯之踵
+HTTP/2 solved the application-layer head-of-line blocking problem of HTTP/1.1 through **Multiplexing**—multiple requests can be interleaved on the same TCP connection without waiting for previous requests to complete.
 
-HTTP/2 通过**多路复用（Multiplexing）**解决了 HTTP/1.1 的应用层队头阻塞问题——多个请求可以在同一个 TCP 连接上交错传输，不必等待前面的请求完成。
-
-然而，HTTP/2 依然运行在 TCP 之上，而 **TCP 是一个严格有序的字节流协议**。这意味着：
+However, HTTP/2 still runs on top of TCP, and **TCP is a strictly ordered byte-stream protocol**. This means:
 
 ```
 TCP 连接
@@ -33,28 +31,28 @@ TCP 连接
 └─ Stream 3: ────────── [帧E] ────────── ⏳ （被阻塞）
 ```
 
-如果 Stream 2 的某个 TCP 包丢失，TCP 必须等待其重传成功。在此期间，**Stream 1 和 Stream 3 的所有数据都无法被上层处理**，即使它们的数据已经完整到达。这就是**传输层队头阻塞（TCP Head-of-Line Blocking）**。
+If a TCP packet from Stream 2 is lost, TCP must wait for its retransmission to succeed. During this period, **all data from Stream 1 and Stream 3 cannot be processed by the upper layers**, even if their data has already arrived completely. This is **transport-layer head-of-line blocking (TCP Head-of-Line Blocking)**.
 
-在高丢包网络环境下（如移动网络），HTTP/2 的性能可能**退化到不如 HTTP/1.1**——因为 HTTP/1.1 通常开启多个 TCP 连接，一个连接丢包不会阻塞其他连接。
+In high packet-loss network environments (such as mobile networks), HTTP/2 performance may **degrade to worse than HTTP/1.1**—because HTTP/1.1 typically opens multiple TCP connections, and packet loss on one connection does not block the others.
 
-## QUIC：在 UDP 之上重建传输层
+## QUIC: Rebuilding the Transport Layer on Top of UDP
 
-QUIC（Quick UDP Internet Connections）最初由 Google 设计，2013 年公布，经过近十年演进后于 2021 年成为 IETF 标准（RFC 9000）。它的核心思想是：**既然 TCP 的实现深嵌于操作系统内核、难以快速迭代，不如在用户空间的 UDP 之上构建一个现代传输层协议**。
+QUIC (Quick UDP Internet Connections) was originally designed by Google, announced in 2013, and after nearly a decade of evolution became an IETF standard in 2021 (RFC 9000). Its core idea is: **since TCP's implementation is deeply embedded in the operating system kernel and difficult to iterate quickly, it's better to build a modern transport-layer protocol on top of UDP in user space**.
 
-### QUIC 的关键设计
+### Key Design of QUIC
 
-| 特性 | TCP | QUIC |
+| Feature | TCP | QUIC |
 |------|-----|------|
-| 握手延迟 | 1-3 RTT（含 TLS） | 0-1 RTT |
-| 队头阻塞 | 流间阻塞 | 流内独立 |
-| 连接迁移 | 不支持 | 支持（Connection ID） |
-| 丢包恢复 | 按序确认 | 乱序确认（更精确的 RTT） |
-| 部署方式 | 内核态 | 用户态 |
-| 加密 | 可选（TLS 叠加） | 内置（始终加密） |
+| Handshake latency | 1-3 RTT (including TLS) | 0-1 RTT |
+| Head-of-line blocking | Cross-stream blocking | Independent within streams |
+| Connection migration | Not supported | Supported (Connection ID) |
+| Loss recovery | In-order acknowledgment | Out-of-order acknowledgment (more precise RTT) |
+| Deployment | Kernel space | User space |
+| Encryption | Optional (TLS layered on top) | Built-in (always encrypted) |
 
-### 0-RTT 建连
+### 0-RTT Connection Establishment
 
-QUIC 将传输握手和 TLS 1.3 加密握手合并为一次往返：
+QUIC merges the transport handshake and the TLS 1.3 encryption handshake into a single round trip:
 
 ```
 传统 TCP + TLS 1.3:
@@ -73,7 +71,7 @@ QUIC 0-RTT（恢复连接）:
   客户端 ──0-RTT 数据───────→          (0-RTT！)
 ```
 
-下面是一段用 Node.js 创建 QUIC 服务端的示例（基于 Node.js 内置的 `node:quic` 模块）：
+Below is an example of creating a QUIC server with Node.js (based on Node.js's built-in `node:quic` module):
 
 ```js
 import { createQuicSocket } from 'node:quic';
@@ -109,13 +107,13 @@ socket.on('session', (session) => {
 console.log('QUIC 服务端监听在端口 4433');
 ```
 
-## HTTP/3 的核心改进
+## Core Improvements of HTTP/3
 
-HTTP/3（RFC 9114）是运行在 QUIC 之上的 HTTP 协议映射。它继承了 HTTP/2 的语义模型（方法、状态码、头部字段），但在传输机制上做了根本性调整。
+HTTP/3 (RFC 9114) is an HTTP protocol mapping that runs on top of QUIC. It inherits HTTP/2's semantic model (methods, status codes, header fields) but makes fundamental adjustments to the transport mechanism.
 
-### 1. 基于 QUIC Stream 的多路复用
+### 1. Multiplexing Based on QUIC Streams
 
-HTTP/3 将每个请求-响应对映射为一个 QUIC Stream。Stream 之间**完全独立**——单个 Stream 的丢包只会影响该 Stream 本身，不会阻塞其他 Stream：
+HTTP/3 maps each request-response pair to a QUIC Stream. Streams are **completely independent** of each other—packet loss in a single Stream only affects that Stream itself and does not block other Streams:
 
 ```
 QUIC 连接
@@ -124,9 +122,9 @@ QUIC 连接
 └─ Stream 3（请求C）: [帧5] ── [帧6] ── ✓ 不受影响！
 ```
 
-### 2. QPACK 头部压缩
+### 2. QPACK Header Compression
 
-HTTP/2 使用 HPACK 进行头部压缩，但 HPACK 依赖 TCP 的有序传输来维护编码表同步。HTTP/3 重新设计了 **QPACK**，它使用两个独立的单向流来管理动态表，允许在不阻塞请求处理的情况下更新编码表。
+HTTP/2 uses HPACK for header compression, but HPACK relies on TCP's ordered delivery to maintain encoding table synchronization. HTTP/3 redesigned **QPACK**, which uses two independent unidirectional streams to manage the dynamic table, allowing the encoding table to be updated without blocking request processing.
 
 ```text
 QPACK 的双向表同步：
@@ -138,9 +136,9 @@ QPACK 的双向表同步：
   请求流 / 响应流 (双向)    ← 携带压缩后的头部
 ```
 
-### 3. 连接迁移
+### 3. Connection Migration
 
-QUIC 使用 **Connection ID** 而非四元组（源IP、源端口、目的IP、目的端口）来标识连接。这意味着当客户端从 Wi-Fi 切换到蜂窝网络时，连接**不会中断**：
+QUIC uses a **Connection ID** rather than a four-tuple (source IP, source port, destination IP, destination port) to identify a connection. This means that when a client switches from Wi-Fi to a cellular network, the connection **will not be interrupted**:
 
 ```
 Wi-Fi 网络 (192.168.1.100) ─────── Connection ID: 0xABCD
@@ -149,11 +147,11 @@ Wi-Fi 网络 (192.168.1.100) ─────── Connection ID: 0xABCD
                                  服务端无缝识别！
 ```
 
-这是在移动端场景下最显著的体验提升——视频通话、实时应用不再因网络切换而断连。
+This is the most significant experience improvement in mobile scenarios—video calls and real-time applications no longer disconnect due to network switching.
 
-## 实战：用 curl 测试 HTTP/3
+## Hands-On: Testing HTTP/3 with curl
 
-自 2024 年起，主流浏览器（Chrome、Firefox、Safari）和 Web 服务器（Nginx、Caddy、Cloudflare）都已支持 HTTP/3。你可以用以下工具验证一个站点是否支持：
+Since 2024, mainstream browsers (Chrome, Firefox, Safari) and web servers (Nginx, Caddy, Cloudflare) have all supported HTTP/3. You can use the following tools to verify whether a site supports it:
 
 ```bash
 # curl 需编译时开启 HTTP/3 支持
@@ -167,15 +165,15 @@ curl -I --http3 https://cloudflare-quic.com
 # alt-svc: h3=":443"; ma=86400
 ```
 
-用浏览器 DevTools 也能直观观察 HTTP/3：
+You can also visually observe HTTP/3 using browser DevTools:
 
-1. 打开 Chrome DevTools → Network 面板
-2. 在表头右键 → 勾选 **Protocol** 列
-3. 访问 `https://www.google.com`，Protocol 列显示 `h3`
+1. Open Chrome DevTools → Network panel
+2. Right-click on the table header → check the **Protocol** column
+3. Visit `https://www.google.com`, and the Protocol column will show `h3`
 
-## Nginx 开启 HTTP/3
+## Enabling HTTP/3 in Nginx
 
-Nginx 从 1.25.0 开始实验性支持 HTTP/3。以下是最小配置：
+Nginx has provided experimental support for HTTP/3 since 1.25.0. Below is a minimal configuration:
 
 ```nginx
 server {
@@ -203,34 +201,33 @@ server {
 }
 ```
 
-配置中 `Alt-Svc` 响应头是关键——它告诉浏览器「这个网站也可以通过 HTTP/3（h3）访问」，浏览器在后续请求中就会优先使用 HTTP/3。
+The `Alt-Svc` response header in the configuration is key—it tells the browser "this website can also be accessed via HTTP/3 (h3)," and the browser will prioritize HTTP/3 in subsequent requests.
 
-## 性能对比：HTTP/2 vs HTTP/3
+## Performance Comparison: HTTP/2 vs HTTP/3
 
-Google 的实战数据显示，在 YouTube 上部署 QUIC 后：
+Google's real-world data shows that after deploying QUIC on YouTube:
 
-- **视频卡顿率**降低了约 30%
-- **桌面端平均加载延迟**缩短了约 8%
-- **移动端加载延迟**在高丢包场景下改善更为显著（超过 15%）
+- **Video buffering rate** decreased by approximately 30%
+- **Average desktop loading latency** was reduced by approximately 8%
+- **Mobile loading latency** improved even more significantly in high packet-loss scenarios (over 15%)
 
-这些收益主要来源于：
-1. 0-RTT 恢复连接（对重复访问极为友好）
-2. 消除 TCP 队头阻塞（在高丢包移动网络中效果突出）
-3. 更好的拥塞控制（QUIC 的 BBR 算法比传统 TCP Cubic 更适应现代网络）
+These gains mainly come from:
+1. 0-RTT connection resumption (extremely friendly for repeat visits)
+2. Elimination of TCP head-of-line blocking (particularly effective in high packet-loss mobile networks)
+3. Better congestion control (QUIC's BBR algorithm adapts better to modern networks than traditional TCP Cubic)
+## Summary
 
-## 总结
+The core contributions of HTTP/3 and QUIC lie in two things: **solving transport-layer head-of-line blocking with multiple independent streams**, and **achieving seamless connection migration with Connection IDs**. They are not a complete rebuild—HTTP's semantic layer remains unchanged, and QPACK inherits HPACK's header compression ideas—but rather a precise surgery on the "waist of the protocol stack."
 
-HTTP/3 和 QUIC 的核心贡献在于两点：**用多路独立流解决了传输层队头阻塞**，以及**用 Connection ID 实现了无缝连接迁移**。它们并非推倒重来——HTTP 的语义层保持不变，QPACK 继承了 HPACK 的头部压缩思想——而是在「协议栈的腰」上做了一次精准手术。
+If HTTP/2 let us transmit concurrently over a single TCP connection, then HTTP/3 gives each data stream its own independent "virtual connection." For today's mobile-first, high-latency, jittery internet, this is a fundamentally correct direction.
 
-如果说 HTTP/2 让我们在单条 TCP 连接上并发传输，那么 HTTP/3 则让每一条数据流拥有了独立的「虚拟连接」。对于今天的移动优先、高延迟抖动的互联网，这是一个根本性的正确方向。
-
-目前 HTTP/3 的全球部署率已超过 40%（根据 W3Techs 2026 年数据），主流 CDN 和云服务商均已默认开启。如果你的服务还没上 HTTP/3，现在就是最佳时机。
+Currently, HTTP/3's global deployment rate has exceeded 40% (according to W3Techs 2026 data), and mainstream CDNs and cloud providers have all enabled it by default. If your service hasn't adopted HTTP/3 yet, now is the best time.
 
 ---
 
-**参考来源：**
+**References:**
 
 - [RFC 9000 — QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000)
 - [RFC 9114 — HTTP/3](https://www.rfc-editor.org/rfc/rfc9114)
-- [Google QUIC 原始白皮书（2013）](https://docs.google.com/document/d/1RNHkx_VvKWyWg6Lr8SZ-saqsQx7rFV-ev2jRFUoVD34/)
+- [Google QUIC original whitepaper (2013)](https://docs.google.com/document/d/1RNHkx_VvKWyWg6Lr8SZ-saqsQx7rFV-ev2jRFUoVD34/)
 - [Cloudflare — HTTP/3: the past, the present, and the future](https://blog.cloudflare.com/http3-the-past-present-and-future/)

@@ -1,27 +1,25 @@
 ---
-title: 我的开发环境配置 2026：把 dotfiles 当成一个软件项目来维护
+title: 'My Development Environment Setup 2026: Maintaining dotfiles as a Software Project'
 published: 2026-09-11
-description: '从 dotfiles 仓库、bootstrap 脚本，到 starship、mise、direnv、just 的现代配置，聊聊怎么让一台新机器在 10 分钟内变成熟悉的工作台。'
+description: From dotfiles repos and bootstrap scripts to modern configurations with starship, mise, direnv, and just — how to turn a new machine into a familiar workspace in 10 minutes.
 image: ''
-tags: [开发环境, dotfiles, Shell, 效率工具, mise, Neovim]
-category: '后端'
+tags: [Development Environment, dotfiles, Shell, Productivity Tools, mise, Neovim]
+category: Backend
 draft: false
-lang: ''
 ---
+Switching computers, reinstalling the system, spinning up a temporary cloud host—every time this happens, the most annoying part isn't installing software, it's "how did I have this configured before?" The only truly hassle-free approach is: **treat your development environment as a software project**—with version control, dependency declarations, a one-click install script, and a README.
 
-换电脑、重装系统、临时开一台云主机——每次遇到这种事，最烦的不是装软件，而是「我原来是怎么配的来着？」。真正省事的做法只有一个：**把开发环境当成一个软件项目来维护**——有版本控制、有依赖声明、有一键安装脚本、有 README。
+This article documents my 2026 configuration approach and the specific files, with a focus on "reproducibility" rather than "piling on plugins."
 
-这篇文章记录我 2026 年的配置思路和具体文件，重点在「可复现」，而不是「堆插件」。
+## 1. General Principles: Configuration Is Code, Not Handicraft
 
-## 1. 总原则：配置是代码，不是手工艺品
+Three rules:
 
-三条规则：
+1. **All configuration goes into Git**. Including shell, editor, terminal, and Git's own configuration.
+2. **The installation process is scripted**. The first thing to do on a new machine is `git clone` + `./bootstrap.sh`, not trying to recall "what did I install last time."
+3. **Platform differences use conditional branches, not multiple copies**. The same `.zshrc` runs on both macOS and Linux, branching via `uname`.
 
-1. **所有配置进 Git**。包括 shell、编辑器、终端、Git 自身的配置。
-2. **安装过程脚本化**。新机器上第一件事是 `git clone` + `./bootstrap.sh`，而不是回忆「我上次装了什么」。
-3. **平台差异用条件分支，不用多份副本**。同一个 `.zshrc` 在 macOS 和 Linux 上跑，靠 `uname` 判断分支。
-
-目录结构大概是这样：
+The directory structure looks roughly like this:
 
 ```text
 ~/.dotfiles
@@ -40,14 +38,14 @@ lang: ''
 └── git/.gitconfig
 ```
 
-软链接这一步我推荐用 **GNU Stow**，它按目录结构自动建链接，比手写 `ln -s` 好维护：
+For the symlinking step, I recommend **GNU Stow**. It automatically creates links based on directory structure, which is easier to maintain than hand-writing `ln -s`:
 
 ```bash
 # 把 shell/ 下的文件链接到 ~ 下，保持相对结构
 stow --target="$HOME" --verbose shell git
 ```
 
-如果不想引入额外依赖，用一段 shell 也能搞定，关键是**幂等**——重复执行不出错：
+If you don't want to introduce an extra dependency, a shell snippet can get the job done too. The key is **idempotency**—repeated execution doesn't cause errors:
 
 ```bash
 link() {
@@ -61,9 +59,9 @@ link "$DOTFILES/shell/.zshrc"  "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig" "$HOME/.gitconfig"
 ```
 
-## 2. Shell：zsh + starship，别名只留高频的
+## 2. Shell: zsh + starship, aliases only for high-frequency commands
 
-我不再用 Oh My Zsh——启动慢、插件黑盒。现在是一个极简 `.zshrc` 加 Starship 做提示符。
+I no longer use Oh My Zsh—slow startup, black-box plugins. Now it's a minimal `.zshrc` plus Starship for the prompt.
 
 ```bash
 # ~/.zshrc
@@ -81,7 +79,7 @@ eval "$(direnv hook zsh)"
 bindkey '^f' fzf-file-widget   # Ctrl+F 模糊找文件
 ```
 
-Starship 的好处是**配置是纯 TOML**，跨 shell 通用，而且天然会显示当前目录的语言版本、Git 分支和耗时：
+The advantage of Starship is that **the configuration is pure TOML**, cross-shell compatible, and it naturally displays the language version, Git branch, and elapsed time for the current directory:
 
 ```toml
 # ~/.config/starship.toml
@@ -99,7 +97,7 @@ symbol = " "
 format = "via [$symbol($version )]($style)"
 ```
 
-别名我只留真正每天敲的，其余靠补全：
+I only keep aliases for things I actually type every day; the rest rely on completion:
 
 ```zsh
 alias gs='git status -sb'
@@ -109,9 +107,9 @@ alias cat='bat --style=plain'
 alias lg='lazygit'
 ```
 
-## 3. 运行时版本：mise 一个工具管所有语言
+## 3. Runtime Versions: mise Manages All Languages with One Tool
 
-过去我用 nvm 管 Node、pyenv 管 Python、rbenv 管 Ruby，三套逻辑三套坑。2026 年的答案基本收敛到 **mise**（前身 rtx），一个工具统管所有语言运行时，配置是统一格式：
+In the past I used nvm for Node, pyenv for Python, and rbenv for Ruby—three sets of logic, three sets of pitfalls. In 2026 the answer has basically converged on **mise** (formerly rtx), a single tool that manages all language runtimes with a unified configuration format:
 
 ```toml
 # ~/.config/mise/config.toml —— 全局默认
@@ -121,7 +119,7 @@ python = "3.13"
 go = "1.24"
 ```
 
-项目里再放一个 `.mise.toml`，进入目录自动切换，**不需要手动 `nvm use`**：
+Then put a `.mise.toml` in the project, and entering the directory switches automatically—**no need to manually `nvm use`**:
 
 ```toml
 # 项目根目录/.mise.toml
@@ -146,11 +144,11 @@ mise ls          # 查看当前生效的版本
 mise run test    # 跑任务，替代 npm scripts 的层层转发
 ```
 
-这里有个实实在在的收益：**版本声明进了 Git**，团队里所有人的 Node 版本一致，CI 里只要跑一句 `mise install` 就能复现本地环境，"在我机器上是好的" 少了一大半。
+There's a tangible benefit here: **version declarations go into Git**, everyone on the team uses the same Node version, and CI only needs to run `mise install` to reproduce the local environment. "It works on my machine" is cut down by more than half.
 
-## 4. 环境变量：direnv 按目录自动加载
+## 4. Environment Variables: direnv Auto-Loads per Directory
 
-`.env` 文件最大的问题是容易被误提交。**direnv** 的思路是按目录自动注入环境变量，并且默认不信任任何新文件，必须手动 `direnv allow` 一次：
+The biggest problem with `.env` files is that they're easy to accidentally commit. **direnv**'s approach is to automatically inject environment variables per directory, and by default it doesn't trust any new file—you must manually `direnv allow` once:
 
 ```bash
 # 项目根目录/.envrc
@@ -165,11 +163,11 @@ PATH_add ./bin
 layout node
 ```
 
-关键安全点：把 `.envrc` 提交进仓库，但**只放非敏感的开发默认值**，真实密钥仍然通过 `dotenv_if_exists` 从被忽略的 `.env` 读取。这样 `git clone` 之后不需要问任何人要配置，也不会泄露密钥。
+Key security point: commit `.envrc` into the repository, but **only put non-sensitive development defaults in it**. Real secrets are still read via `dotenv_if_exists` from the ignored `.env`. This way, after `git clone` you don't need to ask anyone for configuration, and secrets won't leak.
 
-## 5. 任务入口：just 替代散落的脚本
+## 5. Task Entry Point: just Replaces Scattered Scripts
 
-每个项目都有一堆「怎么跑起来」的知识，散在 README、`package.json`、同事脑子里。**just** 用一个 `Justfile` 把它们收拢：
+Every project has a pile of "how to get it running" knowledge scattered across READMEs, `package.json`, and colleagues' heads. **just** gathers them into a single `Justfile`:
 
 ```makefile
 # Justfile
@@ -191,16 +189,16 @@ setup:
     @echo "✅ 环境就绪，运行 just dev"
 ```
 
-新同事入职的流程从「翻文档 + 问人」变成两条命令：
+The onboarding process for a new colleague goes from "dig through docs + ask people" to two commands:
 
 ```bash
 git clone git@github.com:team/project.git && cd project
 just setup && just dev
 ```
 
-## 6. 编辑器：配置也要能版本化
+## 6. Editor: Configuration Should Also Be Versionable
 
-VS Code 我用 **Settings Sync + 仓库内 `.vscode/`** 双轨：个人偏好走 Sync，**项目约束走仓库**——格式化器、推荐插件、调试配置都提交进 Git，保证团队一致：
+For VS Code I use a dual-track approach of **Settings Sync + in-repo `.vscode/`**: personal preferences go through Sync, **project constraints go into the repo**—formatters, recommended extensions, and debug configurations are all committed to Git to ensure team consistency:
 
 ```json
 // .vscode/settings.json
@@ -219,7 +217,7 @@ VS Code 我用 **Settings Sync + 仓库内 `.vscode/`** 双轨：个人偏好走
 }
 ```
 
-Neovim 这边则完全走 Lua 配置，跟着 dotfiles 仓库走：
+For Neovim, it's entirely Lua configuration, following the dotfiles repository:
 
 ```lua
 -- ~/.config/nvim/lua/options.lua
@@ -229,10 +227,9 @@ vim.opt.undofile = true            -- 重启后仍能撤销
 vim.opt.swapfile = false
 vim.g.mapleader = " "
 ```
+## 7. bootstrap.sh: The Single Entry Point for a New Machine
 
-## 7. bootstrap.sh：新机器的唯一入口
-
-所有上面的东西，最后收敛成一个脚本。它的价值在于**可重复执行**——已经装过的跳过，没装的补上：
+Everything above ultimately converges into a single script. Its value lies in being **idempotent**—skip what's already installed, fill in what isn't:
 
 ```bash
 #!/usr/bin/env bash
@@ -258,18 +255,18 @@ curl -sS https://starship.rs/install.sh | sh -s -- --yes
 echo "🎉 完成，重启 shell 生效"
 ```
 
-## 结语
+## Conclusion
 
-配置环境的投入产出比，往往被低估。花一个周末把 dotfiles 整理成仓库，此后每换一次机器、每加一台服务器、每带一个新同事，都在回收这笔投资。
+The return on investment for configuring your environment is often underestimated. Spend a weekend organizing your dotfiles into a repository, and every time you switch machines, add a server, or onboard a new colleague, you'll be recouping that investment.
 
-如果你现在还没开始，最小可行的起点是三件事：**把 `.zshrc` 和 `.gitconfig` 提交到一个私有仓库**、**写一个只做符号链接的 `link()` 函数**、**用 `.mise.toml` 声明项目版本**。剩下的可以慢慢长。
+If you haven't started yet, the minimum viable starting point is three things: **commit `.zshrc` and `.gitconfig` to a private repository**, **write a `link()` function that only does symlinking**, **use `.mise.toml` to declare project versions**. The rest can grow over time.
 
-## 参考来源
+## References
 
-- GNU Stow 手册：<https://www.gnu.org/software/stow/manual/stow.html>
-- mise：<https://mise.jdx.dev/>
-- direnv：<https://direnv.net/>
-- Starship 配置文档：<https://starship.rs/config/>
-- just 命令运行器：<https://github.com/casey/just>
-- Homebrew Bundle：<https://docs.brew.sh/Brew-Bundle-and-Brewfile>
-- VS Code 工作区设置：<https://code.visualstudio.com/docs/getstarted/settings>
+- GNU Stow manual: <https://www.gnu.org/software/stow/manual/stow.html>
+- mise: <https://mise.jdx.dev/>
+- direnv: <https://direnv.net/>
+- Starship configuration docs: <https://starship.rs/config/>
+- just command runner: <https://github.com/casey/just>
+- Homebrew Bundle: <https://docs.brew.sh/Brew-Bundle-and-Brewfile>
+- VS Code workspace settings: <https://code.visualstudio.com/docs/getstarted/settings>

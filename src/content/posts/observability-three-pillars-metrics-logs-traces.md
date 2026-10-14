@@ -1,45 +1,43 @@
 ---
-title: 可观测性三支柱：Metrics、Logs 与 Traces 不是三种数据，而是同一条事件流的三种粒度
+title: 'The Three Pillars of Observability: Metrics, Logs, and Traces Are Not Three Types of Data, but Three Granularities of the Same Event Stream'
 published: 2026-10-07
-description: 'Metrics、Logs、Traces 都齐了，事故还是定位不了——因为问题不在「有没有三个系统」，而在三者能不能互相对上。本文讲清每条支柱各自的失效方式（高基数、采样丢尾、日志不可聚合），并给出把 metric 毛刺跳到具体 trace 的三种接法：统一 resource attributes、exemplar、日志注入 trace_id。'
+description: 'You have Metrics, Logs, and Traces all in place, yet you still can''t pinpoint the incident—because the problem isn''t whether you have three systems, but whether they can be correlated with each other. This article explains how each pillar fails in its own way (high cardinality, sampling dropping the tail, logs being non-aggregatable), and presents three ways to connect a metric spike to a specific trace: unified resource attributes, exemplars, and injecting trace_id into logs.'
 image: ''
-tags: [可观测性, OpenTelemetry, Prometheus, 分布式系统, 后端, 架构]
-category: '互联网'
+tags: [Observability, OpenTelemetry, Prometheus, Distributed Systems, Backend, Architecture]
+category: Internet
 draft: false
-lang: ''
 ---
+## 1. All three pillars are installed, yet incidents still can't be diagnosed
 
-## 1. 三支柱全都装了，事故依然定位不了
+Let's start with a very typical incident scene. The p99 of a `GET /api/orders` endpoint rose from 80ms to 2.4s and stayed there for twenty minutes.
 
-先看一个很典型的事故现场。某个 `GET /api/orders` 接口的 p99 从 80ms 涨到 2.4s，持续了二十分钟。
+Digging through three systems, here's what you get back:
 
-翻三个系统，得到的答复是这样的：
+- **Metrics**: The p99 of `http_server_request_duration_seconds` does show a spike. But that curve only has three labels—`method`, `route`, `status_code`—and after aggregation you can't tell which downstream is dragging it down. All you know is "this endpoint got slower."
+- **Logs**: For the `grep` endpoint, the logs are wall-to-wall `200`. Because it's slow, not broken.
+- **Traces**: The sampling rate is set to 1%, and in those twenty minutes not a single slow request happened to get sampled. On the graph, the call chain looks perfectly healthy.
 
-- **Metrics**：`http_server_request_duration_seconds` 的 p99 确实有个尖峰。但那条曲线上一共只有 `method`、`route`、`status_code` 三个标签，聚合之后看不出是哪个下游拖的——只知道"这个接口变慢了"。
-- **Logs**：`grep` 这个接口的日志，满屏都是 `200`。因为慢，不是错。
-- **Traces**：采样率设的是 1%，那二十分钟里恰好一条慢请求都没被采到。图上看，调用链一片健康。
+Each of the three systems is "fine" on its own. The problem is they **don't line up**: there's no `trace_id` in the logs, so you can't jump from a suspicious log line to the full call chain; that blip on the metric can't be traced to a specific slow trace; and the trace sampling policy filtered out the evidence exactly when you needed it most.
 
-三个系统各自都是"正常"的。问题出在它们**对不上**：日志里没有 `trace_id`，所以你无法从一个可疑的日志行跳到完整的调用链；metric 上的那个毛刺也无法定位到某一条具体的慢 trace；而 trace 的采样策略又在最需要它的时候把证据筛掉了。
+This is the most common misuse of the three pillars—treating them as "buy three tools" rather than "make one event stream joinable across three granularities." The table below is the skeleton of this whole article.
 
-这就是三支柱最常见的误用——把它当成"买三个工具"，而不是"让一条事件流在三个粒度上都能互相 join"。下面这张表是全文的骨架。
+## 2. Each pillar answers a fundamentally different question
 
-## 2. 每条支柱回答的问题根本不同
-
-| 支柱 | 回答什么 | 数据形态 | 单位成本 | 典型失效方式 |
+| Pillar | What it answers | Data shape | Unit cost | Typical failure mode |
 | --- | --- | --- | --- | --- |
-| **Metrics** | **有没有**问题、影响多大 | 预聚合的数值时间序列 | 低（维度少） | 高基数把 TSDB 打爆；聚合过头，丢了排查所需的维度 |
-| **Traces** | 问题在**哪个环节** | 带父子关系的 span 树 | 中（靠采样压量） | 采样把错误/慢请求筛掉了；span 属性太少，等于只有调用图 |
-| **Logs** | **为什么**会这样 | 全量事件文本 | 高（几乎无压缩） | 非结构化，无法聚合统计；没带上下文，孤立的一行毫无意义 |
+| **Metrics** | **Whether** there's a problem, and how big | Pre-aggregated numeric time series | Low (few dimensions) | High cardinality blows up the TSDB; over-aggregation loses the dimensions you need for diagnosis |
+| **Traces** | **Which step** the problem is in | Span trees with parent-child relationships | Medium (volume compressed via sampling) | Sampling filters out errors/slow requests; too few span attributes, leaving you with just a call graph |
+| **Logs** | **Why** it's happening | Full-volume event text | High (almost no compression) | Unstructured, can't be aggregated or counted; no context, so an isolated line means nothing |
 
-所以正确的追问顺序是：**Metrics 告诉你"有问题"，Traces 告诉你"哪里慢"，Logs 告诉你"为什么慢"**。三者不是同一个问题的三种答案，而是排查链条上的三个环节。任何一环断掉，链条就接不起来。
+So the correct order of questioning is: **Metrics tell you "there's a problem," Traces tell you "where it's slow," Logs tell you "why it's slow."** The three aren't three answers to the same question—they're three links in a diagnostic chain. Break any one link and the chain won't connect.
 
-做 Metrics 时最容易忽略的一点，是 Google SRE 那套"四大黄金指标"里对 latency 的强调：**成功请求和失败请求的延迟必须分开统计**。一个 2ms 就返回 500 的请求会把平均延迟拉低，让你在最该报警的时候看到"一切正常"。
+The easiest thing to overlook when doing Metrics is the emphasis on latency in Google SRE's "four golden signals": **the latency of successful and failed requests must be tracked separately**. A request that returns a 500 in 2ms will drag down the average latency, making you see "all good" at exactly the moment you should be alerting.
 
-## 3. Metrics：高基数是最常见的"自作自受"
+## 3. Metrics: high cardinality is the most common self-inflicted wound
 
-Metrics 便宜的前提是**维度少**。它便宜不是因为存储省，而是因为你已经付过"聚合"这笔账了——聚合发生之后，原始信息就没了。
+Metrics are cheap on the premise of **few dimensions**. They're cheap not because storage is saved, but because you've already paid the "aggregation" bill—once aggregation happens, the original information is gone.
 
-PostgreSQL 的高基数事故几乎都长这样：
+High-cardinality incidents in PostgreSQL almost always look like this:
 
 ```js
 // ❌ 灾难写法
@@ -50,9 +48,9 @@ const httpDuration = new client.Histogram({
 });
 ```
 
-算一下这条度量会产生多少个时间序列：`method`(5) × `url`(假设 200 个不同路径) × `user_id`(10 万) × 直方图 7 个桶 ≈ **7 亿条**。这不是"内存占得多一点"，而是 scrape 目标直接超时、Prometheus 内存爆掉。
+Do the math on how many time series this metric will produce: `method`(5) × `url`(say 200 distinct paths) × `user_id`(100k) × 7 histogram buckets ≈ **700 million**. This isn't "using a bit more memory"—it's scrape targets timing out outright and Prometheus memory exploding.
 
-`user_id`、`request_id`、原始 URL、时间戳、IP，这些都是**无界值**，必须换成有界的、可枚举的标签：
+`user_id`, `request_id`, raw URLs, timestamps, IPs—these are all **unbounded values** and must be replaced with bounded, enumerable labels:
 
 ```js
 // ✅ 正确写法：路由模板而非原始 URL，只保留有界维度
@@ -64,13 +62,13 @@ const httpDuration = new client.Histogram({
 });
 ```
 
-命名上，Prometheus 官方规范值得当成硬约束：**单一前缀 + 基础单位 + 单位后缀**，计数器以 `_total` 结尾，累积量的单位用基础单位（秒而不是毫秒）。这些不是审美问题——单位混用的度量在跨服务聚合时会产生静默的错误结果。
+On naming, the official Prometheus conventions are worth treating as hard constraints: **single prefix + base unit + unit suffix**, counters ending in `_total`, and cumulative quantities using base units (seconds, not milliseconds). These aren't aesthetic concerns—metrics with mixed units produce silently wrong results when aggregated across services.
 
-至于"每条请求的唯一标识"该放哪，答案是 **exemplar**：它挂在直方图的桶上，不占额外的标签维度，专门解决"从聚合指标跳回单次请求"这件事。
+As for where "the unique identifier of each request" should go, the answer is **exemplar**: it hangs off the histogram buckets, takes up no extra label dimensions, and exists specifically to solve "jumping from an aggregated metric back to a single request."
 
-## 4. Traces：价值在 span 属性，不在调用图
+## 4. Traces: the value is in span attributes, not the call graph
 
-自动埋点给你的是一张调用图，而排查靠的是**属性**——属性才是可查询、可过滤的维度。
+Auto-instrumentation gives you a call graph, but diagnosis relies on **attributes**—attributes are the dimensions you can query and filter on.
 
 ```js
 const { trace, SpanStatusCode } = require('@opentelemetry/api');
@@ -99,26 +97,26 @@ async function createOrder(req) {
 }
 ```
 
-比属性更容易踩坑的是**采样**，而它恰好是第一节事故的直接原因：
+Even easier to trip over than attributes is **sampling**, and it happens to be the direct cause of the incident in section 1:
 
-- **头部采样（head-based）**：请求一进来就决定采不采，通过 W3C `traceparent` 把 `sampled` 标记传给下游。便宜、无需缓冲，SDK 内置（`traceidratio`、`parentbased_traceidratio` 等）。致命缺点：**做决定的时候，这条请求是快是慢、成没成功都还不知道**——它必然会随机丢掉一部分错误和慢请求。
-- **尾部采样（tail-based）**：在 OpenTelemetry Collector 的 `tail_sampling` processor 里缓冲 span，按 trace ID 聚合，等 `decision_wait` 之后再决定，因此可以"保留所有 ERROR、保留所有超过 1s 的、其余按 1% 概率抽"。代价是**所有 span 都要在内存里压着**，而且同一条 trace 的 span 必须汇聚到同一个 Collector 实例上，否则拼不完整。
+- **Head-based sampling**: the decision to sample is made the moment a request comes in, and the `sampled` flag is propagated downstream via W3C `traceparent`. Cheap, no buffering needed, built into SDKs (`traceidratio`, `parentbased_traceidratio`, etc.). Fatal flaw: **at decision time, you don't yet know whether this request will be fast or slow, successful or not**—so it will inevitably drop some errors and slow requests at random.
+- **Tail-based sampling**: buffer spans in the OpenTelemetry Collector's `tail_sampling` processor, aggregate by trace ID, and decide after `decision_wait`, so you can "keep all ERRORs, keep everything over 1s, sample the rest at 1%." The cost is that **all spans must be held in memory**, and spans of the same trace must converge on the same Collector instance, or they can't be assembled.
 
-生产环境的常见组合是两层：先头部采样砍掉明显无用的量，再尾部采样从中挑出有信号的那部分。
+The common production setup is two layers: head-based sampling first to cut obviously useless volume, then tail-based sampling to pick out the part with signal.
 
-还有一个会静默生效的坑：环境变量 `OTEL_TRACES_SAMPLER=always_off` 会让整条链路一条 trace 都不上报，不报错、不告警，只在某个时刻你发现追踪面板是空的。
+There's also a trap that takes effect silently: the environment variable `OTEL_TRACES_SAMPLER=always_off` causes the entire pipeline to report not a single trace—no errors, no alerts, until one day you notice the tracing dashboard is empty.
 
-## 5. Logs：目标是能被 join，不是能被 grep
+## 5. Logs: the goal is to be joinable, not greppable
 
-日志的问题从来不是"没记"，而是"记了但用不上"。一行拼接出来的字符串：
+The problem with logs was never "nothing was recorded," but "it was recorded and still can't be used." A line assembled from concatenated strings:
 
 ```js
 console.log(`订单 ${orderId} 创建成功，耗时 ${ms}ms`);
 ```
 
-这行日志只能被 `grep`，不能被 `count by`、不能被 `group by`、也跳不到任何 trace。
+This log line can only be `grep`—it can't be `count by`, can't be `group by`, and can't jump to any trace.
 
-改成结构化输出，并且**把当前 span 的上下文塞进去**——这是投入产出比最高的一处改动：
+Switch to structured output and **stuff the current span's context into it**—this is the highest-ROI change you can make:
 
 ```js
 const { trace } = require('@opentelemetry/api');
@@ -137,52 +135,51 @@ function log(level, msg, fields = {}) {
 }
 ```
 
-完成后，第一节那个事故里"某条日志 → 完整调用链"的跳转就成立了。顺带一提，日志是按量计费的，把高频 INFO 噪声降级到 DEBUG，通常比换一个更便宜的日志后端见效更快。
+Once that's done, the "some log line → full call chain" jump from the incident in section 1 works. Incidentally, logs are billed by volume, so downgrading high-frequency INFO noise to DEBUG usually pays off faster than switching to a cheaper log backend.
+## 6. Connecting the Three: Three Ways to Wire Them Together
 
-## 6. 把三者接起来：三种接法
+The real engineering effort of the three pillars isn't in collection—it's in **correlation**. Ranked by cost-effectiveness:
 
-三支柱真正的工程量不在采集，而在**关联**。按性价比排序：
+**1. Unify resource attributes (do this first)**
 
-**1. 统一 resource attributes（先做这个）**
+Make all three signals share the same `service.name`, `service.version`, `deployment.environment`. This is what Resource in OpenTelemetry is for—with it, you can filter by `service.name` in your logging system, filter by the same value in traces, and make the `job` label on metrics line up.
 
-让三个信号共用同一套 `service.name`、`service.version`、`deployment.environment`。这是 OpenTelemetry 里 Resource 的用途——有了它，你才能在日志系统里按 `service.name` 过滤、在 trace 里按同一个值筛选、让 metric 的 `job` 标签对得上。
+**2. Inject `trace_id` into logs (do this second)**
 
-**2. 日志里注入 `trace_id`（第二做这个）**
+If you could only do one thing in the entire overhaul, do this. It turns "an isolated log line" into "a step on some trace."
 
-如果整个改造只能做一件事，就做这件。它把"孤立的一行日志"变成"某条 trace 上的一步"。
+**3. Use exemplars to jump from metrics to traces**
 
-**3. 用 exemplar 从 metric 跳到 trace**
+By attaching a trace ID when recording observations on a histogram, you can click directly from that p99 spike in Grafana into the specific slow trace. Two things to watch out for: the Prometheus side needs exemplar storage enabled (early versions required explicitly adding `--enable-feature=exemplar-storage`), and the exposition format must be OpenMetrics—the standard Prometheus text format doesn't support exemplars, and this is where a lot of instrumentation gets stuck.
 
-在直方图上记录观测值时附带 trace ID，就能在 Grafana 里从 p99 那个毛刺直接点进那条具体的慢 trace。要注意两件事：Prometheus 侧需要开启 exemplar 存储（早期版本要显式加 `--enable-feature=exemplar-storage`），且暴露格式得是 OpenMetrics——标准 Prometheus 文本格式不支持 exemplar，很多埋点跑不通就卡在这。
+But here's an easily overlooked pitfall: **an exemplar is not "using trace_id as a label."** A trace ID can only hang off an exemplar and must never be added to regular labels—otherwise you're back to the high-cardinality disaster from Section 3.
 
-但这里有个容易忽略的反面：**exemplar 不是"把 trace_id 当标签用"**。trace ID 只能挂在 exemplar 上，绝不能加进普通标签——否则就回到了第三节的高基数灾难。
+## 7. A More Radical View
 
-## 7. 一个更激进的看法
+Honeycomb CTO Charity Majors has a widely circulated judgment: **"there are no pillars"**—pillar is a marketing word; the technical word is "signal." She argues that splitting metrics, logs, and traces into three separate stores is essentially paying three times for the same data while also creating three dead zones that can't connect to each other; the more reasonable approach is **wide events**: compress the entire context of a request into a single structured event, store it once, and derive metrics and traces as read-time views from that unified store—and **embrace high cardinality**, because for questions like "which request from which user failed," the dimensions you aggregated away happen to be the answer.
 
-Honeycomb 的 CTO Charity Majors 有个流传很广的判断：**"there are no pillars"**——支柱是个营销词，技术词是"信号"（signal）。她认为把 metrics、logs、traces 分成三份独立存储，本质上是同一份数据付了三次钱，还制造了三处互相接不上的死角；更合理的做法是**宽事件（wide events）**：把请求的全部上下文压进一条结构化事件、只存一次，metrics 和 trace 都是读时从这个统一存储里派生出来的视图，并且**拥抱高基数**——因为"哪个用户的哪次请求失败了"这种问题，聚合掉的维度恰好就是答案。
+To be fair, the three-separate-systems model still holds up in infrastructure and ops feedback loops (where the telemetry isn't written by you). What's genuinely awkward is **the business code you write yourself**.
 
-公平地说，三家分立的模型在基础设施和运维反馈环里仍然成立（那里的遥测不由你写），真正别扭的是**你自己写的业务代码**。
+So the pragmatic attitude isn't to overthrow the existing stack, but to design events with the "wide event" mindset from the start: **cram as much context as possible into a single event, rather than splitting it across three systems first and then figuring out how to join it back.**
 
-所以务实的态度不是推翻现有技术栈，而是在设计事件时就按"宽事件"的思路来：**把上下文尽量塞进同一条事件里，而不是先拆到三个系统，再想办法 join 回来**。
+## 8. Summary
 
-## 8. 小结
+- **The value of the three pillars lies in being able to join with each other.** Installing three systems without `trace_id` in your logs or exemplars on your metrics is the same as installing three isolated islands.
+- **High cardinality in metrics is almost always self-inflicted.** `user_id`, `request_id`, and raw URLs must never go into labels; switch to route templates and bounded enumeration values, and hand unique identifiers to exemplars.
+- **Head sampling is "blind"**—it inevitably drops a random portion of errors and slow requests. To guarantee errors and slow requests aren't dropped, you need the Collector's tail sampling, at the cost of memory and same-instance aggregation.
+- **Span attributes matter more than the call graph.** With only the call graph, you can only know "it's slow," not "why it's slow."
+- **Structure logs first, then inject `trace_id`.** If you only do one thing, do this.
+- **In the four golden signals, latency must be viewed separately for success/failure**, otherwise fail-fast 500s will whitewash your latency curve.
+- **Exemplars are for connecting, not for use as labels.** Writing a trace ID into a label turns a correlation mechanism into a cardinality bomb.
 
-- **三支柱的价值在于能互相 join。** 装了三个系统而日志里没有 `trace_id`、metric 上没有 exemplar，等于装了三个孤岛。
-- **Metrics 的高基数几乎都是自己造的。** `user_id`、`request_id`、原始 URL 一律不许进标签；改用路由模板和有界枚举值，唯一标识交给 exemplar。
-- **头部采样是"盲"的**，它必然随机丢掉一部分错误和慢请求。要保证错误与慢请求不丢，得靠 Collector 的尾部采样，代价是内存和同实例汇聚。
-- **span 的属性比调用图重要。** 只有调用图，你只能知道"慢"，不知道"为什么慢"。
-- **日志先结构化，再注入 `trace_id`。** 只做一件事的话就做这件。
-- **四黄金指标里 latency 要成功/失败分开看**，否则 fail-fast 的 500 会把延迟曲线洗白。
-- **exemplar 用来连接，不能用来当标签。** 把 trace ID 写进标签是把关联手段变成了基数炸弹。
+## References
 
-## 参考来源
-
-- [OpenTelemetry 官方文档：Signals（Traces / Metrics / Logs / Baggage 的定义与定位）](https://opentelemetry.io/docs/concepts/signals/)
-- [Google SRE Book 第 6 章：Monitoring Distributed Systems（四大黄金指标：latency、traffic、errors、saturation，以及 latency 需区分成功与失败）](https://sre.google/sre-book/monitoring-distributed-systems/)
-- [Prometheus 官方文档：Metric and label naming（应用前缀、基础单位、单位后缀、`_total` 约定）](https://prometheus.io/docs/practices/naming/)
-- [Prometheus 官方文档：Data model（指标名与标签的合法字符、时间序列的维度模型、`__` 前缀保留）](https://prometheus.io/docs/concepts/data_model/)
-- [OpenTelemetry 官方文档：Tail-based sampling（.NET SDK 侧头部+尾部混合采样，保留全部失败 span 的实现与取舍）](https://opentelemetry.io/docs/languages/dotnet/traces/tail-based-sampling/)
-- [Charity Majors：The pillar is a lie（"没有支柱，只有信号"；支柱是营销词而非技术词）](https://charity.wtf/2025/10/30/the-pillar-is-a-lie/)
-- [Honeycomb：Wide Events vs. Three Pillars（三份独立存储的成本倍增与"统一存储、读时派生"的对照）](https://www.honeycomb.io/blog/wide-events-vs-three-pillars-ai-observability-costs)
-- [Grafana 官方文档：Configure and use exemplars（exemplar 与 trace ID 的关联、TimeSeries 面板启用方式）](https://grafana.com/docs/grafana-cloud/observe-and-act/send-data/traces/configure/exemplars/)
-- [Prometheus Python Client：Exemplars（在直方图观测值上附加 trace_id / span_id，以及 OpenMetrics 暴露格式要求）](https://prometheus.github.io/client_python/instrumenting/exemplars/)
+- [OpenTelemetry official docs: Signals (definitions and positioning of Traces / Metrics / Logs / Baggage)](https://opentelemetry.io/docs/concepts/signals/)
+- [Google SRE Book Chapter 6: Monitoring Distributed Systems (the four golden signals: latency, traffic, errors, saturation, and latency needing to distinguish success from failure)](https://sre.google/sre-book/monitoring-distributed-systems/)
+- [Prometheus official docs: Metric and label naming (application prefix, base units, unit suffixes, `_total` conventions)](https://prometheus.io/docs/practices/naming/)
+- [Prometheus official docs: Data model (legal characters for metric names and labels, the dimensional model of time series, `__` prefix reservation)](https://prometheus.io/docs/concepts/data_model/)
+- [OpenTelemetry official docs: Tail-based sampling (head+tail hybrid sampling on the .NET SDK side, implementation and trade-offs for retaining all failed spans)](https://opentelemetry.io/docs/languages/dotnet/traces/tail-based-sampling/)
+- [Charity Majors: The pillar is a lie ("there are no pillars, only signals"; pillar is a marketing word, not a technical one)](https://charity.wtf/2025/10/30/the-pillar-is-a-lie/)
+- [Honeycomb: Wide Events vs. Three Pillars (the cost multiplication of three separate stores vs. "unified storage, read-time derivation")](https://www.honeycomb.io/blog/wide-events-vs-three-pillars-ai-observability-costs)
+- [Grafana official docs: Configure and use exemplars (correlating exemplars with trace IDs, how to enable in TimeSeries panels)](https://grafana.com/docs/grafana-cloud/observe-and-act/send-data/traces/configure/exemplars/)
+- [Prometheus Python Client: Exemplars (attaching trace_id / span_id to histogram observations, and the OpenMetrics exposition format requirement)](https://prometheus.github.io/client_python/instrumenting/exemplars/)

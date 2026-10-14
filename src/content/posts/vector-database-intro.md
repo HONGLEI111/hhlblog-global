@@ -1,30 +1,28 @@
 ---
-title: 向量数据库入门：从 Embedding 到相似度搜索
+title: 'Getting Started with Vector Databases: From Embeddings to Similarity Search'
 published: 2026-08-20
-description: '从向量、Embedding 和相似度度量讲起，用 NumPy 从零实现一个最小向量数据库，再对比主流向量数据库并实战 ChromaDB。'
+description: Start with vectors, embeddings, and similarity metrics, then build a minimal vector database from scratch with NumPy, compare mainstream vector databases, and get hands-on with ChromaDB.
 image: ''
-tags: [向量数据库, Embedding, 相似度搜索, AI, RAG]
+tags: [vector database, embedding, similarity search, AI, RAG]
 category: 'AI'
 draft: false
-lang: ''
 ---
+## Why Do We Need Vector Databases?
 
-## 为什么需要向量数据库？
+Traditional databases excel at "exact matching": `WHERE id = 42` or `WHERE name = '张三'`. But the most common need in AI applications is precisely the fuzzy kind—**"find the passages that are closest in meaning to this sentence."**
 
-传统数据库擅长的是「精确匹配」：`WHERE id = 42` 或 `WHERE name = '张三'`。但 AI 应用里最常见的需求恰恰是模糊的——**「找出和这句话意思最接近的那几段话」**。
+For example:
 
-比如：
+- A user asks "How do I get a refund?", but the knowledge base stores "How to apply for a return"—the wording barely overlaps, yet semantically they mean the same thing.
+- Given an image, you want to find other images that "look the most similar."
 
-- 用户问「怎么退款？」，知识库里存的却是「如何申请退货」——字面上几乎不重叠，语义上却是同一个意思。
-- 给一张图片，想找到「看起来最像」的其他图片。
+This kind of "semantic similarity" retrieval cannot be solved directly with SQL's `LIKE` or an inverted index. Vector databases were born for exactly this scenario: they convert text, images, audio, and other content into high-dimensional vectors, then specialize in "quickly finding the batch of vectors most similar to a query vector."
 
-这类「语义相似度」检索无法用 SQL 的 `LIKE` 或倒排索引直接解决。向量数据库（Vector Database）就是为这个场景而生的：它把文本、图片、音频等内容转换为高维向量，然后专门负责「快速找出与查询向量最相似的一批向量」。
+In a RAG (Retrieval-Augmented Generation) architecture, the vector database is a key link that bridges what comes before and after—upstream it receives vectors produced by Embedding models, and downstream it provides retrieval results to the LLM. Understanding it means understanding half of RAG.
 
-在 RAG（检索增强生成）架构中，向量数据库是承上启下的关键一环——上游接收 Embedding 模型产出的向量，下游为 LLM 提供检索结果。理解了它，也就理解了 RAG 的一半。
+## Vectors and Embedding
 
-## 向量与 Embedding
-
-**向量**本质上是一组浮点数数组，比如 `[0.12, -0.83, 0.45, ...]`。**Embedding** 则是「把内容转成向量」的过程，其核心思想是：**语义相近的内容，在向量空间中距离也相近**。
+A **vector** is essentially an array of floating-point numbers, such as `[0.12, -0.83, 0.45, ...]`. **Embedding** is the process of "turning content into a vector," and its core idea is: **content with similar semantics is also close together in vector space**.
 
 ```
 "猫"        → [0.92, 0.11, -0.03, ...]
@@ -32,17 +30,17 @@ lang: ''
 "汽车引擎"   → [-0.41, 0.78, 0.62, ...]   ← 与"猫"很远
 ```
 
-真实生产环境通常使用 Transformer 模型做 Embedding，例如 OpenAI 的 `text-embedding-3-small`、BAAI 的开源模型 `bge-*`、Sentence-Transformers 的 `all-MiniLM-L6-v2` 等。这类模型能捕捉深层的语义关系，而不只是关键词重合。
+Real production environments typically use Transformer models for Embedding, such as OpenAI's `text-embedding-3-small`, BAAI's open-source model `bge-*`, Sentence-Transformers' `all-MiniLM-L6-v2`, and so on. These models can capture deep semantic relationships, not just keyword overlap.
 
-为了让你彻底看清向量数据库内部在做什么，下面我们先用纯 NumPy 手写一个「最小可用」的向量数据库。
+To let you see clearly what a vector database is doing internally, below we'll first hand-write a "minimal viable" vector database using pure NumPy.
 
-## 相似度度量
+## Similarity Metrics
 
-在动手前，先理解如何衡量两个向量「像不像」。最常用的三种度量：
+Before getting hands-on, let's first understand how to measure whether two vectors "look alike." The three most commonly used metrics:
 
-### 1. 余弦相似度（Cosine Similarity）
+### 1. Cosine Similarity
 
-衡量两个向量**方向**的夹角，值域 `[-1, 1]`，越接近 1 越相似。它不受向量长度影响，因此是文本语义检索中最常用的度量：
+Measures the angle between the **directions** of two vectors, with a range of `[-1, 1]`—the closer to 1, the more similar. It is unaffected by vector length, making it the most commonly used metric in text semantic retrieval:
 
 ```python
 import numpy as np
@@ -52,19 +50,19 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 ```
 
-### 2. 欧氏距离（Euclidean Distance）
+### 2. Euclidean Distance
 
-衡量两个向量在空间中**直线距离**，值越小越相似。适合向量长度本身有语义含义的场景（如图像特征）。
+Measures the **straight-line distance** between two vectors in space—the smaller the value, the more similar. It suits scenarios where vector length itself carries semantic meaning (such as image features).
 
-### 3. 点积（Dot Product）
+### 3. Dot Product
 
-余弦相似度的「未归一化」版本。当向量已经过 L2 归一化时，点积就等于余弦相似度——许多向量数据库内部正是这么优化的：**提前归一化，检索时只算点积，省掉除法**。
+The "unnormalized" version of cosine similarity. When vectors have already been L2-normalized, the dot product equals cosine similarity—and this is exactly how many vector databases optimize internally: **normalize in advance, compute only the dot product at retrieval time, and skip the division**.
 
-## 从零实现一个 MiniVectorDB
+## Implementing a MiniVectorDB from Scratch
 
-下面我们用不到 60 行代码，实现一个能「写入向量 + 语义检索」的最小向量数据库。为了完全自包含（不依赖任何外部 API），我们用一个**特征哈希（Feature Hashing）**技巧来生成简易向量：对文本的字符 n-gram 做哈希，映射到固定维度，符号（正负）由哈希值的奇偶决定。
+Below, in under 60 lines of code, we'll implement a minimal vector database capable of "writing vectors + semantic retrieval." To be fully self-contained (without relying on any external API), we use a **Feature Hashing** trick to generate simple vectors: hash the character n-grams of the text, map them to a fixed dimension, and let the sign (positive or negative) be determined by the parity of the hash value.
 
-> 注意：这只是教学演示。真实语义检索应使用 Transformer Embedding 模型，而不是哈希技巧。
+> Note: This is only a teaching demonstration. Real semantic retrieval should use Transformer Embedding models, not hashing tricks.
 
 ```python
 import hashlib
@@ -126,36 +124,35 @@ if __name__ == "__main__":
             print(f"  [{doc_id}] 相似度 {score:.3f} | {text}")
 ```
 
-运行后，你会看到「小猫咪」最匹配 `cat`、「遛狗」最匹配 `dog`、「发动机故障」最匹配 `car`。这就是向量检索的基本闭环：**内容 → 向量 → 相似度排序 → top-k**。
+After running it, you'll see that "kitten" best matches `cat`, "walking the dog" best matches `dog`, and "engine failure" best matches `car`. This is the basic closed loop of vector retrieval: **content → vector → similarity ranking → top-k**.
 
-## 暴力搜索的瓶颈与 ANN
+## The Bottleneck of Brute-Force Search and ANN
 
-上面的实现用的是**暴力搜索（Brute Force）**：把查询向量和库里的每一个向量都算一遍相似度。当数据量是百万、千万级别时，这显然不可行——一次查询要算几百万次点积。
+The implementation above uses **Brute Force** search: computing the similarity between the query vector and every single vector in the database. When the data volume reaches the millions or tens of millions, this is clearly infeasible—a single query would require computing millions of dot products.
 
-于是有了**近似最近邻（Approximate Nearest Neighbor，ANN）**算法：牺牲一点点精度，换取数量级的速度提升。主流的 ANN 索引包括：
+Hence **Approximate Nearest Neighbor (ANN)** algorithms: sacrificing a little accuracy in exchange for an order-of-magnitude speedup. Mainstream ANN indexes include:
 
-- **HNSW（Hierarchical Navigable Small World）**：构建多层「小世界」图，从高层粗粒度快速下探到低层细粒度。检索复杂度约 O(log N)，是目前工程上最广泛采用的索引之一。
-- **IVF（Inverted File Index）**：先聚类把向量空间划分成若干桶，查询时只搜最近的一批桶。
-- **PQ（Product Quantization）**：对向量做有损压缩，用更小的内存存储更多向量。
+- **HNSW (Hierarchical Navigable Small World)**: Builds a multi-layer "small world" graph, quickly descending from coarse-grained upper layers to fine-grained lower layers. Retrieval complexity is about O(log N), making it one of the most widely adopted indexes in engineering today.
+- **IVF (Inverted File Index)**: First clusters the vector space into several buckets, and at query time searches only the nearest batch of buckets.
+- **PQ (Product Quantization)**: Performs lossy compression on vectors, storing more vectors in less memory.
 
-真实向量数据库的价值，很大程度上就体现在这些索引的工程实现上——**这正是你没必要自己重造轮子的原因。**
+The value of real vector databases lies largely in the engineering implementation of these indexes—**which is exactly why you don't need to reinvent the wheel yourself.**
 
-## 主流向量数据库对比
+## Comparison of Mainstream Vector Databases
 
-| 数据库 | 特点 | 适合场景 |
+| Database | Features | Suitable Scenarios |
 |--------|------|----------|
-| **ChromaDB** | 开源、Python 原生、本地/内存运行、轻量 | 原型开发、小规模应用 |
-| **Milvus** | 开源、高性能、分布式、支持多种 ANN 索引 | 大规模生产环境 |
-| **Qdrant** | Rust 编写、高性能、过滤能力强 | 需要复杂元数据过滤的场景 |
-| **Weaviate** | 开源、混合搜索（BM25 + 向量） | 既要关键词又要语义的场景 |
-| **Pinecone** | 全托管云服务、免运维 | 不想管基础设施的团队 |
-| **pgvector** | PostgreSQL 扩展 | 已用 PostgreSQL、想少引入一个系统 |
+| **ChromaDB** | Open source, Python-native, runs locally/in-memory, lightweight | Prototype development, small-scale applications |
+| **Milvus** | Open source, high performance, distributed, supports multiple ANN indexes | Large-scale production environments |
+| **Qdrant** | Written in Rust, high performance, strong filtering capabilities | Scenarios requiring complex metadata filtering |
+| **Weaviate** | Open source, hybrid search (BM25 + vectors) | Scenarios needing both keywords and semantics |
+| **Pinecone** | Fully managed cloud service, zero ops | Teams that don't want to manage infrastructure |
+| **pgvector** | PostgreSQL extension | Those already using PostgreSQL who want to introduce one fewer system |
 
-选型时优先考虑：**数据规模、查询延迟要求、是否需要元数据过滤、运维成本**。原型阶段用 ChromaDB，生产阶段再考虑 Milvus 或 Pinecone，是一条常见的演进路径。
+When choosing, prioritize: **data scale, query latency requirements, whether metadata filtering is needed, and operational cost**. Using ChromaDB at the prototype stage and then considering Milvus or Pinecone at the production stage is a common evolution path.
+## Hands-On: Semantic Search with ChromaDB
 
-## 实战：用 ChromaDB 做语义搜索
-
-最后看一个真实向量数据库的用法。ChromaDB 的默认 Embedding 函数是 `all-MiniLM-L6-v2`，开箱即用：
+Finally, let's look at how to use a real vector database. ChromaDB's default embedding function is `all-MiniLM-L6-v2`, ready to use out of the box:
 
 ```bash
 pip install chromadb
@@ -192,20 +189,20 @@ for doc, distance in zip(results["documents"][0], results["distances"][0]):
     print(f"[距离 {distance:.3f}] {doc}")
 ```
 
-注意 ChromaDB 的 `query` 默认返回的是**距离**（越小越相似），而不是相似度分数——不同数据库对「分数」的定义可能不同，读文档时要先确认。
+Note that ChromaDB's `query` returns **distance** by default (smaller means more similar), not a similarity score—different databases may define "score" differently, so always check the documentation first.
 
-## 结语
+## Conclusion
 
-向量数据库的底层原理并不神秘：**Embedding 把语义变成向量，相似度度量把「像不像」变成「数字」，ANN 索引把「全量比对」变成「近似查找」**。理解了这三件事，你就抓住了向量数据库的本质。
+The underlying principles of vector databases aren't mysterious: **embeddings turn semantics into vectors, similarity metrics turn "how alike" into "numbers," and ANN indexes turn "full comparison" into "approximate lookup."** Once you understand these three things, you've grasped the essence of vector databases.
 
-对于日常开发，你不必亲手实现 HNSW——先用 ChromaDB 跑通原型，再根据数据规模演进到 Milvus 或 Pinecone，是最务实的选择。向量数据库是 RAG 的基石，掌握它，你就迈出了构建 AI 应用的关键一步。
+For everyday development, you don't need to implement HNSW by hand—getting a prototype working with ChromaDB first, then evolving to Milvus or Pinecone as your data scales, is the most pragmatic choice. Vector databases are the cornerstone of RAG; master them, and you've taken a key step toward building AI applications.
 
 ---
 
-**参考来源：**
+**References:**
 
 1. Malkov, Y., & Yashunin, D. "Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs." *arXiv 2016*. https://arxiv.org/abs/1603.09320
-2. ChromaDB 官方文档. https://docs.trychroma.com/
-3. Milvus 官方文档. https://milvus.io/docs
+2. ChromaDB Official Documentation. https://docs.trychroma.com/
+3. Milvus Official Documentation. https://milvus.io/docs
 4. pgvector - GitHub. https://github.com/pgvector/pgvector
-5. OpenAI Embeddings 指南. https://platform.openai.com/docs/guides/embeddings
+5. OpenAI Embeddings Guide. https://platform.openai.com/docs/guides/embeddings
