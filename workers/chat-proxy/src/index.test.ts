@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allowedOrigins } from "./index.ts";
+import { allowedOrigins, isChallengeRequired } from "./index.ts";
 
 /**
  * ALLOWED_ORIGINS parsing.
@@ -73,5 +73,34 @@ describe("allowedOrigins", () => {
 		expect(origins.has("https://a.example.evil.com")).toBe(false);
 		expect(origins.has("https://a.example/")).toBe(false);
 		expect(origins.has("a.example")).toBe(false);
+	});
+});
+
+/**
+ * ALLOW_UNVERIFIED is a deliberate weakening of a security gate, so it gets the
+ * strictest possible reading: only the literal "1" turns the challenge off.
+ * A near-miss ("true", "yes", "on") must NOT disable it — silently opening the
+ * endpoint because someone guessed the wrong spelling is the failure that
+ * matters here, and it would be invisible in production.
+ */
+describe("isChallengeRequired", () => {
+	it("requires the challenge by default", () => {
+		expect(isChallengeRequired({})).toBe(true);
+		expect(isChallengeRequired({ ALLOW_UNVERIFIED: "" })).toBe(true);
+		expect(isChallengeRequired({ ALLOW_UNVERIFIED: "0" })).toBe(true);
+	});
+
+	it('only the literal "1" disables it', () => {
+		expect(isChallengeRequired({ ALLOW_UNVERIFIED: "1" })).toBe(false);
+	});
+
+	it("does not accept plausible near-misses", () => {
+		// Each of these would be a silent, invisible bypass if accepted.
+		for (const near of ["true", "yes", "on", "TRUE", " 1", "1 ", "01"]) {
+			expect(
+				isChallengeRequired({ ALLOW_UNVERIFIED: near }),
+				`ALLOW_UNVERIFIED=${JSON.stringify(near)} must keep the gate on`,
+			).toBe(true);
+		}
 	});
 });

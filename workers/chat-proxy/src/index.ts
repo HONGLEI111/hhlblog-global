@@ -17,6 +17,26 @@ interface Env {
    * by default so a fork does not advertise someone else's inbox.
    */
   CONTACT_EMAIL?: string;
+  /**
+   * Temporary, explicit escape hatch: `"1"` serves the allowlisted origins
+   * WITHOUT a Turnstile token.
+   *
+   * Why it exists: this proxy is called from `nextjs.hehonglei.cn`, which is
+   * hosted on EdgeOne and is not a zone on this Cloudflare account. A Turnstile
+   * widget's managed domains are checked against the account's zones, so the
+   * challenge can never issue a token there — the gate has never been able to
+   * pass on that host. Setting this accepts that degradation instead of
+   * pretending the layer works.
+   *
+   * What still protects the endpoint with this on: the exact-match origin
+   * allowlist (browsers only), the durable per-IP rate limit via the Cache API,
+   * `max_tokens` per reply, and — the real ceiling — the DeepSeek console
+   * spending cap.
+   *
+   * Unset/anything else keeps the previous fail-closed behaviour, so removing
+   * the var restores the challenge without a code change.
+   */
+  ALLOW_UNVERIFIED?: string;
 }
 
 // Current DeepSeek model. The legacy names `deepseek-chat` / `deepseek-reasoner`
@@ -58,6 +78,19 @@ export function allowedOrigins(env: Env): Set<string> {
     .map((value) => value.trim())
     .filter(Boolean);
   return new Set(configured.length > 0 ? configured : [DEV_ORIGIN]);
+}
+
+/**
+ * Whether the Turnstile gate applies.
+ *
+ * Separate and exported so the two places in `fetch` that depend on it cannot
+ * drift, and so the opt-out is covered by a test rather than only by a comment.
+ * Any value other than the literal "1" keeps the gate on — including a typo
+ * like "true" or "yes", because silently disabling a security gate by
+ * near-miss is the failure worth avoiding.
+ */
+export function isChallengeRequired(env: Env): boolean {
+  return env.ALLOW_UNVERIFIED !== '1';
 }
 
 // Simple per-IP sliding-window rate limit backed by the Cache API. With Turnstile
@@ -154,11 +187,17 @@ export default {
       });
     }
 
+    // Whether the Turnstile gate applies to this request. `ALLOW_UNVERIFIED=1`
+    // is the explicit, documented opt-out for hosts where the widget cannot
+    // issue a token at all (see the Env comment). Read once, so the two checks
+    // below cannot disagree.
+    const challengeRequired = isChallengeRequired(env);
+
     // Fail closed: with no Turnstile secret the proxy cannot tell a reader from a
     // script, and the Origin check cannot either. Rather than run open, it serves
     // local development only — so a deployment that forgets the secret stops
     // working instead of quietly becoming a free LLM endpoint.
-    if (!env.TURNSTILE_SECRET_KEY && origin !== DEV_ORIGIN) {
+    if (challengeRequired && !env.TURNSTILE_SECRET_KEY && origin !== DEV_ORIGIN) {
       return new Response('Turnstile is not configured', {
         status: 503,
         headers: corsHeaders(origin),
@@ -200,7 +239,7 @@ export default {
 
     // The token is verified before anything is sent upstream, and the reason is
     // logged rather than returned: it would tell a caller which part to fix.
-    if (env.TURNSTILE_SECRET_KEY) {
+    if (challengeRequired && env.TURNSTILE_SECRET_KEY) {
       const turnstile = await verifyTurnstile({
         token: parsed.turnstileToken,
         secret: env.TURNSTILE_SECRET_KEY,
