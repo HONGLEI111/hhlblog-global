@@ -46,6 +46,25 @@ describe("resolveContext", () => {
 		expect(context?.url).toBe("https://nextjs.hehonglei.cn/posts/x/");
 	});
 
+	it("accepts a same-site article from the .cn blog", () => {
+		// The .cn site shares this worker. Its absence here is silent: CORS
+		// passes, resolveContext returns null, and every answer then claims the
+		// reader is not on an article page.
+		const context = resolveContext(
+			{
+				url: "https://www.hehonglei.cn/posts/ai-agent-architecture-patterns/",
+				title: "Title",
+				text: longText,
+			},
+			ARTICLE_HOSTS,
+		);
+
+		expect(context).not.toBeNull();
+		expect(context?.url).toBe(
+			"https://www.hehonglei.cn/posts/ai-agent-architecture-patterns/",
+		);
+	});
+
 	it("lists every origin the proxy is deployed for", () => {
 		// Keep in step with ALLOWED_ORIGINS: an origin allowed for CORS but
 		// absent here loses its context with no error anywhere.
@@ -53,6 +72,8 @@ describe("resolveContext", () => {
 			"www.hehonglei.com",
 			"hehonglei.com",
 			"nextjs.hehonglei.cn",
+			"www.hehonglei.cn",
+			"hehonglei.cn",
 			"localhost:4321",
 			"127.0.0.1:4321",
 		]) {

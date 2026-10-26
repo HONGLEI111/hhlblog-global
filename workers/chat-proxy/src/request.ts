@@ -71,6 +71,11 @@ export const ARTICLE_HOSTS: ReadonlySet<string> = new Set([
   "www.hehonglei.com",
   "hehonglei.com",
   "nextjs.hehonglei.cn",
+  // The .cn blog shares this worker, and its readers are the ones most likely to
+  // be on an article page: leaving its hosts out silently disables grounding
+  // there (the prompt then claims the reader is not on an article at all).
+  "www.hehonglei.cn",
+  "hehonglei.cn",
   "localhost:4321",
   "127.0.0.1:4321",
 ]);
