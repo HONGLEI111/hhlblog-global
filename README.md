@@ -133,13 +133,17 @@ The chat widget is **disabled unless you point it at a proxy**. It never calls a
 
    ```bash
    cd workers/chat-proxy
-   pnpm install
-   wrangler secret put DEEPSEEK_API_KEY
-   wrangler secret put TURNSTILE_SECRET_KEY
-   # Set ALLOWED_ORIGINS to the exact origins allowed to call it, e.g.
-   #   ALLOWED_ORIGINS="https://www.example.com"
-   wrangler deploy
+   npx wrangler deploy \
+     --var 'ALLOWED_ORIGINS:https://www.example.com' \
+     --var 'CONTACT_EMAIL:you@example.com'
    ```
+
+   This worker is **shared with the Chinese site** (`https://www.hehonglei.cn`,
+   built by EdgeOne Makers), which is why it lives here and nowhere else — see
+   [`workers/chat-proxy/README.md`](workers/chat-proxy/README.md) for the full
+   hostname list, the Turnstile rotation steps and the deploy-checklist. Restate
+   every `--var` on each deploy: `wrangler.toml` keeps `[vars]` empty, and a
+   deploy replaces the variable set instead of merging it.
 
 3. Point the site at it and rebuild:
 
