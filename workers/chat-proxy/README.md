@@ -36,15 +36,33 @@ npx wrangler secret put TURNSTILE_SECRET_KEY  # Turnstile secret for the widget 
 
 ## Turnstile
 
+**The challenge is a usage quota, not a per-request switch.** The opening turns of
+a conversation are answered with no verification at all; a token is required only
+once the payload being sent has more than `GATE_FREE_TURNS` (3) questions or more
+than `GATE_FREE_OUTPUT_CHARS` (4000) characters of assistant text. Both numbers
+live in `src/gate.ts`; the site repo mirrors the rule in
+`src/utils/chat-gate.ts` so the widget can stay hidden until it is needed.
+
+Why: the challenge can only issue a token where it can actually complete, and on
+mainland-China networks it frequently never does (the .cn deployment is the case
+that matters). A gate on the first message therefore locked those readers out of
+a chat that had just started working, while barely touching abuse — a script can
+hold a conversation open as cheaply as a reader can. Charging verification after
+the free quota keeps the endpoint useful and still bounds what an unattended
+script gets for nothing. `max_tokens` and the per-IP rate limit bound a single
+request either way.
+
 - Widget: `0x4AAAAAAFWkSCy6WNF5P5LY` ("hhlblog-global chat"), managed mode, no
   pre-clearance. Its hostname list must contain every hostname that serves the
   widget: `hehonglei.com`, `www.hehonglei.com`, `hehonglei.cn`, `www.hehonglei.cn`.
   Turnstile rejects any hostname that is not listed, and does not support wildcards.
 - The site key is public and inlined at **build time** into the frontend bundle
   (`PUBLIC_TURNSTILE_SITE_KEY`). Rebuilding without it silently ships a widget that
-  never requests a token — and then every question 403s.
+  never requests a token — and then every question past the free quota 403s.
 - Tokens are single-use and expire after ~300 s; the client resets the widget after
   every send, so do not cache or replay one.
+- A gated request without a valid token is answered `403` with the body
+  `turnstile-required`; the widget uses that marker to re-render the challenge.
 - Rotating the secret (e.g. after a leak) invalidates the old one immediately:
 
   ```bash
@@ -57,27 +75,36 @@ npx wrangler secret put TURNSTILE_SECRET_KEY  # Turnstile secret for the widget 
 ## Verify a deploy
 
 ```bash
-# 1. a request with no token is refused (403, not 200)
+# 1. a fresh conversation is served without a token (expect 200 — this one really
+#    does reach DeepSeek, so it costs a reply)
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://ai-api.hehonglei.com/ \
   -H 'Origin: https://www.hehonglei.cn' -H 'Content-Type: application/json' \
   -d '{"messages":[{"role":"user","content":"hi"}]}'
 
-# 2. a foreign origin is refused too
+# 2. past the free quota and without a token it is refused (expect 403, body
+#    turnstile-required) — four questions is over GATE_FREE_TURNS
+curl -s -X POST https://ai-api.hehonglei.com/ \
+  -H 'Origin: https://www.hehonglei.cn' -H 'Content-Type: application/json' \
+  -d '{"messages":[{"role":"user","content":"q1"},{"role":"assistant","content":"a1"},{"role":"user","content":"q2"},{"role":"assistant","content":"a2"},{"role":"user","content":"q3"},{"role":"assistant","content":"a3"},{"role":"user","content":"q4"}]}' \
+  -w '\n%{http_code}\n'
+
+# 3. a foreign origin is refused too
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://ai-api.hehonglei.com/ \
   -H 'Origin: https://example.com' -H 'Content-Type: application/json' \
   -d '{"messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Both should print `403`. A real browser on either site must then get an answer —
-if it 403s instead, the deployed `TURNSTILE_SECRET_KEY` does not match the widget
-that issued the token.
+Steps 2 and 3 should print `403`. A real browser on either site must then get an
+answer — if the gated turn 403s for a reader who did complete the checkbox, the
+deployed `TURNSTILE_SECRET_KEY` does not match the widget that issued the token.
 
 ## Escape hatch
 
-`ALLOW_UNVERIFIED=1` (as a var) turns the Turnstile check off and leaves only the
-`Origin` allowlist and the per-IP rate limit in front of the endpoint. It exists
-for the window where the gate is broken and the sites must stay up; it is not a
-configuration to leave on. Recovery is a normal deploy as shown above:
+`ALLOW_UNVERIFIED=1` (as a var) turns the Turnstile check off entirely, leaving
+only the `Origin` allowlist and the per-IP rate limit in front of the endpoint —
+including past the free quota. It exists for the window where the gate is broken
+and the sites must stay up; it is not a configuration to leave on. Recovery is a
+normal deploy as shown above:
 
 ```bash
 npx wrangler deploy \

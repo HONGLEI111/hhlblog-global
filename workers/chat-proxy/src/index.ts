@@ -1,3 +1,4 @@
+import { needsTurnstile } from "./gate.ts";
 import { buildSystemPrompt } from "./prompt.ts";
 import { ARTICLE_HOSTS, parseBody, resolveGrounding } from "./request.ts";
 import { verifyTurnstile } from "./turnstile.ts";
@@ -5,9 +6,10 @@ import { verifyTurnstile } from "./turnstile.ts";
 interface Env {
   DEEPSEEK_API_KEY: string;
   /**
-   * Turnstile secret. When set, every request must carry a token the challenge
-   * issued. When absent the proxy only serves the local dev origin — see the
-   * check in `fetch`, because "no secret" must not mean "no gate".
+   * Turnstile secret. When set, requests that have used up the free quota must
+   * carry a token the challenge issued. When absent the proxy only serves the
+   * local dev origin — see the check in `fetch`, because "no secret" must not
+   * mean "no gate".
    */
   TURNSTILE_SECRET_KEY?: string;
   /** Comma-separated exact origins allowed to call this proxy. */
@@ -19,22 +21,23 @@ interface Env {
   CONTACT_EMAIL?: string;
   /**
    * Temporary, explicit escape hatch: `"1"` serves the allowlisted origins
-   * WITHOUT a Turnstile token.
+   * WITHOUT a Turnstile token at any point in a conversation.
    *
    * Why it exists: this proxy is called from `nextjs.hehonglei.cn`, which is
    * hosted on EdgeOne and is not a zone on this Cloudflare account. A Turnstile
    * widget's managed domains are checked against the account's zones, so the
-   * challenge can never issue a token there — the gate has never been able to
-   * pass on that host. Setting this accepts that degradation instead of
-   * pretending the layer works.
+   * challenge can never issue a token there. Setting this accepts that
+   * degradation instead of pretending the layer works. The same is true of
+   * `www.hehonglei.cn` on a mainland-China network, where the challenge loads
+   * but never completes.
    *
    * What still protects the endpoint with this on: the exact-match origin
    * allowlist (browsers only), the durable per-IP rate limit via the Cache API,
    * `max_tokens` per reply, and — the real ceiling — the DeepSeek console
    * spending cap.
    *
-   * Unset/anything else keeps the previous fail-closed behaviour, so removing
-   * the var restores the challenge without a code change.
+   * Unset/anything else keeps the previous fail-closed behaviour on gated
+   * requests, so removing the var restores the challenge without a code change.
    */
   ALLOW_UNVERIFIED?: string;
 }
@@ -189,14 +192,16 @@ export default {
 
     // Whether the Turnstile gate applies to this request. `ALLOW_UNVERIFIED=1`
     // is the explicit, documented opt-out for hosts where the widget cannot
-    // issue a token at all (see the Env comment). Read once, so the two checks
-    // below cannot disagree.
+    // issue a token at all (see the Env comment). Read once, so the checks below
+    // cannot disagree.
     const challengeRequired = isChallengeRequired(env);
 
     // Fail closed: with no Turnstile secret the proxy cannot tell a reader from a
     // script, and the Origin check cannot either. Rather than run open, it serves
     // local development only — so a deployment that forgets the secret stops
-    // working instead of quietly becoming a free LLM endpoint.
+    // working instead of quietly becoming a free LLM endpoint. This is about a
+    // broken deploy, not about the quota: it does not wait for the quota to run
+    // out, because "no secret" must never mean "some free turns for everyone".
     if (challengeRequired && !env.TURNSTILE_SECRET_KEY && origin !== DEV_ORIGIN) {
       return new Response('Turnstile is not configured', {
         status: 503,
@@ -237,17 +242,25 @@ export default {
 
     const { messages, context } = parsed;
 
-    // The token is verified before anything is sent upstream, and the reason is
-    // logged rather than returned: it would tell a caller which part to fix.
-    if (challengeRequired && env.TURNSTILE_SECRET_KEY) {
+    // The gate. It is a quota on the conversation, counted from the very payload
+    // that is about to be sent (see `gate.ts`), so the opening questions never
+    // meet the challenge — including on the networks where the challenge cannot
+    // complete and would otherwise lock the chat shut. Only a conversation that
+    // has kept going is asked to prove it comes from a person.
+    const gated = challengeRequired && needsTurnstile(messages);
+
+    if (gated) {
+      // Verified before anything is sent upstream. The failure *reason* stays in
+      // the log, but the body is a marker the widget acts on: it re-renders the
+      // challenge instead of showing a generic error.
       const turnstile = await verifyTurnstile({
         token: parsed.turnstileToken,
-        secret: env.TURNSTILE_SECRET_KEY,
+        secret: env.TURNSTILE_SECRET_KEY as string,
         remoteIp: ip,
       });
       if (!turnstile.ok) {
         console.error('Turnstile rejected', turnstile.reason);
-        return new Response('Forbidden', {
+        return new Response('turnstile-required', {
           status: 403,
           headers: corsHeaders(origin),
         });
